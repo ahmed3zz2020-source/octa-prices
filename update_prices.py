@@ -196,11 +196,6 @@ def get(sym):
     r = d.get(sym)
     return (r["price"], r["change"]) if r else (0.0, 0.0)
 
-def get(sym):
-    p = tv(sym)
-    return p if p else (0.0, 0.0)
-
-
 def update_loop():
     while True:
         try:
