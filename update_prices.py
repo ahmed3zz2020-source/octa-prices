@@ -5,7 +5,6 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-
 # ============ CORS (ضروري للمتصفح) ============
 @app.after_request
 def add_cors_headers(response):
