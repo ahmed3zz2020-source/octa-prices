@@ -191,17 +191,10 @@ def refresh_interval():
     p = market_phase()
     return 120 if p == "open" else (600 if p == "pre" else 3600)
 
-def tv(sym):
-    try:
-        r = requests.get(f"https://www.tradingview-widget.com/api/v1/quote?symbol={sym}", timeout=8, headers={"User-Agent": "Mozilla/5.0"})
-        if r.status_code == 200:
-            v = r.json().get("v")
-            if v and v.get("lp"):
-                return float(v["lp"]), float(v.get("ch", 0))
-    except Exception as e:
-        print(f"TV err {sym}: {e}")
-    return None
-
+def get(sym):
+    d = tv_batch([sym])
+    r = d.get(sym)
+    return (r["price"], r["change"]) if r else (0.0, 0.0)
 
 def get(sym):
     p = tv(sym)
@@ -211,29 +204,42 @@ def get(sym):
 def update_loop():
     while True:
         try:
-            print("OCTA Update:", datetime.utcnow().isoformat())
+            phase = market_phase()
+            print(f"\n=== OCTA {datetime.utcnow().isoformat()}Z | {phase} ===")
+            scan = tv_batch([f"EGX:{c}" for c, _, _ in EGX], host="egypt")
+            tick = tv_batch([s for _, _, s, _ in TICKER], host="global")
             tk = []
-            for tid, label, sym in TICKER:
-                p, c = get(sym)
-                tk.append({"id": tid, "label": label, "value": round(p, 2), "change": round(c, 2), "trend": "up" if c >= 0 else "down", "unit": "EGP" if "EGP" in tid else ""})
-                time.sleep(0.4)
+            for tid, label, sym, unit in TICKER:
+                r = tick.get(sym) or {}
+                tk.append({"id": tid, "label": label, "value": r.get("price", 0),
+                           "change": r.get("change", 0),
+                           "trend": "up" if r.get("change", 0) >= 0 else "down", "unit": unit})
             st = []
             for code, name, sec in EGX:
-                p, c = get(f"EGX:{code}")
-                if p > 0:
-                    st.append({"code": code, "name": name, "price": round(p, 2), "change": round(c, 2), "sector": sec})
-                time.sleep(0.4)
+                r = scan.get(f"EGX:{code}")
+                if r:
+                    st.append({"code": code, "name": name, "sector": sec, "price": r["price"],
+                               "change": r["change"], "change_abs": r["change_abs"], "volume": r["volume"]})
             LIVE_DATA["lastUpdate"] = datetime.utcnow().isoformat() + "Z"
+            LIVE_DATA["market_phase"] = phase
+            LIVE_DATA["market_open"] = (phase == "open")
             LIVE_DATA["ticker"] = tk
             LIVE_DATA["egx30"] = st
+            by_chg = sorted([s for s in st if s["change"] is not None], key=lambda x: x["change"], reverse=True)
+            by_vol = sorted([s for s in st if s["volume"]], key=lambda x: x["volume"], reverse=True)
+            LIVE_DATA["top_movers"] = {"gainers": by_chg[:10], "losers": list(reversed(by_chg[-10:])),
+                                       "most_active": by_vol[:10]}
+            LIVE_DATA["total_stocks"] = len(st)
             try:
                 with open(CACHE_FILE, "w", encoding="utf-8") as f:
                     json.dump(LIVE_DATA, f, ensure_ascii=False, indent=2)
-            except: pass
-            print(f"SAVED: {len(tk)} tickers, {len(st)} stocks")
+            except Exception as e:
+                print(f"cache err: {e}")
+            print(f"✅ {len(st)} stocks | {len(tk)} tickers | {phase}")
+            if by_chg: print(f"   🥇 {by_chg[0]['code']} {by_chg[0]['change']:+.2f}%")
         except Exception as e:
-            print(f"Loop err: {e}")
-        time.sleep(300)
+            print(f"❌ {e}")
+        time.sleep(refresh_interval())
 
 
 threading.Thread(target=update_loop, daemon=True).start()
