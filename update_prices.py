@@ -5,6 +5,19 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+
+# ============ CORS (ضروري للمتصفح) ============
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+@app.route("/<path:any>", methods=["OPTIONS"])
+@app.route("/", methods=["OPTIONS"])
+def preflight(any=""):
+    return "", 204
 CACHE_FILE = Path("/app/cache.json")
 LIVE_DATA = {"lastUpdate": None, "market": "EGX", "status": "open", "ticker": [], "egx30": []}
 
