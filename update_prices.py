@@ -160,7 +160,7 @@ def tv_batch(symbols, host="global"):
         r = requests.post(
             f"https://scanner.tradingview.com/{host}/scan",
                         json={"symbols": {"tickers": symbols, "query": {"types": []}},
-                                    "columns": ["close", "change", "change_abs", "volume"]},
+                                    "columns": ["close", "change", "change_abs", "volume", "Perf.W", "Perf.1M", "Perf.3M", "Perf.6M", "Perf.Y"]},
             headers=TV_HEADERS, timeout=25)
         r.raise_for_status()
         out = {}
@@ -169,14 +169,14 @@ def tv_batch(symbols, host="global"):
             if len(d) >= 2 and d[0] is not None:
                 out[row["s"]] = {
           "price": round(float(d[0]), 4),
-                    "perf_w": float(d[4]) if len(d) > 4 and d[4] is not None else None,
-"perf_1m": float(d[5]) if len(d) > 5 and d[5] is not None else None,
-"perf_3m": float(d[6]) if len(d) > 6 and d[6] is not None else None,
-"perf_6m": float(d[7]) if len(d) > 7 and d[7] is not None else None,
-"perf_y": float(d[8]) if len(d) > 8 and d[8] is not None else None,
                     "change": round(float(d[1]), 2) if d[1] is not None else 0.0,
                     "change_abs": round(float(d[2]), 4) if len(d) > 2 and d[2] else 0.0,
-                    "volume": int(d[3]) if len(d) > 3 and d[3] else 0}
+                    "volume": int(d[3]) if len(d) > 3 and d[3] else 0,
+                    "perf_w": float(d[4]) if len(d) > 4 and d[4] is not None else None,
+                    "perf_1m": float(d[5]) if len(d) > 5 and d[5] is not None else None,
+                    "perf_3m": float(d[6]) if len(d) > 6 and d[6] is not None else None,
+                    "perf_6m": float(d[7]) if len(d) > 7 and d[7] is not None else None,
+                    "perf_y": float(d[8]) if len(d) > 8 and d[8] is not None else None}
         print(f"[TV] {len(out)}/{len(symbols)}")
         return out
     except Exception as e:
@@ -218,12 +218,9 @@ def update_loop():
                 r = scan.get(f"EGX:{code}")
                 if r:
                     st.append({"code": code, "name": name, "sector": sec, "price": r["price"],
-                               "change": r["change"], "change_abs": r["change_abs"], "volume": r["volume"]})
-                    "perf_w": r.get("perf_w"),
-"perf_1m": r.get("perf_1m"),
-"perf_3m": r.get("perf_3m"),
-"perf_6m": r.get("perf_6m"),
-"perf_y": r.get("perf_y"),
+                               "change": r["change"], "change_abs": r["change_abs"], "volume": r["volume"],
+                               "perf_w": r.get("perf_w"), "perf_1m": r.get("perf_1m"), "perf_3m": r.get("perf_3m"),
+                               "perf_6m": r.get("perf_6m"), "perf_y": r.get("perf_y")})
             LIVE_DATA["lastUpdate"] = datetime.utcnow().isoformat() + "Z"
             LIVE_DATA["market_phase"] = phase
             LIVE_DATA["market_open"] = (phase == "open")
