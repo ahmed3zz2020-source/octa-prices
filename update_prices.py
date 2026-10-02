@@ -161,7 +161,7 @@ def tv_batch(symbols, host="global"):
         r = requests.post(
             f"https://scanner.tradingview.com/{host}/scan",
             json={"symbols": {"tickers": symbols, "query": {"types": []}},
-                  "columns": ["close", "change", "change_abs", "volume", "Perf.W", "Perf.1M", "Perf.3M", "Perf.6M", "Perf.Y"]
+                  "columns": ["close", "change", "change_abs", "volume", "Perf.W", "Perf.1M", "Perf.3M", "Perf.6M", "Perf.Y"],
             headers=TV_HEADERS, timeout=25)
         r.raise_for_status()
         out = {}
