@@ -125,13 +125,71 @@ EGX = [
 ]
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
+
+# ═══════ تحميل كل أسهم البورصة تلقائياً (271 سهم) ═══════
+STOCKS_URL = "https://ewo9h40jkd9co.space.minimax.io/data/egx-stocks.json"
+
+def load_egx():
+    try:
+        r = requests.get(STOCKS_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        r.raise_for_status()
+        return [(s["c"], s["n"], s["s"]) for s in r.json()["stocks"]]
+    except Exception as e:
+        print(f"[WARN] {e}")
+        return []
+
+EGX = load_egx() or EGX
+EGX_MAP = {c: (n, s) for c, n, s in EGX}
+print(f"[OK] {len(EGX)} EGX stocks")
+
+# ═══════ الأصول بالاسم العربي ═══════
 TICKER = [
-    ("tk-egx", "EGX30", "EGX:EGX30"), ("tk-gold", "GOLD", "OANDA:XAUUSD"),
-    ("tk-oil", "USOIL", "TVC:USOIL"), ("tk-ukoil", "UKOIL", "TVC:UKOIL"),
-    ("tk-usd", "USD/EGP", "EGP=X"), ("tk-eur", "EUR/EGP", "EUR=X"),
-    ("tk-spx", "S&P 500", "SP:SPX"), ("tk-silver", "SILVER", "OANDA:XAGUSD"),
+    ("tk-egx",   "EGX30",        "EGX:EGX30",    ""),
+    ("tk-gold",  "جولد",         "OANDA:XAUUSD",  "أونصة"),
+    ("tk-usd",   "دولار/جنيه",  "FX_IDC:USDEGP", "ج.م"),
+    ("tk-oil",   "نفط WTI",      "NYMEX:CL1!",    "برميل"),
+    ("tk-brent", "نفط برنت",     "ICEEUR:BRN1!",  "برميل"),
+    ("tk-silver","فضة",          "TVC:SILVER",    "أونصة"),
+    ("tk-spx",   "S&P 500",      "SP:SPX",        ""),
 ]
 
+TV_HEADERS = {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"}
+
+def tv_batch(symbols, host="global"):
+    try:
+        if not symbols: return {}
+        r = requests.post(
+            f"https://scanner.tradingview.com/{host}/scan",
+            json={"symbols": {"tickers": symbols, "query": {"types": []}},
+                  "columns": ["close", "change", "change_abs", "volume"]},
+            headers=TV_HEADERS, timeout=25)
+        r.raise_for_status()
+        out = {}
+        for row in r.json().get("data", []):
+            d = row.get("d") or []
+            if len(d) >= 2 and d[0] is not None:
+                out[row["s"]] = {
+                    "price": round(float(d[0]), 4),
+                    "change": round(float(d[1]), 2) if d[1] is not None else 0.0,
+                    "change_abs": round(float(d[2]), 4) if len(d) > 2 and d[2] else 0.0,
+                    "volume": int(d[3]) if len(d) > 3 and d[3] else 0}
+        print(f"[TV] {len(out)}/{len(symbols)}")
+        return out
+    except Exception as e:
+        print(f"[TV ERR] {e}")
+        return {}
+
+def market_phase():
+    from datetime import timedelta
+    now = datetime.utcnow() + timedelta(hours=3)
+    if now.weekday() in (4, 5): return "weekend"
+    if now.hour >= 15: return "closed"
+    if now.hour < 10: return "pre"
+    return "open"
+
+def refresh_interval():
+    p = market_phase()
+    return 120 if p == "open" else (600 if p == "pre" else 3600)
 
 def tv(sym):
     try:
