@@ -126,7 +126,7 @@ EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
 
 # ═══════ تحميل كل أسهم البورصة تلقائياً (271 سهم) ═══════
-STOCKS_URL = "https://ewo9h40jkd9co.space.minimax.io/data/egx-stocks.json"
+STOCKS_URL = "https://j1quofd4jt0cp.space.minimax.io/data/egx-stocks.json".space.minimax.io/data/egx-stocks.json"
 
 def load_egx():
     try:
