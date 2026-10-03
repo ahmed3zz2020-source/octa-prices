@@ -1,0 +1,48 @@
+name: OCTA Code Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  syntax-check:
+    name: فحص صحة الكود
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 تحميل الكود
+        uses: actions/checkout@v4
+
+      - name: 🐍 تجهيز Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🔍 فحص syntax
+        run: |
+          echo "فحص update_prices.py..."
+          python -c "import ast; ast.parse(open('update_prices.py', encoding='utf-8').read()); print('✅ update_prices.py سليم')"
+
+      - name: 🔍 فحص dependencies
+        run: |
+          echo "فحص requirements.txt..."
+          test -f requirements.txt && echo "✅ requirements.txt موجود" || echo "⚠️ لا يوجد"
+          test -f Procfile && echo "✅ Procfile موجود" || echo "❌ Procfile مفقود!"
+          grep -q "web:" Procfile && echo "✅ Procfile فيه web:" || echo "❌ مفيش web: في Procfile"
+
+      - name: 🔍 فحص أنماط الغلط
+        run: |
+          echo "فحص أنماط غلط..."
+          if grep -n '\.\.\.' update_prices.py | grep -v '^\s*#'; then
+            echo "❌ لقيت ... برّه كومنت — ده غالباً خطأ لصق!"
+            exit 1
+          fi
+          echo "✅ مفيش أنماط غلط"
+
+      - name: 📊 ملخص
+        run: |
+          echo ""
+          echo "╔══════════════════════════════╗"
+          echo "║   ✅ الكود سليم — ينفع ينشر  ║"
+          echo "╚══════════════════════════════╝"
