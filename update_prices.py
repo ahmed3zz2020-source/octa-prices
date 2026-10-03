@@ -676,13 +676,13 @@ def search(q):
     return jsonify({"query": q, "count": len(hits), "results": hits[:50]})
 
 
-@app.route("/api/dividends")
+@app.route("/api/dividends", methods=["GET", "POST"])
 def dividends():
     """كل الـ corporate actions (نقدي/أسهم/تقسيم/زيادة رأس مال)"""
     return jsonify(_div_snapshot())
 
 
-@app.route("/api/dividends/stats")
+@app.route("/api/dividends/stats", methods=["GET", "POST"])
 def dividends_stats():
     """ملخص ذكي للتوزيعات القادمة"""
     snap = _div_snapshot()
