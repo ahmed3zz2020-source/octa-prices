@@ -295,8 +295,6 @@ TICKER = [
     ("tk-egx70","EGX70","EGX:EGX70EWI"),
     ("tk-egx100","EGX100","EGX:EGX100EWI"),
     ("tk-egx33","EGX33","EGX:SHARIAH"),
-    ("tk-egx70","EGX70","EGX:EGX70"),
-    ("tk-egx100","EGX100","EGX:EGX100"),
     ("tk-egx33","EGX33","EGX:EGX33"),("tk-gold","GOLD","OANDA:XAUUSD"),
     ("tk-oil","نفط WTI","NYMEX:CL1!"),("tk-ukoil","نفط برنت","ICEEUR:BRN1!"),
     ("tk-usd","دولار/جنيه","FX_IDC:USDEGP"),("tk-eur","يورو/جنيه","FX_IDC:EUREGP"),
