@@ -291,10 +291,13 @@ def calc_levels(price, decision, overall_score):
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
 TICKER = [
-    ("tk-egx","EGX30","EGX:EGX30"),("tk-gold","GOLD","OANDA:XAUUSD"),
-    ("tk-oil","USOIL","TVC:USOIL"),("tk-ukoil","UKOIL","TVC:UKOIL"),
-    ("tk-usd","USD/EGP","EGP=X"),("tk-eur","EUR/EGP","EUR=X"),
-    ("tk-spx","S&P 500","SP:SPX"),("tk-silver","SILVER","OANDA:XAGUSD"),
+    ("tk-egx","EGX30","EGX:EGX30"),
+    ("tk-egx70","EGX70","EGX:EGX70"),
+    ("tk-egx100","EGX100","EGX:EGX100"),
+    ("tk-egx33","EGX33","EGX:EGX33"),("tk-gold","GOLD","OANDA:XAUUSD"),
+    ("tk-oil","نفط WTI","NYMEX:CL1!"),("tk-ukoil","نفط برنت","ICEEUR:BRN1!"),
+    ("tk-usd","دولار/جنيه","FX_IDC:USDEGP"),("tk-eur","يورو/جنيه","FX_IDC:EUREGP"),
+    ("tk-spx","S&P 500","SP:SPX"),("tk-silver","فضة","TVC:SILVER"),
 ]
 
 # ══════════ TradingView Scanner API (batch — كل الأسهم في طلب واحد) ══════════
