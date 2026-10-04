@@ -468,7 +468,16 @@ def _prices_map():
 
 def _div_snapshot():
     try:
-        return div_actions.build_snapshot(_prices_map())
+                prices = _prices_map()
+        codes = {a["code"] for a in div_actions.CACHE.get("actions", [])}
+        missing = [c for c in codes if c not in prices]
+        if missing:
+            scan = tv_batch([f"EGX:{c}" for c in missing], host="egypt")
+            for sym, r in (scan or {}).items():
+                code = sym.replace("EGX:", "")
+                if r.get("price"):
+                    prices[code] = r["price"]
+        return div_actions.build_snapshot(prices)
     except Exception as e:
         print(f"[DIV] snapshot error: {e}")
         return {"actions": [], "stats": {}, "lastUpdate": None, "source": "unavailable"}
