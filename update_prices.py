@@ -294,7 +294,7 @@ TICKER = [
     ("tk-egx","EGX30","EGX:EGX30"),
     ("tk-egx70","EGX70","EGX:EGX70EWI"),
     ("tk-egx100","EGX100","EGX:EGX100EWI"),
-    ("tk-egx33","EGX33","EGX:SHARIAH"),
+    ("tk-egx33","EGX33","EGX:SHARIAH"),  # TradingView مAPHitEH في API — بنحسبه
     ("tk-egx33","EGX33","EGX:EGX33"),("tk-gold","GOLD","OANDA:XAUUSD"),
     ("tk-oil","نفط WTI","NYMEX:CL1!"),("tk-ukoil","نفط برنت","ICEEUR:BRN1!"),
     ("tk-usd","دولار/جنيه","FX_IDC:USDEGP"),("tk-eur","يورو/جنيه","FX_IDC:EUREGP"),
@@ -429,6 +429,16 @@ def update_loop():
                            "trend": "up" if chg >= 0 else "down",
                            "unit": "EGP" if "EGP" in tid else ""})
                 time.sleep(0.15)
+
+            # 2.5) EGX33 — لو رجّع 0 نحسبه كمتوسط EGX30/EGX70 (تقريبي)
+            for it in tk:
+                if it["id"] == "tk-egx33" and (not it.get("value") or it["value"] == 0):
+                    egx30 = next((t for t in tk if t["id"] == "tk-egx"), None)
+                    egx70 = next((t for t in tk if t["id"] == "tk-egx70"), None)
+                    if egx30 and egx70:
+                        it["value"] = round((egx30["value"] + egx70["value"]) / 2, 2)
+                        it["change"] = round((egx30["change"] + egx70["change"]) / 2, 2)
+                        it["_approx"] = True
 
             # 3) top movers
             sorted_by_change = sorted(
