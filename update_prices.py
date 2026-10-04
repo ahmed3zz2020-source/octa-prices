@@ -329,9 +329,9 @@ def refresh_interval():
     return 3600             # ساعة بعد الإغلاق / الويك إند
 
 
-def tv_scan_all():
+def tv_scan_all(symbols=None):
     """يجيب كل الأسعار والتغيرات في طلب واحد"""
-    tickers = [f"EGX:{c}" for c, _, _ in EGX]
+    tickers = symbols if symbols else [f"EGX:{c}" for c, _, _ in EGX]
     payload = {
         "symbols": {"tickers": tickers, "query": {"types": []}},
         "columns": ["close", "change", "change_abs", "volume", "name", "description"]
@@ -353,7 +353,7 @@ def tv_scan_all():
                 "change_abs": round(float(d[2]), 4) if d[2] is not None else 0.0,
                 "volume": int(d[3]) if d[3] else 0,
             }
-        print(f"  📊 TV Scanner: {len(out)}/{len(EGX)} سهم")
+        print(f"  📊 TV Scanner: {len(out)}/{len(tickers)} سهم")
     except Exception as e:
         print(f"  ⚠️ TV Scanner error: {e}")
     return out
@@ -468,11 +468,11 @@ def _prices_map():
 
 def _div_snapshot():
     try:
-                prices = _prices_map()
+        prices = _prices_map()
         codes = {a["code"] for a in div_actions.CACHE.get("actions", [])}
         missing = [c for c in codes if c not in prices]
         if missing:
-            scan = tv_batch([f"EGX:{c}" for c in missing], host="egypt")
+            scan = tv_scan_all([f"EGX:{c}" for c in missing])
             for sym, r in (scan or {}).items():
                 code = sym.replace("EGX:", "")
                 if r.get("price"):

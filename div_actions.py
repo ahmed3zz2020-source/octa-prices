@@ -203,6 +203,7 @@ def build_snapshot(prices: dict) -> dict:
     for a in actions:
         a = dict(a)
         a["yieldPct"] = _calc_yield(a, prices)
+        a["lastClose"] = (prices or {}).get(a["code"])
         a["status"] = _status_of(a)
         enriched.append(a)
 
