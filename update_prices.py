@@ -352,6 +352,11 @@ def tv_scan_all(symbols=None):
                 "change": round(float(d[1]), 2) if d[1] is not None else 0.0,
                 "change_abs": round(float(d[2]), 4) if d[2] is not None else 0.0,
                 "volume": int(d[3]) if d[3] else 0,
+                "perf_w":  float(d[4]) if len(d) > 4 and d[4] is not None else None,
+                "perf_1m": float(d[5]) if len(d) > 5 and d[5] is not None else None,
+                "perf_3m": float(d[6]) if len(d) > 6 and d[6] is not None else None,
+                "perf_6m": float(d[7]) if len(d) > 7 and d[7] is not None else None,
+                "perf_y":  float(d[8]) if len(d) > 8 and d[8] is not None else None,
             }
         print(f"  📊 TV Scanner: {len(out)}/{len(tickers)} سهم")
     except Exception as e:
@@ -386,7 +391,10 @@ def update_loop():
                     st.append({
                         "code": code, "name": name, "sector": sec,
                         "price": live["price"], "change": live["change"],
-                        "change_abs": live["change_abs"], "volume": live["volume"]
+                        "change_abs": live["change_abs"], "volume": live["volume"],
+                        "perf_w": live.get("perf_w"), "perf_1m": live.get("perf_1m"),
+                        "perf_3m": live.get("perf_3m"), "perf_6m": live.get("perf_6m"),
+                        "perf_y": live.get("perf_y")
                     })
                     known[code] = {"code": code, "price": live["price"], "change": live["change"]}
                 elif code in known:
