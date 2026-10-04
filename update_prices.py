@@ -334,7 +334,7 @@ def tv_scan_all(symbols=None):
     tickers = symbols if symbols else [f"EGX:{c}" for c, _, _ in EGX]
     payload = {
         "symbols": {"tickers": tickers, "query": {"types": []}},
-        "columns": ["close", "change", "change_abs", "volume", "name", "description"]
+        "columns": ["close", "change", "change_abs", "volume", "Perf.W", "Perf.1M", "Perf.3M", "Perf.6M", "Perf.Y"]
     }
     out = {}
     try:
@@ -427,11 +427,16 @@ def update_loop():
                 [s for s in st if s.get("volume")],
                 key=lambda x: x["volume"], reverse=True
             )
-            top_movers = {
-                "gainers": sorted_by_change[:10],
-                "losers": list(reversed(sorted_by_change[-10:])),
-                "most_active": sorted_by_volume[:10]
-            }
+            PERIODS = ["change", "perf_w", "perf_1m", "perf_3m", "perf_6m", "perf_y"]
+            top_movers = {}
+            for pk in PERIODS:
+                valid = [s for s in st if s.get(pk) is not None]
+                desc = sorted(valid, key=lambda x: x[pk], reverse=True)
+                top_movers[pk] = {
+                    "gainers": desc[:10],
+                    "losers": list(reversed(desc[-10:])),
+                    "most_active": sorted_by_volume[:10]
+                }
 
             # 4) commit للـ memory
             LIVE_DATA["lastUpdate"] = datetime.utcnow().isoformat() + "Z"
