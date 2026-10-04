@@ -189,7 +189,7 @@ def _calc_yield(a: dict, prices: dict) -> float:
     try:
         y = (float(a["value"]) / float(price)) * 100
         # التوزيعNAT Sobre سعر السهم نادراً ما بيكون > 50% في السوق المصري
-        if y > 60:
+        if y > 150:
             return None
         return round(y, 2)
     except Exception:
