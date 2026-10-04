@@ -22,6 +22,31 @@ HEADERS = {
 }
 
 # نوع الحدث → التسمية بالعربي
+
+# ═══ الأسماء العربية (من egx_names.json — 271 سهم) ═══
+try:
+    import egx_names
+    NAME_MAP = dict(egx_names.NAMES)
+    SECTOR_MAP = dict(egx_names.SECTORS)
+except Exception as _e:
+    print(f"[DIV] egx_names load failed: {_e}")
+    NAME_MAP, SECTOR_MAP = {}, {}
+
+
+def set_name_map(mapping=None):
+    """اختياري: نحدّث الخريطة من EGX المحلي"""
+    global NAME_MAP
+    if mapping:
+        NAME_MAP = {**NAME_MAP, **dict(mapping)}
+
+
+def get_name(code, fallback=None):
+    return NAME_MAP.get(code) or fallback
+
+
+def get_sector(code, fallback=None):
+    return SECTOR_MAP.get(code) or fallback
+
 KIND_AR = {
     "cash_dividend": "نقدي",
     "stock_dividend": "أسهم",
@@ -202,6 +227,12 @@ def build_snapshot(prices: dict) -> dict:
     enriched = []
     for a in actions:
         a = dict(a)
+        # الاسم العربي: من المصدر، أو من egx_names.json (271 سهم)
+        if not a.get("nameAr"):
+            a["nameAr"] = NAME_MAP.get(a["code"])
+        # القطاع من المرجع المحلي
+        if not a.get("sector"):
+            a["sector"] = SECTOR_MAP.get(a["code"], "")
         a["yieldPct"] = _calc_yield(a, prices)
         a["lastClose"] = (prices or {}).get(a["code"])
         a["status"] = _status_of(a)
