@@ -2480,7 +2480,10 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     axes["liquidity"] = _f(liq["score"]) if liq else 50.0
     axes["news"] = _f(item.get("news_score"), 45.0)
     axes["sentiment"] = _f(sent["score"]) if sent else 50.0
-    axes["risk"] = _f(item.get("all_axes", {}).get("risk"), 60.0)
+    _all = item.get("all_axes") or {}
+    if not isinstance(_all, dict):
+        _all = {}
+    axes["risk"] = _f(_all.get("risk"), 60.0)
     axes["portfolio"] = _f(pfit["score"]) if pfit else 70.0
 
     # المحصلة بأوزان الاستراتيجية
