@@ -37,29 +37,7 @@ GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 # Cache للتحليلات: {code: {data, timestamp}}
 AI_CACHE = {}
-# التحليل بياخد ~30 ثانية — نخزنه 6 ساعات بدل ساعة
-# (البيانات الأساسية بتتحدث كل 2 دقيقة، لكن التحليل مالوش لازم يتكرر)
-AI_CACHE_TTL = 21600  # 6 ساعات
-AI_CACHE_MAX = 300    # أكبر عدد أسmemo محفوظة في الذاكرة
-
-# كاش على القرص — يفضل موجود حتى لو السيرفر اتعمله restart
-AI_DISK = Path("/app/ai_cache.json")
-
-def _load_ai_disk():
-    try:
-        if AI_DISK.exists():
-            with open(AI_DISK, "r", encoding="utf-8") as f:
-                return json.load(f)
-    except Exception as e:
-        print(f"  AI disk cache load err: {e}")
-    return {}
-
-def _save_ai_disk():
-    try:
-        with open(AI_DISK, "w", encoding="utf-8") as f:
-            json.dump(AI_CACHE, f, ensure_ascii=False)
-    except Exception as e:
-        print(f"  AI disk cache write err: {e}")
+AI_CACHE_TTL = 3600
 
 # آخر سعر شفناه لكل سهم (بيتبني من ENGINE_TABLE_DATA أو أي مصدر)
 # بيتحفظ هنا عشان لو السعر الحي مش متاح، نستخدم آخر سعر معروف
@@ -670,111 +648,6 @@ def facts_text(item):
     return "\n".join(f)
 
 
-
-# ═══════════ Phase 1: نتيجة فورية من الأرقام الحقيقية ═══════════
-# لو الكاش فاضي، نرجع نتيجة محسوبة رياضياً فوراً (بدون انتظار الـ AI)
-# الـ AI بعدين يحدّثها لما يجي دوره
-def quick_score(item):
-    """حساب رياضي سريع من الأرقام الحقيقية — هي دقيق كفاية كبداية"""
-    if not item or not item.get("price"):
-        return None
-
-    axes = {}
-
-    # 1) فني: تقييم المصدر + أداء الشهر
-    tv = item.get("tv_rating")
-    p1m = item.get("perf_1m")
-    t = 50.0
-    if tv is not None:
-        t += tv * 40
-    if p1m is not None:
-        t += max(-15, min(15, p1m / 3))
-    axes["technical"] = round(max(0, min(100, t)))
-
-    # 2) أساسي: P/E + ROE + الهوامش
-    pe, roe = item.get("pe"), item.get("roe")
-    f = 55.0
-    if pe is not None:
-        if pe < 0: f = 30
-        elif pe < 8: f = 88
-        elif pe < 15: f = 78
-        elif pe < 25: f = 65
-        elif pe < 40: f = 50
-        else: f = 35
-    if roe is not None:
-        if roe > 30: f += 10
-        elif roe < 10: f -= 10
-    axes["fundamental"] = round(max(0, min(100, f)))
-
-    # 3) سيولة: الحجم السوقي + الحجم النسبي
-    mc = item.get("mkt_cap")
-    l = 50.0
-    if mc is not None:
-        if mc > 50e9: l = 88
-        elif mc > 20e9: l = 80
-        elif mc > 5e9: l = 68
-        elif mc > 1e9: l = 55
-        else: l = 38
-    vol = item.get("volume")
-    if vol and vol > 1_000_000: l += 5
-    axes["liquidity"] = round(max(0, min(100, l)))
-
-    # 4) أخبار: ما فيش أخبار لسه = 45
-    axes["news"] = 45
-
-    # 5) معنويات: من أداء الشهر
-    s = 50.0
-    if p1m is not None:
-        s += max(-25, min(25, p1m / 2))
-    axes["sentiment"] = round(max(0, min(100, s)))
-
-    # 6) مخاطر (عكسي)
-    beta, vola, de = item.get("beta"), item.get("volatility"), item.get("de_ratio")
-    r = 80.0
-    if beta is not None: r -= beta * 12
-    if vola is not None: r -= vola * 3
-    if de is not None: r -= min(25, de * 3)
-    axes["risk"] = round(max(0, min(100, r)))
-
-    # 7) ملاءمة المحفظة: مبدئياً حسب حجم السوق (Phase 8 هتكمّل)
-    axes["portfolio"] = 70
-
-    # المحصلة: مرجّحة مع خصم المخاطرة
-    w = {"technical": .18, "fundamental": .28, "liquidity": .12,
-         "news": .07, "sentiment": .08, "risk": .17, "portfolio": .10}
-    base = sum(axes[k] * w[k] for k in w)
-    risk_penalty = (100 - axes["risk"]) * 0.15
-    overall = round(max(0, min(100, base - risk_penalty)))
-    axes["overall"] = overall
-
-    # القرار من الأرقام
-    if axes["risk"] < 40:
-        decision = "تجنّب"
-    elif overall >= 75 and axes["technical"] >= 55:
-        decision = "تجميع"
-    elif overall >= 60:
-        decision = "احتفظ"
-    elif axes["fundamental"] >= 70:
-        decision = "احتفظ"
-    else:
-        decision = "بيع"
-
-    conf = int(item.get("data_confidence", 0))
-    level = "منخفض" if axes["risk"] < 40 else ("متوسط" if axes["risk"] < 70 else "مرتفع")
-
-    return {
-        "code": item["code"], "axes": axes,
-        "decision": decision, "confidence": min(85, conf),
-        "risk_level": level,
-        "reasons": [
-            f"مضاعف الربحية {pe:.1f}" if pe is not None else "بيانات الربحية غير متاحة",
-            f"العائد على الملكية {roe:.1f}%" if roe is not None else "العائد على الملكية غير متاح",
-            f"التقييم الفني {tv:+.2f}" if tv is not None else "التقييم الفني غير متاح",
-        ],
-        "_quick": True,
-    }
-
-
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -1034,9 +907,6 @@ def update_loop():
         time.sleep(refresh_interval())
 
 
-AI_CACHE.update(_load_ai_disk())
-print(f"  AI disk cache: {len(AI_CACHE)} entries")
-
 threading.Thread(target=update_loop, daemon=True).start()
 
 
@@ -1130,27 +1000,9 @@ def analyze():
         change = (item or {}).get("change", 0)
 
         # aude 1: تحليل بالأرقام الحقيقية
-        # ═══ Phase 1: نتيجة فورية لو الكاش فاضي (المستخدم مش مستني 30 ثانية) ═══
-        quick = quick_score(item)
         result = call_gemini(code, name, item)
 
         if "error" in result:
-            # لو الذكاء الاصطناعي فشل، نرجع النتيجة السريعة بدل ما نرجع خطأ
-            if quick:
-                quick["name"] = name
-                quick["sector"] = sector
-                quick["price"] = round(item.get("price", 0), 2)
-                quick["change"] = round(item.get("change", 0), 2)
-                quick["ai_error"] = str(result["error"])[:120]
-                quick["source"] = "quick_math"
-                t, sl = calc_levels(item.get("price", 0), quick["decision"], quick["axes"]["overall"])
-                quick["target"], quick["stop_loss"] = t, sl
-                quick["fundamentals"] = {k: item.get(k) for k in
-                    ("pe","pb","roe","beta","volatility","div_yield","net_margin","de_ratio","eps","tv_rating")}
-                quick["data_confidence"] = item.get("data_confidence", 0)
-                quick["data_grade"] = item.get("data_grade", "")
-                quick["data_ts"] = item.get("ts")
-                return jsonify(quick)
             return jsonify(result), 502
 
         result["sector"] = sector
@@ -1200,14 +1052,8 @@ def analyze():
         result["target"] = t
         result["stop_loss"] = s
 
-        # خزن في الـ cache (ذاكرة + قرص)
+        # خزن في الـ cache
         AI_CACHE[code] = {"data": result, "ts": time.time()}
-        # لو الكاش كبر، نشيل الأقدم
-        if len(AI_CACHE) > AI_CACHE_MAX:
-            oldest = sorted(AI_CACHE.items(), key=lambda kv: kv[1]["ts"])[:50]
-            for k, _ in oldest:
-                AI_CACHE.pop(k, None)
-        _save_ai_disk()
 
         return jsonify(result)
 
