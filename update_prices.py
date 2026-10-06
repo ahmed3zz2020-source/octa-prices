@@ -680,6 +680,13 @@ def quick_score(item):
     if not item or not item.get("price"):
         return None
 
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    # نعرّف المتغيرات الأساسية مرة واحدة في الأول — كلها محمية
+    p1m = _f(item.get("perf_1m"))
+
     axes = {}
 
     # 1) فني: لو عندنا محرك التحليل الفني الكامل، نستخدمه
@@ -688,7 +695,6 @@ def quick_score(item):
         axes["technical"] = round(tech["score"])
     else:
         tv = item.get("tv_rating") or item.get("tv_all")
-        p1m = item.get("perf_1m")
         t = 50.0
         if tv is not None:
             t += tv * 40
@@ -697,7 +703,7 @@ def quick_score(item):
         axes["technical"] = round(max(0, min(100, t)))
 
     # 2) أساسي: P/E + ROE + الهوامش
-    pe, roe = item.get("pe"), item.get("roe")
+    pe, roe = _f(item.get("pe")), _f(item.get("roe"))
     f = 55.0
     if pe is not None:
         if pe < 0: f = 30
@@ -712,7 +718,7 @@ def quick_score(item):
     axes["fundamental"] = round(max(0, min(100, f)))
 
     # 3) سيولة: الحجم السوقي + الحجم النسبي
-    mc = item.get("mkt_cap")
+    mc = _f(item.get("mkt_cap"))
     l = 50.0
     if mc is not None:
         if mc > 50e9: l = 88
@@ -720,7 +726,7 @@ def quick_score(item):
         elif mc > 5e9: l = 68
         elif mc > 1e9: l = 55
         else: l = 38
-    vol = item.get("volume")
+    vol = _f(item.get("volume"))
     if vol and vol > 1_000_000: l += 5
     axes["liquidity"] = round(max(0, min(100, l)))
 
@@ -734,7 +740,7 @@ def quick_score(item):
     axes["sentiment"] = round(max(0, min(100, s)))
 
     # 6) مخاطر (عكسي)
-    beta, vola, de = item.get("beta"), item.get("volatility"), item.get("de_ratio")
+    beta, vola, de = _f(item.get("beta")), _f(item.get("volatility")), _f(item.get("de_ratio"))
     r = 80.0
     if beta is not None: r -= beta * 12
     if vola is not None: r -= vola * 3
@@ -764,7 +770,8 @@ def quick_score(item):
     else:
         decision = "بيع"
 
-    conf = int(item.get("data_confidence", 0))
+    try: conf = int(float(item.get("data_confidence") or 0))
+    except (TypeError, ValueError): conf = 0
     level = "منخفض" if axes["risk"] < 40 else ("متوسط" if axes["risk"] < 70 else "مرتفع")
 
     return {
@@ -1037,6 +1044,10 @@ SECTOR_STATS = {}
 
 def build_sector_stats(all_stocks):
     """متوسط كل قطاع — لأن 'رخيص' معناها رخيص مقارنة بالقطاع"""
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
     stats, by_sec = {}, {}
     for s in all_stocks:
         by_sec.setdefault(s.get("sector") or "أخرى", []).append(s)
@@ -1045,11 +1056,11 @@ def build_sector_stats(all_stocks):
         xs = sorted(xs); n = len(xs)
         return xs[n//2] if n % 2 else (xs[n//2-1] + xs[n//2]) / 2
     for sec, st in by_sec.items():
-        pes  = [x["pe"] for x in st if x.get("pe") is not None and x["pe"] > 0]
-        roes = [x["roe"] for x in st if x.get("roe") is not None]
-        pbs  = [x["pb"] for x in st if x.get("pb") is not None and x["pb"] > 0]
-        nms  = [x["net_margin"] for x in st if x.get("net_margin") is not None]
-        des  = [x["de_ratio"] for x in st if x.get("de_ratio") is not None]
+        pes  = [v for v in (_f(x.get("pe")) for x in st) if v is not None and v > 0]
+        roes = [v for v in (_f(x.get("roe")) for x in st) if v is not None]
+        pbs  = [v for v in (_f(x.get("pb")) for x in st) if v is not None and v > 0]
+        nms  = [v for v in (_f(x.get("net_margin")) for x in st) if v is not None]
+        des  = [v for v in (_f(x.get("de_ratio")) for x in st) if v is not None]
         stats[sec] = {
             "count": len(st), "with_pe": len(pes),
             "median_pe": round(med(pes), 2) if pes else None,
@@ -1070,10 +1081,15 @@ def fundamental_score(item, peers_map=None):
     peers_map = peers_map if peers_map is not None else SECTOR_STATS
     sec = item.get("sector") or "أخرى"
     pr = peers_map.get(sec) or {}
-    P, B, R, N, D, E = (item.get("pe"), item.get("pb"), item.get("roe"),
-                        item.get("net_margin"), item.get("de_ratio"), item.get("eps"))
-    px = item.get("price")
-    ppe, ppb, proe = pr.get("median_pe"), pr.get("median_pb"), pr.get("median_roe")
+    def _f(v, d=None):
+        """يحمي من القيم النصية أو الفارغة"""
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    P, B, R, N, D, E = (_f(item.get("pe")), _f(item.get("pb")), _f(item.get("roe")),
+                        _f(item.get("net_margin")), _f(item.get("de_ratio")), _f(item.get("eps")))
+    px = _f(item.get("price"))
+    ppe, ppb, proe = _f(pr.get("median_pe")), _f(pr.get("median_pb")), _f(pr.get("median_roe"))
     pos, neg, neu = [], [], []
 
     # 1) الربحية (30)
@@ -1124,7 +1140,7 @@ def fundamental_score(item, peers_map=None):
         elif D < 0.8: health += 3
         elif D < 1.5: health += 0;  neu.append(f"ديون متوسطة ({D:.2f})")
         else:        health -= 6;  neg.append(f"ديون عالية ({D:.2f})")
-    bt = item.get("beta")
+    bt = _f(item.get("beta"))
     if bt is not None and bt > 2:
         health -= 3; neg.append(f"حساسية عالية للسوق (Beta {bt:.1f})")
     health_s = max(0, min(20, health))
@@ -1165,7 +1181,7 @@ def fundamental_score(item, peers_map=None):
         safe((px / B) * ppb * adj, f"قيمة دفترية × متوسط {ppb:.1f} × تعديل {adj}", "مضاعف الكتاب")
     if eps_d and eps_d > 0:
         safe(eps_d * 12, "مضاعف ربحية 12 (معيار السوق المصري)", "مضاعف معياري")
-    dy = item.get("div_yield")
+    dy = _f(item.get("div_yield"))
     if dy and 1.5 < dy < 30 and px:
         safe(px / (dy / 100) * 0.09, f"عائد {dy:.1f}% ← هدف 9%", "عائد التوزيعات")
 
@@ -1206,7 +1222,12 @@ def derive_technical(item):
     px = item["price"]
 
     # ── نقدر نستنتج متوسط 20 يوم من الأداء الشهري ──
-    p1m = item.get("perf_1m")
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+    p1m = _f(item.get("perf_1m"))
+    p3m = _f(item.get("perf_3m"))
+    py = _f(item.get("perf_y"))
     if item.get("ema20") is None and p1m is not None:
         # لو الشهر كله -X%، فالسعر قبل 20 يوم ≈ السعر / (1 + p1m/100)
         price_20d_ago = px / (1 + p1m / 100) if p1m > -95 else None
@@ -1216,7 +1237,6 @@ def derive_technical(item):
             item["_derived"] = item.get("_derived", []) + ["ema20"]
 
     # ── متوسط 50 يوم من أداء 3 شهور ──
-    p3m = item.get("perf_3m")
     if item.get("sma50") is None and p3m is not None:
         price_50d_ago = px / (1 + (p3m / 100) * (50 / 90)) if p3m > -95 else None
         if price_50d_ago:
@@ -1224,7 +1244,6 @@ def derive_technical(item):
             item["_derived"] = item.get("_derived", []) + ["sma50"]
 
     # ── متوسط 200 يوم من أداء السنة (بيغطي SMA200 و EMA200) ──
-    py = item.get("perf_y")
     if py is not None:
         price_200d_ago = px / (1 + (py / 100) * (200 / 365)) if py > -95 else None
         if price_200d_ago:
@@ -1237,7 +1256,6 @@ def derive_technical(item):
                 item["_derived"] = item.get("_derived", []) + ["ema200"]
         # متوسط 50 يوم بيغطي EMA50
         if item.get("ema50") is None:
-            p3m = item.get("perf_3m")
             if p3m is not None and p3m > -95:
                 p50 = px / (1 + (p3m / 100) * (50 / 90))
                 item["ema50"] = round((px + p50) / 2, 4)
@@ -1469,9 +1487,8 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     # 4) الأخبار — لسه مفيش مصدر
     axes["news"] = 45
 
-    # 5) المعنويات — من أداء الشهر (وبسMaximum 25% influence)
-    try: p1m = float(item.get("perf_1m")) if item.get("perf_1m") is not None else None
-    except (TypeError, ValueError): p1m = None
+    # 5) المعنويات — من أداء الشهر (بحد أقصى 25% تأثير)
+    p1m = _n(item.get("perf_1m"), None)
     s = 50.0
     if p1m is not None:
         s += max(-25, min(25, p1m / 2))
