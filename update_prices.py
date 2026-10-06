@@ -2872,6 +2872,216 @@ def bt_benchmark():
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 16: اختبار الضغوط + PHASE 17: المعايرة
+# ════════════════════════════════════════════════════════════
+
+SCENARIOS = {
+    "bull": {
+        "name_ar": "سوق صاعد",
+        "desc": "كل الأسهم بترتفع 20%",
+        "shocks": {"perf_1m": +20, "perf_3m": +35, "perf_y": +60, "rel_volume": 1.8, "volatility": 0.8, "tv_all": +0.35},
+    },
+    "bear": {
+        "name_ar": "سوق هابط",
+        "desc": "كل الأسهم بينزل 20%",
+        "shocks": {"perf_1m": -20, "perf_3m": -30, "perf_y": -40, "rel_volume": 1.5, "volatility": 1.6, "tv_all": -0.35},
+    },
+    "crash": {
+        "name_ar": "انهيار",
+        "desc": "انهيار حاد -35% فجأة",
+        "shocks": {"perf_1m": -35, "perf_3m": -45, "perf_y": -55, "rel_volume": 3.0, "volatility": 3.0, "tv_all": -0.7},
+    },
+    "flat": {
+        "name_ar": "سوق عرضي",
+        "desc": "السوق راكد",
+        "shocks": {"perf_1m": 0, "perf_3m": 2, "perf_y": 3, "rel_volume": 0.7, "volatility": 0.9, "tv_all": 0.0},
+    },
+    "illiquid": {
+        "name_ar": "سيولة جافة",
+        "desc": "الحجم配售 على 80% + سيولة ضعيفة",
+        "shocks": {"rel_volume": 0.25, "mkt_cap_mult": 0.1, "volatility": 1.4, "perf_1m": -5},
+    },
+    "high_vol": {
+        "name_ar": "تذبذب عالي",
+        "desc": "تذبذب ضخم (5%)",
+        "shocks": {"volatility": 5.0, "beta": 2.5, "perf_1m": -8, "tv_all": -0.3},
+    },
+    "good_news": {
+        "name_ar": "خبر إيجابي مفاجئ",
+        "desc": "أخبار إيجابية + قفزة",
+        "shocks": {"tv_all": +0.6, "rel_volume": 2.5, "perf_1m": +12, "volatility": 1.3},
+    },
+}
+
+
+def stress_test(all_stocks, scenario="bear", top_n=20):
+    """
+    ⚠️ المبدأ: لازم نعرف النظام بيفشل فين.
+       بنطبّق صدمة على كل الأسهم ونشوف إزاي الترتيب بيتغيّر.
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    sc = SCENARIOS.get(scenario)
+    if not sc:
+        return {"error": f"سيناريو غير معروف: {scenario}", "available": list(SCENARIOS.keys())}
+    shocks = sc["shocks"]
+
+    # ═══ 1) قبل ═══
+    before = sorted([s for s in all_stocks if s.get("final_score") is not None],
+                    key=lambda x: -x["final_score"])[:top_n]
+    before_codes = [s["code"] for s in before]
+
+    # ═══ 2) نطبّق الصدمة على كل الأسهم ═══
+    shocked = []
+    for s in all_stocks:
+        it = dict(s)
+        for k, mult in shocks.items():
+            if k.endswith("_mult"):
+                base = k.replace("_mult", "")
+                if it.get(base) is not None:
+                    try: it[base] = float(it[base]) * mult
+                    except (TypeError, ValueError): pass
+            else:
+                if it.get(k) is not None:
+                    try: it[k] = float(it[k]) + mult
+                    except (TypeError, ValueError): pass
+        # نعيد الحساب بنفس الدوال
+        try:
+            derive_technical(it)
+            t = tech_score(it)
+            f = fundamental_score(it, SECTOR_STATS)
+            li = liquidity_score(it)
+            rk = risk_engine(it, SECTOR_STATS)
+            fin = final_score(it, t, f, li, SECTOR_STATS)
+            it["stressed_score"] = fin["final_score"]
+            it["stressed_risk"] = rk["safety_score"] if rk else None
+            it["stressed_decision"] = fin["decision"]
+        except Exception:
+            it["stressed_score"] = _f(it.get("final_score"), 50)
+            it["stressed_decision"] = it.get("decision")
+        shocked.append(it)
+
+    # ═══ 3) بعد ═══
+    after = sorted([s for s in shocked if s.get("stressed_score") is not None],
+                   key=lambda x: -x["stressed_score"])[:top_n]
+    after_codes = [s["code"] for s in after]
+
+    # ═══ 4) التحليل ═══
+    retained = len(set(before_codes) & set(after_codes))
+    flip_to_sell = sum(1 for s in after if "بيع" in (s.get("stressed_decision") or "") or "تجنّب" in (s.get("stressed_decision") or ""))
+    avg_before = sum(_f(s.get("final_score"), 0) for s in before) / max(1, len(before))
+    avg_after = sum(_f(s.get("stressed_score"), 0) for s in after) / max(1, len(after))
+    avg_safety_after = sum(_f(s.get("stressed_risk"), 0) for s in after) / max(1, len(after))
+
+    dropped = [c for c in before_codes if c not in after_codes]
+
+    return {
+        "scenario": scenario,
+        "scenario_name": sc["name_ar"],
+        "description": sc["desc"],
+        "shocks": shocks,
+        "top_n": top_n,
+        "before": [{"code": s["code"], "score": _f(s.get("final_score")), "decision": s.get("decision")}
+                   for s in before[:10]],
+        "after": [{"code": s["code"], "score": _f(s.get("stressed_score")),
+                   "decision": s.get("stressed_decision"),
+                   "safety": _f(s.get("stressed_risk"))} for s in after[:10]],
+        "resilience": {
+            "retained_picks": retained,
+            "retention_rate": round(retained / max(1, len(before_codes)) * 100, 1),
+            "dropped_picks": dropped[:10],
+            "flipped_to_sell": flip_to_sell,
+            "avg_score_before": round(avg_before, 1),
+            "avg_score_after": round(avg_after, 1),
+            "score_drop": round(avg_before - avg_after, 1),
+            "avg_safety_after": round(avg_safety_after, 1),
+        },
+        "verdict": (
+            "النظام صامد ✅" if avg_after >= avg_before - 8 else
+            "النظامWeak ⚠️" if avg_after >= avg_before - 18 else
+            "النظام انهار ❌"
+        ),
+    }
+
+
+def run_all_stress(all_stocks, top_n=20):
+    """يشغّل كل السيناريوهات ويعطي الملخص"""
+    out = {}
+    for key in SCENARIOS:
+        r = stress_test(all_stocks, key, top_n)
+        if "resilience" in r:
+            out[key] = {
+                "name": r["scenario_name"],
+                "avg_after": r["resilience"]["avg_score_after"],
+                "retention": r["resilience"]["retention_rate"],
+                "flipped_to_sell": r["resilience"]["flipped_to_sell"],
+                "verdict": r["verdict"],
+            }
+    return out
+
+
+# ════════════════════════════════════════════════════════════
+# PHASE 17: المعايرة — ضبط الأوزان بدون overfitting
+# ════════════════════════════════════════════════════════════
+
+CALIBRATION = {
+    "version": "v1.0",
+    "note": "الأوزان الأساسية. أي تعديل لازم يكون منطقي ومش عشوائي.",
+    "last_calibrated": None,
+    "history": [],
+}
+
+
+def get_calibration():
+    return dict(CALIBRATION)
+
+
+def apply_calibration(new_weights=None, reason=None):
+    """
+    ⚠️ قاعدة صارمة: أي تعديل على الأوزان لازم يكون:
+       1) منطقي ومش عشوائي
+       2) مدعوم باختبار ضغط
+       3) موثّق
+    """
+    global CALIBRATION
+    if not new_weights:
+        return {"ok": False, "error": "لا توجد أوزان جديدة"}
+
+    # تحقق: المجموع = 100%
+    total = sum(new_weights.values())
+    if abs(total - 1.0) > 0.01:
+        return {"ok": False, "error": f"مجموع الأوزان {total:.2f} — لازم يساوي 1.00"}
+
+    # تحقق: كل محور بين 0 و 1
+    for k, v in new_weights.items():
+        if v < 0 or v > 1:
+            return {"ok": False, "error": f"وزن {k} خارج النطاق: {v}"}
+
+    old = dict(AXIS_WEIGHTS)
+    CALIBRATION["history"].append({
+        "date": datetime.utcnow().strftime("%Y-%m-%d"),
+        "old": old,
+        "new": dict(new_weights),
+        "reason": reason or "غير محدد",
+    })
+    AXIS_WEIGHTS.update(new_weights)
+    CALIBRATION["last_calibrated"] = datetime.utcnow().strftime("%Y-%m-%d")
+    CALIBRATION["version"] = "v{:.1f}".format(1.0 + len(CALIBRATION["history"]) * 0.1)
+
+    return {
+        "ok": True,
+        "version": CALIBRATION["version"],
+        "old_weights": old,
+        "new_weights": dict(AXIS_WEIGHTS),
+        "reason": reason,
+        "warning": "⚠️ بعد أي معايرة، شغّل اختبار الضغط للتأكد إن النظام لسه صامد",
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -3996,6 +4206,30 @@ def bt_snapshot_api():
     """لقطة يدوية"""
     bt_snapshot()
     return jsonify({"ok": True, "snapshots": len(BACKTEST.get("snapshots", {}))})
+
+
+@app.route("/api/stress")
+def stress_api():
+    """اختبار الضغوط — فين النظام بيفشل؟"""
+    scenario = request.args.get("scenario", "bear")
+    top_n = int(request.args.get("top", 20) or 20)
+    st = LIVE_DATA.get("egx30", [])
+    if scenario == "all":
+        return jsonify({"all": run_all_stress(st, top_n)})
+    return jsonify(stress_test(st, scenario, top_n))
+
+
+@app.route("/api/calibration")
+def calibration_api():
+    """معايرة الأوزان"""
+    if request.method == "POST":
+        data = request.get_json(force=True, silent=True) or {}
+        return jsonify(apply_calibration(data.get("weights"), data.get("reason")))
+    return jsonify({
+        "calibration": get_calibration(),
+        "current_weights": AXIS_WEIGHTS,
+        "note": "لتعديل الأوزان: POST إلى /api/calibration مع weights و reason",
+    })
 
 
 @app.route("/api/top-movers")
