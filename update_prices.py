@@ -3127,6 +3127,169 @@ def apply_calibration(new_weights=None, reason=None):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 18: لوحة التحكم الاحترافية — صورة كاملة عن النظام
+# ════════════════════════════════════════════════════════════
+
+def dashboard_data():
+    """
+    كل أرقام النظام في رد واحد.
+    المبدأ: المستخدم يفتح واحدة ويشوف حالة كل حاجة.
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    st = LIVE_DATA.get("egx30", [])
+    if not st:
+        return {"error": "لا توجد بيانات بعد — انتظر التحديث الأول"}
+
+    # ═══ 1) صحة البيانات ═══
+    ts_list = []
+    for s in st:
+        t = s.get("ts")
+        if t:
+            try:
+                ts_list.append(datetime.fromisoformat(t.replace("Z", "")))
+            except (ValueError, AttributeError):
+                pass
+    age_min = round((datetime.utcnow() - max(ts_list)).total_seconds() / 60, 1) if ts_list else None
+
+    conf = [_f(s.get("data_confidence"), 0) for s in st if s.get("data_confidence") is not None]
+    grades = {}
+    for s in st:
+        g = s.get("data_grade")
+        if g: grades[g] = grades.get(g, 0) + 1
+    invalid = sum(len(s.get("_invalid", [])) for s in st)
+
+    # ═══ 2) توزيع المحاور على مستوى السوق ═══
+    def avg(key):
+        xs = [_f(s.get(key)) for s in st if s.get(key) is not None]
+        return round(sum(xs) / len(xs), 1) if xs else None
+
+    axis_avg = {
+        "technical":   avg("technical_score"),
+        "fundamental": avg("fund_score"),
+        "liquidity":   avg("liquidity_score"),
+        "news":        avg("news_score"),
+        "sentiment":   avg("sentiment_score"),
+        "portfolio":   avg("portfolio_fit"),
+        "safety":      avg("safety_score"),
+        "final":       avg("final_score"),
+    }
+
+    # توزيع القرارات
+    decisions = {}
+    for s in st:
+        d = s.get("decision")
+        if d: decisions[d] = decisions.get(d, 0) + 1
+
+    # توزيع المخاطر
+    risk_levels = {}
+    for s in st:
+        r = s.get("risk_level")
+        if r: risk_levels[r] = risk_levels.get(r, 0) + 1
+
+    # ═══ 3) الأحلام والأسوأ ═══
+    ranked = sorted([s for s in st if s.get("final_score") is not None],
+                    key=lambda x: -x["final_score"])
+
+    def pack(s):
+        return {
+            "code": s["code"], "name": s.get("name"), "sector": s.get("sector"),
+            "price": s.get("price"), "change": s.get("change"),
+            "score": _f(s.get("final_score")), "decision": s.get("decision"),
+            "safety": _f(s.get("safety_score")), "opportunity": _f(s.get("opportunity_score")),
+            "upside": s.get("upside"), "valuation": s.get("valuation"),
+            "confidence": _f(s.get("confidence")), "risk_level": s.get("risk_level"),
+        }
+
+    top10 = [pack(s) for s in ranked[:10]]
+    bottom10 = [pack(s) for s in ranked[-10:]]
+
+    # ═══ 4) الفرص المبكرة ═══
+    early = sorted([s for s in st if "مبكرة" in (s.get("opportunity_stage") or "")],
+                   key=lambda x: -_f(x.get("opportunity_score"), 0))[:10]
+
+    # ═══ 5) مقارنة مع السوق (alpha) ═══
+    bm = bt_benchmark()
+    alpha = bm.get("periods", [])
+
+    # ═══ 6) حالة الاختبار التاريخي ═══
+    bt_stats = BACKTEST.get("stats", {})
+    bt_snapshots = len(BACKTEST.get("snapshots", {}))
+
+    # ═══ 7) حالة اختبار الضغط ═══
+    stress_summary = run_all_stress(st, 20)
+
+    # ═══ 8) حالة المحفظة ═══
+    pf_total = sum(h.get("shares", 0) * h.get("price", 0) for h in PORTFOLIO["holdings"].values())
+    pf_sectors = {}
+    for h in PORTFOLIO["holdings"].values():
+        s = h.get("sector", "أخرى")
+        pf_sectors[s] = pf_sectors.get(s, 0) + h["shares"] * h.get("price", 0)
+
+    # ═══ 9) أكبر القطاعات ═══
+    sector_count = {}
+    for s in st:
+        sec = s.get("sector")
+        if sec: sector_count[sec] = sector_count.get(sec, 0) + 1
+
+    return {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "health": {
+            "stocks": len(st),
+            "data_age_minutes": age_min,
+            "freshness": "ممتازة" if (age_min or 99) < 10 else
+                         "جيدة" if (age_min or 99) < 60 else
+                         "قديمة ⚠️",
+            "avg_data_confidence": round(sum(conf) / len(conf), 1) if conf else None,
+            "data_grades": grades,
+            "invalid_values": invalid,
+            "tickers": len(LIVE_DATA.get("ticker", [])),
+            "market_phase": LIVE_DATA.get("market_phase"),
+            "market_open": LIVE_DATA.get("market_open"),
+        },
+        "axis_average": axis_avg,
+        "weights": AXIS_WEIGHTS,
+        "decisions": decisions,
+        "risk_levels": risk_levels,
+        "top10": top10,
+        "bottom10": bottom10,
+        "early_opportunities": [{"code": s["code"], "name": s.get("name"),
+                                 "sector": s.get("sector"),
+                                 "opportunity": _f(s.get("opportunity_score")),
+                                 "price": s.get("price"),
+                                 "final_score": _f(s.get("final_score"))} for s in early],
+        "benchmark": {"interpretation": bm.get("interpretation"), "periods": alpha,
+                      "caveat": bm.get("caveat")},
+        "backtest": {
+            "snapshots_taken": bt_snapshots,
+            "stats": bt_stats,
+            "note": "التوصيات بتتسجل يومياً — بعد أسبوع هيبقى في بيانات حقيقية",
+        },
+        "stress": stress_summary,
+        "portfolio": {
+            "holdings": len(PORTFOLIO["holdings"]),
+            "total_value": round(pf_total, 2),
+            "sector_exposure": {k: round(v / pf_total * 100, 1) for k, v in pf_sectors.items()} if pf_total else {},
+            "diversification": ("ممتاز" if len(pf_sectors) >= 5 else
+                              "كويس" if len(pf_sectors) >= 3 else
+                              "ضعيف") if pf_total else "محفظة فاضية",
+        },
+        "sectors": [{"name": k, "count": v} for k, v in
+                    sorted(sector_count.items(), key=lambda x: -x[1])],
+        "calibration": {
+            "version": CALIBRATION.get("version"),
+            "last_calibrated": CALIBRATION.get("last_calibrated"),
+            "changes": len(CALIBRATION.get("history", [])),
+        },
+        "strategies": [{"key": k, "name": v["name_ar"], "timeframe": v["timeframe"]}
+                       for k, v in STRATEGIES.items()],
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -4275,6 +4438,12 @@ def calibration_api():
         "current_weights": AXIS_WEIGHTS,
         "note": "لتعديل الأوزان: POST إلى /api/calibration مع weights و reason",
     })
+
+
+@app.route("/api/dashboard")
+def dashboard_api():
+    """لوحة التحكم — كل النظام في رد واحد"""
+    return jsonify(dashboard_data())
 
 
 @app.route("/api/top-movers")
