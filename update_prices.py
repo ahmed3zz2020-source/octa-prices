@@ -2520,13 +2520,15 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
             filters_passed = False
 
     # ═══ سقف إجمالي الخصومات: 22 نقطة كحد أقصى ═══
-    total_penalty = risk_pen + conf_pen + (liq_pen if (liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً")) else 0)
+    # ⚠️ سقف إجمالي الخصومات: 22 نقطة كحد أقصى (نفس قاعدة final_score)
+    liq_pen = min(6.0, (100 - axes["liquidity"]) * 0.10) if (
+        liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً")) else 0.0
+    adj -= liq_pen
+    total_penalty = risk_pen + liq_pen
     if total_penalty > 22:
         scale = 22 / total_penalty
         risk_pen *= scale
-        conf_pen *= scale
-        if liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً"):
-            liq_pen *= scale
+        liq_pen *= scale
 
     final = round(max(0, min(100, adj)), 1)
 
@@ -2548,6 +2550,7 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         "weights": w,
         "base": round(base, 1),
         "risk_penalty": round(-risk_pen, 1),
+        "liquidity_penalty": round(-liq_pen, 1),
         "filters_passed": filters_passed,
         "filter_notes": filter_notes,
         "decision": decision,
