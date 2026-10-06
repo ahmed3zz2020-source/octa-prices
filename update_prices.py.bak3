@@ -681,19 +681,15 @@ def quick_score(item):
 
     axes = {}
 
-    # 1) فني: لو عندنا محرك التحليل الفني الكامل، نستخدمه
-    tech = tech_score(item)
-    if tech:
-        axes["technical"] = round(tech["score"])
-    else:
-        tv = item.get("tv_rating") or item.get("tv_all")
-        p1m = item.get("perf_1m")
-        t = 50.0
-        if tv is not None:
-            t += tv * 40
-        if p1m is not None:
-            t += max(-15, min(15, p1m / 3))
-        axes["technical"] = round(max(0, min(100, t)))
+    # 1) فني: تقييم المصدر + أداء الشهر
+    tv = item.get("tv_rating")
+    p1m = item.get("perf_1m")
+    t = 50.0
+    if tv is not None:
+        t += tv * 40
+    if p1m is not None:
+        t += max(-15, min(15, p1m / 3))
+    axes["technical"] = round(max(0, min(100, t)))
 
     # 2) أساسي: P/E + ROE + الهوامش
     pe, roe = item.get("pe"), item.get("roe")
@@ -779,252 +775,6 @@ def quick_score(item):
     }
 
 
-
-# ════════════════════════════════════════════════════════════
-# PHASE 2: محرك التحليل الفني — كل رقم من الأرقام الحقيقية
-# ════════════════════════════════════════════════════════════
-
-def tech_score(item):
-    """
-    يحوّل 43 مؤشر فني → نتيجة 0-100 مع تفسير كامل.
-    المبدأ: كل نقطة ليها وزن وليها سبب — مفيش رقم بلا مبرر.
-    """
-    if not item or not item.get("price"):
-        return None
-    price = item["price"]
-    facts = {"positives": [], "negatives": [], "neutral": []}
-
-    # ─────────── 1) الاتجاه (35 نقطة) ───────────
-    trend = 0.0
-    # ترتيب المتوسطات: Golden alignment؟
-    ema20, ema50, ema200 = item.get("ema20"), item.get("ema50"), item.get("ema200")
-    sma50 = item.get("sma50")
-
-    ma_above = 0  # كام متوسط تحت السعر
-    for name, v in (("EMA20", ema20), ("EMA50", ema50), ("EMA200", ema200), ("SMA50", sma50)):
-        if v is not None:
-            if price > v:
-                ma_above += 1
-                facts["positives"].append(f"السعر فوق {name} ({v:.2f})")
-            else:
-                facts["negatives"].append(f"السعر تحت {name} ({v:.2f})")
-    trend += (ma_above / 4) * 20   # 20 نقطة
-
-    # ترتيب المتوسطات (EMA20 > EMA50 > EMA200 = صاعد)
-    if ema20 and ema50 and ema200:
-        if ema20 > ema50 > ema200:
-            trend += 10
-            facts["positives"].append("ترتيب المتوسطات صاعد (EMA20 > EMA50 > EMA200)")
-        elif ema20 < ema50 < ema200:
-            trend += 0
-            facts["negatives"].append("ترتيب المتوسطات هابط (اتجاه bearish)")
-        else:
-            trend += 5
-            facts["neutral"].append("المتوسطات متشابكة — اتجاه عرضي")
-
-    # قوة الاتجاه (ADX) — فوق 25 = اتجاه قوي
-    adx, di_p, di_m = item.get("adx"), item.get("di_plus"), item.get("di_minus")
-    if adx is not None:
-        if adx > 40:
-            trend += 5
-            facts["positives"].append(f"قوة اتجاه عالية ({adx:.0f})")
-        elif adx < 20:
-            trend += 0
-            facts["neutral"].append(f"اتجاه ضعيف/عرضي ({adx:.0f})")
-    if di_p is not None and di_m is not None:
-        if di_p > di_m:
-            trend += 3
-            facts["positives"].append("الحركة الصاعدة أقوى من الهابطة")
-        elif di_m > di_p:
-            facts["negatives"].append("الحركة الهابطة أقوى من الصاعدة")
-
-    trend_score = max(0, min(35, trend))
-
-    # ─────────── 2) الزخم (25 نقطة) ───────────
-    mom = 0.0
-    rsi, rsi_prev = item.get("rsi"), item.get("rsi_prev")
-    if rsi is not None:
-        if rsi > 70:
-            mom += 8
-            facts["negatives"].append(f"القوة النسبية {rsi:.0f} — منطقة تشبع شرائي")
-        elif rsi > 55:
-            mom += 15
-            facts["positives"].append(f"القوة النسبية {rsi:.0f} — زخم صاعد")
-        elif rsi > 45:
-            mom += 10
-        elif rsi > 30:
-            mom += 12
-            facts["positives"].append(f"القوة النسبية {rsi:.0f} — منطقة تشبع بيعي (فرصة شراء)")
-        else:
-            mom += 6
-            facts["negatives"].append(f"القوة النسبية {rsi:.0f} — زخم هابط قوي")
-        # RSI اتجاه
-        if rsi_prev is not None:
-            if rsi > rsi_prev + 2:
-                mom += 4
-                facts["positives"].append("الزخم بيتسارع")
-            elif rsi < rsi_prev - 2:
-                mom -= 2
-                facts["negatives"].append("الزخم بيتباطأ")
-
-    # التقارب والانحراف
-    macd, sig = item.get("macd"), item.get("macd_signal")
-    if macd is not None and sig is not None:
-        if macd > sig:
-            mom += 8
-            facts["positives"].append("التقارب فوق خط الإشارة")
-        else:
-            mom += 2
-            facts["negatives"].append("التقارب تحت خط الإشارة")
-        if macd > 0:
-            mom += 3
-            facts["positives"].append("التقارب موجب")
-
-    # ستوكاستك
-    k, d = item.get("stoch_k"), item.get("stoch_d")
-    if k is not None and d is not None:
-        if k > d and k < 80:
-            mom += 5
-            facts["positives"].append("الستوكاستك صاعد")
-        elif k < d and k > 20:
-            mom -= 2
-            facts["negatives"].append("الستوكاستك هابط")
-
-    # التذبذبurzugs (momentum oscillator)
-    mo = item.get("momentum")
-    if mo is not None:
-        mom += max(-3, min(3, mo / 3))
-    ao = item.get("awesome")
-    if ao is not None:
-        mom += 3 if ao > 0 else -2
-
-    mom_score = max(0, min(25, mom))
-
-    # ─────────── 3) الموقع من النطاق (20 نقطة) ───────────
-    pos_score = 10.0
-    hi1m, lo1m = item.get("high_1m"), item.get("low_1m")
-    if hi1m and lo1m and hi1m > lo1m:
-        where = (price - lo1m) / (hi1m - lo1m) * 100  # 0 = قاع الشهر، 100 = قمته
-        if where > 85:
-            pos_score = 3
-            facts["negatives"].append(f"السهم قرب قمة الشهر ({where:.0f}% من النطاق)")
-        elif where > 65:
-            pos_score = 12
-            facts["positives"].append(f"السهم في الجزء العلوي من نطاق الشهر ({where:.0f}%)")
-        elif where > 40:
-            pos_score = 16
-            facts["neutral"].append(f"السهم في منتصف نطاق الشهر ({where:.0f}%)")
-        elif where > 20:
-            pos_score = 18
-            facts["positives"].append(f"السهم في الجزء السفلي — فرصة أفضل ({where:.0f}%)")
-        else:
-            pos_score = 15
-            facts["positives"].append(f"السهم قرب قاع الشهر ({where:.0f}%)")
-
-    # نطاقات بولنجر
-    bbu, bbl = item.get("bb_upper"), item.get("bb_lower")
-    if bbu and bbl and bbu > bbl:
-        bw = (bbu - bbl) / price * 100
-        pos_score = max(0, min(20, pos_score + 2))
-        if bw < 8:
-            facts["positives"].append(f"نطاق بولنجر ضيق ({bw:.1f}%) — ضغط قبل اختراق")
-    pos_score = max(0, min(20, pos_score))
-
-    # ─────────── 4) الحجم والتأكيد (10 نقاط) ───────────
-    vol_score = 5.0
-    rv = item.get("rel_volume")
-    if rv is not None:
-        if rv > 1.5:
-            vol_score = 9
-            facts["positives"].append(f"حجم تداول أعلى من المعتاد ({rv:.1f}×)")
-        elif rv > 1.0:
-            vol_score = 7
-        elif rv < 0.5:
-            vol_score = 3
-            facts["neutral"].append(f"حجم تداول ضعيف ({rv:.1f}×) — مفيش تأكيد")
-    # تأكيد الاتجاه بالحجم: لو السعر طالع والحجم عالي = مؤكد
-    perf1m = item.get("perf_1m")
-    if perf1m is not None and rv is not None:
-        if perf1m > 3 and rv > 1.2:
-            vol_score = min(10, vol_score + 3)
-            facts["positives"].append("الصعود مؤكّد بحجم تداول")
-        elif perf1m < -3 and rv > 1.2:
-            vol_score = max(0, vol_score - 3)
-            facts["negatives"].append("الهبوط مؤكّد بحجم تداول")
-
-    # ─────────── 5) تقييم المصدر الفني (10 نقاط) ───────────
-    tv_all, tv_ma, tv_osc = item.get("tv_all"), item.get("tv_ma"), item.get("tv_osc")
-    tv_score = 5.0
-    if tv_all is not None:
-        tv_score = max(0, min(10, 5 + tv_all * 10))
-        label = "شراء قوي" if tv_all > 0.3 else ("شراء" if tv_all > 0.1 else
-                ("محايد" if tv_all > -0.1 else ("بيع" if tv_all > -0.3 else "بيع قوي")))
-        if tv_all > 0.15:
-            facts["positives"].append(f"التقييم الفني: {label} ({tv_all:+.2f})")
-        elif tv_all < -0.15:
-            facts["negatives"].append(f"التقييم الفني: {label} ({tv_all:+.2f})")
-        else:
-            facts["neutral"].append(f"التقييم الفني محايد ({tv_all:+.2f})")
-
-    # ─────────── 6) المخاطرة الفنية (الخصم) ───────────
-    atr = item.get("atr")
-    atr_pct = 0.0
-    if atr and price:
-        atr_pct = atr / price * 100
-        if atr_pct > 6:
-            facts["negatives"].append(f"تذبذب عالي جداً ({atr_pct:.1f}% يومياً) — مخاطرة عالية")
-        elif atr_pct > 3.5:
-            facts["negatives"].append(f"تذبذب عالي ({atr_pct:.1f}% يومياً)")
-        elif atr_pct < 1.5:
-            facts["positives"].append(f"سهم مستقر (تذبذب {atr_pct:.1f}%)")
-
-    # ─────────── النتيجة النهائية ───────────
-    total = trend_score + mom_score + pos_score + vol_score + tv_score
-    total = max(0, min(100, total))
-
-    # مستوى الثقة الفني: كام مؤشر متاح فعلاً
-    avail = sum(1 for k in ("ema20","ema50","ema200","rsi","macd","macd_signal","adx",
-                            "atr","bb_upper","stoch_k","tv_all","perf_1m")
-                if item.get(k) is not None)
-    tech_conf = min(100, avail / 12 * 100)
-
-    # التوصية
-    if total >= 70 and trend_score >= 20:
-        signal = "إيجابي قوي"
-    elif total >= 55:
-        signal = "إيجابي"
-    elif total >= 42:
-        signal = "محايد"
-    elif total >= 28:
-        signal = "سلبي"
-    else:
-        signal = "سلبي قوي"
-
-    return {
-        "score": round(total, 1),
-        "signal": signal,
-        "breakdown": {
-            "الاتجاه": round(trend_score, 1),
-            "الزخم": round(mom_score, 1),
-            "الموقع من النطاق": round(pos_score, 1),
-            "الحجم": round(vol_score, 1),
-            "تقييم المصدر": round(tv_score, 1),
-        },
-        "confidence": round(tech_conf, 1),
-        "atr_pct": round(atr_pct, 2),
-        "positives": facts["positives"][:5],
-        "negatives": facts["negatives"][:5],
-        "neutral": facts["neutral"][:3],
-        "levels": {
-            "دعم_1": item.get("pivot_s1"),
-            "مقاومة_1": item.get("pivot_r1"),
-            "نقطة_محايدة": item.get("pivot_m"),
-            "أعلى_شهر": item.get("high_1m"),
-            "أدنى_شهر": item.get("low_1m"),
-        }
-    }
-
-
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -1080,61 +830,6 @@ TV_COLUMNS = [
     ("total_revenue",      "revenue"),          # الإيرادات
 ]
 
-# ═══════════ PHASE 2: الأعمدة الفنية (60 مؤشر في طلب واحد) ═══════════
-TV_TECH_COLUMNS = [
-    # الاتجاه — المتوسطات المتحركة
-    ("EMA10",              "ema10"),
-    ("EMA20",              "ema20"),
-    ("EMA50",              "ema50"),
-    ("EMA200",             "ema200"),
-    ("SMA20",              "sma20"),
-    ("SMA50",              "sma50"),
-    ("SMA200",             "sma200"),
-    ("SMA30|1W",           "sma30w"),          # متوسط 30 أسبوع
-    # الزخم — المؤشرات
-    ("RSI",                "rsi"),
-    ("RSI[1]",             "rsi_prev"),        # RSI امبارح → نقارن الاتجاه
-    ("MACD.macd",          "macd"),
-    ("MACD.signal",        "macd_signal"),
-    ("Stoch.K",            "stoch_k"),
-    ("Stoch.D",            "stoch_d"),
-    ("CCI20",              "cci20"),
-    ("ADX",                "adx"),             # قوة الاتجاه
-    ("ADX+DI",             "di_plus"),
-    ("ADX-DI",             "di_minus"),
-    ("Mom",                "momentum"),
-    ("AO",                 "awesome"),
-    ("UO",                 "ultimate"),
-    ("W.R",                "williams_r"),
-    ("HullMA9",            "hull9"),
-    ("Ichimoku.BLine",     "ichimoku_b"),
-    ("P.SAR",              "psar"),
-    # التذبذب
-    ("ATR",                "atr"),
-    ("BB.upper",           "bb_upper"),
-    ("BB.lower",           "bb_lower"),
-    ("BB.basis",           "bb_basis"),
-    ("BBPower",            "bb_power"),
-    # مستويات
-    ("Pivot.M.Classic.Middle", "pivot_m"),
-    ("Pivot.M.Classic.R1",  "pivot_r1"),
-    ("Pivot.M.Classic.S1",  "pivot_s1"),
-    ("High.1M",            "high_1m"),
-    ("Low.1M",             "low_1m"),
-    ("High.3M",            "high_3m"),
-    ("Low.3M",             "low_3m"),
-    ("High.6M",            "high_6m"),
-    ("Low.6M",             "low_6m"),
-    # التقييم الفني التفصيلي
-    ("Recommend.All",      "tv_all"),
-    ("Recommend.MA",       "tv_ma"),           # تقييم المتوسطات (فني بحت)
-    ("Recommend.Other",    "tv_osc"),          # تقييم المؤشرات (فني بحت)
-    # الحجم
-    ("volume|5",           "vol_5"),
-    ("volume|60",          "vol_60"),
-    ("VWMA",               "vwma"),
-]
-
 # ═══════════ PHASE 1: قواعد التحقق من صحة البيانات ═══════════
 # أي رقم بيمر من هنا، لو خالف بيتباعد
 def validate_value(field, value, price=None):
@@ -1167,45 +862,6 @@ def validate_value(field, value, price=None):
         "op_margin":    (-500.0, 300.0),    # %
         "eps":          (-1000.0, 1000.0),
         "revenue":      (0, 10_000_000_000_000),
-        # ── المرحلة الثانية: الفنية ──
-        "ema10":        (0.01, 1_000_000), "ema20": (0.01, 1_000_000),
-        "ema50":        (0.01, 1_000_000), "ema200": (0.01, 1_000_000),
-        "sma20":        (0.01, 1_000_000), "sma50": (0.01, 1_000_000),
-        "sma200":       (0.01, 1_000_000), "sma30w": (0.01, 1_000_000),
-        "rsi":          (0.0, 100.0),      # مؤشر القوة 0-100
-        "rsi_prev":     (0.0, 100.0),
-        "macd":         (-10000.0, 10000.0),
-        "macd_signal":  (-10000.0, 10000.0),
-        "stoch_k":      (0.0, 100.0),
-        "stoch_d":      (0.0, 100.0),
-        "cci20":        (-500.0, 500.0),
-        "adx":          (0.0, 100.0),       # قوة الاتجاه 0-100
-        "di_plus":      (0.0, 100.0),
-        "di_minus":     (0.0, 100.0),
-        "momentum":     (-1000.0, 1000.0),
-        "awesome":      (-10000.0, 10000.0),
-        "ultimate":     (0.0, 100.0),
-        "williams_r":   (-100.0, 0.0),      # وليمiams 0 إلى -100
-        "hull9":        (0.01, 1_000_000),
-        "ichimoku_b":    (0.01, 1_000_000),
-        "psar":         (0.01, 1_000_000),
-        "atr":          (0.0, 100_000.0),
-        "bb_upper":     (0.01, 1_000_000),
-        "bb_lower":     (0.01, 1_000_000),
-        "bb_basis":     (0.01, 1_000_000),
-        "bb_power":     (-200.0, 200.0),
-        "pivot_m":      (0.01, 1_000_000),
-        "pivot_r1":     (0.01, 1_000_000),
-        "pivot_s1":     (0.01, 1_000_000),
-        "high_1m":      (0.01, 1_000_000), "low_1m": (0.0, 1_000_000),
-        "high_3m":      (0.01, 1_000_000), "low_3m": (0.0, 1_000_000),
-        "high_6m":      (0.01, 1_000_000), "low_6m": (0.0, 1_000_000),
-        "tv_all":       (-1.0, 1.0),
-        "tv_ma":        (-1.0, 1.0),
-        "tv_osc":       (-1.0, 1.0),
-        "vol_5":        (0, 5_000_000_000),
-        "vol_60":       (0, 5_000_000_000),
-        "vwma":         (0.01, 1_000_000),
     }
 
     lo, hi = BOUNDS.get(field, (float("-inf"), float("inf")))
@@ -1225,9 +881,7 @@ def validate_value(field, value, price=None):
 def tv_scan_all(symbols=None):
     """يجيب كل الأسعار + البيانات الأساسية في طلب واحد"""
     tickers = symbols if symbols else [f"EGX:{c}" for c, _, _ in EGX]
-    # ندمج كل الأعمدة: الأساسية + الفنية
-    all_cols = TV_COLUMNS + TV_TECH_COLUMNS
-    cols = [c for c, _ in all_cols]
+    cols = [c for c, _ in TV_COLUMNS]
     payload = {
         "symbols": {"tickers": tickers, "query": {"types": []}},
         "columns": cols
@@ -1241,7 +895,7 @@ def tv_scan_all(symbols=None):
             code = row["s"].replace("EGX:", "")
             d = row.get("d") or []
             rec = {"code": code, "_invalid": []}
-            for i, (col, field) in enumerate(all_cols):
+            for i, (col, field) in enumerate(TV_COLUMNS):
                 raw = d[i] if i < len(d) else None
                 val, err = validate_value(field, raw)
                 if err:
@@ -1496,8 +1150,6 @@ def analyze():
                 quick["data_confidence"] = item.get("data_confidence", 0)
                 quick["data_grade"] = item.get("data_grade", "")
                 quick["data_ts"] = item.get("ts")
-                if tech_score(item):
-                    quick["technical"] = tech_score(item)
                 return jsonify(quick)
             return jsonify(result), 502
 
@@ -1542,24 +1194,6 @@ def analyze():
             }
             covered = sum(1 for v in result["axes_from_data"].values() if v)
             result["axes_coverage"] = f"{covered}/7"
-
-            # ═══ Phase 2: التحليل الفني الكامل (محرك رياضي) ═══
-            tech = tech_score(item)
-            if tech:
-                result["technical"] = tech
-                # ندمج المحور الفني: لو الذكاء الاصطناعي خمّن أعلى من الحساب، ناخد الأدنى
-                # (مبدأ: ما نبغاش نبالغ في التقييم)
-                ai_tech = (result.get("axes") or {}).get("technical", 50)
-                result["axes"]["technical"] = min(ai_tech, tech["score"])
-                # نحدّث المحصلة
-                axes = result["axes"]
-                base = sum([
-                    axes.get("technical", 50) * .18, axes.get("fundamental", 50) * .28,
-                    axes.get("liquidity", 50) * .12, axes.get("news", 45) * .07,
-                    axes.get("sentiment", 50) * .08, axes.get("risk", 60) * .17,
-                    axes.get("portfolio", 70) * .10,
-                ])
-                axes["overall"] = round(max(0, min(100, base - (100 - axes.get("risk", 60)) * .15)))
 
         # الهدف والستوب محسوبين رياضياً من السعر الحقيقي (مش مخمّنين)
         t, s = calc_levels(price, result.get("decision", ""), result.get("axes", {}).get("overall"))
@@ -1634,29 +1268,6 @@ def chat():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/technical/<code>")
-def technical_only(code):
-    """تحليل فني مفصّل بدون ذكاء اصطناعي — فوري 100%"""
-    code = code.upper().strip()
-    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
-    if not item:
-        return jsonify({"error": f"السهم {code} غير موجود"}), 404
-    tech = tech_score(item)
-    if not tech:
-        return jsonify({"error": "بيانات فنية غير كافية"}), 400
-    return jsonify({
-        "code": code,
-        "name": item.get("name"),
-        "price": item.get("price"),
-        "change": item.get("change"),
-        "technical": tech,
-        "indicators": {k: item.get(k) for k in (
-            "rsi","macd","macd_signal","adx","atr","ema20","ema50","ema200",
-            "sma50","bb_upper","bb_lower","high_1m","low_1m","tv_all","tv_ma","tv_osc")},
-        "data_ts": item.get("ts"),
-    })
 
 
 @app.route("/api/top-movers")
