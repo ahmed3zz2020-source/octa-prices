@@ -4150,7 +4150,7 @@ def ranking():
     })
 
 
-@app.route("/api/portfolio")
+@app.route("/api/portfolio", methods=["GET", "POST"])
 def portfolio_api():
     """عرض وتعديل المحفظة"""
     if request.method == "POST":
@@ -4338,17 +4338,22 @@ def strategy_api(code, strategy):
                         "available": list(STRATEGIES.keys())}), 400
     item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
     if not item:
-        return jsonify({"error": f"السهم {code} غير موجود"}), 404
-    t = tech_score(item)
-    f = fundamental_score(item, SECTOR_STATS)
-    li = liquidity_score(item)
-    se = sentiment_engine(item, LIVE_DATA.get("egx30", []))
-    pf = portfolio_fit(item, PORTFOLIO)
-    return jsonify({
-        "code": code, "name": item.get("name"), "price": item.get("price"),
-        "strategy": strategy_score(item, strategy, t, f, li, se, pf),
-        "all_strategies": score_all_strategies(item, t, f, li, se, pf),
-    })
+        return jsonify({"error": f"السهم {code} غير موجود — البيانات لسه بتتحمّل"}), 404
+    try:
+        t = tech_score(item)
+        f = fundamental_score(item, SECTOR_STATS)
+        li = liquidity_score(item)
+        se = sentiment_engine(item, LIVE_DATA.get("egx30", []))
+        pf = portfolio_fit(item, PORTFOLIO)
+        return jsonify({
+            "code": code, "name": item.get("name"), "price": item.get("price"),
+            "strategy": strategy_score(item, strategy, t, f, li, se, pf),
+            "all_strategies": score_all_strategies(item, t, f, li, se, pf),
+        })
+    except Exception as _e:
+        import traceback
+        return jsonify({"error": str(_e),
+                        "trace": traceback.format_exc()[-400:]}), 500
 
 
 @app.route("/api/rank")
