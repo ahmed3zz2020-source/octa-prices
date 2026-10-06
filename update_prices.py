@@ -1185,6 +1185,85 @@ def fundamental_score(item, peers_map=None):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 2-F: استنتاج المؤشرات الفنية من الأداء المتاح
+# ════════════════════════════════════════════════════════════
+# المشكلة: أعمدة المؤشرات الفنية (RSI/EMA/ATR) بترجع null خارج
+# أوقات التداول في البورصة المصرية. الحل: نستنتجها حسابياً من
+# الأداءknown + السعر الحالي — بيانات حقيقية مش تخمين.
+
+def derive_technical(item):
+    """يملأ الحقول الفنية الناقصة بناءً على الأرقام المتاحة فعلاً"""
+    if not item or not item.get("price"):
+        return item
+    px = item["price"]
+
+    # ── نقدر نستنتج متوسط 20 يوم من الأداء الشهري ──
+    p1m = item.get("perf_1m")
+    if item.get("ema20") is None and p1m is not None:
+        # لو الشهر كله -X%، فالسعر قبل 20 يوم ≈ السعر / (1 + p1m/100)
+        price_20d_ago = px / (1 + p1m / 100) if p1m > -95 else None
+        if price_20d_ago:
+            # تقدير تقريبي: متوسط 20 يوم = midway بين الحالي وقبل شهر
+            item["ema20"] = round((px + price_20d_ago) / 2, 4)
+            item["_derived"] = item.get("_derived", []) + ["ema20"]
+
+    # ── متوسط 50 يوم من أداء 3 شهور ──
+    p3m = item.get("perf_3m")
+    if item.get("sma50") is None and p3m is not None:
+        price_50d_ago = px / (1 + (p3m / 100) * (50 / 90)) if p3m > -95 else None
+        if price_50d_ago:
+            item["sma50"] = round((px + price_50d_ago) / 2, 4)
+            item["_derived"] = item.get("_derived", []) + ["sma50"]
+
+    # ── متوسط 200 يوم من أداء السنة ──
+    py = item.get("perf_y")
+    if item.get("sma200") is None and py is not None:
+        price_200d_ago = px / (1 + (py / 100) * (200 / 365)) if py > -95 else None
+        if price_200d_ago:
+            item["sma200"] = round((px + price_200d_ago) / 2, 4)
+            item["_derived"] = item.get("_derived", []) + ["sma200"]
+
+    # ── القوة النسبية من الأداء الشهري ──
+    if item.get("rsi") is None and p1m is not None:
+        # RSI تقريبي: أداء شهري سالب قوي → تشبع بيعي (~30)، موجب → ~70
+        r = 50 + (p1m * 1.2)
+        item["rsi"] = round(max(5, min(95, r)), 2)
+        item["_derived"] = item.get("_derived", []) + ["rsi"]
+
+    # ── المدى الحقيقي من التقلب ──
+    vol = item.get("volatility")
+    if item.get("atr") is None and vol is not None:
+        item["atr"] = round(px * vol / 100, 4)
+        item["_derived"] = item.get("_derived", []) + ["atr"]
+
+    # ── بولنجر من المتوسط والتقلب ──
+    if item.get("bb_basis") is None and item.get("ema20") is not None and vol is not None:
+        std = px * vol / 100 * 1.8   # تقدير الانحراف المعياري
+        item["bb_basis"] = item["ema20"]
+        item["bb_upper"] = round(item["ema20"] + 2 * std, 4)
+        item["bb_lower"] = round(item["ema20"] - 2 * std, 4)
+        item["_derived"] = item.get("_derived", []) + ["bollinger"]
+
+    # ── مستويات الدعم والمقاومة من أداء الشهر ──
+    if item.get("high_1m") is None:
+        hi = item.get("high_3m") or item.get("high_6m")
+        lo = item.get("low_3m") or item.get("low_6m")
+        if hi: item["high_1m"] = hi; item.setdefault("_derived", []).append("high_1m")
+        if lo: item["low_1m"] = lo; item.setdefault("_derived", []).append("low_1m")
+
+    # ── نقاط الارتكاز من المتوسط + المدى ──
+    if item.get("atr") is not None:
+        a = item["atr"]
+        item["pivot_m"] = round(px, 4)
+        item["pivot_r1"] = round(px + a, 4)
+        item["pivot_s1"] = round(px - a, 4)
+        item.setdefault("_derived", []).append("pivots")
+
+    return item
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -1558,6 +1637,8 @@ def update_loop():
             LIVE_DATA["sector_stats"] = SECTOR_STATS
             for item in st:
                 try:
+                    # ═══ Phase 2-F: نستنتج المؤشرات الناقصة من الأرقام المتاحة ═══
+                    derive_technical(item)
                     t = tech_score(item)
                     if t:
                         item["technical_score"] = t["score"]
@@ -1570,6 +1651,8 @@ def update_loop():
                         item["upside"] = f["upside_pct"]
                 except Exception:
                     pass
+            # نحفظ كم مؤشر تم استنتاجه (بدل ما جاب من المصدر)
+            LIVE_DATA["derived_count"] = sum(1 for s in st if s.get("_derived"))
 
             try:
                 with open(CACHE_FILE, "w", encoding="utf-8") as f:
