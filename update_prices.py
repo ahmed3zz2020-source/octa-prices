@@ -36,6 +36,7 @@ GEMINI_MODELS = ["gemini-3.5-flash", "gemini-flash-lite-latest"]
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 # Cache للتحليلات: {code: {data, timestamp}}
+SCAN_PROBE = {}
 AI_CACHE = {}
 # التحليل بياخد ~30 ثانية — نخزنه 6 ساعات بدل ساعة
 # (البيانات الأساسية بتتحدث كل 2 دقيقة، لكن التحليل مالوش لازم يتكرر)
@@ -1407,6 +1408,16 @@ def tv_scan_all(symbols=None):
             time.sleep(0.12)
         data = {"data": all_data}
 
+        # تشخيص: نختبر عمودين فنيين لوحدهم عشان نعرف لو المشكلة في المصدر ولا عندنا
+        try:
+            probe = {"symbols": {"tickers": ["EGX:COMI"], "query": {"types": []}},
+                     "columns": ["close", "RSI", "EMA20", "ATR"]}
+            pr = requests.post(SCANNER_URL, json=probe, headers=TV_HEADERS, timeout=20)
+            pd = pr.json().get("data", [{}])[0].get("d", [])
+            SCAN_PROBE = {"status": pr.status_code, "len": len(pd), "values": pd}
+        except Exception as pe:
+            SCAN_PROBE = {"error": str(pe)[:100]}
+
         for row in data.get("data", []):
             code = row["s"].replace("EGX:", "")
             d = row.get("d") or []
@@ -1903,6 +1914,8 @@ def diagnostic():
             "with_pe": sum(1 for s in st if s.get("pe") is not None),
         },
         "last_update": LIVE_DATA.get("lastUpdate"),
+        "scan_probe": SCAN_PROBE,
+        "ip_check": requests.get("https://api.ipify.org?format=json", timeout=8).text if False else "skipped",
     })
 
 
