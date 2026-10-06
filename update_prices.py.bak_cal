@@ -1449,20 +1449,14 @@ def liquidity_score(item):
 # ════════════════════════════════════════════════════════════
 
 # الأوزان الأساسية (قابلة للتعديل في Phase 17)
-# ════════════════════════════════════════════════════════════
-# PHASE 17: الأوزان المعايرة (v1.1 — 2026-10-07)
-# ════════════════════════════════════════════════════════════
-# السبب: اختبار الضغط كشف إن السيولة والمخاطرة underrepresented.
-# في السوق المصري: السيولة أهم مما هي في الأسواقdeveloped.
-# سعر التحديث v1.0 → v1.1
 AXIS_WEIGHTS = {
-    "technical":    0.18,   # ↓ من 20% — الفني أقل أهمية للمدى الطويل
-    "fundamental":  0.22,   # ↓ من 25% — الأساسيات مهمة بس مش الأولى دايماً
-    "liquidity":    0.18,   # ↑↑ من 10% — السوق المصري ضعيف السيولة، لازم يتحسب
-    "news":         0.05,   # ↓ من 7%  — بيانات الأحداث لسه محدودة
-    "sentiment":    0.04,   # ↓ من 5%  — المعنويات ما تتحكمش في القرار (قاعدة صارمة)
-    "risk":         0.24,   # ↑ من 20% — الأمان أهم من العائد في السوق المصري
-    "portfolio":    0.09,   # ↓ من 13% — محور مساعد
+    "technical":    0.20,
+    "fundamental":  0.25,
+    "liquidity":    0.10,
+    "news":         0.07,
+    "sentiment":    0.05,
+    "risk":         0.20,   # أعلى = أمان أكتر
+    "portfolio":    0.13,
 }
 
 
@@ -1517,9 +1511,7 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     base = sum(axes[k] * AXIS_WEIGHTS[k] for k in AXIS_WEIGHTS)
 
     # ═══ تعديل 1: المخاطرة (ضعف) ═══
-    # ⚠️ سقف الخصم: ما ينزلش أكتر من 15 نقطة من المخاطرة
-    #    السبب: الخصومات لو تراكمت بتبطل النتيجة有意义
-    risk_pen = min(15.0, (100 - axes["risk"]) * 0.18)
+    risk_pen = (100 - axes["risk"]) * 0.18
     adj = base - risk_pen
 
     # ═══ تعديل 2: الثقة بالبيانات ═══
@@ -1528,7 +1520,6 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     except (TypeError, ValueError):
         conf = 60.0
     conf_pen = 0.0
-    liq_pen = 0.0
     if conf < 50:
         # بيانات ضعيفة → خصم
         conf_pen = (50 - conf) * 0.25
@@ -1540,19 +1531,9 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
 
     # ═══ تعديل 3: السيولة (مخاطرة عدمiquidity) ═══
     if liq and liq["risk_level"] in ("مرتفع جداً", "مرتفع"):
-        # ⚠️ سقف الخصم: ما ينزلش أكتر من 6 نقاط
-        liq_pen = min(6.0, (100 - liq["score"]) * 0.10)
+        liq_pen = (100 - liq["score"]) * 0.10
         adj -= liq_pen
         reasons.append(f"خصم {liq_pen:.1f} — سيولة {liq['risk_level']}")
-
-    # ═══ سقف إجمالي الخصومات: 22 نقطة كحد أقصى ═══
-    total_penalty = risk_pen + conf_pen + (liq_pen if (liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً")) else 0)
-    if total_penalty > 22:
-        scale = 22 / total_penalty
-        risk_pen *= scale
-        conf_pen *= scale
-        if liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً"):
-            liq_pen *= scale
 
     final = round(max(0, min(100, adj)), 1)
 
@@ -2516,15 +2497,6 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
             filter_notes.append(f"عائد التوزيعات {actual} أقل من المطلوب ({st['min_div_yield']}%)")
             filters_passed = False
 
-    # ═══ سقف إجمالي الخصومات: 22 نقطة كحد أقصى ═══
-    total_penalty = risk_pen + conf_pen + (liq_pen if (liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً")) else 0)
-    if total_penalty > 22:
-        scale = 22 / total_penalty
-        risk_pen *= scale
-        conf_pen *= scale
-        if liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً"):
-            liq_pen *= scale
-
     final = round(max(0, min(100, adj)), 1)
 
     # القرار بنفس المنطق
@@ -3028,19 +3000,11 @@ def stress_test(all_stocks, scenario="bear", top_n=20):
             "score_drop": round(avg_before - avg_after, 1),
             "avg_safety_after": round(avg_safety_after, 1),
         },
-        # ⚠️ معايير الحكم: مش بس النتيجة — كمان التصرف الصحيح
-        #     لو النتيجة نزلت بس القرارات بقت تحذير = النظام صامد
         "verdict": (
-            "النظام صامد ✅" if (avg_after >= avg_before - 12 and flip_to_sell >= max(2, retained * 0.5)) else
-            "النظام Weak ⚠️" if (avg_after >= avg_before - 22 and flip_to_sell >= 2) else
+            "النظام صامد ✅" if avg_after >= avg_before - 8 else
+            "النظامWeak ⚠️" if avg_after >= avg_before - 18 else
             "النظام انهار ❌"
         ),
-        "verdict_detail": {
-            "note": "الحكم على مرحلتين: (1) النتيجة بعد الصدمة، (2) هل القرارات تحوّلت是正确的؟",
-            "score_held": avg_after >= avg_before - 12,
-            "decisions_corrected": flip_to_sell >= 2,
-            "note2": "لو القرارات اتحوّلت لتجنّب/بيع = النظام بيتصرف صح حتى لو النتيجة نزلت",
-        },
     }
 
 
@@ -3065,19 +3029,10 @@ def run_all_stress(all_stocks, top_n=20):
 # ════════════════════════════════════════════════════════════
 
 CALIBRATION = {
-    "version": "v1.1",
-    "note": "معايرة 2026-10-07: اختبار الضغط كشف نقص تمثيل السيولة والمخاطرة في السوق المصري.",
-    "last_calibrated": "2026-10-07",
-    "history": [{
-        "date": "2026-10-07",
-        "old": {"technical": 0.20, "fundamental": 0.25, "liquidity": 0.10,
-                "news": 0.07, "sentiment": 0.05, "risk": 0.20, "portfolio": 0.13},
-        "new": {"technical": 0.18, "fundamental": 0.22, "liquidity": 0.18,
-                "news": 0.05, "sentiment": 0.04, "risk": 0.24, "portfolio": 0.09},
-        "reason": "اختبار الضغط كشف أن سيولة ضعيفة (وزن 10%) كانت لا تؤثر بما يكفي. "
-                  "السوق المصري ضعيف السيولة — رفعنا لـ 18%. كما رفعنا الأمان لـ 24% "
-                  "لأن الخطر أهم من العائد عند المستثمر المصري.",
-    }],
+    "version": "v1.0",
+    "note": "الأوزان الأساسية. أي تعديل لازم يكون منطقي ومش عشوائي.",
+    "last_calibrated": None,
+    "history": [],
 }
 
 
