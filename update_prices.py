@@ -1586,6 +1586,233 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 6: محرك المعنويات — مع قاعدة صارمة: ما يتحكمش في القرار
+# ════════════════════════════════════════════════════════════
+SENTIMENT_CAP = 25   # أقصى تأثير للمعنويات على النتيجة النهائية (%)
+
+def sentiment_engine(item, all_stocks=None):
+    """
+    المعنويات = نظرة السوق على السهم.
+    ⚠️ قاعدة صارمة: sentiment ما lifestylesيش القرار لوحده.
+       لو المعنويات عالية بس الأساس ضعيف → لازم يظهر التعارض.
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    if not item: return None
+    all_stocks = all_stocks or []
+    pos, neg, neu = [], [], []
+
+    # ═══ 1) معنويات السهم (40 نقطة) ═══
+    stock_sent = 50.0
+    p1w, p1m = _f(item.get("perf_w")), _f(item.get("perf_1m"))
+    p3m, p6m, p1y = _f(item.get("perf_3m")), _f(item.get("perf_6m")), _f(item.get("perf_y"))
+
+    if p1m is not None:
+        if p1m > 10:   stock_sent += 18; pos.append(f"أداء شهري قوي (+{p1m:.1f}%)")
+        elif p1m > 3: stock_sent += 12; pos.append(f"أداء شهري إيجابي (+{p1m:.1f}%)")
+        elif p1m > -3: stock_sent += 2
+        elif p1m > -10: stock_sent -= 8; neg.append(f"أداء شهري ضعيف ({p1m:.1f}%)")
+        else: stock_sent -= 18; neg.append(f"هبوط شهري حاد ({p1m:.1f}%)")
+    if p1y is not None:
+        if p1y > 30:  stock_sent += 12; pos.append(f"أداء سنوي ممتاز (+{p1y:.0f}%)")
+        elif p1y > 10: stock_sent += 6
+        elif p1y < -20: stock_sent -= 8; neg.append(f"أداء سنوي ضعيف ({p1y:.0f}%)")
+    # السهم تحت متوسط قطاعه؟
+    sec = item.get("sector")
+    if sec and all_stocks:
+        peers = [s for s in all_stocks if s.get("sector") == sec and _f(s.get("perf_3m")) is not None]
+        if len(peers) >= 3 and p3m is not None:
+            avg3 = sum(_f(s["perf_3m"]) for s in peers) / len(peers)
+            if p3m > avg3 * 1.5:
+                stock_sent += 10; pos.append(f"أفضل من متوسط قطاعه ({(avg3*100):.0f}% مقابل {p3m:.0f}%)")
+            elif p3m < avg3 * 0.5:
+                stock_sent -= 8; neg.append(f"أضعف من متوسط قطاعه")
+    stock_score = max(0, min(100, stock_sent))
+
+    # ═══ 2) معنويات السوق (30 نقطة) ═══
+    market_score = 50.0
+    idx = [s for s in all_stocks if s.get("sector") and _f(s.get("perf_1m")) is not None]
+    if len(idx) >= 20:
+        advancers = sum(1 for s in idx if _f(s["perf_1m"], 0) > 0)
+        ad_ratio = (advancers / len(idx)) * 100
+        market_score = ad_ratio
+        if ad_ratio > 70:   pos.append(f"سوق صاعد — {ad_ratio:.0f}% من الأسهم في المربع الأخضر")
+        elif ad_ratio > 55: pos.append(f"ميل صاعد في السوق ({ad_ratio:.0f}% صاعد)")
+        elif ad_ratio < 30: neg.append(f"سوق هابط — {ad_ratio:.0f}% من الأسهم في الأحمر")
+        elif ad_ratio < 45: neg.append(f"ميل هابط في السوق ({ad_ratio:.0f}% صاعد فقط)")
+
+    # ═══ 3) معنويات القطاع (30 نقطة) ═══
+    sector_score = 50.0
+    if sec and all_stocks:
+        peers = [s for s in all_stocks if s.get("sector") == sec and _f(s.get("perf_1m")) is not None]
+        if len(peers) >= 2:
+            sec_avg = sum(_f(s["perf_1m"]) for s in peers) / len(peers)
+            sector_score = max(0, min(100, 50 + sec_avg * 2.5))
+            if sec_avg > 8:   pos.append(f"قطاع {sec} فيKFة ({sec_avg:+.1f}% متوسط)")
+            elif sec_avg < -8: neg.append(f"قطاع {sec} ضعيف ({sec_avg:+.1f}% متوسط)")
+
+    total = round((stock_score * 0.40) + (market_score * 0.30) + (sector_score * 0.30), 1)
+
+    # ═══ التحذير المهم: معنويات عالية + أساس ضعيف ═══
+    contradiction = None
+    fund_score = item.get("fund_score")
+    if fund_score is not None:
+        try: fund_score = float(fund_score)
+        except (TypeError, ValueError): fund_score = None
+    if fund_score is not None and total >= 65 and fund_score < 45:
+        contradiction = "⚠️ تعارض: المعنويات عالية ({:.0f}) لكن الأساس ضعيف ({:.0f}) — لا تعتمد على المعنويات".format(total, fund_score)
+    elif fund_score is not None and total <= 35 and fund_score >= 70:
+        contradiction = "💡 المعنويات سلبية ({:.0f}) لكن الأساس قوي ({:.0f}) — فرصة شراء محتملة".format(total, fund_score)
+
+    return {
+        "score": total,
+        "breakdown": {
+            "معنويات السهم": round(stock_score, 1),
+            "معنويات السوق": round(market_score, 1),
+            "معنويات القطاع": round(sector_score, 1),
+        },
+        "cap": SENTIMENT_CAP,
+        "cap_note": "أقصى تأثير للمعنويات على النتيجة النهائية: {}% فقط".format(SENTIMENT_CAP),
+        "contradiction": contradiction,
+        "positives": pos[:5],
+        "negatives": neg[:5],
+        "neutral": neu[:3],
+    }
+
+
+# ════════════════════════════════════════════════════════════
+# PHASE 8: ملاءمة المحفظة — السهم كويس بس هل يناسب محفظتك؟
+# ════════════════════════════════════════════════════════════
+# المحفظة الافتراضية: نخزنها في ذاكرة السيرفر (Phase 18 هنعمل UI)
+PORTFOLIO = {"holdings": {}, "cash": 0.0}   # {CODE: {"shares": n, "cost": price}}
+
+def portfolio_fit(item, portfolio=None):
+    """
+    ⚠️ المبدأ: السهم ممكن يكون ممتاز لوحده، بس مش مناسب لمحفزتك.
+    مثال: Stock Score = 90 لكن Portfolio Fit = 52 لأن المحفظة فيها 40% بنوك.
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    if not item: return None
+    pf = portfolio if portfolio is not None else PORTFOLIO
+    pos, neg, neu = [], [], []
+
+    holdings = pf.get("holdings", {})
+    code = item.get("code")
+    sec = item.get("sector") or "أخرى"
+    price = _f(item.get("price")) or 0
+
+    # ═══ لو المحفظة فاضية ═══
+    if not holdings:
+        return {
+            "score": 70,
+            "note": "محفظتك فاضية — مفيش تركّز يتعارض.Fit Score محايد.",
+            "diversified": True,
+            "holdings_count": 0,
+            "sector_exposure": {},
+            "positives": ["محفظة فاضية — أي سهم مناسب"],
+            "negatives": [],
+            "neutral": ["أضف أسهم لبناء تنويع"],
+            "warnings": [],
+        }
+
+    # ═══ حساب التعرض للقطاع ═══
+    total_value = 0.0
+    sector_exposure = {}
+    for hcode, h in holdings.items():
+        hs = h.get("shares", 0) * h.get("price", 0)
+        hsec = None
+        # نلاقي قطاع السهم في البيانات
+        total_value += hs
+    # نحسب التعرض بالأسهم المجاورة
+    total_value += price  # نضيف السهم المرشح
+
+    # نسبة كل قطاع
+    for hcode, h in holdings.items():
+        hs = h.get("shares", 0) * h.get("price", 0)
+        hsec = h.get("sector") or "أخرى"
+        sector_exposure[hsec] = sector_exposure.get(hsec, 0) + hs
+    sector_exposure[sec] = sector_exposure.get(sec, 0) + price
+
+    sector_pct = {k: (v / total_value * 100) if total_value else 0 for k, v in sector_exposure.items()}
+    this_sector_pct = sector_pct.get(sec, 0)
+
+    score = 100.0
+    warnings = []
+
+    # ═══ 1) تركّز القطاع (40 نقطة) ═══
+    if this_sector_pct > 50:
+        score -= 35
+        warnings.append(f"⚠️ محفظتك {this_sector_pct:.0f}% في قطاع {sec} — السهم هيضاعف التركيز")
+        neg.append(f"تركّز عالي في قطاع {sec} ({this_sector_pct:.0f}%)")
+    elif this_sector_pct > 35:
+        score -= 20
+        warnings.append(f"محفظتك {this_sector_pct:.0f}% في {sec} — حذر من الزيادة")
+        neg.append(f"تركّز متوسط في قطاع {sec} ({this_sector_pct:.0f}%)")
+    elif this_sector_pct > 20:
+        score -= 8
+        neu.append(f"تعرّض معقول لقطاع {sec} ({this_sector_pct:.0f}%)")
+    else:
+        pos.append(f"تعرّض منخفض لقطاع {sec} ({this_sector_pct:.0f}%) — يحسّن التنويع")
+
+    # ═══ 2) تركّز الأصل الواحد (20 نقطة) ═══
+    pos_pct = (price / total_value * 100) if total_value else 0
+    if pos_pct > 10:
+        score -= 15
+        warnings.append(f"السهم وحده هيبقى {pos_pct:.0f}% من المحفظة — كبير")
+    elif pos_pct > 5:
+        score -= 7
+
+    # ═══ 3) عدد الأسهم (20 نقطة) ═══
+    n = len(holdings)
+    if n < 3:
+        score -= 20
+        warnings.append(f"محفظتك فيها {n} أسهم فقط — diversification ضعيف")
+        neg.append(f"محفظة غير متنوعة ({n} أسهم)")
+    elif n < 5:
+        score -= 10
+        neu.append(f"محفظة متنوعة نسبياً ({n} أسهم)")
+    else:
+        pos.append(f"تنويع كويس ({n} أسهم مختلفة)")
+
+    # ═══ 4) تنوع القطاعات (20 نقطة) ═══
+    n_sectors = len([k for k, v in sector_pct.items() if v > 5])
+    if n_sectors < 3:
+        score -= 15
+        warnings.append("محفظتك مركزة في قطاعات قليلة")
+        neg.append(f"تنوّع قطاعات ضعيف ({n_sectors} قطاعات)")
+    elif n_sectors >= 5:
+        pos.append(f"تنويع قطاعات ممتاز ({n_sectors} قطاعات)")
+
+    fit = round(max(0, min(100, score)), 1)
+
+    # ═══ المقارنة: السهم لوحده ضد ملاءمته ═══
+    stock_final = _f(item.get("final_score"), 0)
+    return {
+        "score": fit,
+        "stock_score": stock_final,
+        "gap": round(stock_final - fit, 1) if stock_final else None,
+        "note": "السهم لوحده {} لكن ملاءمته لمحفظتك {} ({})".format(
+            "{:.0f}".format(stock_final) if stock_final else "—",
+            "{:.0f}".format(fit),
+            "مناسب" if fit >= 60 else ("محايد" if fit >= 40 else "غير مناسب")),
+        "holdings_count": n,
+        "sector_exposure": {k: round(v, 1) for k, v in sector_pct.items()},
+        "this_sector": sec,
+        "this_sector_pct": round(this_sector_pct, 1),
+        "warnings": warnings,
+        "positives": pos[:5],
+        "negatives": neg[:5],
+        "neutral": neu[:3],
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -1957,6 +2184,7 @@ def update_loop():
             global SECTOR_STATS
             SECTOR_STATS = build_sector_stats(st)
             LIVE_DATA["sector_stats"] = SECTOR_STATS
+            liq_score = True   # علم: نضيف خصم السيولة
             for item in st:
                 try:
                     # ═══ Phase 2-F: نستنتج المؤشرات الناقصة من الأرقام المتاحة ═══
@@ -1973,9 +2201,31 @@ def update_loop():
                     if li:
                         item["liquidity_score"] = li["score"]
                         item["liquidity_risk"] = li["risk_level"]
-                    # ═══ Phase 9: النتيجة النهائية المدمجة ═══
+                    # ═══ Phase 6: المعنويات ═══
+                    se = sentiment_engine(item, st)
+                    if se:
+                        item["sentiment_score"] = se["score"]
+                        item["sentiment_conflict"] = se.get("contradiction")
+                    # ═══ Phase 8: ملاءمة المحفظة ═══
+                    pfit = portfolio_fit(item, PORTFOLIO)
+                    if pfit:
+                        item["portfolio_fit"] = pfit["score"]
+                    # ═══ Phase 9: النتيجة النهائية (بعد كل المحاور) ═══
                     fin = final_score(item, t, f, li, SECTOR_STATS)
                     if fin:
+                        # ندمج المعنويات الحقيقية + ملاءمة المحفظة
+                        if se: fin["axes"]["sentiment"] = se["score"]
+                        if pfit: fin["axes"]["portfolio"] = pfit["score"]
+                        # إعادة حساب المحصلة
+                        ax = fin["axes"]
+                        b = sum(ax[k] * AXIS_WEIGHTS[k] for k in AXIS_WEIGHTS)
+                        risk_pen = (100 - ax["risk"]) * 0.18
+                        adj = b - risk_pen
+                        if liq_score:  # نضيف خصم السيولة
+                            lq = liquidity_score(item)
+                            if lq and lq["risk_level"] in ("مرتفع", "مرتفع جداً"):
+                                adj -= (100 - lq["score"]) * 0.10
+                        fin["final_score"] = round(max(0, min(100, adj)), 1)
                         item["final_score"] = fin["final_score"]
                         item["confidence"] = fin["confidence"]
                         item["decision"] = fin["decision"]
@@ -2376,6 +2626,71 @@ def ranking():
             "upside": s.get("upside"), "fair_value": s.get("fair_value"),
         } for s in ranked[:20]],
     })
+
+
+@app.route("/api/portfolio")
+def portfolio_api():
+    """عرض وتعديل المحفظة"""
+    if request.method == "POST":
+        data = request.get_json(force=True, silent=True) or {}
+        action = data.get("action")
+        code = (data.get("code") or "").upper()
+        if action == "add":
+            PORTFOLIO["holdings"][code] = {
+                "shares": float(data.get("shares", 0)),
+                "cost": float(data.get("cost", 0)),
+                "price": float(data.get("price", 0)),
+                "sector": data.get("sector", "أخرى"),
+            }
+        elif action == "remove":
+            PORTFOLIO["holdings"].pop(code, None)
+        elif action == "clear":
+            PORTFOLIO["holdings"] = {}
+            PORTFOLIO["cash"] = 0
+        elif action == "set_cash":
+            PORTFOLIO["cash"] = float(data.get("cash", 0))
+        return jsonify({"ok": True, "portfolio": PORTFOLIO})
+
+    # GET: نحسب إحصائيات المحفظة
+    total = sum(h["shares"] * h["price"] for h in PORTFOLIO["holdings"].values()) + PORTFOLIO.get("cash", 0)
+    sectors = {}
+    for c, h in PORTFOLIO["holdings"].items():
+        v = h["shares"] * h["price"]
+        sectors[h.get("sector", "أخرى")] = sectors.get(h.get("sector", "أخرى"), 0) + v
+    return jsonify({
+        "total_value": round(total, 2),
+        "cash": PORTFOLIO.get("cash", 0),
+        "count": len(PORTFOLIO["holdings"]),
+        "holdings": PORTFOLIO["holdings"],
+        "sector_exposure_pct": {k: round(v / total * 100, 1) for k, v in sectors.items()} if total else {},
+        "diversification": (
+            "ممتاز" if len(sectors) >= 5 else
+            "كويس" if len(sectors) >= 3 else
+            "ضعيف"
+        ) if total else "محفظة فاضية",
+    })
+
+
+@app.route("/api/portfolio/fit/<code>")
+def portfolio_fit_api(code):
+    """ملاءمة السهم لمحفظتك"""
+    code = code.upper().strip()
+    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
+    if not item:
+        return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    fit = portfolio_fit(item, PORTFOLIO)
+    return jsonify({"code": code, "portfolio_fit": fit})
+
+
+@app.route("/api/sentiment/<code>")
+def sentiment_api(code):
+    """تحليل المعنويات المفصّل"""
+    code = code.upper().strip()
+    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
+    if not item:
+        return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    se = sentiment_engine(item, LIVE_DATA.get("egx30", []))
+    return jsonify({"code": code, "name": item.get("name"), "sentiment": se})
 
 
 @app.route("/api/top-movers")
