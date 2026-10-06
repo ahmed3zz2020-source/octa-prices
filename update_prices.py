@@ -1651,6 +1651,18 @@ def update_loop():
         time.sleep(refresh_interval())
 
 
+# ═══ PHASE 2+3: تشخيص عند الإقلاع ═══
+print("=" * 55)
+print("OCTA Startup Diagnostic")
+print(f"  EGX stocks:        {len(EGX)}")
+print(f"  TV_COLUMNS:        {len(TV_COLUMNS)}")
+print(f"  TV_TECH_COLUMNS:   {len(TV_TECH_COLUMNS)}")
+print(f"  total columns:     {len(TV_COLUMNS) + len(TV_TECH_COLUMNS)}")
+print(f"  tech_score:        {'YES' if callable(tech_score) else 'NO'}")
+print(f"  fundamental_score: {'YES' if callable(fundamental_score) else 'NO'}")
+print(f"  commit:            PHASE 2+3 (4f9d754)")
+print("=" * 55)
+
 AI_CACHE.update(_load_ai_disk())
 print(f"  AI disk cache: {len(AI_CACHE)} entries")
 
@@ -1968,6 +1980,38 @@ def fundamental_only(code):
 def sector_stats_api():
     """متوسط كل قطاع — للمقارنة"""
     return jsonify(SECTOR_STATS)
+
+
+@app.route("/api/diagnostic")
+def diagnostic():
+    """فحص شامل — يقول البيانات فين وإيه ناقص"""
+    st = LIVE_DATA.get("egx30", [])
+    with_rsi = sum(1 for s in st if s.get("rsi") is not None)
+    with_pe = sum(1 for s in st if s.get("pe") is not None)
+    with_tech = sum(1 for s in st if s.get("technical_score") is not None)
+    sample = st[0] if st else {}
+    return jsonify({
+        "version": "PHASE 2+3",
+        "egx_count": len(EGX),
+        "columns_defined": {
+            "TV_COLUMNS": len(TV_COLUMNS),
+            "TV_TECH_COLUMNS": len(TV_TECH_COLUMNS),
+            "total": len(TV_COLUMNS) + len(TV_TECH_COLUMNS),
+        },
+        "functions": {
+            "tech_score": callable(tech_score),
+            "fundamental_score": callable(fundamental_score),
+        },
+        "data_quality": {
+            "stocks": len(st),
+            "with_rsi": with_rsi,
+            "with_pe": with_pe,
+            "with_tech_score": with_tech,
+        },
+        "sample_fields_count": len(sample),
+        "sample_keys": sorted(sample.keys()) if sample else [],
+        "last_update": LIVE_DATA.get("lastUpdate"),
+    })
 
 
 @app.route("/api/top-movers")
