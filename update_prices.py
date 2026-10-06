@@ -1025,6 +1025,165 @@ def tech_score(item):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 3: محرك التحليل الأساسي — مقارنة بالقطاع + قيمة عادلة
+# ════════════════════════════════════════════════════════════
+SECTOR_STATS = {}
+
+def build_sector_stats(all_stocks):
+    """متوسط كل قطاع — لأن 'رخيص' معناها رخيص مقارنة بالقطاع"""
+    stats, by_sec = {}, {}
+    for s in all_stocks:
+        by_sec.setdefault(s.get("sector") or "أخرى", []).append(s)
+    def med(xs):
+        if not xs: return None
+        xs = sorted(xs); n = len(xs)
+        return xs[n//2] if n % 2 else (xs[n//2-1] + xs[n//2]) / 2
+    for sec, st in by_sec.items():
+        pes  = [x["pe"] for x in st if x.get("pe") is not None and x["pe"] > 0]
+        roes = [x["roe"] for x in st if x.get("roe") is not None]
+        pbs  = [x["pb"] for x in st if x.get("pb") is not None and x["pb"] > 0]
+        nms  = [x["net_margin"] for x in st if x.get("net_margin") is not None]
+        des  = [x["de_ratio"] for x in st if x.get("de_ratio") is not None]
+        stats[sec] = {
+            "count": len(st), "with_pe": len(pes),
+            "median_pe": round(med(pes), 2) if pes else None,
+            "median_roe": round(med(roes), 2) if roes else None,
+            "median_pb": round(med(pbs), 2) if pbs else None,
+            "median_de_ratio": round(med(des), 2) if des else None,
+            "pe_range": [round(min(pes),1), round(max(pes),1)] if pes else None,
+        }
+    return stats
+
+
+def fundamental_score(item, peers_map=None):
+    """بيانات الشركة → نتيجة 0-100 + حالة تقييم + قيمة عادلة"""
+    if not item: return None
+    peers_map = peers_map if peers_map is not None else SECTOR_STATS
+    sec = item.get("sector") or "أخرى"
+    pr = peers_map.get(sec) or {}
+    P, B, R, N, D, E = (item.get("pe"), item.get("pb"), item.get("roe"),
+                        item.get("net_margin"), item.get("de_ratio"), item.get("eps"))
+    px = item.get("price")
+    ppe, ppb, proe = pr.get("median_pe"), pr.get("median_pb"), pr.get("median_roe")
+    pos, neg, neu = [], [], []
+
+    # 1) الربحية (30)
+    prof = 0.0
+    if R is not None:
+        if   R > 35: prof += 15; pos.append(f"عائد ملكية ممتاز ({R:.0f}%)")
+        elif R > 25: prof += 13; pos.append(f"عائد ملكية قوي ({R:.0f}%)")
+        elif R > 15: prof += 10
+        elif R > 8:  prof += 5
+        elif R > 0:  prof += 1; neg.append(f"عائد ملكية ضعيف ({R:.0f}%)")
+        else: neg.append(f"الشركة بتخسر ({R:.0f}%)")
+        if proe is not None:
+            if   R > proe * 1.3: prof += 5; pos.append(f"أعلى من متوسط القطاع ({proe:.0f}%)")
+            elif R < proe * 0.7: neg.append(f"أقل من متوسط القطاع ({proe:.0f}%)")
+    if N is not None:
+        if   N > 25: prof += 8; pos.append(f"هامش صافي ممتاز ({N:.0f}%)")
+        elif N > 15: prof += 6
+        elif N > 8:  prof += 3
+        elif N > 0:  prof += 0
+        else: prof -= 3; neg.append(f"هامش صافي سالب ({N:.0f}%)")
+    prof_s = max(0, min(30, prof))
+
+    # 2) القيمة (30)
+    val = 0.0
+    if P is not None and P > 0:
+        if ppe:
+            ratio = P / ppe
+            if   ratio < 0.5:  val += 16; pos.append(f"رخيص جداً (P/E {P:.1f} مقابل {ppe:.1f})")
+            elif ratio < 0.75: val += 13; pos.append(f"رخيص مقارنة بالقطاع ({P:.1f} مقابل {ppe:.1f})")
+            elif ratio < 1.0:  val += 10
+            elif ratio < 1.3:  val += 6;  neu.append(f"قريب من متوسط القطاع ({ppe:.1f})")
+            elif ratio < 2.0:  val += 3;  neg.append(f"غالي مقارنة بالقطاع ({ppe:.1f})")
+            else:              neg.append(f"غالي جداً مقارنة بالقطاع ({ppe:.1f})")
+        else:
+            val += 15 if P < 8 else 12 if P < 15 else 7 if P < 25 else 2
+    if B is not None and ppb and ppb > 0 and px:
+        ratio = B / ppb
+        if   ratio < 0.6: val += 8; pos.append(f"رخيص على الكتاب ({B:.1f} مقابل {ppb:.1f})")
+        elif ratio < 0.9: val += 5
+        elif ratio < 1.2: val += 2
+        else:             neg.append(f"مكلف على الكتاب ({B:.1f} مقابل {ppb:.1f})")
+    val_s = max(0, min(30, val))
+
+    # 3) الصحة المالية (20)
+    health = 15.0
+    if D is not None:
+        if   D < 0.3: health += 5;  pos.append(f"ديون منخفضة ({D:.2f})")
+        elif D < 0.8: health += 3
+        elif D < 1.5: health += 0;  neu.append(f"ديون متوسطة ({D:.2f})")
+        else:        health -= 6;  neg.append(f"ديون عالية ({D:.2f})")
+    bt = item.get("beta")
+    if bt is not None and bt > 2:
+        health -= 3; neg.append(f"حساسية عالية للسوق (Beta {bt:.1f})")
+    health_s = max(0, min(20, health))
+
+    # 4) اكتمال البيانات (20)
+    avail = sum(1 for k in ("pe","pb","roe","net_margin","de_ratio","eps","revenue")
+                if item.get(k) is not None)
+    conf_s = (avail / 7) * 20
+    if   avail < 3: neg.append(f"بيانات مالية ناقصة ({avail}/7)")
+    elif avail < 5: neu.append(f"بيانات مالية جزئية ({avail}/7)")
+
+    total = round(max(0, min(100, prof_s + val_s + health_s + conf_s)), 1)
+
+    # حالة التقييم
+    if P is not None and P > 0:
+        if ppe:
+            ratio = P / ppe
+            vs = "مُسعّر بأقل من قيمته" if ratio < 0.75 else \
+                 ("مُسعّر بأعلى من قيمته" if ratio > 1.35 else "مُسعّر بشكل عادل")
+        else:
+            vs = "مُسعّر بأقل من قيمته" if P < 12 else \
+                 ("مُسعّر بشكل عادل" if P < 25 else "مُسعّر بأعلى من قيمته")
+    else:
+        vs = "غير محدد (بيانات ناقصة)"
+
+    # القيمة العادلة — مع حماية من القيم المجنونة
+    methods = {}
+    eps_d = E if E is not None else ((px / P) if (P and P > 0 and px) else None)
+    def safe(f, why, key):
+        if f and px and 0.15 * px <= f <= 3.0 * px:
+            methods[key] = {"value": round(f, 2), "why": why}
+    if eps_d and ppe and ppe > 0:
+        safe(eps_d * ppe,
+             f"ربحية {eps_d:.2f} × متوسط القطاع {ppe:.1f}" + ("" if E is not None else " (محسوبة من السعر)"),
+             "مضاعف الربحية")
+    if B is not None and ppb and ppb > 0 and px:
+        adj = 1.1 if (R is not None and R > 20) else 0.9
+        safe((px / B) * ppb * adj, f"قيمة دفترية × متوسط {ppb:.1f} × تعديل {adj}", "مضاعف الكتاب")
+    if eps_d and eps_d > 0:
+        safe(eps_d * 12, "مضاعف ربحية 12 (معيار السوق المصري)", "مضاعف معياري")
+    dy = item.get("div_yield")
+    if dy and 1.5 < dy < 30 and px:
+        safe(px / (dy / 100) * 0.09, f"عائد {dy:.1f}% ← هدف 9%", "عائد التوزيعات")
+
+    fv = round(sum(m["value"] for m in methods.values()) / len(methods), 2) if methods else None
+    fvc = int((len(methods) / 4) * 100) if methods else 0
+    upside = None
+    if fv and px:
+        upside = round((fv - px) / px * 100, 1)
+        if abs(upside) > 200:
+            neg.append("القيمة العادلة بعيدة جداً — التقدير غير موثوق")
+            upside, fvc = None, min(fvc, 30)
+
+    return {
+        "score": total, "valuation_status": vs,
+        "breakdown": {"الربحية": round(prof_s,1), "القيمة": round(val_s,1),
+                      "الصحة المالية": round(health_s,1), "اكتمال البيانات": round(conf_s,1)},
+        "sector": sec,
+        "sector_peers": {"متوسط P/E": ppe, "متوسط P/B": ppb,
+                         "عدد المقارنة": pr.get("with_pe",0), "نطاق P/E": pr.get("pe_range")},
+        "fair_value": fv, "fair_value_confidence": fvc,
+        "fair_value_methods": methods, "upside_pct": upside,
+        "positives": pos[:5], "negatives": neg[:5], "neutral": neu[:3],
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -1364,6 +1523,25 @@ def update_loop():
             LIVE_DATA["total_stocks"] = len(st)
             LIVE_DATA["live_count"] = len(scan)
 
+            # ═══ Phase 2+3: النتائج لكل سهم (فوري رياضياً) ═══
+            global SECTOR_STATS
+            SECTOR_STATS = build_sector_stats(st)
+            LIVE_DATA["sector_stats"] = SECTOR_STATS
+            for item in st:
+                try:
+                    t = tech_score(item)
+                    if t:
+                        item["technical_score"] = t["score"]
+                        item["technical_signal"] = t["signal"]
+                    f = fundamental_score(item, SECTOR_STATS)
+                    if f:
+                        item["fund_score"] = f["score"]
+                        item["valuation"] = f["valuation_status"]
+                        item["fair_value"] = f["fair_value"]
+                        item["upside"] = f["upside_pct"]
+                except Exception:
+                    pass
+
             try:
                 with open(CACHE_FILE, "w", encoding="utf-8") as f:
                     json.dump(LIVE_DATA, f, ensure_ascii=False, indent=2)
@@ -1551,6 +1729,7 @@ def analyze():
                 # (مبدأ: ما نبغاش نبالغ في التقييم)
                 ai_tech = (result.get("axes") or {}).get("technical", 50)
                 result["axes"]["technical"] = min(ai_tech, tech["score"])
+                result["technical"] = tech
                 # نحدّث المحصلة
                 axes = result["axes"]
                 base = sum([
@@ -1659,28 +1838,50 @@ def technical_only(code):
     })
 
 
+@app.route("/api/fundamental/<code>")
+def fundamental_only(code):
+    """تحليل أساسي مفصّل — فوري بدون ذكاء اصطناعي"""
+    code = code.upper().strip()
+    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
+    if not item:
+        return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    f = fundamental_score(item, SECTOR_STATS)
+    if not f:
+        return jsonify({"error": "بيانات غير كافية"}), 400
+    return jsonify({
+        "build": "PHASE2-3-FINAL",
+        "code": code, "name": item.get("name"), "sector": item.get("sector"),
+        "price": item.get("price"), "change": item.get("change"),
+        "fundamental": f,
+        "raw": {k: item.get(k) for k in ("pe","pb","roe","net_margin","de_ratio",
+                                        "eps","div_yield","beta","revenue")},
+        "data_ts": item.get("ts"),
+    })
+
+
+@app.route("/api/sector-stats")
+def sector_stats_api():
+    return jsonify(SECTOR_STATS)
+
+
 @app.route("/api/diagnostic")
 def diagnostic():
     """فحص شامل — يأكد النسخة الصح شغالة"""
     st = LIVE_DATA.get("egx30", [])
     sample = st[0] if st else {}
     return jsonify({
-        "build": "PHASE2-3-BUILD-001",
+        "build": "PHASE2-3-FINAL",
         "expected_fields": 82,
         "actual_fields": len(sample),
         "egx_count": len(EGX),
-        "columns": {
-            "TV_COLUMNS": len(TV_COLUMNS),
-            "TV_TECH_COLUMNS": len(TV_TECH_COLUMNS),
-        },
-        "functions": {
-            "tech_score": callable(tech_score),
-            "fundamental_score": callable(fundamental_score),
-        },
+        "columns": {"TV_COLUMNS": len(TV_COLUMNS), "TV_TECH_COLUMNS": len(TV_TECH_COLUMNS)},
+        "functions": {"tech_score": callable(tech_score),
+                      "fundamental_score": callable(fundamental_score)},
         "data": {
             "stocks": len(st),
             "with_rsi": sum(1 for s in st if s.get("rsi") is not None),
-            "with_tech_score": sum(1 for s in st if s.get("technical_score") is not None),
+            "with_technical_score": sum(1 for s in st if s.get("technical_score") is not None),
+            "with_fund_score": sum(1 for s in st if s.get("fund_score") is not None),
             "with_pe": sum(1 for s in st if s.get("pe") is not None),
         },
         "last_update": LIVE_DATA.get("lastUpdate"),
