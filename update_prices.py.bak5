@@ -1393,20 +1393,9 @@ def tv_scan_all(symbols=None):
     }
     out = {}
     try:
-        # ═══ PHASE 2: نقسم الطلب لـ chunks صغيرة ═══
-        # السبب: الطلب الكبير ممكن يضيع في الطريق من السيرفر
-        all_data = []
-        CHUNK = 50
-        for i in range(0, len(tickers), CHUNK):
-            chunk = tickers[i:i + CHUNK]
-            p = {"symbols": {"tickers": chunk, "query": {"types": []}},
-                 "columns": cols}
-            rr = requests.post(SCANNER_URL, json=p, headers=TV_HEADERS, timeout=30)
-            rr.raise_for_status()
-            all_data.extend(rr.json().get("data", []))
-            time.sleep(0.12)
-        data = {"data": all_data}
-
+        r = requests.post(SCANNER_URL, json=payload, headers=TV_HEADERS, timeout=40)
+        r.raise_for_status()
+        data = r.json()
         for row in data.get("data", []):
             code = row["s"].replace("EGX:", "")
             d = row.get("d") or []
@@ -1421,14 +1410,13 @@ def tv_scan_all(symbols=None):
             if rec.get("price"):
                 out[code] = rec
         first = next(iter(out.values()), {})
-        got = len(data.get("data", []))
         print(f"  TV Scanner: {len(out)}/{len(tickers)} سهم | "
               f"أخطاء تحقق: {sum(len(v['_invalid']) for v in out.values())}")
         # تشخيص: كام حقل فعلياً وصل
         n_fields = len([k for k in first if not k.startswith('_')]) - 1  # -1 for code
-        print(f"  🔍 DIAG: rows={got}/{len(tickers)} | cols_req={len(cols)} | "
-              f"cols_recv={len(all_data[0]['d']) if all_data else 0} | "
-              f"rsi={first.get('rsi')} | pe={first.get('pe')} | ema20={first.get('ema20')}")
+        print(f"  🔍 DIAG: build=PHASE2-3-FINAL | cols_requested={len(cols)} | "
+              f"cols_received={len(data['data'][0]['d']) if data.get('data') else 0} | "
+              f"fields_in_rec={n_fields} | rsi={first.get('rsi')} | pe={first.get('pe')}")
         return out
     except Exception as e:
         print(f"  TV Scanner error: {e}")
