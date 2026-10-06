@@ -1813,6 +1813,140 @@ def portfolio_fit(item, portfolio=None):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 7: محرك المخاطر المتقدم — 9 أنواع مخاطر + مقاييس
+# ════════════════════════════════════════════════════════════
+
+def risk_engine(item, sector_stats=None):
+    """
+    ⚠️ المبدأ: النتيجة العالية = مخاطرة أقل ( inversed )
+    لأن أهم حاجة للمستخدم يعرف: هل الخطر مقبول؟
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    if not item: return None
+    risks = []      # قائمة المخاطر مرتبة بالخطورة
+    notes = []
+
+    px = _f(item.get("price")) or 1
+    beta = _f(item.get("beta"))
+    vola = _f(item.get("volatility"))
+    atr = _f(item.get("atr"))
+    de = _f(item.get("de_ratio"))
+    mc = _f(item.get("mkt_cap"))
+    p1y = _f(item.get("perf_y"))
+    p6m = _f(item.get("perf_6m"))
+    p3m = _f(item.get("perf_3m"))
+
+    # ═══ 1) مخاطر التقلب (20 وزن) ═══
+    r_vol = 0
+    if vola is not None:
+        if   vola > 5.0:  r_vol += 20; risks.append(("التقلب", f"مرتفع جداً ({vola:.1f}% يومياً)", 20))
+        elif vola > 3.0:  r_vol += 15; risks.append(("التذبذب", f"مرتفع ({vola:.1f}% يومياً)", 15))
+        elif vola > 1.5:  r_vol += 8
+        elif vola > 0.8:  r_vol += 3
+        else:             r_vol += 0; notes.append("سهم مستقر جداً")
+    if atr is not None and px:
+        atr_pct = atr / px * 100
+        if atr_pct > 6:
+            r_vol += 10; risks.append(("المدى الحقيقي", f"{atr_pct:.1f}% من السعر — تحركات كبيرة", 10))
+
+    # ═══ 2) مخاطر السوق (15 وزن) ═══
+    r_mkt = 0
+    if beta is not None:
+        if   beta > 2.0:  r_mkt += 15; risks.append(("حساسية السوق", f"Beta {beta:.1f} — amplifies market moves", 15))
+        elif beta > 1.5:  r_mkt += 11
+        elif beta > 1.0:  r_mkt += 6
+        elif beta > 0.5:  r_mkt += 2
+        else:             r_mkt += 0; notes.append("أقل حساسية من السوق (Beta < 0.5)")
+
+    # ═══ 3) مخاطر مالية (20 وزن) ═══
+    r_fin = 0
+    if de is not None:
+        if   de > 2.0: r_fin += 20; risks.append(("المديونية", f"نسبة الدين {de:.1f} — ديون عالية جداً", 20))
+        elif de > 1.0: r_fin += 14
+        elif de > 0.5: r_fin += 7
+        elif de > 0.3: r_fin += 3
+        else:          r_fin += 0; notes.append("شركة قليلة الديون")
+    nm = _f(item.get("net_margin"))
+    if nm is not None and nm < 0:
+        r_fin += 10; risks.append(("الخسارة", f"هامش صافي سالب ({nm:.0f}%)", 10))
+
+    # ═══ 4) مخاطر السيولة (15 وزن) ═══
+    r_liq = 0
+    if mc is not None:
+        if   mc < 200e6: r_liq += 15; risks.append(("السيولة", f"سهم ضئيل ({mc/1e6:.0f} مليون) — صعب البيع", 15))
+        elif mc < 1e9:   r_liq += 11
+        elif mc < 5e9:   r_liq += 6
+        elif mc < 20e9:  r_liq += 2
+        else:            r_liq += 0; notes.append("سيولة ممتازة")
+
+    # ═══ 5) مخاطر الاتجاه (15 وزن) ═══
+    r_trend = 0
+    tv = _f(item.get("tv_all"))
+    if tv is not None:
+        if   tv < -0.5:  r_trend += 15; risks.append(("الاتجاه الفني", f"تقييم {tv:+.2f} — اتجاه هابط قوي", 15))
+        elif tv < -0.2:  r_trend += 10
+        elif tv < 0.2:   r_trend += 4
+        else:            r_trend += 0
+    if p3m is not None and p3m < -20:
+        r_trend += 8; risks.append(("تراجع", f"خسارة {abs(p3m):.0f}% في 3 شهور", 8))
+
+    # ═══ 6) مخاطر التقييم (10 وزن) ═══
+    r_val = 0
+    pe = _f(item.get("pe"))
+    if pe is not None:
+        if   pe > 60: r_val += 10; risks.append(("التقييم", f"P/E {pe:.0f} — غالي جداً", 10))
+        elif pe > 35: r_val += 7
+        elif pe > 25: r_val += 4
+        elif pe < 0:  r_val += 8; risks.append(("الخسارة", "P/E سالب — الشركة بتخسر", 8))
+
+    # ═══ 7) مخاطر الأحداث (5 وزن) — مفيش مصدر أخبار لسه ═══
+    r_ev = 5
+    notes.append("⚠️ مخاطر الأحداث غير مقيّمة — لا يوجد مصدر أخبار")
+
+    # ═══ النتيجة: كلما قلّت = أمان أكتر ═══
+    total_risk = min(100, r_vol + r_mkt + r_fin + r_liq + r_trend + r_val + r_ev)
+    safety = round(100 - total_risk, 1)
+
+    # ═══ مستوى الخطورة ═══
+    if   total_risk < 25: level = "منخفض"
+    elif total_risk < 45: level = "متوسط"
+    elif total_risk < 65: level = "مرتفع"
+    else:                 level = "مرتفع جداً"
+
+    # ═══ نسبة العائد للمخاطرة ═══
+    ra = None
+    fs = _f(item.get("final_score"))
+    if fs is not None and total_risk > 5:
+        ra = round((fs / 100) / (total_risk / 100), 2)
+
+    # ═══ أهم 3 مخاطر ═══
+    risks.sort(key=lambda x: -x[2])
+    top3 = [{"النوع": r[0], "الوصف": r[1], "الوزن": r[2]} for r in risks[:3]]
+
+    return {
+        "safety_score": safety,
+        "risk_score": round(total_risk, 1),   # أعلى = أخطر
+        "risk_level": level,
+        "breakdown": {
+            "التقلب": round(r_vol, 1),
+            "حساسية السوق": round(r_mkt, 1),
+            "مالية": round(r_fin, 1),
+            "السيولة": round(r_liq, 1),
+            "الاتجاه": round(r_trend, 1),
+            "التقييم": round(r_val, 1),
+            "الأحداث": r_ev,
+        },
+        "top_risks": top3,
+        "risk_adjusted_opportunity": ra,
+        "notes": notes,
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -2210,6 +2344,11 @@ def update_loop():
                     pfit = portfolio_fit(item, PORTFOLIO)
                     if pfit:
                         item["portfolio_fit"] = pfit["score"]
+                    # ═══ Phase 7: المخاطر المتقدمة ═══
+                    rk = risk_engine(item, SECTOR_STATS)
+                    if rk:
+                        item["safety_score"] = rk["safety_score"]
+                        item["risk_score_detailed"] = rk["risk_score"]
                     # ═══ Phase 9: النتيجة النهائية (بعد كل المحاور) ═══
                     fin = final_score(item, t, f, li, SECTOR_STATS)
                     if fin:
@@ -2691,6 +2830,21 @@ def sentiment_api(code):
         return jsonify({"error": f"السهم {code} غير موجود"}), 404
     se = sentiment_engine(item, LIVE_DATA.get("egx30", []))
     return jsonify({"code": code, "name": item.get("name"), "sentiment": se})
+
+
+@app.route("/api/risk/<code>")
+def risk_api(code):
+    """تحليل المخاطر المفصّل — 7 فئات + عائد/خطر"""
+    code = code.upper().strip()
+    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
+    if not item:
+        return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    rk = risk_engine(item, SECTOR_STATS)
+    return jsonify({
+        "code": code, "name": item.get("name"), "sector": item.get("sector"),
+        "risk": rk,
+        "price": item.get("price"),
+    })
 
 
 @app.route("/api/top-movers")
