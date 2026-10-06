@@ -1659,6 +1659,34 @@ def technical_only(code):
     })
 
 
+@app.route("/api/diagnostic")
+def diagnostic():
+    """فحص شامل — يأكد النسخة الصح شغالة"""
+    st = LIVE_DATA.get("egx30", [])
+    sample = st[0] if st else {}
+    return jsonify({
+        "build": "PHASE2-3-BUILD-001",
+        "expected_fields": 82,
+        "actual_fields": len(sample),
+        "egx_count": len(EGX),
+        "columns": {
+            "TV_COLUMNS": len(TV_COLUMNS),
+            "TV_TECH_COLUMNS": len(TV_TECH_COLUMNS),
+        },
+        "functions": {
+            "tech_score": callable(tech_score),
+            "fundamental_score": callable(fundamental_score),
+        },
+        "data": {
+            "stocks": len(st),
+            "with_rsi": sum(1 for s in st if s.get("rsi") is not None),
+            "with_tech_score": sum(1 for s in st if s.get("technical_score") is not None),
+            "with_pe": sum(1 for s in st if s.get("pe") is not None),
+        },
+        "last_update": LIVE_DATA.get("lastUpdate"),
+    })
+
+
 @app.route("/api/top-movers")
 def top_movers():
     """أعلى/أسفل 10 أسهم + الأكثر تداولاً"""
