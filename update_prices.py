@@ -1217,13 +1217,25 @@ def derive_technical(item):
             item["sma50"] = round((px + price_50d_ago) / 2, 4)
             item["_derived"] = item.get("_derived", []) + ["sma50"]
 
-    # ── متوسط 200 يوم من أداء السنة ──
+    # ── متوسط 200 يوم من أداء السنة (بيغطي SMA200 و EMA200) ──
     py = item.get("perf_y")
-    if item.get("sma200") is None and py is not None:
+    if py is not None:
         price_200d_ago = px / (1 + (py / 100) * (200 / 365)) if py > -95 else None
         if price_200d_ago:
-            item["sma200"] = round((px + price_200d_ago) / 2, 4)
-            item["_derived"] = item.get("_derived", []) + ["sma200"]
+            long_ma = round((px + price_200d_ago) / 2, 4)
+            if item.get("sma200") is None:
+                item["sma200"] = long_ma
+                item["_derived"] = item.get("_derived", []) + ["sma200"]
+            if item.get("ema200") is None:
+                item["ema200"] = long_ma
+                item["_derived"] = item.get("_derived", []) + ["ema200"]
+        # متوسط 50 يوم بيغطي EMA50
+        if item.get("ema50") is None:
+            p3m = item.get("perf_3m")
+            if p3m is not None and p3m > -95:
+                p50 = px / (1 + (p3m / 100) * (50 / 90))
+                item["ema50"] = round((px + p50) / 2, 4)
+                item["_derived"] = item.get("_derived", []) + ["ema50"]
 
     # ── القوة النسبية من الأداء الشهري ──
     if item.get("rsi") is None and p1m is not None:
