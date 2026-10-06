@@ -690,11 +690,12 @@ def quick_score(item):
     axes = {}
 
     # 1) فني: لو عندنا محرك التحليل الفني الكامل، نستخدمه
+    tv = _f(item.get("tv_rating"), None)
+    if tv is None: tv = _f(item.get("tv_all"), None)
     tech = tech_score(item)
     if tech:
         axes["technical"] = round(tech["score"])
     else:
-        tv = item.get("tv_rating") or item.get("tv_all")
         t = 50.0
         if tv is not None:
             t += tv * 40
