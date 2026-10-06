@@ -1409,8 +1409,14 @@ def tv_scan_all(symbols=None):
             # لازم يكون فيه سعر صالح عشان السهم ينفع يتعامل معاه
             if rec.get("price"):
                 out[code] = rec
+        first = next(iter(out.values()), {})
         print(f"  TV Scanner: {len(out)}/{len(tickers)} سهم | "
               f"أخطاء تحقق: {sum(len(v['_invalid']) for v in out.values())}")
+        # تشخيص: كام حقل فعلياً وصل
+        n_fields = len([k for k in first if not k.startswith('_')]) - 1  # -1 for code
+        print(f"  🔍 DIAG: build=PHASE2-3-FINAL | cols_requested={len(cols)} | "
+              f"cols_received={len(data['data'][0]['d']) if data.get('data') else 0} | "
+              f"fields_in_rec={n_fields} | rsi={first.get('rsi')} | pe={first.get('pe')}")
         return out
     except Exception as e:
         print(f"  TV Scanner error: {e}")
