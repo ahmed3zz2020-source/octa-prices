@@ -37,6 +37,7 @@ GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 # Cache للتحليلات: {code: {data, timestamp}}
 SCAN_PROBE = {}
+_bt = None
 AI_CACHE = {}
 # التحليل بياخد ~30 ثانية — نخزنه 6 ساعات بدل ساعة
 # (البيانات الأساسية بتتحدث كل 2 دقيقة، لكن التحليل مالوش لازم يتكرر)
@@ -2646,6 +2647,231 @@ def available_filters(all_stocks):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 15: الاختبار التاريخي (Forward-Tracking Backtest)
+# ════════════════════════════════════════════════════════════
+# ⚠️ قرار منهجي مهم:
+#   TradingView ما بيقدّمش تاريخ يومي لكل سهم عبر الـ API المجاني.
+#   فبدل ما نخترع بيانات، بنعمل "forward tracking":
+#   بنسجّل snapshot للنتيجة اليوم، وبعدين نقيس بعد ٣٠/٦٠/٩٠ يوم
+#   هل الأسهم اللي رشحّناها اتحركت فعلاً ولا لأ.
+#   ده أصدق من backtest على بيانات مفترضة.
+
+BT_FILE = Path("/app/backtest_snapshots.json")
+BACKTEST = {"snapshots": {}, "results": [], "stats": {}}
+
+
+def _bt_load():
+    try:
+        if BT_FILE.exists():
+            with open(BT_FILE, "r", encoding="utf-8") as f:
+                BACKTEST.update(json.load(f))
+    except Exception as e:
+        print(f"  BT load err: {e}")
+
+
+def _bt_save():
+    try:
+        with open(BT_FILE, "w", encoding="utf-8") as f:
+            json.dump(BACKTEST, f, ensure_ascii=False)
+    except Exception as e:
+        print(f"  BT save err: {e}")
+
+
+def bt_snapshot():
+    """
+    نلتقط صورة للنتيجة الآن. بعد كده نقيس: السهم اللي رشحناه
+    عمل إيه فعلاً خلال ٣٠/٦٠/٩٠ يوم؟
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    st = LIVE_DATA.get("egx30", [])
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+
+    ranked = sorted([s for s in st if s.get("final_score") is not None],
+                   key=lambda x: -x["final_score"])[:20]
+    if not ranked:
+        return
+
+    snap = {
+        "date": today,
+        "ts": int(time.time()),
+        "picks": [{
+            "code": s["code"],
+            "score": _f(s.get("final_score")),
+            "price": _f(s.get("price")),
+            "decision": s.get("decision"),
+            "sector": s.get("sector"),
+            "safety": _f(s.get("safety_score")),
+            "opportunity": _f(s.get("opportunity_score")),
+            "perf_1m": _f(s.get("perf_1m")),
+            "upside": _f(s.get("upside")),
+        } for s in ranked],
+    }
+    BACKTEST["snapshots"][today] = snap
+    # نحتفظ بآخر ٩٠ يوم بس
+    keys = sorted(BACKTEST["snapshots"].keys())[-90:]
+    BACKTEST["snapshots"] = {k: BACKTEST["snapshots"][k] for k in keys}
+    _bt_save()
+    print(f"  📸 BT snapshot: {today} — {len(snap['picks'])} سهم")
+
+
+def bt_evaluate(days_back=30):
+    """
+    نقيس: الأسهم اللي رشحناها قبل N يوم، كانت بتعمل إيه؟
+    ⚠️ مفيش track real history — بنستخدم أداء الفترة الحالي كبديل
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    st = {s["code"]: s for s in LIVE_DATA.get("egx30", [])}
+    snaps = sorted(BACKTEST["snapshots"].items())
+    if len(snaps) < 2:
+        return {
+            "status": "ناقص البيانات",
+            "note": "محتاجين يومين على الأقل عشان نقيس. لقطة اليوم اتسجلت.",
+            "snapshots_count": len(snaps),
+            "days_back": days_back,
+        }
+
+    results = []
+    for date, snap in snaps[:-1]:
+        age_days = (datetime.utcnow() - datetime.fromisoformat(date)).days
+        if age_days < 3:   # نقيس بعد ٣ أيام على الأقل
+            continue
+        wins, losses, flat = 0, 0, 0
+        picks = []
+        for p in snap["picks"]:
+            code = p["code"]
+            now = st.get(code)
+            if not now: continue
+            old_p = _f(p.get("price"))
+            new_p = _f(now.get("price"))
+            if not old_p or not new_p: continue
+            ret = ((new_p - old_p) / old_p) * 100
+            # عتبات: +2% ربح، -2% خسارة
+            if ret >= 2:    wins += 1
+            elif ret <= -2: losses += 1
+            else:           flat += 1
+            picks.append({
+                "code": code, "sector": p.get("sector"),
+                "score_at_pick": p.get("score"),
+                "decision_at_pick": p.get("decision"),
+                "price_then": round(old_p, 2),
+                "price_now": round(new_p, 2),
+                "actual_return": round(ret, 2),
+                "result": "ربح" if ret >= 2 else ("خسارة" if ret <= -2 else "محايد"),
+            })
+        if not picks: continue
+        n = len(picks)
+        results.append({
+            "snapshot_date": date,
+            "age_days": age_days,
+            "count": n,
+            "wins": wins,
+            "losses": losses,
+            "flat": flat,
+            "win_rate": round(wins / n * 100, 1),
+            "loss_rate": round(losses / n * 100, 1),
+            "avg_return": round(sum(p["actual_return"] for p in picks) / n, 2),
+            "picks": picks,
+        })
+
+    # ═══ الإحصائيات الإجمالية ═══
+    if results:
+        total_picks = sum(r["count"] for r in results)
+        total_wins = sum(r["wins"] for r in results)
+        total_losses = sum(r["losses"] for r in results)
+        total_flat = sum(r["flat"] for r in results)
+        all_picks = [p for r in results for p in r["picks"]]
+        avg_ret = sum(p["actual_return"] for p in all_picks) / len(all_picks) if all_picks else 0
+
+        # Profit Factor = إجمالي الربح / إجمالي الخسارة
+        gains = sum(p["actual_return"] for p in all_picks if p["actual_return"] > 0)
+        losses_abs = abs(sum(p["actual_return"] for p in all_picks if p["actual_return"] < 0))
+        profit_factor = round(gains / losses_abs, 2) if losses_abs > 0 else (999 if gains > 0 else 0)
+
+        BACKTEST["results"] = results
+        BACKTEST["stats"] = {
+            "snapshots_taken": len(snaps),
+            "windows_measured": len(results),
+            "total_picks": total_picks,
+            "wins": total_wins,
+            "losses": total_losses,
+            "flat": total_flat,
+            "win_rate": round(total_wins / total_picks * 100, 1) if total_picks else 0,
+            "loss_rate": round(total_losses / total_picks * 100, 1) if total_picks else 0,
+            "avg_return": round(avg_ret, 2),
+            "profit_factor": profit_factor,
+            "verdict": ("ممتاز" if total_wins / max(1, total_picks) > 0.6 and profit_factor > 1.5 else
+                        "جيد" if total_wins / max(1, total_picks) > 0.5 and profit_factor > 1.1 else
+                        "ضعيف" if total_wins / max(1, total_picks) < 0.4 else
+                        "مقبول"),
+        }
+        _bt_save()
+
+    return {
+        "status": "تم القياس",
+        "snapshots_count": len(snaps),
+        "days_back": days_back,
+        "windows": results,
+        "stats": BACKTEST.get("stats", {}),
+    }
+
+
+def bt_benchmark():
+    """
+    مقارنة أدانا مع السوق.
+    ⚠️ مبدأ: لازم نقارن بمؤشر EGX30 عشان نعرف هل أحسن من السوق فعلاً
+    """
+    st = LIVE_DATA.get("egx30", [])
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    if not st: return {}
+
+    # متوسط أداء كل الأسهم = مؤشر السوق المبسط
+    all_perf_1m = [_f(s.get("perf_1m")) for s in st if _f(s.get("perf_1m")) is not None]
+    all_perf_3m = [_f(s.get("perf_3m")) for s in st if _f(s.get("perf_3m")) is not None]
+    all_perf_y = [_f(s.get("perf_y")) for s in st if _f(s.get("perf_y")) is not None]
+
+    market_1m = sum(all_perf_1m) / len(all_perf_1m) if all_perf_1m else 0
+    market_3m = sum(all_perf_3m) / len(all_perf_3m) if all_perf_3m else 0
+    market_y = sum(all_perf_y) / len(all_perf_y) if all_perf_y else 0
+
+    # متوسط أداء أسهم الترتيب Top 20
+    top = sorted([s for s in st if s.get("final_score") is not None], key=lambda x: -x["final_score"])[:20]
+    top_1m = [_f(s.get("perf_1m")) for s in top if _f(s.get("perf_1m")) is not None]
+    top_3m = [_f(s.get("perf_3m")) for s in top if _f(s.get("perf_3m")) is not None]
+    top_y = [_f(s.get("perf_y")) for s in top if _f(s.get("perf_y")) is not None]
+
+    our_1m = sum(top_1m) / len(top_1m) if top_1m else 0
+    our_3m = sum(top_3m) / len(top_3m) if top_3m else 0
+    our_y = sum(top_y) / len(top_y) if top_y else 0
+
+    alpha_1m = round(our_1m - market_1m, 2)
+    alpha_3m = round(our_3m - market_3m, 2)
+    alpha_y = round(our_y - market_y, 2)
+
+    return {
+        "method": "متوسط أداء أفضل ٢٠ سهم (حسب نتيجتنا) مقابل متوسط كل الأسهم",
+        "caveat": "⚠️ ده ليس backtest — ده مقارنة حالية. الـ backtest الحقيقي بيبدأ من اللقطات اليومية.",
+        "periods": [
+            {"period": "شهر",  "market": round(market_1m, 2), "top20": round(our_1m, 2), "alpha": alpha_1m},
+            {"period": "3 شهور", "market": round(market_3m, 2), "top20": round(our_3m, 2), "alpha": alpha_3m},
+            {"period": "سنة",  "market": round(market_y, 2), "top20": round(our_y, 2), "alpha": alpha_y},
+        ],
+        "interpretation": ("أفضل من السوق ✅" if alpha_y > 3 else
+                           "أداءنا ≈ السوق — ماشي" if alpha_y > -3 else
+                           "أقل من السوق ❌"),
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -3105,6 +3331,14 @@ def update_loop():
             except Exception as e:
                 print(f"  cache write err: {e}")
 
+            # ═══ Phase 15: لقطة اختبار تاريخي (كل دورة، عند التغيّر) ═══
+            try:
+                _today = datetime.utcnow().strftime("%Y-%m-%d")
+                if BACKTEST["snapshots"].get(_today) is None:
+                    bt_snapshot()
+            except Exception:
+                pass
+
             print(f"\n✅ SAVED: {len(st)} stocks | {len(tk)} tickers | "
                   f"{len(scan)} live | phase={phase}")
             live_sorted = sorted(scan.items(), key=lambda x: -(x[1]["change"]))
@@ -3116,6 +3350,10 @@ def update_loop():
 
 
 AI_CACHE.update(_load_ai_disk())
+try:
+    _bt_load()
+except Exception:
+    pass
 print(f"  AI disk cache: {len(AI_CACHE)} entries")
 
 threading.Thread(target=update_loop, daemon=True).start()
@@ -3739,6 +3977,25 @@ def rank_api():
 def filters_api():
     """كل الخيارات المتاحة للفلاتر"""
     return jsonify(available_filters(LIVE_DATA.get("egx30", [])))
+
+
+@app.route("/api/backtest")
+def backtest_api():
+    """نتائج الاختبار التاريخي — التوصيات فعلاً بخفت صح؟"""
+    days = request.args.get("days", 30)
+    try: days = int(days)
+    except (TypeError, ValueError): days = 30
+    result = bt_evaluate(days)
+    result["benchmark"] = bt_benchmark()
+    result["method"] = "forward-tracking: بنسجّل ترتيب اليوم ونقيس بعد ٣+ أيام"
+    return jsonify(result)
+
+
+@app.route("/api/backtest/snapshot")
+def bt_snapshot_api():
+    """لقطة يدوية"""
+    bt_snapshot()
+    return jsonify({"ok": True, "snapshots": len(BACKTEST.get("snapshots", {}))})
 
 
 @app.route("/api/top-movers")
