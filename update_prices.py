@@ -1947,6 +1947,139 @@ def risk_engine(item, sector_stats=None):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 5: محرك الأخبار — materiality + sentiment + confidence
+# ════════════════════════════════════════════════════════════
+try:
+    _actions = div_actions.CACHE.get("actions", [])
+except Exception:
+    _actions = []
+
+# مصادر إعلانات الشركات الرسمية (عندنا بالفعل!)
+# div_actions.CACHE فيه كل التوزيعات والأحداث المعلنة
+
+# كلمات مفتاحية تدل على أهمية الخبر (Materiality)
+MATERIAL_KEYWORDS = {
+    # أعلى materiality
+    "critical": ["دمج", "استحواذ", "إعادة هيكلة", "إفلاس", "تقييد", "إيقاف",
+                 "تعديل.system", "زيادة رأس المال", "تخفيض", "Merger", "Acquisition",
+                 "Bankruptcy", "Delisting", "Suspend"],
+    "high": ["توزيعات", "أرباح", "نتائج", "ارتفاع", "انخفاض", "توسع", "دخول سوق",
+             "Earnings", "Dividend", "Profit", "Revenue", "Expansion"],
+    "medium": ["اتفاق", "شراكة", "استثمار", "تحديث", "ت让自己的",
+               "Agreement", "Partnership", "Investment", "Update"],
+}
+
+def news_engine(item, sector_name=None):
+    """
+    ⚠️ المبدأ: لو ما فيش أخبار → المحور ينزل 45 ونقول "لا توجد أخبار".
+       ممنوع نخترع أخبار. وممنوع نخلي غياب الأخبار يعني "مفيش مشاكل".
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    if not item: return None
+    code = item.get("code")
+    pos, neg, neu = [], [], []
+
+    # ═══ 1) نجمع الأحداث المعلنة للسهم ═══
+    events = []
+    try:
+        events = [e for e in _actions if e.get("code") == code]
+    except Exception as _e:
+        events = []
+
+    # ═══ 2) نقيّم كل حدث ═══
+    total_impact = 0
+    has_news = False
+    analyzed_events = []
+
+    for e in events[:10]:
+        kind = (e.get("kind") or "").lower()
+        headline = (e.get("headline") or e.get("kindAr") or kind).strip()
+        materiality = "low"
+        weight = 0.5
+
+        low_kw = " ".join(MATERIAL_KEYWORDS["critical"]).lower()
+        mid_kw = " ".join(MATERIAL_KEYWORDS["high"]).lower()
+        h_l = headline.lower()
+        if any(k in h_l for k in MATERIAL_KEYWORDS["critical"]) or "increase capital" in kind:
+            materiality = "critical"; weight = 3.0
+            neg.append(f"حدث حرج: {headline}")
+        elif any(k in h_l for k in MATERIAL_KEYWORDS["high"]) or kind in ("cash_dividend", "stock_dividend"):
+            materiality = "high"; weight = 2.0
+            if kind in ("cash_dividend", "stock_dividend"):
+                pos.append(f"{e.get('kindAr','توزيعات')} بقيمة {e.get('value','—')} ج.م")
+            else:
+                neu.append(f"حدث: {headline}")
+        else:
+            materiality = "medium"; weight = 1.0
+            neu.append(headline)
+
+        total_impact += weight
+        has_news = True
+        analyzed_events.append({
+            "headline": headline,
+            "kind": kind,
+            "kindAr": e.get("kindAr"),
+            "date": e.get("distributionDate") or e.get("date"),
+            "value": e.get("value"),
+            "materiality": materiality,
+            "weight": weight,
+        })
+
+    # ═══ 3) نحسب النتيجة ═══
+    if not has_news:
+        # ⚠️ صراحة: مفيش أخبار = نتيجة منخفضة + سبب واضح
+        score = 45.0
+        return {
+            "score": score,
+            "has_news": False,
+            "headline": "لا توجد أحداث معلنة حالياً",
+            "materiality": "none",
+            "confidence": 60,   # ثقة متوسطة — إحنا عارفين مفيش أخبار
+            "note": "لا توجد أخبار أو أحداث معلنة — المحور محايد، مش إيجابي ولا سلبي",
+            "events": [],
+            "events_count": 0,
+            "positives": [],
+            "negatives": [],
+            "neutral": ["لا توجد أخبار معلنة عن هذا السهم"],
+        }
+
+    # فيه أخبار — نحسب التأثير
+    # events_count أكثر = ثقة أعلى
+    n = len(analyzed_events)
+    if   total_impact >= 10: score = 82
+    elif total_impact >= 6:  score = 72
+    elif total_impact >= 3:  score = 62
+    else:                     score = 52
+
+    # حدث حرج = خصم قوي
+    has_critical = any(e["materiality"] == "critical" for e in analyzed_events)
+    if has_critical:
+        score -= 18
+        neg.append("⚠️ يوجد حدث حرج ممكن يأثر على السعر")
+
+    conf = min(95, 45 + n * 10)
+
+    return {
+        "score": round(max(0, min(100, score)), 1),
+        "has_news": True,
+        "headline": analyzed_events[0]["headline"] if analyzed_events else "—",
+        "materiality": analyzed_events[0]["materiality"] if analyzed_events else "low",
+        "confidence": conf,
+        "note": "{} أحداث معلنة | أكثرها materiality: {}".format(
+            n, analyzed_events[0]["materiality"] if analyzed_events else "—"),
+        "events": analyzed_events[:5],
+        "events_count": n,
+        "positives": pos[:5],
+        "negatives": neg[:5],
+        "neutral": neu[:5],
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -2344,6 +2477,10 @@ def update_loop():
                     pfit = portfolio_fit(item, PORTFOLIO)
                     if pfit:
                         item["portfolio_fit"] = pfit["score"]
+                    # ═══ Phase 5: الأخبار ═══
+                    nw = news_engine(item, item.get("sector"))
+                    if nw:
+                        item["news_score"] = nw["score"]
                     # ═══ Phase 7: المخاطر المتقدمة ═══
                     rk = risk_engine(item, SECTOR_STATS)
                     if rk:
@@ -2352,9 +2489,10 @@ def update_loop():
                     # ═══ Phase 9: النتيجة النهائية (بعد كل المحاور) ═══
                     fin = final_score(item, t, f, li, SECTOR_STATS)
                     if fin:
-                        # ندمج المعنويات الحقيقية + ملاءمة المحفظة
+                        # ندمج المعنويات + المحفظة + الأخبار
                         if se: fin["axes"]["sentiment"] = se["score"]
                         if pfit: fin["axes"]["portfolio"] = pfit["score"]
+                        if nw: fin["axes"]["news"] = nw["score"]
                         # إعادة حساب المحصلة
                         ax = fin["axes"]
                         b = sum(ax[k] * AXIS_WEIGHTS[k] for k in AXIS_WEIGHTS)
@@ -2377,6 +2515,16 @@ def update_loop():
                     pass
             # نحفظ كم مؤشر تم استنتاجه (بدل ما جاب من المصدر)
             LIVE_DATA["derived_count"] = sum(1 for s in st if s.get("_derived"))
+
+            # ═══ Phase 5: نحدّث قائمة الأحداث من مصدر الإعلانات ═══
+            try:
+                snap = div_actions.build_snapshot(_prices_map())
+                _new_actions = snap.get("actions", [])
+                if _new_actions:
+                    globals()["_actions"] = _new_actions
+                    LIVE_DATA["news_count"] = len(_new_actions)
+            except Exception as _e:
+                pass
 
             try:
                 with open(CACHE_FILE, "w", encoding="utf-8") as f:
@@ -2844,6 +2992,20 @@ def risk_api(code):
         "code": code, "name": item.get("name"), "sector": item.get("sector"),
         "risk": rk,
         "price": item.get("price"),
+    })
+
+
+@app.route("/api/news/<code>")
+def news_api(code):
+    """تحليل الأخبار — materiality + sentiment + confidence"""
+    code = code.upper().strip()
+    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
+    if not item:
+        return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    nw = news_engine(item, item.get("sector"))
+    return jsonify({
+        "code": code, "name": item.get("name"), "sector": item.get("sector"),
+        "news": nw,
     })
 
 
