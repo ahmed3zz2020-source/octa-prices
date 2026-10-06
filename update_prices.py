@@ -995,6 +995,16 @@ def tech_score(item):
     total = trend_score + mom_score + pos_score + vol_score + tv_score
     total = max(0, min(100, total))
 
+    # ⚠️ مبدأ: بيانات فنية ناقصة جداً → محايد مش ضعيف
+    #    نحسب كام مؤشر متاح قبل ما نحكم
+    _tech_avail = sum(1 for k in ("ema20","ema50","ema200","rsi","macd","adx","atr",
+                                 "bb_upper","stoch_k","tv_all","perf_1m","rel_volume")
+                      if item.get(k) is not None)
+    if _tech_avail <= 2:
+        total = 50.0   # محايد — مش نعرف
+        trend_score = mom_score = pos_score = vol_score = tv_score = 10.0
+        facts["neutral"].append(f"بيانات فنية ناقصة ({_tech_avail}/12) — التقييم محايد")
+
     # مستوى الثقة الفني: كام مؤشر متاح فعلاً
     avail = sum(1 for k in ("ema20","ema50","ema200","rsi","macd","macd_signal","adx",
                             "atr","bb_upper","stoch_k","tv_all","perf_1m")
@@ -1148,11 +1158,22 @@ def fundamental_score(item, peers_map=None):
     health_s = max(0, min(20, health))
 
     # 4) اكتمال البيانات (20)
+    # ⚠️ مبدأ أساسي: "غير متاح" مش = "ضعيف"
+    #    البيانات الناقصة بتقلّل الثقة مش الدرجة
     avail = sum(1 for k in ("pe","pb","roe","net_margin","de_ratio","eps","revenue")
                 if item.get(k) is not None)
     conf_s = (avail / 7) * 20
-    if   avail < 3: neg.append(f"بيانات مالية ناقصة ({avail}/7)")
+    if   avail < 3: neu.append(f"بيانات مالية ناقصة ({avail}/7) — التقييم غير موثوق")
     elif avail < 5: neu.append(f"بيانات مالية جزئية ({avail}/7)")
+
+    # ⚠️ لو مفيش بيانات مالية خالص → المحاور محايدة (50) مش ضعيفة
+    #    لأننا مش نعرف السهم ضعيف ولا قوي — مش نعرف أصلاً
+    if avail == 0:
+        prof_s = 50.0
+        val_s = 50.0
+        health_s = 50.0
+        conf_s = 0.0
+        neu.append("لا توجد بيانات مالية — التقييم محايد (مش ايجابي ولا سلبي)")
 
     total = round(max(0, min(100, prof_s + val_s + health_s + conf_s)), 1)
 
@@ -1563,9 +1584,17 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     overall_conf = round((conf * 0.6) + (coverage_pct * 0.4), 1)
 
     # ═══ القرار ═══
+    # ⚠️ قاعدة: "بيع" لازم يكون بسبب واضح من الأرقام
+    #    لو البيانات ناقصة → القرار "غير كافي" مش "بيع"
+    fund_data_ok = axes["fundamental"] >= 40
+    tech_data_ok = axes["technical"] >= 30
+
     if axes["risk"] < 35:
         decision = "تجنّب"
         decision_why = "مخاطرة عالية جداً"
+    elif not fund_data_ok or not tech_data_ok:
+        decision = "غير كافٍ"
+        decision_why = "البيانات ناقصة — لا يمكن الحكم على السهم بثقة"
     elif final >= 78 and axes["technical"] >= 50 and axes["fundamental"] >= 60:
         decision = "تجميع"
         decision_why = "أساسيات قوية واتجاه إيجابي"
@@ -1574,13 +1603,13 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         decision_why = "نتيجة جيدة عموماً"
     elif final >= 52:
         decision = "احتفظ"
-        decision_why = "محايد — في ожидание"
+        decision_why = "محايد — في انتظار"
     elif axes["fundamental"] >= 65:
         decision = "احتفظ"
-        decision_why = "أساسيات كويسة لكنOw分红"
+        decision_why = "أساسيات كويسة"
     else:
         decision = "بيع"
-        decision_why = "نتيجة ضعيفة"
+        decision_why = "نتيجة ضعيفة ومخاطرة عالية"
 
     # ═══ مستوى المخاطرة ═══
     if axes["risk"] >= 70: risk_level = "منخفض"
