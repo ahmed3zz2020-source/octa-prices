@@ -3035,6 +3035,9 @@ def intelligence(code):
         "technical": tech_score(item),
         "fundamental": fundamental_score(item, SECTOR_STATS),
         "liquidity": liquidity_score(item),
+        "risk_engine": risk_engine(item, SECTOR_STATS),
+        "news_engine": news_engine(item, item.get("sector")),
+        "portfolio_fit_detail": portfolio_fit(item, PORTFOLIO),
         "data_confidence": item.get("data_confidence"),
         "data_ts": item.get("ts"),
     })
