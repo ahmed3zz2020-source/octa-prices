@@ -2080,6 +2080,149 @@ def news_engine(item, sector_name=None):
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# PHASE 11: محرك التفسير — ليه الـ Score ده؟
+# ════════════════════════════════════════════════════════════
+
+def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, risk=None, pfit=None, final=None):
+    """
+    كل نتيجة لازم تكون قابلة للتفسير. المستخدم يضغط على أي رقم
+    ويعرف: كم权重 له، وكم بيساهم، وليه.
+    """
+    if not item: return None
+
+    def _f(v, d=0.0):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    W = AXIS_WEIGHTS
+    axes = (final or {}).get("axes", {})
+
+    # ═══ 1) جدول المساهمة ═══
+    contributions = []
+    names = {
+        "technical": "التحليل الفني",
+        "fundamental": "التحليل الأساسي",
+        "liquidity": "السيولة",
+        "news": "الأخبار",
+        "sentiment": "المعنويات",
+        "risk": "أمان المخاطرة",
+        "portfolio": "ملاءمة المحفظة",
+    }
+    for k, w in W.items():
+        v = _f(axes.get(k), 50)
+        contrib = round(v * w, 1)
+        contributions.append({
+            "axis": k,
+            "name": names[k],
+            "score": round(v, 1),
+            "weight": round(w * 100, 1),
+            "contribution": contrib,
+        })
+    contributions.sort(key=lambda x: -x["contribution"])
+
+    # ═══ 2) التعديلات (الخصومات) ═══
+    base = round(sum(c["contribution"] for c in contributions), 1)
+    final_v = _f((final or {}).get("final_score"), base)
+
+    adjustments = []
+    risk_pen = round((100 - _f(axes.get("risk"), 60)) * 0.18, 1)
+    if risk_pen > 0.5:
+        adjustments.append({
+            "type": "خصم المخاطرة",
+            "value": -risk_pen,
+            "why": "كل ما الأمان يقل، النتيجة تقل",
+        })
+    dc = _f(item.get("data_confidence"), 60)
+    if dc < 50:
+        conf_pen = round((50 - dc) * 0.25, 1)
+        adjustments.append({
+            "type": "خصم ضعف البيانات",
+            "value": -conf_pen,
+            "why": "البيانات ناقصة ({:.0f}/100) — النتيجة أقل موثوقية".format(dc),
+        })
+    if liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً"):
+        lq_pen = round((100 - _f(liq.get("score"), 50)) * 0.10, 1)
+        adjustments.append({
+            "type": "خصم السيولة",
+            "value": -lq_pen,
+            "why": "سيولة ضعيفة — قد لا تقدر تبيع بسرعة",
+        })
+
+    # ═══ 3) أكبر 3 إيجابيات وسلبيات ═══
+    all_pos, all_neg = [], []
+
+    def collect(engine, kind):
+        if not engine: return
+        for p in (engine.get("positives") or [])[:3]:
+            all_pos.append((f"{names.get(kind,'')}", p))
+        for n in (engine.get("negatives") or [])[:3]:
+            all_neg.append((f"{names.get(kind,'')}", n))
+
+    collect(tech, "technical")
+    collect(fund, "fundamental")
+    collect(liq, "liquidity")
+    collect(news, "news")
+    collect(sent, "sentiment")
+    collect(risk, "risk")
+
+    # ═══ 4) البيانات الناقصة ═══
+    missing = []
+    critical_fields = {
+        "pe": "مضاعف الربحية", "pb": "مضاعف الكتاب", "roe": "العائد على الملكية",
+        "net_margin": "هامش الربح", "de_ratio": "نسبة الدين", "eps": "ربحية السهم",
+        "rsi": "مؤشر القوة النسبية", "mkt_cap": "القيمة السوقية",
+        "volume": "حجم التداول", "beta": "معامل المخاطرة",
+    }
+    for f, label in critical_fields.items():
+        if item.get(f) is None:
+            missing.append(label)
+
+    # ═══ 5) إيه اللي ممكن يغيّر النتيجة ═══
+    what_changes = []
+    rsi = _f(item.get("rsi"), None)
+    if rsi is not None:
+        if rsi < 30:
+            what_changes.append("لو القوة النسبية عدّت 50 فوق — الزخم يتحسّن والنتيجة ترتفع ٥-١٠ نقاط")
+        elif rsi > 70:
+            what_changes.append("لو القوة النسبية نزلت تحت 70 — خطر التشبع ينقص والنتيجة تتحسن")
+    if _f(axes.get("risk"), 60) < 60:
+        what_changes.append("لو Beta نزل تحت 1.0 أو التقلّب قلّ — الخصم يقل والنتيجة ترتفع")
+    if liq and liq.get("score", 0) < 50:
+        what_changes.append("لو حجم التداول زاد — خصم السيولة يروح والنتيجة تتحسّن")
+    if dc < 60:
+        what_changes.append("لو البيانات المالية اتحدّثت — خصم ضعف البيانات يروح")
+
+    # ═══ 6) إيه اللي يفسد الفكرة ═══
+    invalidation = []
+    pe = _f(item.get("pe"), None)
+    if pe is not None and pe > 0:
+        invalidation.append(f"لو P/E عدّى {pe*1.4:.0f} — السهم بقى غالي والفكرة ضعفت")
+    if _f(item.get("roe"), None) is not None:
+        invalidation.append("لو العائد على الملكية نزل تحت نصف قيمته الحالية")
+    tv = _f(item.get("tv_all"), None)
+    if tv is not None and tv < -0.4:
+        invalidation.append("لو التقييم الفني نزل تحت -0.6 — اتجاه هابط مؤكد")
+
+    return {
+        "final_score": round(final_v, 1),
+        "base_score": base,
+        "contributions": contributions,
+        "adjustments": adjustments,
+        "adjustment_total": round(sum(a["value"] for a in adjustments), 1),
+        "formula": "{} (مرجّح) {} (تعديلات) = {}".format(
+            base, round(sum(a["value"] for a in adjustments), 1), round(final_v, 1)),
+        "top_positives": [{"from": s, "text": p} for s, p in all_pos[:3]],
+        "top_negatives": [{"from": s, "text": n} for s, n in all_neg[:3]],
+        "missing_data": missing,
+        "missing_count": len(missing),
+        "what_could_change_score": what_changes,
+        "what_could_invalidate": invalidation,
+        "confidence": _f((final or {}).get("confidence"), 0),
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -3006,6 +3149,35 @@ def news_api(code):
     return jsonify({
         "code": code, "name": item.get("name"), "sector": item.get("sector"),
         "news": nw,
+    })
+
+
+@app.route("/api/explain/<code>")
+def explain_api(code):
+    """ليه السهم obtain النتيجة دي؟ كل رقم قابل للتفسير"""
+    code = code.upper().strip()
+    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
+    if not item:
+        return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    st = LIVE_DATA.get("egx30", [])
+    t = tech_score(item)
+    f = fundamental_score(item, SECTOR_STATS)
+    l = liquidity_score(item)
+    n = news_engine(item, item.get("sector"))
+    s = sentiment_engine(item, st)
+    p = portfolio_fit(item, PORTFOLIO)
+    r = risk_engine(item, SECTOR_STATS)
+    fin = final_score(item, t, f, l, SECTOR_STATS)
+    if s: fin["axes"]["sentiment"] = s["score"]
+    if p: fin["axes"]["portfolio"] = p["score"]
+    if n: fin["axes"]["news"] = n["score"]
+    ex = explain_score(item, t, f, l, n, s, r, p, fin)
+    return jsonify({
+        "code": code, "name": item.get("name"), "sector": item.get("sector"),
+        "price": item.get("price"),
+        "decision": fin.get("decision"),
+        "risk_level": fin.get("risk_level"),
+        "explanation": ex,
     })
 
 
