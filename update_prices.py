@@ -786,6 +786,9 @@ def quick_score(item):
 # ════════════════════════════════════════════════════════════
 
 def tech_score(item):
+    def _n(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
     """
     يحوّل 43 مؤشر فني → نتيجة 0-100 مع تفسير كامل.
     المبدأ: كل نقطة ليها وزن وليها سبب — مفيش رقم بلا مبرر.
@@ -1059,6 +1062,9 @@ def build_sector_stats(all_stocks):
 
 
 def fundamental_score(item, peers_map=None):
+    def _n(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
     """بيانات الشركة → نتيجة 0-100 + حالة تقييم + قيمة عادلة"""
     if not item: return None
     peers_map = peers_map if peers_map is not None else SECTOR_STATS
@@ -1274,6 +1280,292 @@ def derive_technical(item):
         item.setdefault("_derived", []).append("pivots")
 
     return item
+
+
+
+# ════════════════════════════════════════════════════════════
+# PHASE 4: محرك السيولة — هل تقدر تشتري وتبيع بسهولة؟
+# ════════════════════════════════════════════════════════════
+
+def liquidity_score(item):
+    """
+    السيولة مش بس الحجم — هي: هل أقدر أدخل وأخرج بسرعة بدون ما السعر يزحلق؟
+    المبدأ: مستثمر بيشتري سهم مش سائل = يخسر في نقطة الدخول والخروج
+    """
+    if not item or not item.get("price"):
+        return None
+    px = item["price"]
+    def num(v, default=0):
+        try: return float(v) if v is not None else default
+        except (TypeError, ValueError): return default
+
+    vol = num(item.get("volume"))         # حجم اليوم
+    vol5 = num(item.get("vol_5"))         # متوسط 5 أيام
+    vol60 = num(item.get("vol_60"))       # متوسط 60 يوم
+    mc = num(item.get("mkt_cap")) or None # القيمة السوقية
+    rv = num(item.get("rel_volume")) or None  # الحجم النسبي
+    atr = num(item.get("atr")) or None    # المدى الحقيقي
+
+    pos, neg, neu = [], [], []
+
+    # ═══ 1) عمق السوق (40 نقطة) — من القيمة السوقية ═══
+    depth = 0.0
+    if mc is not None:
+        # القيمة السوقية أكبر = سيولة أعمق
+        if   mc > 100e9: depth = 40; pos.append(f"عمق سوق ضخم ({mc/1e9:.0f} مليار)")
+        elif mc > 50e9:  depth = 35; pos.append(f"عمق سوق كبير ({mc/1e9:.0f} مليار)")
+        elif mc > 20e9:  depth = 29
+        elif mc > 5e9:   depth = 22
+        elif mc > 1e9:   depth = 14; neg.append(f"عمق سوق محدود ({mc/1e9:.1f} مليار)")
+        elif mc > 300e6: depth = 8;  neg.append("سهم صغير — سيولة ضعيفة")
+        else:            depth = 3;  neg.append("سهم ضئيل — مخاطرة سيولة عالية")
+    else:
+        depth = 20
+        neu.append("القيمة السوقية غير متاحة")
+
+    # ═══ 2) النشاط (30 نقطة) — من الحجم النسبي ═══
+    activity = 15.0
+    if rv is not None:
+        if   rv > 2.0: activity = 28; pos.append(f"حجم تداول عالي جداً ({rv:.1f}× المتوسط)")
+        elif rv > 1.3: activity = 24; pos.append(f"حجم تداول فوق المعتاد ({rv:.1f}×)")
+        elif rv > 0.8: activity = 18
+        elif rv > 0.4: activity = 11; neg.append(f"حجم تداول أقل من المعتاد ({rv:.1f}×)")
+        else:          activity = 5;  neg.append(f"حجم تداول ضعيف جداً ({rv:.1f}×) — صعب الدخول")
+    else:
+        activity = 15
+
+    # تأكيد:交易日 نشط = حجم متوسط كافي
+    if vol60 and vol > 0:
+        if vol60 > 1_000_000:
+            activity = min(30, activity + 3)
+            pos.append("حجم يومي ثابت ومريح")
+
+    # ═══ لو متوسط 60 يوم مش موجود، نستنتجه ═══
+    if not vol60 and vol and rv:
+        vol60 = int(vol / rv) if rv > 0 else 0
+    if not vol5 and vol and rv:
+        vol5 = int(vol / rv * 1.1)   # تقدير معقول
+    if not vol60:
+        vol60 = vol                  # آخر resort
+
+    # ═══ 3) سهولة التسييل (20 نقطة) — كم يوم لبيع حجم معيّن؟ ═══
+    ease = 10.0
+    days_to_liq = None
+    if mc is not None and px and vol60:
+        # نسبة حجم التداول اليومي من القيمة السوقية (Turnover)
+        daily_value = vol60 * px              # قيمة التداول اليومي بالجنيه
+        turnover = (daily_value / mc * 100) if mc > 0 else 0
+        if turnover > 3.0: ease = 19; pos.append(f"معدل دوران مرتفع ({turnover:.1f}%)")
+        elif turnover > 1.5: ease = 16
+        elif turnover > 0.8: ease = 13
+        elif turnover > 0.4: ease = 9;  neg.append(f"معدل دوران منخفض ({turnover:.2f}%)")
+        elif turnover > 0.15: ease = 5; neg.append(f"دوران ضعيف ({turnover:.2f}%) — الخروج صعب")
+        else: ease = 2; neg.append("الدوران شبه معدوم — مخاطرة سيولة عالية جداً")
+
+        # كم يوم نبيع فيه 1% من السوق؟
+        if daily_value > 0:
+            days_to_liq = round((mc * 0.01) / daily_value, 1)
+
+    # ═══ 4) استقرار السيولة (10 نقاط) — فروق الحجم ═══
+    stability = 5.0
+    if vol5 and vol60 and vol60 > 0:
+        ratio = vol5 / vol60
+        if   0.7 <= ratio <= 1.4: stability = 9; pos.append("حجم التداول مستقر")
+        elif ratio < 0.5: stability = 3; neg.append("الحجم بيريد — لا أحد بيتداول")
+        else: stability = 6
+
+    # ═══ النتيجة ═══
+    total = round(max(0, min(100, depth + activity + ease + stability)), 1)
+
+    # ═══ ثقة التحليل ═══
+    avail = sum(1 for k in ("volume","mkt_cap","rel_volume","vol_5","vol_60")
+                if item.get(k) is not None)
+    conf = round(min(100, (avail / 5) * 100), 1)
+
+    # ═══ مستوى المخاطر ═══
+    if total >= 75:   risk = "منخفض"; risk_note = "سيولة ممتازة — تدخل وخروج سهل"
+    elif total >= 55: risk = "متوسط"; risk_note = "سيولة مقبولة"
+    elif total >= 35: risk = "مرتفع"; risk_note = "حذر عند الدخول"
+    else:             risk = "مرتفع جداً"; risk_note = "سيولة ضعيفة — قد لا تقدر تبيع"
+
+    # ═══ التوصية العملية ═══
+    max_position = None
+    if mc is not None and px and vol60:
+        daily_value = vol60 * px
+        if daily_value > 0:
+            # ما نقدر نشتريه في يوم واحد = 10% من حجم اليوم
+            safe_daily = daily_value * 0.10
+            max_position = round(min(safe_daily, mc * 0.02))  # حد أقصى 2% من السوق
+
+    return {
+        "score": total,
+        "confidence": conf,
+        "risk_level": risk,
+        "risk_note": risk_note,
+        "breakdown": {
+            "عمق السوق": round(depth, 1),
+            "النشاط": round(activity, 1),
+            "سهولة التسييل": round(ease, 1),
+            "الاستقرار": round(stability, 1),
+        },
+        "metrics": {
+            "القيمة السوقية": mc,
+            "حجم اليوم": vol,
+            "متوسط 5 أيام": vol5,
+            "متوسط 60 يوم": vol60,
+            "الحجم النسبي": rv,
+            "أيام لبيع 1% من السوق": days_to_liq,
+        },
+        "max_safe_position_egp": max_position,
+        "positives": pos[:5],
+        "negatives": neg[:5],
+        "neutral": neu[:3],
+    }
+
+
+
+# ════════════════════════════════════════════════════════════
+# PHASE 9: المحرك النهائي — يدمج كل المحاور مع تعديلات
+# ════════════════════════════════════════════════════════════
+
+# الأوزان الأساسية (قابلة للتعديل في Phase 17)
+AXIS_WEIGHTS = {
+    "technical":    0.20,
+    "fundamental":  0.25,
+    "liquidity":    0.10,
+    "news":         0.07,
+    "sentiment":    0.05,
+    "risk":         0.20,   # أعلى = أمان أكتر
+    "portfolio":    0.13,
+}
+
+
+def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
+    """
+    النتيجة النهائية = مرجّحة ثم مُعدّلة بالمخاطرة والثقة والمحفظة.
+    المبدأ: ما نبغاش متوسط بسيط — الأرقام لازم تعكس الواقع.
+    """
+    if not item: return None
+
+    def _n(v, d=50.0):
+        """يحوّل أي قيمة لرقم — حماية كاملة من القيم النصية والقيمة الفارغة"""
+        if v is None:
+            return None if d is None else float(d)
+        try: return float(v)
+        except (TypeError, ValueError): return None if d is None else float(d)
+
+    axes = {}
+    reasons = []
+
+    # 1) الفني
+    axes["technical"] = _n(tech["score"]) if tech else 50.0
+
+    # 2) الأساسي
+    axes["fundamental"] = _n(fund["score"]) if fund else 50.0
+
+    # 3) السيولة
+    axes["liquidity"] = _n(liq["score"]) if liq else 50.0
+
+    # 4) الأخبار — لسه مفيش مصدر
+    axes["news"] = 45
+
+    # 5) المعنويات — من أداء الشهر (وبسMaximum 25% influence)
+    try: p1m = float(item.get("perf_1m")) if item.get("perf_1m") is not None else None
+    except (TypeError, ValueError): p1m = None
+    s = 50.0
+    if p1m is not None:
+        s += max(-25, min(25, p1m / 2))
+    axes["sentiment"] = round(max(0, min(100, s)))
+
+    # 6) المخاطرة — عكسي (Beta + تقلب + ديون)
+    beta, vol, de = _n(item.get("beta"), None), _n(item.get("volatility"), None), _n(item.get("de_ratio"), None)
+    r = 80.0
+    if beta is not None: r -= beta * 11
+    if vol is not None:  r -= vol * 2.8
+    if de is not None:   r -= min(22, de * 2.5)
+    axes["risk"] = round(max(0, min(100, r)))
+
+    # 7) ملاءمة المحفظة — مبدئياً حسب تنوع القطاع (Phase 8 هيكمّل)
+    axes["portfolio"] = 70
+
+    # ═══ المحصلة المرجّحة ═══
+    base = sum(axes[k] * AXIS_WEIGHTS[k] for k in AXIS_WEIGHTS)
+
+    # ═══ تعديل 1: المخاطرة (ضعف) ═══
+    risk_pen = (100 - axes["risk"]) * 0.18
+    adj = base - risk_pen
+
+    # ═══ تعديل 2: الثقة بالبيانات ═══
+    try:
+        conf = float(item.get("data_confidence") or 60)
+    except (TypeError, ValueError):
+        conf = 60.0
+    conf_pen = 0.0
+    if conf < 50:
+        # بيانات ضعيفة → خصم
+        conf_pen = (50 - conf) * 0.25
+        adj -= conf_pen
+        reasons.append(f"البيانات ضعيفة ({conf:.0f}/100) — خصم {conf_pen:.1f}")
+    elif conf > 80:
+        # بيانات ممتازة → مكافأة صغيرة
+        adj += (conf - 80) * 0.05
+
+    # ═══ تعديل 3: السيولة (مخاطرة عدمiquidity) ═══
+    if liq and liq["risk_level"] in ("مرتفع جداً", "مرتفع"):
+        liq_pen = (100 - liq["score"]) * 0.10
+        adj -= liq_pen
+        reasons.append(f"خصم {liq_pen:.1f} — سيولة {liq['risk_level']}")
+
+    final = round(max(0, min(100, adj)), 1)
+
+    # ═══ الثقة الإجمالية ═══
+    # الثقة = (جودة البيانات + تغطية المحاور) / 2
+    axis_coverage = sum(1 for k in ("technical","fundamental","liquidity","risk") if axes[k] != 50)
+    coverage_pct = (axis_coverage / 4) * 100
+    overall_conf = round((conf * 0.6) + (coverage_pct * 0.4), 1)
+
+    # ═══ القرار ═══
+    if axes["risk"] < 35:
+        decision = "تجنّب"
+        decision_why = "مخاطرة عالية جداً"
+    elif final >= 78 and axes["technical"] >= 50 and axes["fundamental"] >= 60:
+        decision = "تجميع"
+        decision_why = "أساسيات قوية واتجاه إيجابي"
+    elif final >= 65:
+        decision = "تجميع"
+        decision_why = "نتيجة جيدة عموماً"
+    elif final >= 52:
+        decision = "احتفظ"
+        decision_why = "محايد — في ожидание"
+    elif axes["fundamental"] >= 65:
+        decision = "احتفظ"
+        decision_why = "أساسيات كويسة لكنOw分红"
+    else:
+        decision = "بيع"
+        decision_why = "نتيجة ضعيفة"
+
+    # ═══ مستوى المخاطرة ═══
+    if axes["risk"] >= 70: risk_level = "منخفض"
+    elif axes["risk"] >= 50: risk_level = "متوسط"
+    elif axes["risk"] >= 30: risk_level = "مرتفع"
+    else: risk_level = "مرتفع جداً"
+
+    return {
+        "final_score": final,
+        "confidence": overall_conf,
+        "axes": axes,
+        "weights": AXIS_WEIGHTS,
+        "adjustments": {
+            "أساسي مرجّح": round(base, 1),
+            "خصم المخاطرة": round(-risk_pen, 1),
+            "خصم الثقة": round(-conf_pen, 1),
+            "خصم السيولة": round(-((100 - liq["score"]) * 0.10) if liq and liq["risk_level"] in ("مرتفع","مرتفع جداً") else 0, 1),
+        },
+        "decision": decision,
+        "decision_why": decision_why,
+        "risk_level": risk_level,
+        "reasons": reasons,
+    }
 
 
 def market_phase():
@@ -1658,6 +1950,19 @@ def update_loop():
                     f = fundamental_score(item, SECTOR_STATS)
                     if f:
                         item["fund_score"] = f["score"]
+                    # ═══ Phase 4: السيولة ═══
+                    li = liquidity_score(item)
+                    if li:
+                        item["liquidity_score"] = li["score"]
+                        item["liquidity_risk"] = li["risk_level"]
+                    # ═══ Phase 9: النتيجة النهائية المدمجة ═══
+                    fin = final_score(item, t, f, li, SECTOR_STATS)
+                    if fin:
+                        item["final_score"] = fin["final_score"]
+                        item["confidence"] = fin["confidence"]
+                        item["decision"] = fin["decision"]
+                        item["risk_level"] = fin["risk_level"]
+                        item["all_axes"] = fin["axes"]
                         item["valuation"] = f["valuation_status"]
                         item["fair_value"] = f["fair_value"]
                         item["upside"] = f["upside_pct"]
@@ -2011,6 +2316,47 @@ def diagnostic():
         "last_update": LIVE_DATA.get("lastUpdate"),
         "scan_probe": SCAN_PROBE,
         "ip_check": requests.get("https://api.ipify.org?format=json", timeout=8).text if False else "skipped",
+    })
+
+
+@app.route("/api/intelligence/<code>")
+def intelligence(code):
+    """التحليل الكامل المدمج — بدون ذكاء اصطناعي، فوري"""
+    code = code.upper().strip()
+    item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
+    if not item:
+        return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    return jsonify({
+        "code": code, "name": item.get("name"), "sector": item.get("sector"),
+        "price": item.get("price"), "change": item.get("change"),
+        "final_score": item.get("final_score"),
+        "confidence": item.get("confidence"),
+        "decision": item.get("decision"),
+        "risk_level": item.get("risk_level"),
+        "axes": item.get("all_axes"),
+        "technical": tech_score(item),
+        "fundamental": fundamental_score(item, SECTOR_STATS),
+        "liquidity": liquidity_score(item),
+        "data_confidence": item.get("data_confidence"),
+        "data_ts": item.get("ts"),
+    })
+
+
+@app.route("/api/ranking")
+def ranking():
+    """أفضل الأسهم مرتبة — بالنتيجة النهائية"""
+    st = LIVE_DATA.get("egx30", [])
+    ranked = sorted([s for s in st if s.get("final_score") is not None],
+                    key=lambda x: -x["final_score"])
+    return jsonify({
+        "total": len(ranked),
+        "top20": [{
+            "code": s["code"], "name": s.get("name"), "sector": s.get("sector"),
+            "price": s.get("price"), "change": s.get("change"),
+            "score": s.get("final_score"), "confidence": s.get("confidence"),
+            "decision": s.get("decision"), "risk": s.get("risk_level"),
+            "upside": s.get("upside"), "fair_value": s.get("fair_value"),
+        } for s in ranked[:20]],
     })
 
 
