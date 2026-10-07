@@ -560,14 +560,20 @@ def calc_levels(price, decision, overall_score):
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
 TICKER = [
-    ("tk-egx","EGX30","EGX:EGX30"),
-    ("tk-egx70","EGX70","EGX:EGX70EWI"),
-    ("tk-egx100","EGX100","EGX:EGX100EWI"),
-    ("tk-egx33","EGX33","EGX:SHARIAH"),  # TradingView مAPHitEH في API — بنحسبه
-    ("tk-egx33","EGX33","EGX:EGX33"),("tk-gold","GOLD","OANDA:XAUUSD"),
-    ("tk-oil","نفط WTI","NYMEX:CL1!"),("tk-ukoil","نفط برنت","ICEEUR:BRN1!"),
-    ("tk-usd","دولار/جنيه","FX_IDC:USDEGP"),("tk-eur","يورو/جنيه","FX_IDC:EUREGP"),
-    ("tk-spx","S&P 500","SP:SPX"),("tk-silver","فضة","TVC:SILVER"),
+   ("tk-egx","EGX30","EGX:EGX30"),
+   ("tk-egx70","EGX70","EGX:EGX70EWI"),
+   ("tk-egx100","EGX100","EGX:EGX100EWI"),
+   ("tk-egx33","EGX33","EGX:SHARIAH"),
+   ("tk-usd","دولار/جنيه","FX_IDC:USDEGP"),
+   ("tk-gold","Gold/USD","OANDA:XAUUSD"),
+   ("tk-gold24","ذهب٢٤/ج.م","__GOLD24__"),   # محسوب: ذهب × دولار
+   ("tk-oil","نفط WTI","NYMEX:CL1!"),
+   ("tk-ukoil","نفط برنت","ICEEUR:BRN1!"),
+   ("tk-spx","S&P 500","SP:SPX"),
+   ("tk-nasdaq","Nasdaq","NASDAQ:IXIC"),
+   ("tk-dxy","DXY","TVC:DXY"),
+   ("tk-eur","يورو/جنيه","FX_IDC:EUREGP"),
+   ("tk-silver","فضة","TVC:SILVER"),
 ]
 
 # ══════════ TradingView Scanner API (batch — كل الأسهم في طلب واحد) ══════════
@@ -3325,6 +3331,139 @@ def dashboard_data():
     }
 
 
+
+# ════════════════════════════════════════════════════════════
+# REDUNDANCY / DUPLICATION AUDIT — لكشف تكرار الواجهة
+# ════════════════════════════════════════════════════════════
+
+def duplication_report():
+    """
+    بيحلل الـ endpoint ويقول:
+    1. إيه المحاور اللي بتستخدم نفس البيانات
+    2. إيه الـ endpoints اللي بترجع نفس المعلومة
+    3. إيه التكرار في البيانات نفسها
+    """
+    def _f(v, d=None):
+        try: return float(v) if v is not None else d
+        except (TypeError, ValueError): return d
+
+    st = LIVE_DATA.get("egx30", [])
+
+    # ═══ 1. تشابه المحاور بين الأسهم ═══
+    # نحسب كم سهم عنده نفس النتيجة (±5) — ده تكرار في الترتيب
+    scores = sorted([_f(s.get("final_score"), 0) for s in st if s.get("final_score") is not None])
+    if scores:
+        median = scores[len(scores)//2]
+        # كم سهم في نفس النطاق
+        same_band = sum(1 for x in scores if abs(x - median) <= 5)
+        spread = scores[-1] - scores[0] if len(scores) > 1 else 0
+    else:
+        median, same_band, spread = 0, 0, 0
+
+    # ═══ 2. تشابه decisions ═══
+    decisions = {}
+    for s in st:
+        d = s.get("decision")
+        if d: decisions[d] = decisions.get(d, 0) + 1
+    dominant = max(decisions.items(), key=lambda x: x[1]) if decisions else ("", 0)
+    dominance_ratio = round(dominant[1] / max(1, len(st)) * 100, 1)
+
+    # ═══ 3. تشابه الأسهم (نفس النتيجة + نفس القرار) ═══
+    by_score = {}
+    for s in st:
+        fs = _f(s.get("final_score"))
+        if fs is None: continue
+        band = int(fs // 10) * 10   # شرائح من 10
+        by_score.setdefault(band, []).append(s["code"])
+
+    crowded_bands = {k: v for k, v in by_score.items() if len(v) > 20}
+
+    # ═══ 4. تشابه المحاور (نفس النتيجة المتوسطة) ═══
+    axes = ["technical_score", "fund_score", "liquidity_score", "news_score",
+            "sentiment_score", "portfolio_fit", "safety_score", "final_score"]
+    axis_avgs = {}
+    for a in axes:
+        xs = [_f(s.get(a)) for s in st if s.get(a) is not None]
+        axis_avgs[a] = round(sum(xs)/len(xs), 1) if xs else None
+
+    # محاور شبه متطابقة (فرق < 3 نقاط)
+    similar_axes = []
+    for i, a1 in enumerate(axes):
+        for a2 in axes[i+1:]:
+            v1, v2 = axis_avgs.get(a1), axis_avgs.get(a2)
+            if v1 is not None and v2 is not None and abs(v1 - v2) < 3:
+                similar_axes.append({"a": a1, "b": a2, "diff": round(abs(v1-v2), 1)})
+
+    # ═══ 5. التكرار في الواجهة (محتوى متكرر) ═══
+    ui_redundancy = [
+        {
+            "item": "أفضل الفرص / top-ranked list",
+            "appears_in": ["home: oppsGrid", "arm: opportunity", "arm: technical", "dashPage: top10"],
+            "count": 4,
+            "severity": "high",
+            "fix": "خلّيها في ذراع الفرص فقط — والـ Arms التانية تستدعي نفس المصدر"
+        },
+        {
+            "item": "الفرص المبكرة / early opportunities",
+            "appears_in": ["home: earlyOpps", "arm: opportunity"],
+            "count": 2,
+            "severity": "medium",
+            "fix": "home يعرض 3 فقط، ذراع الفرص يعرض الكل"
+        },
+        {
+            "item": "شاشة السهم الكاملة",
+            "appears_in": ["openIntel (modal)", "openStock (page)", "bestpick widgets"],
+            "count": 3,
+            "severity": "high",
+            "fix": "احذف openIntelLegacy — صفحة openStock تكفي"
+        },
+        {
+            "item": "الجداول/الترتيب",
+            "appears_in": ["armMarket leaders", "armTechnical signals", "armOpportunity best"],
+            "count": 3,
+            "severity": "medium",
+            "fix": "كل ذراع تطلب filter مختلف — مش نفس الترتيب"
+        },
+        {
+            "item": "الاستراتيجيات (7)",
+            "appears_in": ["armOpportunity", "openStock stratBox", "strategies endpoint"],
+            "count": 3,
+            "severity": "medium",
+            "fix": "show مرة واحدة — في ذراع الفرص + في صفحة السهم"
+        },
+    ]
+
+    return {
+        "summary": {
+            "stocks": len(st),
+            "score_spread": round(spread, 1),
+            "median_score": round(median, 1),
+            "stocks_in_median_band": same_band,
+            "dominant_decision": dominant[0],
+            "decision_dominance_pct": dominance_ratio,
+        },
+        "axis_similarity": {
+            "averages": axis_avgs,
+            "similar_pairs": similar_axes,
+            "note": "محاور بنفس المتوسط = نفس البيانات = تكرار محتمل"
+        },
+        "score_crowding": {
+            "bands_with_20plus": len(crowded_bands),
+            "worst_band": max(crowded_bands.items(), key=lambda x: len(x[1]))[0] if crowded_bands else None,
+            "worst_band_count": max((len(v) for v in crowded_bands.values()), default=0),
+            "note": "أكتر من 20 سهم في نفس شريحة 10 نقاط = تمييز ضعيف"
+        },
+        "ui_redundancy": ui_redundancy,
+        "recommendations": [
+            "احذف openIntelLegacy — صفحة openStock الشاملة تغني عنها",
+            "أفضل الفرص: ذراع الفرص فقط (home يعرض 3)",
+            "الفرص المبكرة: home يعرض 3، ذراع الفرص يعرض الكل",
+            "كل ذراع تطلب filter مختلف من /api/rank (مش نفس الترتيب)",
+            "الاستراتيجيات: عرض مرة واحدة في ذراع الفرص + صفحة السهم"
+        ],
+    }
+
+
 def market_phase():
     """يرجع حالة السوق: open / closed / weekend"""
     try:
@@ -3635,6 +3774,8 @@ def update_loop():
             # 2) ticker (الذهب/الدولار/النفط)
             tk = []
             for tid, label, tvsym in TICKER:
+                if tvsym.startswith("__"):
+                    continue
                 try:
                     rr = requests.post(
                         "https://scanner.tradingview.com/global/scan",
@@ -3651,6 +3792,19 @@ def update_loop():
                            "trend": "up" if chg >= 0 else "down",
                            "unit": "EGP" if "EGP" in tid else ""})
                 time.sleep(0.15)
+
+            # 2.4) الذهب ٢٤ بالجنيه المصري = الذهب العالمي × سعر الدولار
+            #      وسعر الجرام = سعر الأونصة ÷ 31.1035
+            _gold = next((t for t in tk if t["id"] == "tk-gold"), None)
+            _usd  = next((t for t in tk if t["id"] == "tk-usd"), None)
+            for it in tk:
+                if it["id"] == "tk-gold24" and _gold and _usd and _gold["value"] and _usd["value"]:
+                    it["value"] = round(_gold["value"] * _usd["value"], 2)
+                    it["change"] = round((_gold["change"] + _usd["change"]) / 2, 2)
+                    it["gram"] = round(it["value"] / 31.1035, 2)
+                    it["ounce"] = round(_gold["value"], 2)
+                    it["trend"] = "up" if it["change"] >= 0 else "down"
+                    it["unit"] = "ج.م/جم"
 
             # 2.5) EGX33 — لو رجّع 0 نحسبه كمتوسط EGX30/EGX70 (تقريبي)
             for it in tk:
@@ -4484,6 +4638,33 @@ def calibration_api():
 def dashboard_api():
     """لوحة التحكم — كل النظام في رد واحد"""
     return jsonify(dashboard_data())
+
+
+@app.route("/api/audit/redundancy")
+def redundancy_api():
+    """تقرير تكرار الواجهة — يساعد في إعادة التصميم"""
+    return jsonify(duplication_report())
+
+
+@app.route("/api/gold")
+def gold_api():
+    """سعر الذهب ٢٤ بالجنيه + سعر الجرام"""
+    tk = {t["id"]: t for t in LIVE_DATA.get("ticker", [])}
+    g, u = tk.get("tk-gold"), tk.get("tk-usd")
+    g24 = tk.get("tk-gold24", {})
+    if not g or not u or not g.get("value"):
+        return jsonify({"error": "بيانات الذهب غير متاحة"}), 503
+    ounce_egp = g["value"] * u["value"]
+    return jsonify({
+        "ounce_usd": round(g["value"], 2),
+        "usd_egp": round(u["value"], 2),
+        "ounce_egp": round(ounce_egp, 2),
+        "gram_egp": round(ounce_egp / 31.1035, 2),
+        "ounce_egp_change": round((g.get("change",0) + u.get("change",0)) / 2, 2),
+        "unit": "ج.م",
+        "note": "سعر الجرام = سعر الأونصة ÷ 31.1035 جرام",
+        "updated": LIVE_DATA.get("lastUpdate"),
+    })
 
 
 @app.route("/api/top-movers")
