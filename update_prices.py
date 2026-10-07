@@ -3775,6 +3775,9 @@ def update_loop():
             tk = []
             for tid, label, tvsym in TICKER:
                 if tvsym.startswith("__"):
+                    # محسوب — مش من المصدر
+                    tk.append({"id": tid, "label": label, "value": 0.0, "change": 0.0,
+                               "trend": "flat", "unit": ""})
                     continue
                 try:
                     rr = requests.post(
