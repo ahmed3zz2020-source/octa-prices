@@ -5303,7 +5303,7 @@ def send_test():
               "\u2b06\ufe0f\u2b07\ufe0f \u0627\u0644\u062a\u0648\u0635\u064a\u0629 \u062a\u062a\u063a\u064a\u0651\u0631\n"
               "\ud83d\udcc5 \u0642\u0628\u0644 \u0623\u064a \u0627\u0633\u062a\u062d\u0642\u0627\u0642\n"
               "\u26a0\ufe0f \u0647\u0628\u0648\u0637 \u062d\u0627\u062f\n\ud83c\udf05 \u0645\u0644\u062e\u0635 \u0643\u0644 \u064a\u0648\u0645")
-    return {"ok": ok, "enabled": TG_ON}
+    return {"ok": ok, "enabled": TG_ON, "error": TG_LAST_ERR[0]}
 
 
 @app.route("/api/alerts/test", methods=["GET"])
@@ -5400,19 +5400,36 @@ def clear_key(d, key):
 
 # ── إرسال ────────────────────────────────────────────────────
 
+TG_LAST_ERR = [""]
+
+
 def send(text, silent=False):
+    """إرسال رسالة لتيليجرام. بترجع True/False وما بترميش استثناءات."""
     if not TG_ON:
+        TG_LAST_ERR[0] = "bot disabled (no token/chat)"
+        return False
+    if not TOKEN:
+        TG_LAST_ERR[0] = "TOKEN empty"
+        return False
+    if not CHAT:
+        TG_LAST_ERR[0] = "CHAT empty"
         return False
     try:
         import requests
-        p = {"chat_id": CHAT, "text": text[:3900],
-             "parse_mode": "HTML", "disable_web_page_preview": True}
+        p = {"chat_id": CHAT, "text": str(text)[:3900],
+             "disable_web_page_preview": "true"}
         if silent:
-            p["disable_notification"] = True
+            p["disable_notification"] = "true"
         r = requests.post(f"{TG_API}/sendMessage", data=p, timeout=15)
-        return r.status_code == 200
+        if r.status_code != 200:
+            TG_LAST_ERR[0] = f"HTTP {r.status_code}: {str(r.text)[:200]}"
+            print(f"[tg] {TG_LAST_ERR[0]}")
+            return False
+        TG_LAST_ERR[0] = ""
+        return True
     except Exception as e:
-        print(f"[tg] send: {e}")
+        TG_LAST_ERR[0] = f"{type(e).__name__}: {e}"
+        print(f"[tg] send: {TG_LAST_ERR[0]}")
         return False
 
 
