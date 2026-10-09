@@ -1,3 +1,6 @@
 update_prices.py.bak*
 *.bak
 snapshots/*.py
+
+__pycache__/
+*.pyc
