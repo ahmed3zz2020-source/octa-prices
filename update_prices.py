@@ -5158,8 +5158,8 @@ except NameError:                                     # pragma: no cover
 #  ① الإعدادات
 # ══════════════════════════════════════════════════════════════
 
-TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+TG_TOKEN = _tg_clean(os.environ.get("TELEGRAM_BOT_TOKEN", ""))
+TG_CHAT = _tg_clean(os.environ.get("TELEGRAM_CHAT_ID", ""))
 
 STATE_PATH = os.environ.get("ALERTS_STATE_PATH", "alerts_state.json")
 COOLDOWN_MIN = int(os.environ.get("ALERT_INTERVAL_MIN", "240"))
@@ -5383,8 +5383,28 @@ import time
 import threading
 from datetime import datetime as _dt
 
-TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+def _tg_clean(v):
+    """Railway variable reference is {{NAME}} — unwrap it or return blank."""
+    v = str(v or "").strip()
+    if not v:
+        return ""
+    for _ in range(3):
+        if not (v.startswith("{{") and v.endswith("}}")):
+            break
+        inner = v[2:-2].strip()
+        if ":" in inner:
+            inner = inner.split(":", 1)[1].strip()
+        if not inner:
+            return ""
+        real = os.environ.get(inner, "").strip()
+        if not real or real == v:
+            return ""
+        v = real
+    return v if " " not in v or ":" in v else v
+
+
+TOKEN = _tg_clean(os.environ.get("TELEGRAM_BOT_TOKEN", ""))
+CHAT = _tg_clean(os.environ.get("TELEGRAM_CHAT_ID", ""))
 TG_ON = bool(TOKEN and CHAT)
 TG_API = f"https://api.telegram.org/bot{TOKEN}"
 
