@@ -5306,6 +5306,36 @@ def send_test():
     return {"ok": ok, "enabled": TG_ON, "error": TG_LAST_ERR[0]}
 
 
+@app.route("/api/alerts/v2", methods=["GET"])
+def api_alerts_v2():
+    """نسخة جديدة: بتقول الكود ده اتحمّل ولا لأ + بتختبر الإرسال."""
+    diag = {
+        "code": "v2",
+        "enabled": TG_ON,
+        "token_set": bool(TOKEN),
+        "chat_set": bool(CHAT),
+        "token_preview": TOKEN[:6] + "..." if TOKEN else "",
+        "chat": CHAT,
+    }
+    if TG_ON:
+        try:
+            import requests
+            r = requests.get(f"{TG_API}/getMe", timeout=12)
+            diag["getMe_status"] = r.status_code
+            try:
+                j = r.json()
+                diag["bot"] = (j.get("result") or {}).get("username")
+            except Exception:
+                pass
+        except Exception as e:
+            diag["getMe_error"] = f"{type(e).__name__}: {e}"
+
+        ok = send("OCTA test " + str(int(time.time())))
+        diag["send_ok"] = ok
+        diag["send_error"] = TG_LAST_ERR[0]
+    return jsonify(diag)
+
+
 @app.route("/api/alerts/test", methods=["GET"])
 def api_alerts_test():
     return jsonify(send_test())
