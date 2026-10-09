@@ -3956,6 +3956,26 @@ def update_loop():
 
 
             try:
+                _t_live = globals().get("LIVE_DATA", {}) or {}
+                _t_st = _t_live.get("egx30") or []
+                if _t_st and TG_ON:
+                    _t_r = [{"code": x.get("code"), "name": x.get("name"),
+                             "price": x.get("price"), "decision": x.get("decision"),
+                             "score": x.get("final_score")} for x in _t_st if isinstance(x, dict)]
+                    _t_r.sort(key=lambda z: -(z.get("score") or 0))
+                    _t_v = [{"code": a.get("code") or a.get("symbol"), "name": a.get("name"),
+                             "ex_date": a.get("ex_date") or a.get("exDate"),
+                             "amount": a.get("amount") or a.get("value"),
+                             "type": a.get("type")}
+                            for a in (globals().get("_actions", []) or [])]
+                    _t_k = [{"code": x.get("code"), "name": x.get("name"),
+                             "mdd1y": x.get("mdd1y"), "frm52hi": x.get("frm52hi")}
+                            for x in _t_st if isinstance(x, dict) and x.get("mdd1y")]
+                    run_alerts(ranked=_t_r[:60], divs=_t_v, risk_rows=_t_k)
+            except Exception as _te:
+                print(f"  [tg] {_te}")
+
+            try:
                 with open(CACHE_FILE, "w", encoding="utf-8") as f:
                     json.dump(LIVE_DATA, f, ensure_ascii=False, indent=2)
             except Exception as e:
@@ -5276,400 +5296,14 @@ def watch_list(st):
         }
         for c, v in watch_get(st).items()
     ]
-
-
-# ══════════════════════════════════════════════════════════════
-#  ⑤ التنبيهات الأربعة
-# ══════════════════════════════════════════════════════════════
-
-def alert_price(st, rows):
-    """
-    ① تنبيه السعر: وصل الحد الأعلى أو الأدنى.
-    rows = [{code, name, price, pct}]
-    """
-    hits = []
-    for r in rows or []:
-        code = r.get("code")
-        px = r.get("price")
-        if not code or not px:
-            continue
-
-        prev = st.get("prices", {}).get(code)
-        if prev and prev.get("p"):
-            ch = ((float(px) - float(prev["p"])) / float(prev["p"])) * 100
-        else:
-            ch = 0.0
-
-        # تحديث السجل (بيحصل دائماً)
-        st.setdefault("prices", {})[code] = {"p": float(px), "t": int(time.time())}
-
-        w = watch_get(st).get(code)
-        if not w:
-            continue
-
-        # حد أعلى
-        if w.get("hi") and float(px) >= float(w["hi"]):
-            key = f"hi:{code}"
-            if _can_send(st, key):
-                txt = (
-                    f"🔺 <b>السهم عدّى الحد الأعلى</b>\n\n"
-                    f"<b>{_e(r.get('name', code))}</b> ({_e(code)})\n"
-                    f"السعر: <b>{float(px):.2f} ج</b>\n"
-                    f"حدّك: {float(w['hi']):.2f} ج\n"
-                    f"التغير: {_pct(ch)}\n\n"
-                    f"💡 لو بعتها — شوف السبب في كارت القرار قبل ما تبيع."
-                )
-                if tg_send(txt):
-                    _mark(st, key)
-                    hits.append(code)
-
-        # حد أدنى
-        if w.get("lo") and float(px) <= float(w["lo"]):
-            key = f"lo:{code}"
-            if _can_send(st, key):
-                txt = (
-                    f"🔻 <b>السهم وصل الحد الأدنى</b>\n\n"
-                    f"<b>{_e(r.get('name', code))}</b> ({_e(code)})\n"
-                    f"السعر: <b>{float(px):.2f} ج</b>\n"
-                    f"حدّك: {float(w['lo']):.2f} ج\n"
-                    f"التغير: {_pct(ch)}\n\n"
-                    f"💡 ده إشارة شراء — بس اتأكد إن السبب لسه قايم."
-                )
-                if tg_send(txt):
-                    _mark(st, key)
-                    hits.append(code)
-
-        # الحركة الكبيرة (بدون حدود)
-        if abs(ch) >= 4.0:
-            key = f"mv:{code}"
-            if _can_send(st, key):
-                up = "📈" if ch > 0 else "📉"
-                txt = (
-                    f"{up} <b>حركة كبيرة</b>\n\n"
-                    f"<b>{_e(r.get('name', code))}</b> ({_e(code)})\n"
-                    f"السعر: <b>{float(px):.2f} ج</b>\n"
-                    f"التغير: <b>{_pct(ch)}</b>"
-                )
-                if tg_send(txt):
-                    _mark(st, key)
-                    hits.append(code)
-
-        # لمس الحد → نسيحه عشان يقدر ينبّه تاني
-        if w.get("hi") and float(px) < float(w["hi"]) * 0.97:
-            _clear_key(st, f"hi:{code}")
-        if w.get("lo") and float(px) > float(w["lo"]) * 1.03:
-            _clear_key(st, f"lo:{code}")
-        if abs(ch) < 1.5:
-            _clear_key(st, f"mv:{code}")
-
-    return hits
-
-
-def alert_decision(st, ranked):
-    """
-    ② تغير التوصية: بيع → تجميع أو العكس.
-    ranked = [{code, name, price, decision, score, conf}]
-    """
-    order = {"بيع": 0, "غير كافٍ": 1, "احتفظ": 2, "تجميع": 3}
-    hits = []
-
-    for r in ranked or []:
-        code = r.get("code")
-        d = r.get("decision")
-        if not code or not d:
-            continue
-
-        prev = st.get("decisions", {}).get(code)
-        st.setdefault("decisions", {})[code] = {"d": d, "t": int(time.time())}
-
-        if not prev or not prev.get("d"):
-            continue
-        if prev["d"] == d:
-            continue
-
-        po, no = order.get(prev["d"], 1), order.get(d, 1)
-        key = f"dec:{code}:{prev['d']}>{d}"
-        if not _can_send(st, key):
-            continue
-
-        # ترقية = للأعلى (نحو شراء) — أهم
-        up = no > po
-        arrow = "⬆️" if up else "⬇️"
-        word = "تحسّن" if up else "ضعف"
-
-        txt = (
-            f"{arrow} <b>التوصية اتغيّرت ({word})</b>\n\n"
-            f"<b>{_e(r.get('name', code))}</b> ({_e(code)})\n"
-            f"السعر: {float(r.get('price', 0)):.2f} ج\n"
-            f"من <b>{_e(prev['d'])}</b>  ←  إلى <b>{_e(d)}</b>\n"
-            + (f"النقاط: {r.get('score')}" if r.get("score") else "")
-            + "\n\n💡 افتح كارت القرار على OCTA وشوف السبب."
-        )
-        if tg_send(txt):
-            _mark(st, key)
-            hits.append(code)
-            _clear_key(st, f"dec:{code}")     # اسمح بإشعار تغيّر جديد
-
-    return hits
-
-
-def alert_dividend(st, divs):
-    """
-    ③ الاستحقاق: تذكير قبل الموعد بـ N أيام.
-    divs = [{code, name, ex_date, amount, type}]
-    """
-    from datetime import datetime as _d
-    hits = []
-    today = _d.now().date()
-
-    for d in divs or []:
-        code = d.get("code")
-        ex = d.get("ex_date")
-        if not code or not ex:
-            continue
-        try:
-            exd = _d.strptime(str(ex)[:10], "%Y-%m-%d").date()
-        except Exception:
-            continue
-
-        days = (exd - today).days
-        if days < 0 or days > 7:
-            continue
-
-        key = f"div:{code}:{exd}"
-        if not _can_send(st, key):
-            continue
-
-        if days == 0:
-            head = "🔴 <b>استحقاق اليوم!</b>"
-        elif days == 1:
-            head = "🟠 <b>استحقاق بكرة</b>"
-        else:
-            head = f"🟡 <b>استحقاق بعد {days} أيام</b>"
-
-        amt = d.get("amount")
-        amt_txt = f"{float(amt):.4f} ج" if amt not in (None, "", "-") else "غير محدد"
-
-        txt = (
-            f"{head}\n\n"
-            f"<b>{_e(d.get('name', code))}</b> ({_e(code)})\n"
-            f"📅 تاريخ الاستحقاق: <b>{exd}</b>\n"
-            f"💰 التوزيع: {amt_txt}"
-            + f"\n🏷 النوع: {_e(d.get('type'))}" if d.get("type") else ""
-            + "\n\n💡 لازم تكون ماسك السهم يوم الاستحقاق (مش يوم الصرف)."
-        )
-        if tg_send(txt):
-            _mark(st, key)
-            hits.append(code)
-
-    return hits
-
-
-def alert_risk(st, rows):
-    """
-    ④ تحذير الخطر: هبوط حاد أو ticker اختفى من التقرير.
-    rows = [{code, name, mdd1y, rsi, frm52hi}]
-    """
-    hits = []
-
-    for r in rows or []:
-        code = r.get("code")
-        if not code:
-            continue
-
-        # هبوط超过 20% في سنة
-        m = r.get("mdd1y")
-        if m is not None:
-            try:
-                mv = abs(float(m))
-            except Exception:
-                mv = 0
-            if mv >= 20:
-                key = f"risk:{code}"
-                if _can_send(st, key):
-                    txt = (
-                        f"⚠️ <b>تحذير مخاطرة</b>\n\n"
-                        f"<b>{_e(r.get('name', code))}</b> ({_e(code)})\n"
-                        f"أكبر هبوط في سنة: <b>-{mv:.1f}%</b>\n"
-                        + (f"من أعلى 52 أسبوع: {_pct(r.get('frm52hi'))}" if r.get("frm52hi") else "")
-                        + "\n\n💡 ده مؤشر خطر — مش نصيحة بيع. راجع كارت القرار."
-                    )
-                    if tg_send(txt):
-                        _mark(st, key)
-                        hits.append(code)
-            elif mv < 12:
-                _clear_key(st, f"risk:{code}")
-
-    return hits
-
-
-# ══════════════════════════════════════════════════════════════
-#  ⑥ الملخص اليومي
-# ══════════════════════════════════════════════════════════════
-
-def digest_daily(st, ranked, divs=None):
-    """ملخص كل مرة في اليوم — بيكشف حالة المحفظة والفرص."""
-    from datetime import datetime as _d
-
-    now = _d.now()
-    today = now.strftime("%Y-%m-%d")
-    if st.get("last_digest") == today:
-        return False
-
-    if not ranked:
-        return False
-
-    # Top 5
-    top = ranked[:5]
-    lines = []
-    for i, r in enumerate(top, 1):
-        lines.append(
-            f"<b>{i}.</b> {_e(r.get('name', r.get('code')))} "
-            f"({_e(r.get('code'))}) — {_e(r.get('decision'))} "
-            + (f"· {r.get('score')} نقطة" if r.get("score") else "")
-        )
-
-    # إحصائيات
-    dist = {}
-    for r in ranked:
-        dist[r.get("decision")] = dist.get(r.get("decision"), 0) + 1
-
-    dist_txt = " · ".join(f"{_e(k)} {v}" for k, v in dist.items())
-
-    # توزيعات قريبة
-    div_txt = ""
-    if divs:
-        near = [d for d in divs if d.get("ex_date") and str(d["ex_date"])[:10] >= today]
-        if near:
-            div_txt = "\n\n📅 <b>استحقاقات قريبة</b>\n" + "\n".join(
-                f"· {_e(d.get('name', d.get('code')))} — {str(d['ex_date'])[:10]}"
-                for d in near[:5]
-            )
-
-    msg = (
-        f"🌅 <b>ملخص OCTA اليوم</b>\n"
-        f"{_d.now().strftime('%Y-%m-%d %H:%M')}\n"
-        f"{'━' * 20}\n\n"
-        f"🏆 <b>أفضل {len(top)} فرص</b>\n" + "\n".join(lines)
-        + f"\n\n📊 <b>توزيع القرارات</b>\n{dist_txt}"
-        + f"\n\n👁️ <b>المتابعة</b> {len(watch_get(st))} سهم"
-        + div_txt
-        + "\n\n🔗 افتح المنصة: octa-prices-production-4ccb.up.railway.app"
-    )
-
-    if tg_send(msg, silent=True):
-        st["last_digest"] = today
-        return True
-    return False
-
-
-# ══════════════════════════════════════════════════════════════
-#  ⑦ نقطة الدخول الوحيدة
-# ══════════════════════════════════════════════════════════════
-
-def run_alerts(ranked=None, divs=None, risk_rows=None):
-    """
-    الدالة الرئيسية — بتناديها من update_prices.py بعد كل تحديث.
-
-    ranked    = [{code, name, price, decision, score}]
-    divs      = [{code, name, ex_date, amount, type}]
-    risk_rows = [{code, name, mdd1y, frm52hi}]
-
-    بترجع ملخص بالنتايج — للـ log.
-    """
-    if not TG_ENABLED:
-        return {"enabled": False, "reason": "no token/chat in env"}
-
-    st = _state_load()
-    out = {"enabled": True, "price": 0, "decision": 0, "dividend": 0, "risk": 0, "digest": False}
-
-    try:
-        out["price"] = len(alert_price(st, ranked))
-        out["decision"] = len(alert_decision(st, ranked))
-        out["dividend"] = len(alert_dividend(st, divs))
-        out["risk"] = len(alert_risk(st, risk_rows))
-
-        from datetime import datetime as _d
-        if _d.now().hour >= DIGEST_HOUR:
-            out["digest"] = digest_daily(st, ranked, divs)
-
-        _state_save(st)
-        log(f"[tg] alerts: {out}")
-    except Exception as e:
-        log(f"[tg] run_alerts error: {e}")
-
-    return out
-
-
 def send_test():
-    """رسالة اختبار — بتتّصل من /api/alerts/test"""
-    if not TG_ENABLED:
-        return {"ok": False, "error": "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID missing"}
-    ok = tg_send(
-        "✅ <b>تنبيهات OCTA شغّالة</b>\n\n"
-        "من دلوقتي هتبعتلك:\n"
-        "🔺🔻 لما السعر يوصل للحد اللي حددته\n"
-        "⬆️⬇️ لما التوصية تتغيّر\n"
-        "📅 قبل أي استحقاق توزيع\n"
-        "⚠️ لما السهم يعمل هبوط حاد\n"
-        "🌅 ملخص كل يوم"
-    )
-    return {"ok": ok}
-
-
-# ══════════════════════════════════════════════════════════════
-#  ⑧ مسارات Flask (لحّقها جوه ملفك)
-# ══════════════════════════════════════════════════════════════
-
-# ── ضيف المسارات دي جوه ملف update_prices.py ─────────────────
-#
-#  @app.route("/api/alerts/test", methods=["GET"])
-#  def api_alerts_test():
-#      return jsonify(send_test())
-#
-#  @app.route("/api/alerts/watch", methods=["GET"])
-#  def api_alert_watch_get():
-#      return jsonify({"ok": True, "items": watch_list(_state_load())})
-#
-#  @app.route("/api/alerts/watch", methods=["POST"])
-#  def api_alert_watch_post():
-#      st = _state_load()
-#      j = request.get_json(silent=True) or {}
-#      act = j.get("action")
-#      if act == "add":
-#          watch_set(st, j.get("code"), j.get("hi"), j.get("lo"))
-#      elif act == "del":
-#          watch_remove(st, j.get("code"))
-#      elif act == "clear":
-#          st["watch"] = {}
-#      _state_save(st)
-#      return jsonify({"ok": True, "items": watch_list(st)})
-#
-#  @app.route("/api/alerts/state", methods=["GET"])
-#  def api_alert_state():
-#      st = _state_load()
-#      return jsonify({
-#          "ok": True,
-#          "enabled": TG_ENABLED,
-#          "watch": len(watch_get(st)),
-#          "tracked": len(st.get("prices", {})),
-#          "last_digest": st.get("last_digest"),
-#      })
-#
-# ─────────────────────────────────────────────────────────────
-
-# ── الاستدعاء: حط السطر ده في آخر دالة التحديث ───────────────
-#
-#      run_alerts(
-#          ranked=ranked[:60],
-#          divs=DIVIDENDS[:80],
-#          risk_rows=[{"code": s["code"], "name": s["name"],
-#                      "mdd1y": s.get("mdd1y"), "frm52hi": s.get("frm52hi")}
-#                     for s in STOCKS[:150] if s.get("mdd1y")],
-#      )
-#
-# ─────────────────────────────────────────────────────────────
-
+    """رسالة اختبار فورية."""
+    ok = send("\u2705 <b>\u062a\u0646\u0628\u064a\u0647\u0627\u062a OCTA \u0634\u063a\u0651\u0627\u0644\u0629</b>\n\n"
+              "\ud83d\udde1\ud83d\udd37 \u0627\u0644\u0633\u0639\u0631 \u064a\u0648\u0635\u0644 \u0644\u0644\u062d\u062f \u0627\u0644\u0630\u064a \u062d\u062f\u062f\u062a\u0647\n"
+              "\u2b06\ufe0f\u2b07\ufe0f \u0627\u0644\u062a\u0648\u0635\u064a\u0629 \u062a\u062a\u063a\u064a\u0651\u0631\n"
+              "\ud83d\udcc5 \u0642\u0628\u0644 \u0623\u064a \u0627\u0633\u062a\u062d\u0642\u0627\u0642\n"
+              "\u26a0\ufe0f \u0647\u0628\u0648\u0637 \u062d\u0627\u062f\n\ud83c\udf05 \u0645\u0644\u062e\u0635 \u0643\u0644 \u064a\u0648\u0645")
+    return {"ok": ok, "enabled": TG_ON}
 
 
 @app.route("/api/alerts/test", methods=["GET"])
@@ -5707,6 +5341,355 @@ def api_alert_state():
 
 
 
+
+# 🐙 ==== OCTA Telegram Alerts ====
+# ══════════════════════════════════════════════════════════════
+#  ② طبقة التنبيهات — مستقلة تماماً
+# ══════════════════════════════════════════════════════════════
+
+import os
+import json
+import time
+import threading
+from datetime import datetime as _dt
+
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+TG_ON = bool(TOKEN and CHAT)
+TG_API = f"https://api.telegram.org/bot{TOKEN}"
+
+STATE = os.environ.get("ALERTS_STATE_PATH", "alerts_state.json")
+COOLDOWN_MIN = int(os.environ.get("ALERT_INTERVAL_MIN", "240"))
+DIGEST_HOUR = int(os.environ.get("ALERT_DIGEST_HOUR", "9"))
+
+ORDER = {"بيع": 0, "غير كافٍ": 1, "احتفظ": 2, "تجميع": 3}
+
+
+# ── حالة ─────────────────────────────────────────────────────
+
+def st_load():
+    try:
+        with open(STATE, "r", encoding="utf-8") as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def st_save(d):
+    try:
+        with open(STATE + ".t", "w", encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False)
+        os.replace(STATE + ".t", STATE)
+    except Exception as e:
+        print(f"[tg] save: {e}")
+
+
+def can_send(d, key):
+    last = d.get("sent", {}).get(key, 0)
+    return (time.time() - last) >= COOLDOWN_MIN * 60
+
+
+def mark(d, key):
+    d.setdefault("sent", {})[key] = int(time.time())
+
+
+def clear_key(d, key):
+    d.get("sent", {}).pop(key, None)
+
+
+# ── إرسال ────────────────────────────────────────────────────
+
+def send(text, silent=False):
+    if not TG_ON:
+        return False
+    try:
+        import requests
+        p = {"chat_id": CHAT, "text": text[:3900],
+             "parse_mode": "HTML", "disable_web_page_preview": True}
+        if silent:
+            p["disable_notification"] = True
+        r = requests.post(f"{TG_API}/sendMessage", data=p, timeout=15)
+        return r.status_code == 200
+    except Exception as e:
+        print(f"[tg] send: {e}")
+        return False
+
+
+def esc(v):
+    return str(v if v is not None else "?").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def pct(x):
+    try:
+        return f"{float(x):+.2f}%"
+    except Exception:
+        return "?"
+
+
+# ── متابعة ───────────────────────────────────────────────────
+
+def watch_add(d, code, hi=None, lo=None):
+    c = str(code or "").upper().strip()
+    if not c:
+        return
+    it = d.setdefault("watch", {}).setdefault(c, {})
+    if hi not in (None, ""):
+        it["hi"] = float(hi)
+    if lo not in (None, ""):
+        it["lo"] = float(lo)
+    it.setdefault("at", int(time.time()))
+
+
+def watch_del(d, code):
+    d.setdefault("watch", {}).pop(str(code or "").upper().strip(), None)
+
+
+def watch_list(d):
+    return [{"code": c, "hi": v.get("hi"), "lo": v.get("lo"), "at": v.get("at")}
+            for c, v in (d.get("watch") or {}).items()]
+
+
+# ══════════════════════════════════════════════════════════════
+#  ③ التنبيهات الأربعة
+# ══════════════════════════════════════════════════════════════
+
+def alert_price(d, rows):
+    hits = []
+    for r in rows or []:
+        code, px = r.get("code"), r.get("price")
+        if not code or not px:
+            continue
+        px = float(px)
+        prev = (d.get("prices") or {}).get(code)
+        ch = ((px - prev["p"]) / prev["p"] * 100) if (prev and prev.get("p")) else 0.0
+        d.setdefault("prices", {})[code] = {"p": px, "t": int(time.time())}
+
+        w = (d.get("watch") or {}).get(code)
+        if not w:
+            continue
+
+        if w.get("hi") and px >= float(w["hi"]):
+            k = f"hi:{code}"
+            if can_send(d, k) and send(
+                f"🔺 <b>السهم عدّى الحد الأعلى</b>\n\n"
+                f"<b>{esc(r.get('name') or code)}</b> ({esc(code)})\n"
+                f"السعر: <b>{px:.2f} ج</b>\nحدّك: {float(w['hi']):.2f} ج\n"
+                f"التغير: {pct(ch)}\n\n"
+                f"💡 لو باعته — شوف السبب في كارت القرار قبل ما تبيع."
+            ):
+                mark(d, k); hits.append(code)
+
+        if w.get("lo") and px <= float(w["lo"]):
+            k = f"lo:{code}"
+            if can_send(d, k) and send(
+                f"🔻 <b>السهم وصل الحد الأدنى</b>\n\n"
+                f"<b>{esc(r.get('name') or code)}</b> ({esc(code)})\n"
+                f"السعر: <b>{px:.2f} ج</b>\nحدّك: {float(w['lo']):.2f} ج\n"
+                f"التغير: {pct(ch)}\n\n"
+                f"💡 ده إشارة شراء — بس اتأكد إن السبب لسه قايم."
+            ):
+                mark(d, k); hits.append(code)
+
+        if abs(ch) >= 4.0:
+            k = f"mv:{code}"
+            if can_send(d, k) and send(
+                f"{'📈' if ch > 0 else '📉'} <b>حركة كبيرة</b>\n\n"
+                f"<b>{esc(r.get('name') or code)}</b> ({esc(code)})\n"
+                f"السعر: <b>{px:.2f} ج</b>\nالتغير: <b>{pct(ch)}</b>"
+            ):
+                mark(d, k); hits.append(code)
+
+        if w.get("hi") and px < float(w["hi"]) * 0.97:
+            clear_key(d, f"hi:{code}")
+        if w.get("lo") and px > float(w["lo"]) * 1.03:
+            clear_key(d, f"lo:{code}")
+        if abs(ch) < 1.5:
+            clear_key(d, f"mv:{code}")
+    return hits
+
+
+def alert_decision(d, rows):
+    hits = []
+    for r in rows or []:
+        code, dec = r.get("code"), r.get("decision")
+        if not code or not dec:
+            continue
+        prev = (d.get("decisions") or {}).get(code)
+        d.setdefault("decisions", {})[code] = {"d": dec, "t": int(time.time())}
+        if not prev or prev.get("d") == dec:
+            continue
+
+        po, no = ORDER.get(prev["d"], 1), ORDER.get(dec, 1)
+        k = f"dec:{code}"
+        if not can_send(d, k):
+            continue
+        up = no > po
+        if send(
+            f"{'⬆️' if up else '⬇️'} <b>التوصية اتغيّرت ({'تحسّن' if up else 'ضعف'})</b>\n\n"
+            f"<b>{esc(r.get('name') or code)}</b> ({esc(code)})\n"
+            f"السعر: {float(r.get('price') or 0):.2f} ج\n"
+            f"من <b>{esc(prev['d'])}</b> ← إلى <b>{esc(dec)}</b>\n"
+            + (f"النقاط: {r.get('score')}\n" if r.get("score") else "")
+            + "\n💡 افتح كارت القرار على OCTA وشوف السبب."
+        ):
+            mark(d, k); hits.append(code)
+    return hits
+
+
+def alert_dividend(d, divs):
+    hits = []
+    today = _dt.now().date()
+    for v in divs or []:
+        code, ex = v.get("code"), v.get("ex_date")
+        if not code or not ex:
+            continue
+        try:
+            exd = _dt.strptime(str(ex)[:10], "%Y-%m-%d").date()
+        except Exception:
+            continue
+        days = (exd - today).days
+        if days < 0 or days > 7:
+            continue
+        k = f"div:{code}:{exd}"
+        if not can_send(d, k):
+            continue
+        head = ("🔴 <b>استحقاق اليوم!</b>" if days == 0 else
+                "🟠 <b>استحقاق بكرة</b>" if days == 1 else
+                f"🟡 <b>استحقاق بعد {days} أيام</b>")
+        amt = v.get("amount")
+        amt_t = f"{float(amt):.4f} ج" if amt not in (None, "", "-") else "غير محدد"
+        if send(
+            f"{head}\n\n<b>{esc(v.get('name') or code)}</b> ({esc(code)})\n"
+            f"📅 الاستحقاق: <b>{exd}</b>\n💰 التوزيع: {amt_t}\n\n"
+            f"💡 لازم تكون ماسك السهم يوم الاستحقاق (مش يوم الصرف)."
+        ):
+            mark(d, k); hits.append(code)
+    return hits
+
+
+def alert_risk(d, rows):
+    hits = []
+    for r in rows or []:
+        code = r.get("code")
+        if not code:
+            continue
+        m = r.get("mdd1y")
+        if m is None:
+            continue
+        try:
+            mv = abs(float(m))
+        except Exception:
+            continue
+        k = f"risk:{code}"
+        if mv >= 20:
+            if can_send(d, k) and send(
+                f"⚠️ <b>تحذير مخاطرة</b>\n\n"
+                f"<b>{esc(r.get('name') or code)}</b> ({esc(code)})\n"
+                f"أكبر هبوط في سنة: <b>-{mv:.1f}%</b>"
+                + (f"\nمن أعلى 52 أسبوع: {pct(r.get('frm52hi'))}" if r.get("frm52hi") else "")
+                + "\n\n💡 ده مؤشر خطر — مش نصيحة بيع. راجع كارت القرار."
+            ):
+                mark(d, k); hits.append(code)
+        elif mv < 12:
+            clear_key(d, k)
+    return hits
+
+
+def digest(d, ranked, divs=None):
+    today = _dt.now().strftime("%Y-%m-%d")
+    if d.get("last_digest") == today or not ranked:
+        return False
+    top = ranked[:5]
+    lines = [f"<b>{i}.</b> {esc(r.get('name') or r.get('code'))} ({esc(r.get('code'))}) — "
+             f"{esc(r.get('decision'))}" + (f" · {r.get('score')} نقطة" if r.get("score") else "")
+             for i, r in enumerate(top, 1)]
+    dist = {}
+    for r in ranked:
+        dist[r.get("decision")] = dist.get(r.get("decision"), 0) + 1
+    div_t = ""
+    if divs:
+        near = [x for x in divs if x.get("ex_date") and str(x["ex_date"])[:10] >= today]
+        if near:
+            div_t = "\n\n📅 <b>استحقاقات قريبة</b>\n" + "\n".join(
+                f"· {esc(x.get('name') or x.get('code'))} — {str(x['ex_date'])[:10]}"
+                for x in near[:5])
+    msg = (f"🌅 <b>ملخص OCTA اليوم</b>\n{_dt.now().strftime('%Y-%m-%d %H:%M')}\n{'━'*20}\n\n"
+           f"🏆 <b>أفضل {len(top)} فرص</b>\n" + "\n".join(lines)
+           + f"\n\n📊 <b>توزيع القرارات</b>\n" + " · ".join(f"{esc(k)} {v}" for k, v in dist.items())
+           + f"\n\n👁️ <b>المتابعة</b> {len(d.get('watch') or {})} سهم" + div_t)
+    if send(msg, silent=True):
+        d["last_digest"] = today
+        return True
+    return False
+
+
+def run_alerts(ranked=None, divs=None, risk_rows=None):
+    if not TG_ON:
+        return
+    d = st_load()
+    try:
+        p = alert_price(d, ranked)
+        dc = alert_decision(d, ranked)
+        dv = alert_dividend(d, divs)
+        rk = alert_risk(d, risk_rows)
+        dg = digest(d, ranked, divs) if _dt.now().hour >= DIGEST_HOUR else False
+        st_save(d)
+        if any([p, dc, dv, rk, dg]):
+            print(f"[tg] sent price={p} dec={dc} div={dv} risk={rk} digest={dg}")
+    except Exception as e:
+        print(f"[tg] run: {e}")
+
+
+# ══════════════════════════════════════════════════════════════
+#  ④ جدولة — مستقلة تماماً عن update_prices
+# ══════════════════════════════════════════════════════════════
+
+def _alert_loop():
+    """thread منفصل — بيقرأ LIVE_DATA ويبعت تنبيهات."""
+    time.sleep(90)                                   # استنى التطبيق warms up
+    every = 300                                      # كل 5 دقايق
+    while True:
+        try:
+            ld = getattr(U, "LIVE_DATA", {}) or {}
+            st = ld.get("egx30") or ld.get("stocks") or []
+            if st and TG_ON:
+                ranked = []
+                for x in st:
+                    if not isinstance(x, dict):
+                        continue
+                    ranked.append({
+                        "code": x.get("code"),
+                        "name": x.get("name"),
+                        "price": x.get("price"),
+                        "decision": x.get("decision"),
+                        "score": x.get("final_score"),
+                    })
+                ranked.sort(key=lambda r: -(r.get("score") or 0))
+                risk = [{"code": x.get("code"), "name": x.get("name"),
+                         "mdd1y": x.get("mdd1y"), "frm52hi": x.get("frm52hi")}
+                        for x in st if isinstance(x, dict) and x.get("mdd1y")]
+                divs = [{"code": a.get("code") or a.get("symbol"),
+                         "name": a.get("name"),
+                         "ex_date": a.get("ex_date") or a.get("exDate"),
+                         "amount": a.get("amount") or a.get("value"),
+                         "type": a.get("type")}
+                        for a in (getattr(U, "_actions", []) or [])]
+                run_alerts(ranked=ranked[:60], divs=divs, risk_rows=risk)
+        except Exception as e:
+            print(f"[tg] loop: {e}")
+        time.sleep(every)
+
+
+if TG_ON:
+    print("[octa_app] ✅ Telegram alerts ON")
+    threading.Thread(target=_alert_loop, daemon=True).start()
+else:
+    print("[octa_app] ⚠️ Telegram alerts OFF — env vars missing")
+
+
+
+# ══════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting OCTA v3 on port {port}")
