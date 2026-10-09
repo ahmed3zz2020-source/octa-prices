@@ -19,9 +19,9 @@ Railway يشغّل:  gunicorn octa_app:app
 
 import update_prices as U
 
-app = U.app                      # نفس Flask app بتاعك — فيه كل الـ API
+app = U.app
+print("[octa_app] importing update_prices...", flush=True)
 
-print("[octa_app] update_prices loaded | routes:", len(app.url_map._rules))
 
 
 # ══════════════════════════════════════════════════════════════
@@ -31,6 +31,7 @@ print("[octa_app] update_prices loaded | routes:", len(app.url_map._rules))
 import os
 import json
 import time
+import threading
 from datetime import datetime as _dt
 
 TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
@@ -326,8 +327,7 @@ def run_alerts(ranked=None, divs=None, risk_rows=None):
 # ══════════════════════════════════════════════════════════════
 
 def _alert_loop():
-    """بيشتغل في thread منفصل — بيقرأ LIVE_DATA ويبعت تنبيهات."""
-    import threading
+    """thread منفصل — بيقرأ LIVE_DATA ويبعت تنبيهات."""
     time.sleep(90)                                   # استنى التطبيق warms up
     every = 300                                      # كل 5 دقايق
     while True:
@@ -415,5 +415,4 @@ def _octa_alerts_state():
                     "last_digest": d.get("last_digest")})
 
 
-print(f"[octa_app] routes total: {len(app.url_map._rules)}")
 print("[octa_app] ✅ ready")
