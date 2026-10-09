@@ -4743,6 +4743,354 @@ def ai_status():
     })
 
 
+# ══════════════════════════════════════════════════════════════
+#  OCTA 2026-10-09 — طبقة البيانات الجديدة (startamarkets + IPO)
+#  مُلزَق فوق if __name__ == "__main__": في update_prices.py
+#  متوافق مع الكود الفعلي: log→print · rank_stocks(all_stocks,…)
+# ══════════════════════════════════════════════════════════════
+import re as _re, html as _html, math as _math
+from datetime import datetime as _dt, timezone as _tz
+from concurrent.futures import ThreadPoolExecutor as _TP
+
+STARTA_LIST   = "https://startamarkets.com/api/v1/egx/stocks"
+STARTA_STATS  = "https://startamarkets.com/api/v1/egx/statistics/"
+STARTA_HIST   = "https://startamarkets.com/api/v1/egx/history/"
+IPO_SRC       = "https://foudalens.com/ar/ipo"
+_HDR          = {"User-Agent": "Mozilla/5.0 (OCTA/5)", "Origin": "https://octa.egx"}
+
+
+def _num(v):
+    return v if isinstance(v, (int, float)) and v and abs(v) < 1e15 else None
+
+
+def _jget(url, timeout=15, tries=1):
+    """جلب JSON مع إعادة محاولة — بترجع None بدل ما ترمي."""
+    for i in range(tries):
+        try:
+            r = requests.get(url, headers=_HDR, timeout=timeout)
+            if r.ok:
+                return r.json()
+        except Exception:
+            pass
+        if i < tries - 1:
+            time.sleep(1.0 + i)
+    return None
+
+
+# ─────────────────────────────────────────────────────────────
+# ①  Starta — مؤشرات فنية + أساسية (مع cache ساعة)
+# ─────────────────────────────────────────────────────────────
+_STARTA = {"at": 0, "d": {}, "ttl": 3600}
+
+
+def _starta_stats():
+    now = _dt.now(_tz.utc).timestamp()
+    if _STARTA["d"] and now - _STARTA["at"] < _STARTA["ttl"]:
+        return _STARTA["d"]
+    lst = _jget(STARTA_LIST)
+    if not lst:
+        return _STARTA["d"]
+    codes = [s.get("symbol") for s in lst if s.get("symbol")]
+    out, done = {}, [0]
+
+    def one(c):
+        d = _jget(STARTA_STATS + c)
+        done[0] += 1
+        return c, d
+    try:
+        with _TP(max_workers=5) as ex:
+            for c, d in ex.map(one, codes):
+                if isinstance(d, dict) and d.get("symbol"):
+                    out[c] = d
+    except Exception as e:
+        print(f"[starta] thread fail: {e}")
+    if out:
+        _STARTA.update(at=now, d=out, ttl=3600)
+        print(f"[starta] {len(out)}/{len(codes)} cached")
+    return out
+
+
+# ─────────────────────────────────────────────────────────────
+# ②  المخاطرة الحقيقية — من تاريخ 26 سنة (cache يوم)
+# ─────────────────────────────────────────────────────────────
+def _log_ret(cl):
+    return [_math.log(cl[i] / cl[i - 1]) for i in range(1, len(cl))
+            if cl[i - 1] > 0 and cl[i] > 0]
+
+
+def _risk_metrics(hist):
+    out = {}
+    cl = [float(x["close"]) for x in hist
+          if x.get("close") and float(x["close"]) > 0]
+    if len(cl) < 30:
+        return out
+
+    def ann_vol(n):
+        if len(cl) <= n:
+            return None
+        r = _log_ret(cl[-n:])
+        if len(r) < 20:
+            return None
+        m = sum(r) / len(r)
+        v = sum((x - m) ** 2 for x in r) / (len(r) - 1)
+        return round(_math.sqrt(v) * _math.sqrt(252) * 100, 2)
+
+    def mdd(series):
+        peak, worst = series[0], 0.0
+        for p in series:
+            peak = max(peak, p)
+            if peak > 0:
+                worst = max(worst, (peak - p) / peak * 100)
+        return round(worst, 2)
+
+    out["vol1y"] = ann_vol(252)
+    out["vol3y"] = ann_vol(756)
+    out["mdd"] = mdd(cl)
+    out["mdd1y"] = mdd(cl[-252:]) if len(cl) >= 252 else None
+    if len(cl) > 756:
+        cagr = (cl[-1] / cl[-756]) ** (1 / 3.0) - 1
+        out["cagr3y"] = round(cagr * 100, 2)
+        if out.get("vol3y"):
+            out["sharpe3y"] = round((cagr * 100) / out["vol3y"], 2)
+        neg = [x for x in _log_ret(cl[-756:]) if x < 0]
+        if len(neg) > 20:
+            m = sum(neg) / len(neg)
+            out["sortino3y"] = round(
+                _math.sqrt(sum((x - m) ** 2 for x in neg) / (len(neg) - 1))
+                * _math.sqrt(252) * 100, 2)
+    w = cl[-252:] if len(cl) >= 60 else cl
+    out["h52"] = round(max(w), 2)
+    out["l52"] = round(min(w), 2)
+    out["frm52hi"] = round((cl[-1] / max(w) - 1) * 100, 2) if max(w) > 0 else None
+    return out
+
+
+_RISK = {"at": 0, "d": {}, "ttl": 86400, "codes": ""}
+
+
+def _risk_all(codes):
+    """مخاطرة لكل الأكواد — يتجدد مرة في اليوم (تقيل: ~5000 شمعة لكل سهم)."""
+    key = len(codes)
+    now = _dt.now(_tz.utc).timestamp()
+    if _RISK["d"] and now - _RISK["at"] < _RISK["ttl"] and _RISK["codes"] == key:
+        return _RISK["d"]
+    out, done = {}, [0]
+
+    def one(c):
+        h = _jget(STARTA_HIST + c, timeout=30, tries=2)
+        done[0] += 1
+        if done[0] % 40 == 0:
+            print(f"[risk] {done[0]}/{len(codes)}", flush=True)
+        return c, (_risk_metrics(h) if isinstance(h, list) and h else {})
+    try:
+        with _TP(max_workers=5) as ex:
+            for c, m in ex.map(one, codes):
+                if m:
+                    out[c] = m
+    except Exception as e:
+        print(f"[risk] thread fail: {e}")
+    if out:
+        _RISK.update(at=now, d=out, ttl=86400, codes=key)
+        print(f"[risk] {len(out)} cached")
+    return out
+
+
+# ─────────────────────────────────────────────────────────────
+# ③  /api/egx_full  —  السجل الكامل + المؤشرات + المخاطرة
+# ─────────────────────────────────────────────────────────────
+def _load_local_stocks():
+    """يقرأ data_egx.json لو موجود جنب الملف."""
+    for p in (Path(__file__).parent / "data_egx.json", Path("data_egx.json")):
+        try:
+            if p.exists():
+                return json.loads(p.read_text(encoding="utf-8")).get("stocks", {})
+        except Exception:
+            pass
+    return {}
+
+
+@app.route("/api/egx_full")
+def api_egx_full():
+    """
+    السجل الكامل + RSI/Beta/MA + ROE/ROA + مخاطرة حقيقية.
+    ➜ الواجهة بتعمل fetch('/api/egx_full') بدل data_egx.json الساكن.
+    """
+    stats = _starta_stats()
+    live = {s["code"]: s for s in LIVE_DATA.get("egx30", []) if s.get("code")}
+    base = _load_local_stocks()
+    codes = set(base) | set(live) | set(stats)
+    risk = _risk_all(sorted(codes))
+
+    stocks = {}
+    for c in codes:
+        b, l, s, r = base.get(c, {}), live.get(c, {}), stats.get(c, {}), risk.get(c, {})
+        if not (b or l):
+            continue
+        pe = _num(l.get("pe")) or _num(s.get("pe_ratio")) or _num(b.get("pe"))
+        pb = _num(l.get("pb")) or _num(s.get("pb_ratio")) or _num(b.get("pb"))
+        roe = _num(l.get("roe")) or _num(s.get("roe")) or _num(b.get("roe"))
+        pe_src = "source"
+        if not pe and pb and roe and roe > 0:
+            calc = pb / (roe / 100.0)
+            if 0 < calc < 500:
+                pe, pe_src = round(calc, 2), "pb_roe"
+        stocks[c] = {
+            "n": b.get("n") or l.get("name") or s.get("name_ar") or c,
+            "en": b.get("en") or s.get("name_en") or "",
+            "name_ar": s.get("name_ar") or b.get("name_ar") or "",
+            "s": b.get("s") or l.get("sector") or "—",
+            "p": _num(l.get("price")) or _num(b.get("p")),
+            "c": _num(l.get("change")) if l.get("change") is not None else _num(b.get("c")),
+            "v": _num(l.get("volume")) or _num(b.get("v")),
+            "mc": _num(l.get("mkt_cap")) or _num(s.get("market_cap")) or _num(b.get("mc")),
+            "score": _num(l.get("final_score")) or _num(b.get("score")),
+            "decision": l.get("decision") or "",
+            "pe": pe, "peSrc": pe_src, "pb": pb, "roe": roe,
+            # 🆕 فنية
+            "s_rsi": _num(s.get("rsi_14")),
+            "s_ma50": _num(s.get("ma_50d")),
+            "s_ma200": _num(s.get("ma_200d")),
+            "beta": _num(s.get("beta_1y")) or _num(b.get("b")),
+            "s_roa": _num(s.get("roa")),
+            # 🆕 هوامش ونمو
+            "s_dy": _num(s.get("dividend_yield")),
+            "s_flt": _num(s.get("float_shares_percent")),
+            "s_gm": _num(s.get("gross_margin")),
+            "s_pm": _num(s.get("profit_margin")),
+            "s_rg": _num(s.get("revenue_growth")),
+            "s_pg": _num(s.get("profit_growth")),
+            "s_fcf": _num(s.get("fcf_ttm")),
+            "s_bvps": _num(s.get("bvps")),
+            # 🆕 مخاطرة حقيقية
+            "vol1y": r.get("vol1y"), "vol3y": r.get("vol3y"),
+            "mdd": r.get("mdd"), "mdd1y": r.get("mdd1y"),
+            "sharpe3y": r.get("sharpe3y"), "sortino3y": r.get("sortino3y"),
+            "cagr3y": r.get("cagr3y"), "frm52hi": r.get("frm52hi"),
+            "h52": r.get("h52"), "l52": r.get("l52"),
+            "live": bool(l),
+        }
+    n = len(stocks) or 1
+    print(f"[egx_full] {len(stocks)} | pe {sum(1 for v in stocks.values() if v['pe'])} "
+          f"| rsi {sum(1 for v in stocks.values() if v['s_rsi'])} "
+          f"| mdd {sum(1 for v in stocks.values() if v['mdd'])}")
+    return jsonify({"_ts": _dt.now(_tz.utc).isoformat() + "Z",
+                    "_src": "tradingview + startamarkets",
+                    "n": len(stocks), "stocks": stocks})
+
+
+# ─────────────────────────────────────────────────────────────
+# ④  /api/ipo  —  رادار الاكتتاب (snapshot متجدد كل ساعة)
+# ─────────────────────────────────────────────────────────────
+def _clean(t):
+    t = _re.sub(r"<!--[\s\S]*?-->", "", t or "")
+    t = _re.sub(r"<[^>]+>", " ", t)
+    return _re.sub(r"\s+", " ", _html.unescape(t).replace("\xa0", " ")).strip()
+
+
+def _first_span(s):
+    m = _re.search(r"<span[^>]*>([\s\S]*?)</span>", s or "")
+    return m.group(1) if m else ""
+
+
+def _ipo_parse(h):
+    marks = [(m.group(1), m.start()) for m in
+             _re.finditer(r'<a[^>]*href="/ar/stock/([A-Z0-9]+)\.CA"[^>]*>', h)]
+    out = []
+    for k, (code, at) in enumerate(marks):
+        seg = h[0 if k == 0 else marks[k - 1][1]:at]
+        m = _re.search(r"<h3[^>]*>([\s\S]*?)</h3>", seg)
+        if not m:
+            continue
+        name = _clean(m.group(1))
+        if not name:
+            continue
+        st = _clean(_first_span(seg[m.end():]))
+
+        def grab(lab):
+            g = _re.search(lab + r"<\/p>\s*<p[^>]*>([\s\S]*?)</p>", seg)
+            return _clean(g.group(1)) if g else ""
+
+        ps = [_clean(x) for x in _re.findall(r"<p[^>]*>([\s\S]*?)</p>", seg)]
+        ps = [x for x in ps if len(x) > 55]
+        desc = ps[-1] if ps else ""
+        junk = _re.sub(r"مُدرج|مدرج|قادم|فترة اكتتاب|تاريخ الطرح", "", desc).strip()
+        if desc and (len(junk) < 25
+                     or desc[:len(name)].replace(" ", "") == name.replace(" ", "")):
+            desc = ""
+        out.append({"code": code, "name": name, "status": st,
+                    "price": grab("سعر الطرح"), "value": grab("قيمة الطرح"),
+                    "desc": desc, "src": IPO_SRC})
+    return out
+
+
+_IPO = {"at": 0, "list": [], "ttl": 3600}
+
+
+@app.route("/api/ipo")
+def api_ipo():
+    now = _dt.now(_tz.utc).timestamp()
+    if _IPO["list"] and now - _IPO["at"] < _IPO["ttl"]:
+        return jsonify(_IPO["list"])
+    try:
+        r = requests.get(IPO_SRC, headers=_HDR, timeout=25)
+        got = _ipo_parse(r.text) if r.ok else []
+        if got:
+            _IPO.update(at=now, list=got, ttl=3600)
+            print(f"[ipo] {len(got)} طرح")
+            return jsonify(got)
+    except Exception as e:
+        print(f"[ipo] fail {e}")
+    if _IPO["list"]:
+        return jsonify(_IPO["list"])       # مفيش downtime
+    return jsonify({"error": "unavailable"}), 503
+
+
+# ─────────────────────────────────────────────────────────────
+# ⑤  /api/obdepth  —  عمق السوق (اختياري — محتاج EGX_LIVE_KEY)
+# ─────────────────────────────────────────────────────────────
+@app.route("/api/obdepth/<code>")
+def api_obdepth(code):
+    """⛔ المفتاح في ENVIRONMENT VARIABLE — مش في الكود أبداً."""
+    key = os.environ.get("EGX_LIVE_KEY")
+    if not key:
+        return jsonify({"error": "no_key",
+                        "hint": "ضبط EGX_LIVE_KEY في Railway Variables"}), 503
+    try:
+        r = requests.get(
+            f"https://egx-live.p.rapidapi.com/depth/{code.upper()}",
+            headers={"x-rapidapi-key": key,
+                     "x-rapidapi-host": "egx-live.p.rapidapi.com"},
+            params={"level": 15}, timeout=12)
+        if not r.ok:
+            return jsonify({"error": "upstream", "code": r.status_code}), 502
+        return jsonify(r.json())
+    except Exception as e:
+        return jsonify({"error": str(e)[:120]}), 502
+
+
+# ══════════════════════════════════════════════════════════════
+#  warm-up عند الإقلاع — يجيب البيانات مرة واحدة بدل أول زائر
+# ══════════════════════════════════════════════════════════════
+def _octa_warmup():
+    try:
+        _starta_stats()
+        print("[warmup] starta ok")
+    except Exception as e:
+        print(f"[warmup] starta fail {e}")
+    try:
+        r = requests.get(IPO_SRC, headers=_HDR, timeout=25)
+        if r.ok:
+            got = _ipo_parse(r.text)
+            if got:
+                _IPO.update(at=_dt.now(_tz.utc).timestamp(), list=got, ttl=3600)
+                print(f"[warmup] ipo ok: {len(got)}")
+    except Exception as e:
+        print(f"[warmup] ipo fail {e}")
+
+
+if os.environ.get("OCTA_WARMUP", "1") == "1":
+    threading.Thread(target=_octa_warmup, daemon=True).start()
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting OCTA v3 on port {port}")
