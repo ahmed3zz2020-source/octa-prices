@@ -5641,14 +5641,27 @@ def api_candles(code):
     try:
         r = requests.get(
             f"https://startamarkets.com/api/v1/egx/history/{code}",
-            headers={"User-Agent": "Mozilla/5.0 (OCTA/5)"},
-            timeout=25
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120",
+                "Accept": "application/json,text/plain,*/*",
+                "Origin": "https://startamarkets.com",
+                "Referer": "https://startamarkets.com/egx",
+            },
+            timeout=30
         )
         if r.status_code != 200:
-            return jsonify({"ok": False, "error": f"upstream {r.status_code}"}), 502
-        raw = r.json()
+            return jsonify({"ok": False, "error": f"upstream {r.status_code}",
+                            "ct": r.headers.get("Content-Type", "")[:40]}), 502
+        try:
+            raw = r.json()
+        except Exception as pe:
+            return jsonify({"ok": False, "error": f"json: {str(pe)[:50]}",
+                            "body": r.text[:120]}), 502
         if not isinstance(raw, list) or len(raw) < 20:
-            return jsonify({"ok": False, "error": "no data"}), 404
+            return jsonify({"ok": False, "error": "no data",
+                            "type": type(raw).__name__,
+                            "len": len(raw) if hasattr(raw, '__len__') else -1,
+                            "sample": str(raw)[:200]}), 404
 
         out = []
         for c in raw[-n:]:
