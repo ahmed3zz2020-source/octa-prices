@@ -5696,6 +5696,39 @@ _LIVE_CACHE = {"at": 0, "data": {}}
 _LIVE_TTL = 55          # ثانية — نحدّث كل دقيقة
 
 
+# ══════════════════════════════════════════════════════════════
+#  🕐 مواعيد البورصة المصرية — لأجل cache ذكي
+# ══════════════════════════════════════════════════════════════
+from datetime import datetime as _dt, timedelta as _td
+
+
+def egx_now():
+    """الوقت في القاهرة (UTC+2 — مفيش تغيير صيفي في مصر)"""
+    return _dt.utcnow() + _td(hours=2)
+
+
+def egx_ttl():
+    """
+    ⏱️ cache ttl بالثواني حسب حالة السوق:
+    ⏱️ cache ttl حسب حالة السوق: كل ما السوق قريب يفتح نحدّث أسرع
+    """
+    n = egx_now()
+    d, m = n.weekday(), n.hour * 60 + n.minute
+
+    def iv(a, b):
+        return a <= m < b
+
+    if d >= 4:                       # الجمعة والسبت → أهدأ
+        return 600
+    if iv(555, 570):  return 12      # 09:15–09:30 حجم كبير
+    if iv(570, 600):  return 15      # 09:30–10:00 استكشافية
+    if iv(600, 855):  return 12      # 10:00–14:15 تداول مستمر
+    if iv(855, 865):  return 6       # 14:15–14:25 مزاد الإغلاق
+    if iv(865, 870):  return 6       # 14:25–14:30 سعر الإغلاق
+    if m < 555:       return 180     # قبل الافتتاح
+    return 240                       # بعد الإغلاق
+
+
 @app.route("/api/quotes", methods=["GET"])
 def api_quotes():
     """
@@ -5709,7 +5742,8 @@ def api_quotes():
     codes_arg = request.args.get("codes")
 
     now = _t.time()
-    if now - _LIVE_CACHE["at"] > _LIVE_TTL and not codes_arg:
+    ttl = egx_ttl()
+    if now - _LIVE_CACHE["at"] > ttl and not codes_arg:
         try:
             mk_map = {"egypt": "EGX", "us": "NASDAQ", "saudi": "TADAWUL", "uae": "DFM"}
             cols = ["close", "change", "volume", "market_cap_basic", "Recommend.All"]
@@ -5753,11 +5787,18 @@ def api_quotes():
             "updated": _LIVE_CACHE["at"], "quotes": out
         })
 
+    n = egx_now()
     return jsonify({
         "ok": True, "ts": int(_t.time()),
         "updated": _LIVE_CACHE["at"],
         "age": int(now - _LIVE_CACHE["at"]),
-        "ttl": _LIVE_TTL,
+        "ttl": ttl,
+        "egx": {
+            "time": n.strftime("%H:%M"),
+            "weekday": n.strftime("%A"),
+            "day": n.weekday(),
+            "minute": n.hour * 60 + n.minute,
+        },
         "markets": data,
         "counts": {k: len(v) for k, v in (data or {}).items()}
     })
