@@ -5092,7 +5092,7 @@ if os.environ.get("OCTA_WARMUP", "1") == "1":
     threading.Thread(target=_octa_warmup, daemon=True).start()
 
 def _clean(v):
-    """يشيل أي قالب {{...}} ويعدّي القيم الفاضية على طول."""
+    """يشيل أي قالب أقواس معقوفة مزدوجة من قيمة المتغير."""
     v = str(v or "").strip()
     if not v:
         return ""
