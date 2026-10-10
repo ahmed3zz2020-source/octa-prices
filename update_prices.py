@@ -5485,15 +5485,11 @@ def _octa_watch_post():
 
 @app.route("/api/alerts/diag", methods=["GET"])
 def _octa_diag():
-    # شوف كل حاجة فيها TELEGRAM في البيئة
-    tg_env = {k: (str(v)[:40] + "..." if len(str(v)) > 40 else str(v))
-              for k, v in os.environ.items() if "TELEGRAM" in k.upper()}
     out = {"code": "diag", "enabled": TG_ON,
            "token_len": len(TOKEN), "chat": CHAT,
            "routes": len(app.url_map._rules),
            "raw_token": os.environ.get("TELEGRAM_BOT_TOKEN", "<missing>")[:30],
-           "raw_chat": os.environ.get("TELEGRAM_CHAT_ID", "<missing>")[:30],
-           "env_keys": tg_env}
+           "raw_chat": os.environ.get("TELEGRAM_CHAT_ID", "<missing>")[:30]}
     if TG_ON:
         try:
             import requests
