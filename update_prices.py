@@ -5615,6 +5615,65 @@ def api_tv_logo(logoid):
         return jsonify({"error": str(e)[:80]}), 502
 
 
+# ══════════════════════════════════════════════════════════════
+#  📊 شموع تاريخ حقيقية — startamarkets (4996 شمعة لكل سهم)
+# ══════════════════════════════════════════════════════════════
+_CANDLE_CACHE = {}
+
+
+@app.route("/api/candles/<code>", methods=["GET"])
+def api_candles(code):
+    """شموع يومية حقيقية — {o,h,l,c,v,t}"""
+    code = (code or "").upper().strip()
+    if not code or len(code) > 12:
+        return jsonify({"ok": False, "error": "bad code"}), 400
+
+    try:
+        n = int(request.args.get("n", "320"))
+    except Exception:
+        n = 320
+    n = max(60, min(n, 1200))
+
+    ck = f"{code}:{n}"
+    if ck in _CANDLE_CACHE:
+        return jsonify({"ok": True, "code": code, "candles": _CANDLE_CACHE[ck]})
+
+    try:
+        r = requests.get(
+            f"https://startamarkets.com/api/v1/egx/history/{code}",
+            headers={"User-Agent": "Mozilla/5.0 (OCTA/5)"},
+            timeout=25
+        )
+        if r.status_code != 200:
+            return jsonify({"ok": False, "error": f"upstream {r.status_code}"}), 502
+        raw = r.json()
+        if not isinstance(raw, list) or len(raw) < 20:
+            return jsonify({"ok": False, "error": "no data"}), 404
+
+        out = []
+        for c in raw[-n:]:
+            try:
+                out.append({
+                    "t": c.get("date"),
+                    "o": round(float(c["open"]), 4),
+                    "h": round(float(c["high"]), 4),
+                    "l": round(float(c["low"]), 4),
+                    "c": round(float(c["close"]), 4),
+                    "v": int(c.get("volume") or 0)
+                })
+            except Exception:
+                continue
+        if not out:
+            return jsonify({"ok": False, "error": "parse"}), 404
+
+        _CANDLE_CACHE[ck] = out
+        if len(_CANDLE_CACHE) > 60:
+            _CANDLE_CACHE.pop(next(iter(_CANDLE_CACHE)))
+        return jsonify({"ok": True, "code": code, "count": len(out), "candles": out})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)[:80]}), 502
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting OCTA v3 on port {port}")
