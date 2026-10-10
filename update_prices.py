@@ -1,6 +1,6 @@
 import json, time, requests, os, threading
 import div_actions
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -5505,6 +5505,114 @@ def _octa_diag():
 
 
 print("[octa] ✅ ready", flush=True)
+
+
+# ══════════════════════════════════════════════════════════════
+#  🖼️  لوجوهات الأسهم — من TradingView (s3 بيمنع المتصفح)
+# ══════════════════════════════════════════════════════════════
+try:
+    import logos as _logos_mod
+    from flask import send_from_directory as _send_from_dir
+    _LOGOS_OK = True
+except Exception as _e:
+    _LOGOS_OK = False
+    print(f"[logos] module missing: {_e}")
+
+_LOGOS_BOOT = {"done": False, "n": 0}
+
+
+def _boot_logos():
+    """thread يجيب كل اللوجوهات مرة واحدة عند الإقلاع"""
+    import threading
+    def run():
+        try:
+            codes = []
+            for f in ("data_full.json", "data_egx.json"):
+                if os.path.isfile(f):
+                    with open(f, encoding="utf-8") as fh:
+                        d = json.load(fh)
+                    codes = list((d.get("stocks") or d).keys())[:300]
+                    if codes:
+                        break
+            if codes:
+                r = _logos_mod.refresh_logos(codes)
+                print(f"[logos] ✅ {r}")
+        except Exception as e:
+            print(f"[logos] thread: {e}")
+    if _LOGOS_OK:
+        threading.Thread(target=run, daemon=True).start()
+        print("[logos] boot thread started")
+
+
+_boot_logos()
+
+@app.route("/api/logos", methods=["GET"])
+def api_logos():
+    """قائمة اللوجوهات المتاحة — {CODE: url}"""
+    if not _LOGOS_OK:
+        return jsonify({"ok": False, "error": "logos module unavailable"})
+    if not _LOGOS_BOOT["done"]:
+        _LOGOS_BOOT["done"] = True
+        try:
+            codes = list((globals().get("EGX") or {}).keys())
+            if not codes and os.path.isdir("data"):
+                pass
+            try:
+                with open("data_egx.json", encoding="utf-8") as f:
+                    d = json.load(f)
+                codes = list((d.get("stocks") or d).keys())[:300]
+            except Exception:
+                pass
+            if codes:
+                _LOGOS_BOOT["n"] = _logos_mod.refresh_logos(codes)
+                print(f"[logos] booted: {_LOGOS_BOOT['n']}")
+        except Exception as e:
+            print(f"[logos] boot error: {e}")
+    files = _logos_mod.logos_payload()
+    return jsonify({"ok": True, "count": len(files),
+                    "logos": {f[:-4]: f"/logos/{f}" for f in files}})
+
+
+@app.route("/logos/<path:fn>", methods=["GET"])
+def serve_logo(fn):
+    if not _LOGOS_OK:
+        return jsonify({"error": "no logos"}), 404
+    d = _logos_mod.LOGOS_DIR if hasattr(_logos_mod, "LOGOS_DIR") else "logos"
+    try:
+        return _send_from_dir(d, fn, max_age=86400)
+    except Exception:
+        return jsonify({"error": "not found"}), 404
+
+
+# ══════════════════════════════════════════════════════════════
+#  🖼️  بروكسي اللوجوهات — s3.tradingview.com بيمنع المتصفح (403)
+# ══════════════════════════════════════════════════════════════
+_TV_LOGO_CACHE = {}
+
+
+@app.route("/api/tvlogo/<path:logoid>", methods=["GET"])
+def api_tv_logo(logoid):
+    """يجيب اللوجو من TradingView ويرجّعه — المتصفح مش بيقدر يوصله"""
+    import requests as _rq
+    if logoid in _TV_LOGO_CACHE:
+        blob, ct = _TV_LOGO_CACHE[logoid]
+        return Response(blob, mimetype=ct,
+                        headers={"Cache-Control": "public, max-age=604800"})
+    safe = "".join(c for c in logoid if c.isalnum() or c in "-_")
+    if not safe or len(safe) > 80:
+        return jsonify({"error": "bad id"}), 400
+    url = f"https://s3.tradingview.com/logos/logos/{safe}.png"
+    try:
+        r = _rq.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120"},
+                    timeout=15)
+        if r.status_code != 200 or len(r.content) < 100:
+            return jsonify({"error": f"upstream {r.status_code}"}), 404
+        blob = r.content
+        _TV_LOGO_CACHE[safe] = (blob, r.headers.get("Content-Type", "image/png"))
+        return Response(blob, mimetype=r.headers.get("Content-Type", "image/png"),
+                        headers={"Cache-Control": "public, max-age=604800"})
+    except Exception as e:
+        return jsonify({"error": str(e)[:80]}), 502
 
 
 if __name__ == "__main__":
