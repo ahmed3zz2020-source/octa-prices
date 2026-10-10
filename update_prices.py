@@ -5687,6 +5687,122 @@ def api_candles(code):
         return jsonify({"ok": False, "error": str(e)[:80]}), 502
 
 
+# ══════════════════════════════════════════════════════════════
+#  💵 الأسعار اللحظية — TradingView scanner (كل 60 ثانية)
+# ══════════════════════════════════════════════════════════════
+import json as _json
+
+_LIVE_CACHE = {"at": 0, "data": {}}
+_LIVE_TTL = 55          # ثانية — نحدّث كل دقيقة
+
+
+@app.route("/api/quotes", methods=["GET"])
+def api_quotes():
+    """
+    أسعار لحظية لكل الأسهم
+    ?market=egypt|us|saudi|uae   (افتراضي: كلهم)
+    ?codes=COMI,ETEL              (افتراضي: كلهم)
+    """
+    import time as _t
+
+    mk = (request.args.get("market") or "all").lower()
+    codes_arg = request.args.get("codes")
+
+    now = _t.time()
+    if now - _LIVE_CACHE["at"] > _LIVE_TTL and not codes_arg:
+        try:
+            mk_map = {"egypt": "EGX", "us": "NASDAQ", "saudi": "TADAWUL", "uae": "DFM"}
+            cols = ["close", "change", "volume", "market_cap_basic", "Recommend.All"]
+            out = {}
+            for key, ex in mk_map.items():
+                if mk != "all" and mk != key:
+                    continue
+                got = _tv_scan_market(ex, cols)
+                if got:
+                    out[key] = got
+            if out:
+                _LIVE_CACHE["data"] = out
+                _LIVE_CACHE["at"] = now
+        except Exception as e:
+            print(f"[quotes] err: {e}")
+
+    data = _LIVE_CACHE["data"]
+
+    # طلب رموز محددة
+    if codes_arg:
+        want = [c.strip().upper() for c in codes_arg.split(",") if c.strip()]
+        out = {}
+        allm = data or {}
+        # لو مش متحدّث بعد — جيب دلوقتي
+        if not allm:
+            allm = {}
+            for key, ex in {"egypt": "EGX", "us": "NASDAQ",
+                            "saudi": "TADAWUL", "uae": "DFM"}.items():
+                got = _tv_scan_market(ex, ["close", "change", "volume", "Recommend.All"])
+                if got:
+                    allm[key] = got
+            _LIVE_CACHE["data"] = allm
+            _LIVE_CACHE["at"] = _t.time()
+            data = allm
+        for mkt, rows in (data or {}).items():
+            hit = {c: v for c, v in rows.items() if c in want}
+            if hit:
+                out[mkt] = hit
+        return jsonify({
+            "ok": True, "ts": int(_t.time()),
+            "updated": _LIVE_CACHE["at"], "quotes": out
+        })
+
+    return jsonify({
+        "ok": True, "ts": int(_t.time()),
+        "updated": _LIVE_CACHE["at"],
+        "age": int(now - _LIVE_CACHE["at"]),
+        "ttl": _LIVE_TTL,
+        "markets": data,
+        "counts": {k: len(v) for k, v in (data or {}).items()}
+    })
+
+
+def _tv_scan_market(exchange, cols):
+    """يجيب أسعار كل أسهم بورصة من TradingView scanner"""
+    try:
+        body = {
+            "symbols": {"query": {"types": []}, "tickers": []},
+            "filter": [
+                {"left": "exchange", "operation": "in_range", "right": [exchange]},
+                {"left": "type", "operation": "equal", "right": "stock"},
+            ],
+            "columns": cols,
+            "range": [0, 700],
+            "sort": {"sortBy": "market_cap_basic", "sortOrder": "desc"},
+        }
+        r = requests.post(
+            "https://scanner.tradingview.com/global/scan",
+            data=_json.dumps(body),
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120",
+            },
+            timeout=25,
+        )
+        if r.status_code != 200:
+            return {}
+        out = {}
+        for row in r.json().get("data", []):
+            code = row["s"].split(":")[-1]
+            d = row.get("d") or []
+            rec = {}
+            for i, c in enumerate(cols):
+                if i < len(d) and d[i] is not None:
+                    rec[c] = d[i]
+            if rec:
+                out[code] = rec
+        return out
+    except Exception as e:
+        print(f"[tv_scan_{exchange}] {e}")
+        return {}
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting OCTA v3 on port {port}")
