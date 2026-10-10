@@ -4,3 +4,5 @@ snapshots/*.py
 
 __pycache__/
 *.pyc
+__pycache__/
+*.bak*
