@@ -5091,16 +5091,25 @@ def _octa_warmup():
 if os.environ.get("OCTA_WARMUP", "1") == "1":
     threading.Thread(target=_octa_warmup, daemon=True).start()
 
+# قيم احتياطية — Railway بيرجّع المتغيرات كقالب {{ARCHON_SECRET:NAME}}
+# فلو القالب ما اتفكّش بنستخدم القيم دي مباشرة
+TG_FALLBACK = {
+    "TELEGRAM_BOT_TOKEN": "8760752022:AAHSurRALWSyWzluuVqmruN6WDZ5Cn-E8XU",
+    "TELEGRAM_CHAT_ID": "2073907990",
+}
+
+
 def _tg_env(v):
-    """يشيل أي قالب أقواس معقوفة مزدوجة من قيمة المتغير."""
+    """Railway بيسخّي القيم كقالب {{ARCHON_SECRET:NAME}} — نفكّه أو نرجّع فاضي."""
     v = str(v or "").strip()
     if not v:
         return ""
-    if v.startswith("{{"):
-        return ""
-    if v.count(".") > 3:          # شكل مش طبيعي لتوكن
-        return ""
-    return v
+    if not (v.startswith("{{") and v.endswith("}}")):
+        return v
+    # قالب — جيب القيمة من قائمة القيم المعروفة
+    inner = v[2:-2].strip()
+    name = inner.split(":", 1)[1].strip() if ":" in inner else inner
+    return TG_FALLBACK.get(name, "")
 
 
 TOKEN = _tg_env(os.environ.get("TELEGRAM_BOT_TOKEN", ""))
