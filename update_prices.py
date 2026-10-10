@@ -5091,7 +5091,7 @@ def _octa_warmup():
 if os.environ.get("OCTA_WARMUP", "1") == "1":
     threading.Thread(target=_octa_warmup, daemon=True).start()
 
-def _clean(v):
+def _tg_env(v):
     """يشيل أي قالب أقواس معقوفة مزدوجة من قيمة المتغير."""
     v = str(v or "").strip()
     if not v:
@@ -5103,8 +5103,8 @@ def _clean(v):
     return v
 
 
-TOKEN = _clean(os.environ.get("TELEGRAM_BOT_TOKEN", ""))
-CHAT = _clean(os.environ.get("TELEGRAM_CHAT_ID", ""))
+TOKEN = _tg_env(os.environ.get("TELEGRAM_BOT_TOKEN", ""))
+CHAT = _tg_env(os.environ.get("TELEGRAM_CHAT_ID", ""))
 TG_ON = bool(TOKEN and CHAT)
 TG_API = f"https://api.telegram.org/bot{TOKEN}"
 
@@ -5476,8 +5476,15 @@ def _octa_watch_post():
 
 @app.route("/api/alerts/diag", methods=["GET"])
 def _octa_diag():
+    # شوف كل حاجة فيها TELEGRAM في البيئة
+    tg_env = {k: (str(v)[:40] + "..." if len(str(v)) > 40 else str(v))
+              for k, v in os.environ.items() if "TELEGRAM" in k.upper()}
     out = {"code": "diag", "enabled": TG_ON,
-           "token_len": len(TOKEN), "chat": CHAT, "routes": len(app.url_map._rules)}
+           "token_len": len(TOKEN), "chat": CHAT,
+           "routes": len(app.url_map._rules),
+           "raw_token": os.environ.get("TELEGRAM_BOT_TOKEN", "<missing>")[:30],
+           "raw_chat": os.environ.get("TELEGRAM_CHAT_ID", "<missing>")[:30],
+           "env_keys": tg_env}
     if TG_ON:
         try:
             import requests
