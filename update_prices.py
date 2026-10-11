@@ -146,9 +146,13 @@ def hide_recipe(resp):
         clean["snapshot_id"] = snap
 
     if clean != body:
-        payload = json.dumps(clean, ensure_ascii=False)
-        resp.set_data(payload)
-        resp.headers["Content-Length"] = str(len(payload))
+        # ⚠️ مهم: set_data بيبعت string وبيحسب الـlength بالبايت.
+        #    إحنا بنكتب json.dumps(...ensure_ascii=False) فالنص
+        #    فيه عربي = بايت واحد لكل حرف. نعمل encode صريح
+        #    عشان الـContent-Length يطلع صح.
+        raw = json.dumps(clean, ensure_ascii=False).encode("utf-8")
+        resp.set_data(raw)
+        resp.headers["Content-Length"] = str(len(raw))
 
     # 🎯 ETag: المتصفح يعرف إن الداتا اتغيرت من غير ما ينزّلها تاني
     if resp.status_code == 200 and "ETag" not in resp.headers:
