@@ -93,6 +93,126 @@ def preflight(any=""):
     return "", 204
 
 
+
+# ══════════════════════════════════════════════════════════════
+#  🚦 Rate Limiting — بيمنع أي حد يعمل آلاف الطلبات
+#  ──────────────────────────────────────────────────────────────
+#  المشكلة: مافيش أي حداد على عدد الطلبات. أي حد يقدر يعمل
+#  10,000 طلب في الدقيقة ويستنزف السيرفر أو يحرق Gemini/Telegram.
+#
+#  الحل: 3 طبقات
+#    1) عام         → 120 طلب/دقيقة لكل IP
+#    2) غالي        → 15 طلب/دقيقة (analyze, chat, news, candles…)
+#    3) كتابة       →  5 طلب/دقيقة (portfolio, alerts, dividends)
+#
+#  ⛔ الرد: 429 + Retry-After header
+# ══════════════════════════════════════════════════════════════
+
+from collections import defaultdict, deque
+from flask import g
+
+# ── تعريف المسارات ──
+# الغالية: بتجيب من مصادر خارجية أو بتحسب كتير
+ROUTES_EXPENSIVE = {
+    "analyze", "chat", "news", "candles", "intelligence",
+    "explain", "egx_full", "risk", "fundamental", "technical",
+    "obdepth", "sentiment", "portfolio_fit", "opportunity",
+}
+
+# الكتابة: بتغيّر حالة
+ROUTES_WRITE = {"portfolio", "alerts", "dividends", "calibration", "stress"}
+
+# الحدود
+LIMITS = {
+    "default":   (120, 60),   # (عدد الطلبات، Window بالثواني)
+    "expensive": (15, 60),
+    "write":     (5, 60),
+}
+
+# تخزين: {ip: {bucket: deque(timestamps)}}
+_HITS = defaultdict(lambda: defaultdict(deque))
+_HITS_LOCK = threading.Lock()
+
+
+def _client_key():
+    """
+    ⛔ ما نثقش في X-Forwarded-For كله — حد ممكن يسرق الـIP
+    بتاع حد تاني. بناخد أول قيمة بس وده اللي Railway بيبعته فعلاً.
+    """
+    ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not ip:
+        ip = request.headers.get("X-Real-IP", "").strip()
+    if not ip:
+        ip = request.remote_addr or "unknown"
+    return ip[:64]
+
+
+def _route_bucket(path):
+    """نحدّد المسار ده ينتمي لأنهي bucket"""
+    seg = [x for x in path.strip("/").split("/") if x]
+    if len(seg) >= 2 and seg[0] == "api":
+        name = seg[1]
+        if name in ROUTES_WRITE:
+            return "write"
+        if name in ROUTES_EXPENSIVE:
+            return "expensive"
+    return "default"
+
+
+def _rate_check():
+    """بيتحقق من الحد ويرجّع (allowed, retry_after, bucket)"""
+    key = _client_key()
+    bucket = _route_bucket(request.path)
+    max_hits, window = LIMITS[bucket]
+    now = time.time()
+
+    with _HITS_LOCK:
+        q = _HITS[key][bucket]
+        while q and now - q[0] > window:
+            q.popleft()
+
+        if len(q) >= max_hits:
+            oldest = q[0]
+            retry = int(max(1, window - (now - oldest)))
+            return False, retry, bucket
+
+        q.append(now)
+
+        # تنظيف عشان ما نكبرش بلا حدود
+        if len(_HITS) > 5000:
+            for k in list(_HITS.keys()):
+                if not any(_HITS[k][b] for b in _HITS[k]):
+                    del _HITS[k]
+
+    return True, 0, bucket
+
+
+@app.before_request
+def rate_limit_guard():
+    """بيشتغل قبل أي route — ويرجّع 429 لو اتجاوز الحد"""
+    # الـhealth check matدارfhaeshlimit (Railway بي-poll دايماً)
+    if request.path in ("/", "/api/health"):
+        return None
+    # assets الستاتيك مابيحتاجش
+    if request.method == "OPTIONS":
+        return None
+
+    allowed, retry, bucket = _rate_check()
+    if not allowed:
+        resp = jsonify({
+            "error": "rate limit exceeded",
+            "bucket": bucket,
+            "retry_after": retry,
+            "hint": "استنى شوية وجرب تاني",
+        })
+        resp.status_code = 429
+        resp.headers["Retry-After"] = str(retry)
+        resp.headers["X-RateLimit-Limit"] = str(LIMITS[bucket][0])
+        resp.headers["X-RateLimit-Bucket"] = bucket
+        return resp
+    return None
+
+
 CACHE_FILE = Path("/app/cache.json")
 LIVE_DATA = {
     "lastUpdate": None,
