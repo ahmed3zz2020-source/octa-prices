@@ -888,9 +888,12 @@ def stats_api():
             "90": summarise(win(90 * 86400)),
         },
         "users": {
-            "total": len(users),
+            # ⚠️ دايماً نقرأ من users.json (الحسابات الحقيقية)
+            #    مش من track.json — اللي ده track file بتاع الأحداث
+            "total": len(_load_users()),
             "with_email": sum(1 for u in _load_users().values() if u.get("email")),
             "returned_next_day": ret,
+            "tracked": len(users),
         },
         "total_events": len(ev),
         "generated": int(now),
