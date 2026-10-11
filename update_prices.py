@@ -61,6 +61,28 @@ def add_cors_headers(response):
     return response
 
 
+# Railway بيبعت OPTIONS أوتوماتيك قبل ما يوصل للكود، فبنتعامل معاه
+# في before_request علشان نقدر نرفض الـpreflight من أي origin مش مسموح.
+@app.before_request
+def guard_preflight():
+    """
+    ⛔ لو الطلب OPTIONS جاي من origin مش في القائمة → نرفضه فوراً.
+
+    Railway (وnginx عموماً) بيردّ على OPTIONS بـ200 قبل ما الطلب
+    يوصل لدالة الـroute، فلازم الرفض يكون في before_request
+    علشان الـ403 يبقى فعّال فعلاً.
+    """
+    if request.method != "OPTIONS":
+        return None
+    origin = request.headers.get("Origin", "")
+    if not _origin_allowed(origin):
+        resp = jsonify({"error": "forbidden origin"})
+        resp.status_code = 403
+        return resp
+    return None
+
+
+
 @app.route("/<path:any>", methods=["OPTIONS"])
 @app.route("/", methods=["OPTIONS"])
 def preflight(any=""):
