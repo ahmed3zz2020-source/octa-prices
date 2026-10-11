@@ -5538,8 +5538,37 @@ def _load_local_stocks():
 def api_egx_full():
     """
     السجل الكامل + RSI/Beta/MA + ROE/ROA + مخاطرة حقيقية.
-    ➜ الواجهة بتعمل fetch('/api/egx_full') بدل data_egx.json الساكن.
+
+    🔒 الحماية: الرد الكامل (252 سهم في طلب واحد) بقى والتوكن مطلوب.
+       بدون توكن، الرد بيتقلّص للأسعار والاسم بس — واللي محتاجه
+       العرض العادي في الموقع. ده بيمنع حد ينزّل نسخة كاملة من
+       الداتا بطلب واحد، بس لسه-site شغال عادي.
+
+       ?codes=COMI,HRHO   → سهم محدد أو اتنين (من غير توكن)
     """
+    # ── 1) طلب سهم محدد → مفتوح (ده اللي الموقع بيعمله) ──
+    wanted = str(request.args.get("codes") or "").upper().strip()
+    if wanted:
+        pick = {c.strip() for c in wanted.split(",") if c.strip()}
+        pick = set(list(pick)[:10])   # نحدّ أقصى 10 أسهم
+        return jsonify(_egx_full_subset(pick))
+
+    # ── 2) الرد الكامل → محمي ──
+    if not require_user():
+        return jsonify({
+            "ok": False,
+            "error": "النسخة الكاملة محمية",
+            "hint": ("سجّل دخول من /api/auth/register، أو استخدم "
+                     "?codes=COMI لسهم محدد"),
+            "n": 0, "stocks": {},
+            "_protected": True,
+        }), 401
+
+    return jsonify(_egx_full_all())
+
+
+def _egx_full_all():
+    """الرد الكامل — الت点评 النهائي لكل الأسهم (للمستخدم المسجّل)"""
     stats = _starta_stats()
     live = {s["code"]: s for s in LIVE_DATA.get("egx30", []) if s.get("code")}
     base = _load_local_stocks()
@@ -5598,9 +5627,32 @@ def api_egx_full():
     print(f"[egx_full] {len(stocks)} | pe {sum(1 for v in stocks.values() if v['pe'])} "
           f"| rsi {sum(1 for v in stocks.values() if v['s_rsi'])} "
           f"| mdd {sum(1 for v in stocks.values() if v['mdd'])}")
-    return jsonify({"_ts": _dt.now(_tz.utc).isoformat() + "Z",
-                    "_src": "tradingview + startamarkets",
-                    "n": len(stocks), "stocks": stocks})
+    return {"_ts": _dt.now(_tz.utc).isoformat() + "Z",
+            "_src": "tradingview + startamarkets",
+            "n": len(stocks), "stocks": stocks}
+
+
+def _egx_full_subset(codes):
+    """
+    🎯 رد محدود لسهم واحد أو اتنين.
+
+    اللي بيرجع: الاسم · السعر · التقييم · القرار · السعر/العائد.
+    اللي ما بيرجعش: كل المؤشرات التقنية والمخاطرة والنمو.
+    (دي اللي بتعمل التصدير الكامل)
+    """
+    full = _egx_full_all()
+    all_stocks = full.get("stocks") or {}
+    out = {}
+    for c in codes:
+        r = all_stocks.get(c)
+        if not r:
+            continue
+        out[c] = {k: r.get(k) for k in (
+            "n", "en", "name_ar", "s", "p", "c", "v", "mc",
+            "score", "decision", "pe", "pb", "roe", "live",
+        )}
+    return {"_ts": full.get("_ts"), "_subset": True,
+            "n": len(out), "stocks": out}
 
 
 # ─────────────────────────────────────────────────────────────
