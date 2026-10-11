@@ -146,10 +146,9 @@ def hide_recipe(resp):
         clean["snapshot_id"] = snap
 
     if clean != body:
-        # ⚠️ مهم: set_data بيبعت string وبيحسب الـlength بالبايت.
-        #    إحنا بنكتب json.dumps(...ensure_ascii=False) فالنص
-        #    فيه عربي = بايت واحد لكل حرف. نعمل encode صريح
-        #    عشان الـContent-Length يطلع صح.
+        # ⚠️ مهم: set_data بيبعت string وبيحسب الطول بالبايت.
+        #    إحنا بنكتب JSON فيه عربي، والعربي بايتين للحرف.
+        #    فلازم نعمل encode صريح عشان Content-Length يطلع صح.
         raw = json.dumps(clean, ensure_ascii=False).encode("utf-8")
         resp.set_data(raw)
         resp.headers["Content-Length"] = str(len(raw))
