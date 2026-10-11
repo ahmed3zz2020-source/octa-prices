@@ -735,6 +735,169 @@ def _auth_reset_verify():
 
 
 
+
+
+# ══════════════════════════════════════════════════════════════
+#  📊 تتبع الاستخدام — نعرف الناس بتعمل إيه
+#  ──────────────────────────────────────────────────────────────
+#  قبل: كنا بنعرف إن السيرفر اتندد 3,200 طلب — بس مش بنعرف
+#  مين فتح إيه. يعني مش بنعرف نطوّر إيه الأول.
+#
+#  دلوقتي: كل فتح صفحة / كل ضغطة زر بتتسجل، ونطلع منها:
+#    · كام زائر
+#    · مين سجّل
+#    · أكتر صفحة
+#    · مين رجع تاني يوم
+#
+#  ⚠️ مفيش PII — بنسجل event + اسم صفحة، مش IP ولا إيميل.
+# ══════════════════════════════════════════════════════════════
+
+TRACK_FILE = Path("/app/track.json")
+TRACK_LOCK = threading.Lock()
+TRACK_DAYS = 90          # نحتفظ بآخر 90 يوم
+
+
+def _track_load():
+    try:
+        if TRACK_FILE.exists():
+            d = json.loads(TRACK_FILE.read_text(encoding="utf-8"))
+            if isinstance(d, dict):
+                d.setdefault("events", [])
+                d.setdefault("users", {})
+                return d
+    except Exception:
+        pass
+    return {"events": [], "users": {}}
+
+
+def _track_save(d):
+    """نقصّي الأقدم — الملف ما يكبرش بلا حدود"""
+    try:
+        cut = time.time() - TRACK_DAYS * 86400
+        ev = [e for e in (d.get("events") or []) if (e.get("ts") or 0) >= cut]
+        d["events"] = ev
+        TRACK_FILE.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+@app.route("/api/track", methods=["POST"])
+def track_api():
+    """
+    📥 تسجيل حدث.
+
+    body: { "event": "page_view" | "action", "page": "rank",
+             "label": "taqa", "uid": "user id (اختياري)" }
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        return jsonify({"ok": False}), 400
+
+    event = str(data.get("event") or "")[:24]
+    page = str(data.get("page") or "")[:32]
+    label = str(data.get("label") or "")[:24]
+    uid = str(data.get("uid") or "")[:24]
+
+    if event not in ("page_view", "action", "signup", "login"):
+        return jsonify({"ok": False, "error": "event غير معروف"}), 400
+    if event == "action" and not page:
+        return jsonify({"ok": False, "error": "action محتاج page"}), 400
+
+    rec = {"ts": int(time.time()), "ev": event,
+           "p": page, "l": label, "u": uid or ""}
+
+    with TRACK_LOCK:
+        d = _track_load()
+        d["events"].append(rec)
+
+        # ── نعرف مين رجع ولا لأ ──
+        if uid:
+            u = d["users"].setdefault(uid, {"first": rec["ts"],
+                                            "last": rec["ts"], "hits": 0})
+            u["last"] = rec["ts"]
+            u["hits"] += 1
+
+        # ما نخزّنش بلا حدود
+        if len(d["events"]) > 200000:
+            d["events"] = d["events"][-150000:]
+        _track_save(d)
+
+    return jsonify({"ok": True})
+
+
+@app.route("/api/stats", methods=["GET"])
+def stats_api():
+    """
+    📊 تقرير الاستخدام — بس للمالك.
+    """
+    if not require_user():
+        return jsonify({
+            "ok": False,
+            "error": "المسار ده محمي",
+            "hint": "سجّل دخول الأول",
+        }), 401
+
+    with TRACK_LOCK:
+        d = _track_load()
+
+    now = time.time()
+    ev = d.get("events") or []
+    users = d.get("users") or {}
+
+    def win(secs):
+        cut = now - secs
+        return [e for e in ev if (e.get("ts") or 0) >= cut]
+
+    def summarise(rows):
+        views = [e for e in rows if e.get("ev") == "page_view"]
+        acts = [e for e in rows if e.get("ev") == "action"]
+        signs = [e for e in rows if e.get("ev") == "signup"]
+        pages = {}
+        for e in views:
+            pages[e.get("p") or "?"] = pages.get(e.get("p") or "?", 0) + 1
+        labels = {}
+        for e in views + acts:
+            if e.get("l"):
+                labels[e["l"]] = labels.get(e["l"], 0) + 1
+        # زوار فريدين: hash من uid أو session
+        seen = {e.get("u") or ("anon", e.get("ts")) for e in rows}
+        return {
+            "views": len(views),
+            "actions": len(acts),
+            "signups": len(signs),
+            "visitors": len(seen),
+            "top_pages": sorted(pages.items(), key=lambda x: -x[1])[:10],
+            "top_stocks": sorted(labels.items(), key=lambda x: -x[1])[:10],
+        }
+
+    # رجعوا تاني يوم
+    ret = 0
+    for u in users.values():
+        if (u.get("last") or 0) - (u.get("first") or 0) > 86400:
+            ret += 1
+
+    return jsonify({
+        "ok": True,
+        "days": {
+            "1": summarise(win(86400)),
+            "7": summarise(win(7 * 86400)),
+            "30": summarise(win(30 * 86400)),
+            "90": summarise(win(90 * 86400)),
+        },
+        "users": {
+            "total": len(users),
+            "with_email": sum(1 for u in _load_users().values() if u.get("email")),
+            "returned_next_day": ret,
+        },
+        "total_events": len(ev),
+        "generated": int(now),
+    })
+
+
+
 @app.route("/api/auth/me", methods=["GET"])
 def auth_me():
     """مين أنا؟"""
