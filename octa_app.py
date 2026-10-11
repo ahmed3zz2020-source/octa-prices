@@ -7,8 +7,11 @@
 Railway لازم يشغّل:  gunicorn octa_app:app
 
 المتغيرات (Railway → Variables):
-    TELEGRAM_BOT_TOKEN = 8760752022:AAHSurRALWSyWzluuVqmruN6WDZ5Cn-E8XU
+    TELEGRAM_BOT_TOKEN = <ضع-التوكن-هنا-في-المتغيرات>
     TELEGRAM_CHAT_ID   = 2073907990
+
+⚠️ التوكن مش مكتوب هنا عن قصد — أي كود عام على GitHub
+   هو نص مفتوح. لازم environment variables حصراً.
 """
 
 import os

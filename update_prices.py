@@ -151,7 +151,7 @@ SYSTEM_PROMPT = """أنت محرك التحليل المالي OCTA — خبير
   - حجم سوقي < 1 مليار → 35
 
 **risk** = 100 - (Beta × 15 + volatility × 3 + نسبة الدين × 3)
-  - ⚠️ لاحظ: المحور ده عكسي — يعني，风险 أعلى = رقم أقل
+  - ⚠️ لاحظ: المحور ده عكسي — يعني， أعلى = رقم أقل
 
 **news** = 45 افتراضياً (لأن ما فيش أخبار provided)
   - لو في خبر ايجابي في analysis_pass → ترفع
@@ -220,7 +220,7 @@ def call_gemini(code, name, item=None):
         )
         if conf < 55:
             user_msg += (
-                f"\n\n⚠️ تنبيه: البيانات ضعيفة — لو حقل写着 'غير متاح'"
+                f"\n\n⚠️ تنبيه: البيانات ضعيفة — لو حقل 'غير متاح'"
                 f" ما تخمّنش قيمته. اكتب confidence منخفض (أقل من 40)."
             )
         user_msg += (
@@ -1381,7 +1381,7 @@ def liquidity_score(item):
     else:
         activity = 15
 
-    # تأكيد:交易日 نشط = حجم متوسط كافي
+    # تأكيد: نشط = حجم متوسط كافي
     if vol60 and vol > 0:
         if vol60 > 1_000_000:
             activity = min(30, activity + 3)
@@ -1545,7 +1545,7 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
 
     # ═══ تعديل 1: المخاطرة (ضعف) ═══
     # ⚠️ سقف الخصم: ما ينزلش أكتر من 15 نقطة من المخاطرة
-    #    السبب: الخصومات لو تراكمت بتبطل النتيجة有意义
+    #    السبب: الخصومات لو تراكمت بتبطل النتيجة
     risk_pen = min(15.0, (100 - axes["risk"]) * 0.18)
     adj = base - risk_pen
 
@@ -2022,7 +2022,7 @@ MATERIAL_KEYWORDS = {
                  "Bankruptcy", "Delisting", "Suspend"],
     "high": ["توزيعات", "أرباح", "نتائج", "ارتفاع", "انخفاض", "توسع", "دخول سوق",
              "Earnings", "Dividend", "Profit", "Revenue", "Expansion"],
-    "medium": ["اتفاق", "شراكة", "استثمار", "تحديث", "ت让自己的",
+    "medium": ["اتفاق", "شراكة", "استثمار", "تحديث", "ت",
                "Agreement", "Partnership", "Investment", "Update"],
 }
 
@@ -2143,7 +2143,7 @@ def news_engine(item, sector_name=None):
 def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, risk=None, pfit=None, final=None):
     """
     كل نتيجة لازم تكون قابلة للتفسير. المستخدم يضغط على أي رقم
-    ويعرف: كم权重 له، وكم بيساهم، وليه.
+    ويعرف: كم له، وكم بيساهم، وليه.
     """
     if not item: return None
 
@@ -2362,7 +2362,7 @@ def opportunity_engine(item, tech=None, fund=None, liq=None):
     if tv_all is not None and tv_all > 0.1:
         mom += 6
 
-    # ═══ 4)来个 مفيد من الأساسيات (Fundamental Catalyst) — 20 وزن ═══
+    # ═══ 4) مفيد من الأساسيات (Fundamental Catalyst) — 20 وزن ═══
     cat = 0.0
     if pe is not None and pe > 0 and pe < 12:
         cat += 12; pos.append(f"P/E {pe:.1f} — تحت التقييم العادل")
@@ -2969,7 +2969,7 @@ SCENARIOS = {
     },
     "illiquid": {
         "name_ar": "سيولة جافة",
-        "desc": "الحجم配售 على 80% + سيولة ضعيفة",
+        "desc": "الحجم على 80% + سيولة ضعيفة",
         "shocks": {"rel_volume": 0.25, "mkt_cap_mult": 0.1, "volatility": 1.4, "perf_1m": -5},
     },
     "high_vol": {
@@ -3077,7 +3077,7 @@ def stress_test(all_stocks, scenario="bear", top_n=20):
             "النظام انهار ❌"
         ),
         "verdict_detail": {
-            "note": "الحكم على مرحلتين: (1) النتيجة بعد الصدمة، (2) هل القرارات تحوّلت是正确的؟",
+            "note": "الحكم على مرحلتين: (1) النتيجة بعد الصدمة، (2) هل القرارات تحوّلت؟",
             "score_held": avg_after >= avg_before - 12,
             "decisions_corrected": flip_to_sell >= 2,
             "note2": "لو القرارات اتحوّلت لتجنّب/بيع = النظام بيتصرف صح حتى لو النتيجة نزلت",
@@ -5093,9 +5093,13 @@ if os.environ.get("OCTA_WARMUP", "1") == "1":
 
 # قيم احتياطية — Railway بيرجّع المتغيرات كقالب {{ARCHON_SECRET:NAME}}
 # فلو القالب ما اتفكّش بنستخدم القيم دي مباشرة
+# ⛔ Deprecated — التوكن كان هنا ومكانش المفروض.
+#    причиبه: أي حد يقدر يفتح الكود ده ويستخدم البوت بتاعنا.
+#    دلوقتي: بنقراه من متغيرات البيئة بس (Railway Variables).
 TG_FALLBACK = {
-    "TELEGRAM_BOT_TOKEN": "8760752022:AAHSurRALWSyWzluuVqmruN6WDZ5Cn-E8XU",
-    "TELEGRAM_CHAT_ID": "2073907990",
+    # TELEGRAM_BOT_TOKEN — no hardcoded fallback on purpose.
+    # أي إعدادات ناقصة بتعمل fail-closed (الخدمة بتتوقف)
+    # أحسن من إنها تشتغل بتوكن مشروف.
 }
 
 
