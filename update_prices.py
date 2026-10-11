@@ -196,6 +196,53 @@ def hide_recipe(resp):
     return resp
 
 
+
+
+
+def _log_exc(where, exc):
+    """
+    📝 نسجّل الخطأ في اللوج بتاع السيرفر — مش في الرد.
+
+    الرد للمستخدم لازم يبقى نضيف ومفيد من غير ما يفضح
+    تفاصيل داخلية. اللوج بيروح لـstdout ومحدش بيقراه غيرنا.
+    """
+    try:
+        import traceback as _tb
+        print(f"[ERR] {where}: {type(exc).__name__}: {str(exc)[:200]}",
+              flush=True)
+        print(_tb.format_exc()[-1200:], flush=True)
+    except Exception:
+        pass
+
+
+@app.before_request
+def protect_admin_routes():
+    """
+    🔒 المسارات التشخيصية بتتقفل على أي حد.
+
+    ودي مش للمستخدم — دي للمطوّر بتاعك. وبيقولوا تفاصيل
+    داخلية: عدد الأسهم، الحقول الناقصة، الأوزان المتوسطة،
+    تكرار المحاور. أي حد يقراها يقدر يعرف شكل النظام.
+    """
+    ADMIN_PATHS = {
+        "/api/diagnostic",
+        "/api/audit/redundancy",
+        "/api/ai-status",
+    }
+    if request.path not in ADMIN_PATHS:
+        return None
+
+    # المستخدم المسجّل يقدر
+    if require_user():
+        return None
+
+    return jsonify({
+        "ok": False,
+        "error": "المسار ده محمي",
+        "hint": "سجّل دخول من /api/auth/register الأول",
+    }), 401
+
+
 @app.before_request
 def guard_preflight():
     """
@@ -5162,9 +5209,14 @@ def strategy_api(code, strategy):
             "all_strategies": score_all_strategies(item, t, f, li, se, pf),
         })
     except Exception as _e:
-        import traceback
-        return jsonify({"error": str(_e),
-                        "trace": traceback.format_exc()[-400:]}), 500
+        # ⛔ ما نرجعش traceback — بيكشف أسماء المتغيرات والمسارات
+        #    ونص الأخطاء اللي ممكن يبقى فيها connection string
+        _log_exc("analyze", _e)
+        return jsonify({
+            "error": "خطأ داخلي في التحليل",
+            "code": (item or {}).get("code"),
+            "hint": "جرّب تاني، ولو فضل قوم ابعتلنا الـcode",
+        }), 500
 
 
 @app.route("/api/rank")
@@ -5742,7 +5794,8 @@ def api_obdepth(code):
             return jsonify({"error": "upstream", "code": r.status_code}), 502
         return jsonify(r.json())
     except Exception as e:
-        return jsonify({"error": str(e)[:120]}), 502
+        _log_exc("upstream-502", e)
+        return jsonify({"error": "تعذّر جلب البيانات من المصدر"}), 502
 
 
 # ══════════════════════════════════════════════════════════════
@@ -6245,11 +6298,38 @@ def _octa_watch_post():
 
 @app.route("/api/alerts/diag", methods=["GET"])
 def _octa_diag():
-    out = {"code": "diag", "enabled": TG_ON,
-           "token_len": len(TOKEN), "chat": CHAT,
-           "routes": len(app.url_map._rules),
-           "raw_token": os.environ.get("TELEGRAM_BOT_TOKEN", "<missing>")[:30],
-           "raw_chat": os.environ.get("TELEGRAM_CHAT_ID", "<missing>")[:30]}
+    """
+    حالة البوت — لل diagnOSE.
+
+    🔒 محمي: كان بيرجّع أول 30 حرف من التوكن والـchat في
+       raw_token و raw_chat. ده كان leak مباشر لأي حد بيفتح
+       المسار. دلوقتي بيرجّع "متظبّط / ناقص" بس.
+    """
+    if not require_user():
+        return jsonify({
+            "ok": False,
+            "error": "المسار ده محمي",
+            "hint": "سجّل دخول من /api/auth/register الأول",
+        }), 401
+
+    def _shape(v):
+        """
+        ⛔ ما بنرجّعش أي جزء من السر — لا ولا حرف.
+        بنقول بس: متظبّط ولا ناقص، وطوله.
+        """
+        s = str(v or "").strip()
+        if not s or "ARCHON_SECRET" in s:
+            return "غير مضبوط"
+        return f"مضبوط ({len(s)} حرف)"
+
+    out = {
+        "ok": True,
+        "enabled": TG_ON,
+        "token": _shape(TOKEN),
+        "chat": _shape(CHAT),
+        "routes": len(app.url_map._rules),
+    }
+
     if TG_ON:
         try:
             import requests
@@ -6260,7 +6340,9 @@ def _octa_diag():
             except Exception:
                 pass
         except Exception as e:
-            out["getMe_err"] = str(e)[:120]
+            # ⛔ ما بيرجعش نص الخطأ — ممكن يكون فيه الـURL والتوكن
+            out["getMe_err"] = type(e).__name__
+
     return jsonify(out)
 
 
@@ -6372,7 +6454,8 @@ def api_tv_logo(logoid):
         return Response(blob, mimetype=r.headers.get("Content-Type", "image/png"),
                         headers={"Cache-Control": "public, max-age=604800"})
     except Exception as e:
-        return jsonify({"error": str(e)[:80]}), 502
+        _log_exc("upstream-502b", e)
+        return jsonify({"error": "تعذّر جلب البيانات من المصدر"}), 502
 
 
 # ══════════════════════════════════════════════════════════════
@@ -6444,7 +6527,8 @@ def api_candles(code):
             _CANDLE_CACHE.pop(next(iter(_CANDLE_CACHE)))
         return jsonify({"ok": True, "code": code, "count": len(out), "candles": out})
     except Exception as e:
-        return jsonify({"ok": False, "error": str(e)[:80]}), 502
+        _log_exc("upstream-502c", e)
+        return jsonify({"ok": False, "error": "تعذّر جلب البيانات من المصدر"}), 502
 
 
 # ══════════════════════════════════════════════════════════════
