@@ -514,6 +514,30 @@ def require_user():
 #  📋 الحسابات
 # ══════════════════════════════════════════════════════════════
 
+
+
+_EMAIL_RE = __import__("re").compile(r"^[^@\s]{1,64}@[^@\s.]{1,63}(\.[^@\s.]{2,63})+$")
+
+
+def _valid_email(e):
+    """
+    ⛔ تحقق صارم من الإيميل.
+
+    مش بنبعتله إيميل استرجاع من غير ما نتأكد إنه شكله صح،
+    عشان متضيعش رسالة على حد مالوش إيميل أصلاً.
+    """
+    e = str(e or "").strip()
+    if not e:
+        return False, "الإيميل فاضي"
+    if len(e) > 120:
+        return False, "الإيميل طويل أوي"
+    if not _EMAIL_RE.match(e):
+        return False, "شكل الإيميل غلط — مثال: name@example.com"
+    # ⛔ منع أي محارف HTML — الإيميل بيتعرض في الواجهة
+    if any(c in e for c in "<>\"'`\n\r\t\\"):
+        return False, "الإيميل فيه محارف ممنوعة"
+    return True, ""
+
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
     """
@@ -527,12 +551,19 @@ def auth_register():
 
     name = str(data.get("name") or "").strip()[:40] or "زائر"
     key = str(data.get("key") or "").strip()
+    email = str(data.get("email") or "").strip().lower()[:120]
 
     if len(key) < 6:
         return jsonify({"error": "الكود السري قصير — 6 حروف على الأقل"}), 400
 
+    # ── الإيميل اختياري — مين بيسجّل من غيره لسه شغال ──
+    if email:
+        ok, why = _valid_email(email)
+        if not ok:
+            return jsonify({"error": why}), 400
+
     khash = _hash_key(key)
-    uid = khash[:20]
+    uid = khash[:20] if not email else _hash_key(email)[:20]
 
     with USERS_LOCK:
         users = _load_users()
@@ -540,7 +571,8 @@ def auth_register():
             # نفس الكود = نفس المستخدم (تسجيل دخول تلقائي)
             return jsonify({
                 "ok": True, "token": _make_token(uid),
-                "user": {"id": uid, "name": users[uid]["name"]},
+                "user": {"id": uid, "name": users[uid]["name"],
+                         "email": users[uid].get("email")},
                 "returning": True,
             })
 
@@ -548,6 +580,8 @@ def auth_register():
             "id": uid,
             "name": name,
             "khash": khash,
+            "email": email or None,
+            "email_hash": _hash_key(email) if email else None,
             "created": int(time.time()),
             "portfolio": {},
             "watch": [],
@@ -556,8 +590,148 @@ def auth_register():
 
     return jsonify({
         "ok": True, "token": _make_token(uid),
-        "user": {"id": uid, "name": name},
+        "user": {"id": uid, "name": name, "email": email or None},
+        "emailSaved": bool(email),
     })
+
+
+
+
+# ══════════════════════════════════════════════════════════════
+#  🔑 استرجاع كلمة السر
+#  ──────────────────────────────────────────────────────────────
+#  قبل: لو المستخدم نسي كوده، خلاص خسران حسابه.
+#  دلوقتي: لو سجّل بإيميل، يطلب كودReset على الإيميل.
+#
+#  ⛔ التوكن مايتخزنش — بنحسب hash بتاعه ونقارنه.
+#    -expires بعد 15 دقيقة (رمز واحداية).
+#  ⛔ مافيش حد ممكن يطلب لغير نفسه.
+# ══════════════════════════════════════════════════════════════
+
+RESET_TTL = 15 * 60          # 15 دقيقة
+RESET_MAX_PER_DAY = 3        # 3 محاولات في اليوم
+
+
+def _reset_send(email, code):
+    """
+    📤 إرسال كود الاسترجاع.
+
+    🚧 دلوقتي: بنطبع الكود في اللوج بس (السيرفر مافيش خدمة
+       إيميل مربوطة بيه). أول ما تربط SMTP / Resend / Brevo،
+       الاستبدال هنا سطر واحد.
+    """
+    print(f"[reset] {email} -> {code}", flush=True)
+    return True
+
+
+RESET_STORE = {}
+
+
+def _reset_request():
+    """
+    📬 طلب كود استرجاع
+    body: { "email": "name@example.com" }
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+
+    email = str(data.get("email") or "").strip().lower()[:120]
+    ok, why = _valid_email(email)
+    if not ok:
+        return jsonify({"error": why}), 400
+
+    # ⛔ رد واحد سواء الإيميل مسجل أو لأ — ما نقولش مين مسجل
+    generic = {
+        "ok": True,
+        "msg": "لو الإيميل ده مسجل، هبعتلك كود على طول",
+    }
+
+    users = _load_users()
+    match = next((u for u in users.values() if u.get("email") == email), None)
+    if not match:
+        return jsonify(generic)
+
+    # ── حد المحاولات ──
+    now = time.time()
+    rec = RESET_STORE.get(email) or {"sent": [], "done": 0}
+    day_ago = now - 86400
+    rec["sent"] = [t for t in rec["sent"] if t > day_ago]
+    if rec["done"] >= RESET_MAX_PER_DAY:
+        return jsonify({"error": "وصلت للحد اليومي — جرب بكره"}, 429)
+
+    code = str(int(now * 1000) % 1000000).zfill(6)
+    rec["code_hash"] = _hash_key(code + email)
+    rec["sent"].append(now)
+    rec["uid"] = match["id"]
+    RESET_STORE[email] = rec
+
+    _reset_send(email, code)
+    return jsonify(generic)
+
+
+@app.route("/api/auth/reset", methods=["POST"])
+def _auth_reset_route():
+    return _reset_request()
+
+
+@app.route("/api/auth/reset/verify", methods=["POST"])
+def _auth_reset_verify():
+    """
+    ✅ تأكيد الكود وتغيير كلمة السر
+    body: { "email": "...", "code": "123456", "key": "الكلمة الجديدة" }
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+
+    email = str(data.get("email") or "").strip().lower()[:120]
+    code = str(data.get("code") or "").strip()
+    newkey = str(data.get("key") or "").strip()
+
+    if not code or len(code) != 6 or not code.isdigit():
+        return jsonify({"error": "الكود 6 أرقام"}), 400
+    if len(newkey) < 6:
+        return jsonify({"error": "الكلمة الجديدة قصيرة — 6 حروف"}), 400
+
+    rec = RESET_STORE.get(email)
+    if not rec or not rec.get("code_hash"):
+        return jsonify({"error": "مفيش طلب استرجاع — ابدأ من الأول"}), 400
+
+    # ── انتهت المدة؟ ──
+    if time.time() - rec["sent"][-1] > RESET_TTL:
+        RESET_STORE.pop(email, None)
+        return jsonify({"error": "انتهت المدة — 15 دقيقة — ابدأ تاني"}), 400
+
+    # ── الكود صح؟ ──
+    if not hmac.compare_digest(rec["code_hash"],
+                               _hash_key(code + email)):
+        return jsonify({"error": "الكود غلط"}), 400
+
+    # ── غيّر كلمة السر ──
+    uid = rec.get("uid")
+    with USERS_LOCK:
+        users = _load_users()
+        u = users.get(uid)
+        if not u:
+            return jsonify({"error": "الحساب مش موجود"}), 404
+        u["khash"] = _hash_key(newkey)
+        u["reset_at"] = int(time.time())
+        _save_users(users)
+
+    RESET_STORE.pop(email, None)
+    rec["done"] += 1
+    RESET_STORE[email] = rec
+
+    # ⛔ التوكن القديم بيبطل — لازم يسجّل دخول تاني
+    return jsonify({
+        "ok": True,
+        "msg": "اتغيرت كلمة السر — سجّل دخول تاني",
+        "token": _make_token(uid),
+    })
+
 
 
 @app.route("/api/auth/me", methods=["GET"])
