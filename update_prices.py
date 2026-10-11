@@ -87,6 +87,34 @@ _HIDDEN_KEYS = (
 )
 
 
+def _make_snapshot_id(ts_iso):
+    """
+    🆔 رقم النسخة.
+
+    الهدف: لما المستخدم يفتح صفحتين أو تحديثين، يقدر يعرف إن
+    البيانات قديمة ولا جديدة. مثال: "20261011-143025-a3f2"
+
+    من ts_iso ناخد التاريخ والوقت، ومن hash للبيانات变化的
+    جزء عشان الرقم يتغير لو المحتوى اتغير.
+    """
+    try:
+        compact = str(ts_iso).replace("-", "").replace(":", "").replace("T", "-")
+        compact = compact[:15]                      # 20261011-143025
+    except Exception:
+        compact = "unknown"
+
+    # بصمة قصيرة من المحتوى — تتغير لو أي سعر اتغير
+    try:
+        fingerprint = hashlib.md5(
+            json.dumps(LIVE_DATA.get("egx30") or [], sort_keys=True,
+                       ensure_ascii=False, default=str).encode()
+        ).hexdigest()[:4]
+    except Exception:
+        fingerprint = "0000"
+
+    return f"{compact}-{fingerprint}"
+
+
 def _hide_recipe(data):
     """يحذف مفاتيح الوصفة من أي رد، ويباقي على كل حاجة تانية."""
     if isinstance(data, dict):
@@ -108,11 +136,28 @@ def hide_recipe(resp):
     if body is None:
         return resp
 
+    # نخفي الوصفة
     clean = _hide_recipe(body)
+
+    # ونحط رقم النسخة في كل رد dict
+    snap = LIVE_DATA.get("snapshot_id")
+    if snap and isinstance(clean, dict) and "snapshot_id" not in clean:
+        clean = dict(clean)
+        clean["snapshot_id"] = snap
+
     if clean != body:
         payload = json.dumps(clean, ensure_ascii=False)
         resp.set_data(payload)
         resp.headers["Content-Length"] = str(len(payload))
+
+    # 🎯 ETag: المتصفح يعرف إن الداتا اتغيرت من غير ما ينزّلها تاني
+    if resp.status_code == 200 and "ETag" not in resp.headers:
+        try:
+            tag = '"' + hashlib.md5(resp.get_data()).hexdigest()[:16] + '"'
+            resp.headers["ETag"] = tag
+        except Exception:
+            pass
+
     return resp
 
 
@@ -4318,6 +4363,7 @@ def update_loop():
 
             # 4) commit للـ memory
             LIVE_DATA["lastUpdate"] = datetime.utcnow().isoformat() + "Z"
+            LIVE_DATA["snapshot_id"] = _make_snapshot_id(LIVE_DATA["lastUpdate"])
             LIVE_DATA["market_phase"] = phase
             LIVE_DATA["market_open"] = (phase == "open")
             LIVE_DATA["ticker"] = tk
@@ -4483,6 +4529,7 @@ def health():
         "service": "octa-prices",
         "version": "v3-gemini-3.5-flash",
         "lastUpdate": LIVE_DATA["lastUpdate"],
+            "snapshot_id": LIVE_DATA.get("snapshot_id"),
         "tickers": len(LIVE_DATA["ticker"]),
         "stocks": len(LIVE_DATA["egx30"]),
         "gemini": "configured" if GEMINI_KEY else "NOT configured"
@@ -4767,6 +4814,7 @@ def diagnostic():
             "with_pe": sum(1 for s in st if s.get("pe") is not None),
         },
         "last_update": LIVE_DATA.get("lastUpdate"),
+            "snapshot_id": LIVE_DATA.get("snapshot_id"),
         "scan_probe": SCAN_PROBE,
         "ip_check": requests.get("https://api.ipify.org?format=json", timeout=8).text if False else "skipped",
     })
@@ -5206,6 +5254,7 @@ def gold_api():
         "unit": "ج.م",
         "note": "سعر الجرام = سعر الأونصة ÷ 31.1035 جرام",
         "updated": LIVE_DATA.get("lastUpdate"),
+            "snapshot_id": LIVE_DATA.get("snapshot_id"),
     })
 
 
@@ -5215,6 +5264,7 @@ def top_movers():
     tm = LIVE_DATA.get("top_movers", {})
     return jsonify({
         "lastUpdate": LIVE_DATA["lastUpdate"],
+            "snapshot_id": LIVE_DATA.get("snapshot_id"),
         "market_phase": LIVE_DATA.get("market_phase"),
         "market_open": LIVE_DATA.get("market_open"),
         "gainers": tm.get("gainers", []),
@@ -5230,6 +5280,7 @@ def heat():
                     key=lambda s: s.get("change", 0), reverse=True)
     return jsonify({
         "lastUpdate": LIVE_DATA["lastUpdate"],
+            "snapshot_id": LIVE_DATA.get("snapshot_id"),
         "market_phase": LIVE_DATA.get("market_phase"),
         "stocks": stocks
     })
