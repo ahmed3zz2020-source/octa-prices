@@ -53,10 +53,42 @@ def add_cors_headers(response):
     # ⛔ مافيش Origin header (زي curl أو سكربت) ← مافيش CORS headers
     #    المتصفح هيعمل block لوحده — وده اللي بنبيه
 
-    # ── security headers أساسية ──
-    response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault("X-Frame-Options", "DENY")
+    # ══════════════════════════════════════════════════════════
+    #  🛡️ Security headers
+    #  ─────────────────────────────────────────────────────────
+    #  كل واحد بيدي حماية مختلفة:
+    #
+    #  nosniff        → المتصفح ما يخمنش نوع الملف
+    #  DENY           → محدش يقدر يحط الموقع في iframe
+    #  HSTS           → الاتصال يفضل مشفّر حتى لو حد طلب http
+    #  Permissions    → نمنع الكاميرا والميكروفون والجGPS
+    #  COOP           → يعزل التبويب عن النوافذ التانية
+    #  Cache-Control  → الداتا المالية ما تتخزّنش في proxy
+    # ══════════════════════════════════════════════════════════
+    h = response.headers
+    h.setdefault("X-Content-Type-Options", "nosniff")
+    h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    h.setdefault("X-Frame-Options", "DENY")
+
+    # مشفّر دايماً — Railway وراه proxy بيشيل
+    h.setdefault("Strict-Transport-Security",
+                 "max-age=31536000; includeSubDomains")
+
+    # نسمح بأقل حاجة ممكنة
+    h.setdefault("Permissions-Policy",
+                 "accelerometer=(), autoplay=(), camera=(), display-capture=(), "
+                 "encrypted-media=(), fullscreen=(self), geolocation=(), "
+                 "gyroscope=(), magnetometer=(), microphone=(), "
+                 "midi=(), payment=(), usb=(), xr-spatial-tracking=()")
+
+    # عزل التبويب عن النوافذ التانية
+    h.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    h.setdefault("Cross-Origin-Resource-Policy", "same-site")
+
+    # ⛔ الداتا المالية ما تتخزّنش — بيانات لحظية
+    h.setdefault("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+    h.setdefault("Pragma", "no-cache")
+    h.setdefault("Expires", "0")
 
     return response
 
