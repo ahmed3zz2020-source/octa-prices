@@ -120,7 +120,8 @@ ROUTES_EXPENSIVE = {
 }
 
 # الكتابة: بتغيّر حالة
-ROUTES_WRITE = {"portfolio", "alerts", "dividends", "calibration", "stress"}
+ROUTES_WRITE = {"portfolio", "alerts", "dividends", "calibration", "stress",
+                 "auth"}
 
 # الحدود
 LIMITS = {
@@ -211,6 +212,195 @@ def rate_limit_guard():
         resp.headers["X-RateLimit-Bucket"] = bucket
         return resp
     return None
+
+
+
+# ══════════════════════════════════════════════════════════════
+#  🔑 نظام الحسابات — كل زائر ليه مساحة خاصة بيه
+#  ──────────────────────────────────────────────────────────────
+#  قبل: أي حد يقدر يضيف/يحذف من المحفظة والمنبهات.
+#        والداتا كانت مشتركة بين كل الزوار.
+#  دلوقتي: كل زائر بيعمل حساب → ليه محفظة لوحده.
+#
+#  الحساب بيتعمل بـ:
+#    · اسم (اختياري)
+#    · كود سري 32 حرف بيتخزن مش movible (bcrypt/sha256)
+#
+#  ⛔ مافيش باسورد واسم مستخدم — بيحمي من سرقة الكوكيز
+#     وبيخلي التسجيل في ثانية واحدة.
+# ══════════════════════════════════════════════════════════════
+
+import hashlib
+import hmac
+import base64
+
+# ── الكود السري بتاع الأدمن (من Railway Variables) ──
+ADMIN_KEY = str(os.environ.get("OCTA_ADMIN_KEY", "") or "").strip()
+
+# ── مفاتيح التوقيع (من Railway Variables) ──
+_SECRET = str(
+    os.environ.get("OCTAD_TOKEN_SECRET",
+                   os.environ.get("SECRET_KEY",
+                                  "octa-dev-only-change-me"))
+).strip()
+
+
+def _sign(payload: str) -> str:
+    """توقيع HMAC عشان نقدر نتحقق إن التوكن متعدّلش"""
+    mac = hmac.new(_SECRET.encode(), payload.encode(), hashlib.sha256).digest()
+    return base64.urlsafe_b64encode(mac).decode().rstrip("=")[:24]
+
+
+def _make_token(user_id: str) -> str:
+    """payload.base64url(signature)"""
+    p = base64.urlsafe_b64encode(user_id.encode()).decode().rstrip("=")
+    return f"{p}.{_sign(p)}"
+
+
+def _read_token(tok: str):
+    """يرجّع user_id أو None — أي input غريب يرجّع None"""
+    try:
+        parts = str(tok or "").split(".")
+        if len(parts) != 2:
+            return None
+        p, sig = parts
+        if not p or not sig:
+            return None
+        if not hmac.compare_digest(sig, _sign(p)):
+            return None
+        pad = "=" * (-len(p) % 4)
+        return base64.urlsafe_b64decode(p + pad).decode("utf-8", "ignore") or None
+    except Exception:
+        return None
+
+
+def _hash_key(raw: str) -> str:
+    """هاش الكود السري — ما بنخزنش الأصلي أبداً"""
+    salt = _SECRET[:12]
+    return hashlib.pbkdf2_hmac("sha256", str(raw).encode(), salt.encode(), 60000).hex()
+
+
+# ── قاعدة البيانات (ملف JSON بسيط) ──
+USERS_FILE = Path("/app/users.json")
+USERS_LOCK = threading.Lock()
+
+
+def _load_users():
+    try:
+        if USERS_FILE.exists():
+            return json.loads(USERS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return {}
+
+
+def _save_users(d):
+    try:
+        USERS_FILE.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _get_user(token):
+    """ترجّع dict المستخدم أو None"""
+    uid = _read_token(token)
+    if not uid:
+        return None
+    with USERS_LOCK:
+        return _load_users().get(uid)
+
+
+def _bearer():
+    """يطلّع التوكن من الـAuthorization header أو من query"""
+    h = request.headers.get("Authorization", "") or ""
+    if h.lower().startswith("bearer "):
+        return h[7:].strip()
+    return (request.args.get("t") or "").strip()
+
+
+def require_user():
+    """
+    ⛔ لازم يكون فيه توكن صالح. وإلا → 401.
+
+    بيتحط في أول كل route كتابة.
+    """
+    u = _get_user(_bearer())
+    if u:
+        return u
+    return None
+
+
+# ══════════════════════════════════════════════════════════════
+#  📋 الحسابات
+# ══════════════════════════════════════════════════════════════
+
+@app.route("/api/auth/register", methods=["POST"])
+def auth_register():
+    """
+    تسجيل حساب جديد.
+    body: { "name": "أحمد", "key": "أي كلمة سرية يحفظها المستخدم" }
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+
+    name = str(data.get("name") or "").strip()[:40] or "زائر"
+    key = str(data.get("key") or "").strip()
+
+    if len(key) < 6:
+        return jsonify({"error": "الكود السري قصير — 6 حروف على الأقل"}), 400
+
+    khash = _hash_key(key)
+    uid = khash[:20]
+
+    with USERS_LOCK:
+        users = _load_users()
+        if uid in users:
+            # نفس الكود = نفس المستخدم (تسجيل دخول تلقائي)
+            return jsonify({
+                "ok": True, "token": _make_token(uid),
+                "user": {"id": uid, "name": users[uid]["name"]},
+                "returning": True,
+            })
+
+        users[uid] = {
+            "id": uid,
+            "name": name,
+            "khash": khash,
+            "created": int(time.time()),
+            "portfolio": {},
+            "watch": [],
+        }
+        _save_users(users)
+
+    return jsonify({
+        "ok": True, "token": _make_token(uid),
+        "user": {"id": uid, "name": name},
+    })
+
+
+@app.route("/api/auth/me", methods=["GET"])
+def auth_me():
+    """مين أنا؟"""
+    u = require_user()
+    if not u:
+        return jsonify({"error": "unauthorized"}), 401
+    return jsonify({
+        "ok": True,
+        "user": {"id": u["id"], "name": u["name"]},
+        "stats": {
+            "portfolio": len(u.get("portfolio") or {}),
+            "watch": len(u.get("watch") or []),
+        },
+    })
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def auth_logout():
+    """التسجيل الخروج بيتم في المتصفح — التوكن بسطره"""
+    return jsonify({"ok": True})
+
 
 
 CACHE_FILE = Path("/app/cache.json")
@@ -4532,40 +4722,102 @@ def ranking():
     })
 
 
+def _user_portfolio():
+    """
+    📦 محفظة المستخدم الحالي.
+
+    ⛔ قبل: كل الزوار كانوا بيشاركوا نفس المحفظة (PORTFOLIO العام) —
+       أي حد يقدر يمسح محفظة أي حد تاني. دلوقتي كل واحد ليه حجته.
+
+    بدون توكن → محفظة فاضية مؤقتة (يعني محدش بيشوف حجته).
+    """
+    u = require_user()
+    if u:
+        return u.get("portfolio") or {}
+    return {"holdings": {}, "cash": 0}
+
+
 @app.route("/api/portfolio", methods=["GET", "POST"])
 def portfolio_api():
-    """عرض وتعديل المحفظة"""
+    """عرض وتعديل المحفظة — 🔒 خاصة بكل مستخدم"""
+    # ── POST: لازم توكن ──
     if request.method == "POST":
-        data = request.get_json(force=True, silent=True) or {}
-        action = data.get("action")
-        code = (data.get("code") or "").upper()
+        u = require_user()
+        if not u:
+            return jsonify({"error": "لازم تسجّل دخول عشان تعدّل المحفظة",
+                           "hint": "POST /api/auth/register"}), 401
+
+        try:
+            data = request.get_json(silent=True) or {}
+        except Exception:
+            return jsonify({"error": "JSON غير صالح"}), 400
+
+        action = str(data.get("action") or "").strip()
+        code = str(data.get("code") or "").upper().strip()
+
+        # ── تحقق: الكود لازم يكون معروف فعلاً ──
+        if code and action in ("add", "remove"):
+            known = {s["code"] for s in LIVE_DATA.get("egx30", [])}
+            if known and code not in known:
+                return jsonify({"error": f"الرمز {code} غير معروف"}), 400
+
+        pf = u.get("portfolio") or {"holdings": {}, "cash": 0}
+        pf.setdefault("holdings", {})
+
         if action == "add":
-            PORTFOLIO["holdings"][code] = {
-                "shares": float(data.get("shares", 0)),
-                "cost": float(data.get("cost", 0)),
-                "price": float(data.get("price", 0)),
-                "sector": data.get("sector", "أخرى"),
+            try:
+                shares = float(data.get("shares", 0))
+                cost = float(data.get("cost", 0))
+                price = float(data.get("price", 0))
+            except (TypeError, ValueError):
+                return jsonify({"error": "أرقام غير صالحة"}), 400
+            if shares < 0 or cost < 0 or price < 0:
+                return jsonify({"error": "مفيش قيم سالبة"}), 400
+            if shares > 1e9 or cost > 1e7:
+                return jsonify({"error": "القيمة كبيرة أوي"}), 400
+            pf["holdings"][code] = {
+                "shares": shares, "cost": cost, "price": price,
+                "sector": str(data.get("sector") or "أخرى")[:30],
             }
         elif action == "remove":
-            PORTFOLIO["holdings"].pop(code, None)
+            pf["holdings"].pop(code, None)
         elif action == "clear":
-            PORTFOLIO["holdings"] = {}
-            PORTFOLIO["cash"] = 0
+            pf["holdings"] = {}
+            pf["cash"] = 0
         elif action == "set_cash":
-            PORTFOLIO["cash"] = float(data.get("cash", 0))
-        return jsonify({"ok": True, "portfolio": PORTFOLIO})
+            try:
+                cash = float(data.get("cash", 0))
+            except (TypeError, ValueError):
+                return jsonify({"error": "قيمة غير صالحة"}), 400
+            if cash < 0 or cash > 1e9:
+                return jsonify({"error": "قيمة غير صالحة"}), 400
+            pf["cash"] = cash
+        else:
+            return jsonify({"error": "action غير معروف"}), 400
 
-    # GET: نحسب إحصائيات المحفظة
-    total = sum(h["shares"] * h["price"] for h in PORTFOLIO["holdings"].values()) + PORTFOLIO.get("cash", 0)
+        u["portfolio"] = pf
+        with USERS_LOCK:
+            users = _load_users()
+            users[u["id"]] = u
+            _save_users(users)
+        return jsonify({"ok": True, "portfolio": pf})
+
+    # ── GET: محفظة المستخدم أو فاضية ──
+    pf = _user_portfolio()
+    holdings = pf.get("holdings") or {}
+    cash = float(pf.get("cash", 0) or 0)
+
+    total = sum(h["shares"] * h["price"] for h in holdings.values()) + cash
     sectors = {}
-    for c, h in PORTFOLIO["holdings"].items():
+    for c, h in holdings.items():
         v = h["shares"] * h["price"]
         sectors[h.get("sector", "أخرى")] = sectors.get(h.get("sector", "أخرى"), 0) + v
+
     return jsonify({
         "total_value": round(total, 2),
-        "cash": PORTFOLIO.get("cash", 0),
-        "count": len(PORTFOLIO["holdings"]),
-        "holdings": PORTFOLIO["holdings"],
+        "cash": cash,
+        "count": len(holdings),
+        "holdings": holdings,
         "sector_exposure_pct": {k: round(v / total * 100, 1) for k, v in sectors.items()} if total else {},
         "diversification": (
             "ممتاز" if len(sectors) >= 5 else
@@ -5662,22 +5914,101 @@ def _octa_state():
 
 @app.route("/api/alerts/watch", methods=["GET"])
 def _octa_watch_get():
-    return jsonify({"ok": True, "items": w_list(st_load())})
+    """
+    📋 منبهات السعر — 🔒 خاصة بكل مستخدم.
+
+    ⛔ قبل: كل المنبهات كانت في ملف مشترك. أي حد يقدر يمسح
+       منبهات أي حد تاني أو يضيف 500 منبه.
+    """
+    u = require_user()
+    if not u:
+        # بدون توكن: مافيش منبهات + رسالة واضحة
+        return jsonify({
+            "ok": False, "items": [],
+            "error": "لازم تسجّل دخول عشان تشوف منبهاتك",
+            "hint": "POST /api/auth/register",
+        })
+
+    watch = u.get("watch") or {}
+    items = []
+    for c, cfg in watch.items():
+        item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == c), None)
+        if item:
+            rows = w_add({"watch": dict(watch)}, c, cfg.get("hi"), cfg.get("lo"))
+            items.extend(w_list({"watch": dict(watch)}))
+    return jsonify({"ok": True, "items": items})
 
 
 @app.route("/api/alerts/watch", methods=["POST"])
 def _octa_watch_post():
-    d = st_load()
-    j = request.get_json(silent=True) or {}
-    a = j.get("action")
+    """
+    ✏️ إضافة/حذف منبه — 🔒 خاصة بكل مستخدم + تحقق صارم.
+    """
+    u = require_user()
+    if not u:
+        return jsonify({"error": "لازم تسجّل دخول عشان تضيف منبهات",
+                       "hint": "POST /api/auth/register"}), 401
+
+    try:
+        j = request.get_json(silent=True) or {}
+    except Exception:
+        return jsonify({"error": "JSON غير صالح"}), 400
+    if not isinstance(j, dict):
+        return jsonify({"error": "body لازم يكون object"}), 400
+
+    a = str(j.get("action") or "").strip()
+    code = str(j.get("code") or "").upper().strip()
+
+    if a not in ("add", "del", "clear"):
+        return jsonify({"error": "action لازم يكون add/del/clear"}), 400
+
+    if a in ("add", "del"):
+        if not code or len(code) > 12:
+            return jsonify({"error": "رمز غير صالح"}), 400
+        known = {s["code"] for s in LIVE_DATA.get("egx30", [])}
+        if known and code not in known:
+            return jsonify({"error": f"الرمز {code} غير معروف"}), 400
+
+    watch = u.get("watch") or {}
+
     if a == "add":
-        w_add(d, j.get("code"), j.get("hi"), j.get("lo"))
+        hi = j.get("hi")
+        lo = j.get("lo")
+        try:
+            if hi not in (None, ""):
+                hi = float(hi)
+                if hi <= 0 or hi > 1e7: raise ValueError
+            else:
+                hi = None
+            if lo not in (None, ""):
+                lo = float(lo)
+                if lo <= 0 or lo > 1e7: raise ValueError
+            else:
+                lo = None
+        except (TypeError, ValueError):
+            return jsonify({"error": "الأسعار لازم تكون أرقام موجبة"}), 400
+
+        if hi is None and lo is None:
+            return jsonify({"error": "لازم تحدد حد أعلى أو حد أدنى"}), 400
+        if hi is not None and lo is not None and hi < lo:
+            return jsonify({"error": "الحد الأعلى لازم يكون أكبر من الأدنى"}), 400
+
+        watch[code] = {"hi": hi, "lo": lo}
     elif a == "del":
-        w_del(d, j.get("code"))
+        watch.pop(code, None)
     elif a == "clear":
-        d["watch"] = {}
-    st_save(d)
-    return jsonify({"ok": True, "items": w_list(d)})
+        watch = {}
+
+    if len(watch) > 100:
+        return jsonify({"error": "الحد 100 منبه بس"}), 400
+
+    u["watch"] = watch
+    with USERS_LOCK:
+        users = _load_users()
+        users[u["id"]] = u
+        _save_users(users)
+
+    return jsonify({"ok": True, "count": len(watch)})
 
 
 @app.route("/api/alerts/diag", methods=["GET"])
