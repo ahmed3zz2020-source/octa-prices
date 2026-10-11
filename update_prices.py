@@ -63,6 +63,59 @@ def add_cors_headers(response):
 
 # Railway بيبعت OPTIONS أوتوماتيك قبل ما يوصل للكود، فبنتعامل معاه
 # في before_request علشان نقدر نرفض الـpreflight من أي origin مش مسموح.
+
+# ══════════════════════════════════════════════════════════════
+#  🛡️ إخفاء وصفحة التقييم من الـAPI
+#  ──────────────────────────────────────────────────────────────
+#  المشكلة: بعض المسارات كانت بترجّع "الأوزان" — يعني وصفة
+#  حساب التقييم نفسها: أساسيات 45%، مخاطرة 20%…
+#  حد يعمل طلب واحد يقدر يبني نفس النظام من الصفر.
+#
+#  الحل: تشيل المفتاح من الرد قبل ما يوصل المتصفح.
+#
+#  ⚠️ اللي بيتشال: الأوزان والقواعد فقط.
+#  ✅ اللي بيفضل: النتيجة النهائية وتفاصيل السهم — عشان
+#     الموقع يشتغل زي ما هو والعميل يشوف كل حاجة.
+# ══════════════════════════════════════════════════════════════
+
+_HIDDEN_KEYS = (
+    "weights", "strategies", "raw_scores", "rawScore",
+    "calibration", "strategy", "axis_weights", "axisWeights",
+    "sub_scores", "subScores", "scoring", "formula", "formulae",
+    "AXIS_WEIGHTS", "risk_penalty_mult", "min_liquidity",
+    "part_scores",
+)
+
+
+def _hide_recipe(data):
+    """يحذف مفاتيح الوصفة من أي رد، ويباقي على كل حاجة تانية."""
+    if isinstance(data, dict):
+        return {k: _hide_recipe(v) for k, v in data.items() if k not in _HIDDEN_KEYS}
+    if isinstance(data, list):
+        return [_hide_recipe(i) for i in data]
+    return data
+
+
+@app.after_request
+def hide_recipe(resp):
+    """آخر خط دفاع — بيتطبّق على كل رد JSON أوتوماتيك."""
+    if not resp.is_json:
+        return resp
+    try:
+        body = resp.get_json(silent=True)
+    except Exception:
+        return resp
+    if body is None:
+        return resp
+
+    clean = _hide_recipe(body)
+    if clean != body:
+        payload = json.dumps(clean, ensure_ascii=False)
+        resp.set_data(payload)
+        resp.headers["Content-Length"] = str(len(payload))
+    return resp
+
+
 @app.before_request
 def guard_preflight():
     """
