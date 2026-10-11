@@ -6,17 +6,68 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# ============ CORS (ضروري عشان المتصفح يسمح للfrontend ينادي الـ API) ============
+# ══════════════════════════════════════════════════════════════
+#  🔒 CORS — بيحدد مين يقدر ينادي الـAPI
+#  ──────────────────────────────────────────────────────────────
+#  قبل: كان "*" فأي موقع في العالم يقدر ياخد البيانات بتاعتنا.
+#  دلوقتي: الموقع بتاعنا بس (octashares.com) + نسخ التطوير.
+#  ══════════════════════════════════════════════════════════════
+
+# المسموح لهم ينادوا الـAPI
+ALLOWED_ORIGINS = {
+    "https://octashares.com",
+    "https://www.octashares.com",
+    "https://octa.ahmed3zz2020.workers.dev",   # نسخة Cloudflare
+}
+
+# نضيف أي originsIncremental من الـenv (للتجربة لو حبيت تزود)
+_extra = str(os.environ.get("ALLOWED_ORIGINS", "") or "").strip()
+if _extra:
+    for o in _extra.replace(";", ",").split(","):
+        o = o.strip().rstrip("/")
+        if o.startswith("http"):
+            ALLOWED_ORIGINS.add(o)
+
+
+def _origin_allowed(origin):
+    """هل الـorigin ده مسموح؟"""
+    if not origin:
+        return False
+    o = str(origin).strip().rstrip("/")
+    return o in ALLOWED_ORIGINS
+
+
 @app.after_request
 def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    origin = request.headers.get("Origin", "")
+
+    if _origin_allowed(origin):
+        # نعكس الـorigin المسموح (مش *) + Vary مهم للـcache
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-OCTA-Client"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Max-Age"] = "600"
+        response.headers.add("Vary", "Origin")
+
+    # ⛔ مافيش Origin header (زي curl أو سكربت) ← مافيش CORS headers
+    #    المتصفح هيعمل block لوحده — وده اللي بنبيه
+
+    # ── security headers أساسية ──
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+
     return response
+
 
 @app.route("/<path:any>", methods=["OPTIONS"])
 @app.route("/", methods=["OPTIONS"])
 def preflight(any=""):
+    origin = request.headers.get("Origin", "")
+    if not _origin_allowed(origin):
+        # ⛔ origin مش في القائمة → نرفض الـpreflight
+        return ("forbidden origin", 403)
     return "", 204
 
 
