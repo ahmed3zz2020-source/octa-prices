@@ -680,7 +680,8 @@ def _auth_reset_route():
 def _auth_reset_verify():
     """
     ✅ تأكيد الكود وتغيير كلمة السر
-    body: { "email": "...", "code": "123456", "key": "الكلمة الجديدة" }
+    body: { "email": "name@example.com", "code": "123456",
+            "key": "الكلمة الجديدة" }
     """
     try:
         data = request.get_json(silent=True) or {}
