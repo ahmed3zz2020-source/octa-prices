@@ -67,7 +67,7 @@ def preflight(any=""):
     origin = request.headers.get("Origin", "")
     if not _origin_allowed(origin):
         # ⛔ origin مش في القائمة → نرفض الـpreflight
-        return ("forbidden origin", 403)
+        return jsonify({"error": "forbidden origin"}), 403
     return "", 204
 
 
