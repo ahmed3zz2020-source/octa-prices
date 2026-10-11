@@ -1945,15 +1945,28 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
 
     axes = {}
     reasons = []
+    missing = []
+
+    # ── مبدأ مهم ──
+    # لو السهم مالوش بيانات في محور، ما بنحطّش له رقم وسط
+    # (زي 50). الرقم ده بيكذب على المستخدم: بيقول "الجودة 50"
+    # وده غلط، إحنا مش عارفين أصلاً.
+    # بدل كده: بنستبعد المحور وبنقسم على اللي اتوفر بس.
 
     # 1) الفني
-    axes["technical"] = _n(tech["score"]) if tech else 50.0
+    v = _n(tech["score"], None) if tech else None
+    axes["technical"] = v if v is not None else None
+    if v is None: missing.append("الفني")
 
     # 2) الأساسي
-    axes["fundamental"] = _n(fund["score"]) if fund else 50.0
+    v = _n(fund["score"], None) if fund else None
+    axes["fundamental"] = v if v is not None else None
+    if v is None: missing.append("الأساسي")
 
     # 3) السيولة
-    axes["liquidity"] = _n(liq["score"]) if liq else 50.0
+    v = _n(liq["score"], None) if liq else None
+    axes["liquidity"] = v if v is not None else None
+    if v is None: missing.append("السيولة")
 
     # 4) الأخبار — لسه مفيش مصدر
     axes["news"] = 45
@@ -1967,22 +1980,43 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
 
     # 6) المخاطرة — عكسي (Beta + تقلب + ديون)
     beta, vol, de = _n(item.get("beta"), None), _n(item.get("volatility"), None), _n(item.get("de_ratio"), None)
-    r = 80.0
-    if beta is not None: r -= beta * 11
-    if vol is not None:  r -= vol * 2.8
-    if de is not None:   r -= min(22, de * 2.5)
-    axes["risk"] = round(max(0, min(100, r)))
+    if beta is None and vol is None and de is None:
+        # ⛔ مافيش أي مؤشر مخاطرة — ما بنخمنش رقم
+        axes["risk"] = None
+        missing.append("المخاطرة")
+    else:
+        r = 80.0
+        if beta is not None: r -= beta * 11
+        if vol is not None:  r -= vol * 2.8
+        if de is not None:   r -= min(22, de * 2.5)
+        axes["risk"] = round(max(0, min(100, r)))
 
     # 7) ملاءمة المحفظة — مبدئياً حسب تنوع القطاع (Phase 8 هيكمّل)
     axes["portfolio"] = 70
 
     # ═══ المحصلة المرجّحة ═══
-    base = sum(axes[k] * AXIS_WEIGHTS[k] for k in AXIS_WEIGHTS)
+    # ⚠️ لو محور ناقص، ما بنحسبوش بإيده — بنحسب على المتاح بس
+    #    وبنعدّل الأوزان عشان المجموع يفضل 100%.
+    avail = {k: w for k, w in AXIS_WEIGHTS.items() if axes.get(k) is not None}
+    wsum = sum(avail.values())
+
+    if wsum <= 0:
+        # ⛔ مافيش ولا محور واحد متاح — مش من حقنا نطلع تقييم
+        return {
+            "code": item.get("code"), "name": item.get("name"),
+            "score": None, "noData": True,
+            "noDataNote": "مفيش بيانات كافية لحساب التقييم",
+            "axes": {k: v for k, v in axes.items() if v is not None},
+            "missing_axes": missing,
+            "reasons": reasons, "decision": "غير كافٍ للقرار",
+        }
+
+    base = sum(axes[k] * (avail[k] / wsum) for k in avail)
 
     # ═══ تعديل 1: المخاطرة (ضعف) ═══
     # ⚠️ سقف الخصم: ما ينزلش أكتر من 15 نقطة من المخاطرة
     #    السبب: الخصومات لو تراكمت بتبطل النتيجة
-    risk_pen = min(15.0, (100 - axes["risk"]) * 0.18)
+    risk_pen = 0.0 if axes.get("risk") is None else min(15.0, (100 - axes["risk"]) * 0.18)
     adj = base - risk_pen
 
     # ═══ تعديل 2: الثقة بالبيانات ═══
@@ -2028,16 +2062,17 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     # ═══ القرار ═══
     # ⚠️ قاعدة: "بيع" لازم يكون بسبب واضح من الأرقام
     #    لو البيانات ناقصة → القرار "غير كافي" مش "بيع"
-    fund_data_ok = axes["fundamental"] >= 40
-    tech_data_ok = axes["technical"] >= 30
+    fund_data_ok = (axes.get("fundamental") or 0) >= 40
+    tech_data_ok = (axes.get("technical") or 0) >= 30
+    risk_v = axes.get("risk")
 
-    if axes["risk"] < 35:
+    if risk_v is not None and risk_v < 35:
         decision = "تجنّب"
         decision_why = "مخاطرة عالية جداً"
     elif not fund_data_ok or not tech_data_ok:
         decision = "غير كافٍ"
         decision_why = "البيانات ناقصة — لا يمكن الحكم على السهم بثقة"
-    elif final >= 78 and axes["technical"] >= 50 and axes["fundamental"] >= 60:
+    elif final >= 78 and (axes.get("technical") or 0) >= 50 and (axes.get("fundamental") or 0) >= 60:
         decision = "تجميع"
         decision_why = "أساسيات قوية واتجاه إيجابي"
     elif final >= 65:
@@ -2046,12 +2081,18 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     elif final >= 52:
         decision = "احتفظ"
         decision_why = "محايد — في انتظار"
-    elif axes["fundamental"] >= 65:
+    elif (axes.get("fundamental") or 0) >= 65:
         decision = "احتفظ"
         decision_why = "أساسيات كويسة"
     else:
         decision = "بيع"
         decision_why = "نتيجة ضعيفة ومخاطرة عالية"
+
+    if missing:
+        # reason بدون ما نكسر أي حاجة موجودة
+        reasons.append(
+            f"محاور ناقصة ({', '.join(missing)}) — التقييم محسوب على المتاح بس"
+        )
 
     # ═══ مستوى المخاطرة ═══
     if axes["risk"] >= 70: risk_level = "منخفض"
@@ -3008,7 +3049,7 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     elif final >= 78 and filters_passed:  decision = "تجميع"
     elif final >= 65:             decision = "تجميع"
     elif final >= 52:             decision = "احتفظ"
-    elif axes["fundamental"] >= 65: decision = "احتفظ"
+    elif (axes.get("fundamental") or 0) >= 65: decision = "احتفظ"
     else:                         decision = "بيع"
 
     return {
