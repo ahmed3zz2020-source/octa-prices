@@ -18,6 +18,7 @@ ALLOWED_ORIGINS = {
     "https://octashares.com",
     "https://www.octashares.com",
     "https://octa.ahmed3zz2020.workers.dev",   # نسخة Cloudflare
+    "https://octa-preview.ahmed3zz2020.workers.dev",   # رابط المعاينة
 }
 
 # نضيف أي originsIncremental من الـenv (للتجربة لو حبيت تزود)
