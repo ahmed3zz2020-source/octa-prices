@@ -1088,7 +1088,7 @@ SYSTEM_PROMPT = """أنت محرك التحليل المالي OCTA — خبير
     "portfolio": 75,
     "overall": 80
   },
-  "decision": "شراء" | "تجميع" | "احتفظ" | "بيع" | "تجنّب",
+  "decision": "إشارة إيجابية" | "إشارة محايدة" | "إشارة سلبية",
   "confidence": 75,
   "reasons": [
     "سبب فيه رقم محدد (مثل: P/E 6.1 أقل من متوسط القطاع)",
@@ -1673,15 +1673,15 @@ def quick_score(item):
 
     # القرار من الأرقام
     if axes["risk"] < 40:
-        decision = "تجنّب"
+        decision = "إشارة سلبية"
     elif overall >= 75 and axes["technical"] >= 55:
-        decision = "تجميع"
+        decision = "إشارة إيجابية"
     elif overall >= 60:
-        decision = "احتفظ"
+        decision = "إشارة محايدة"
     elif axes["fundamental"] >= 70:
-        decision = "احتفظ"
+        decision = "إشارة محايدة"
     else:
-        decision = "بيع"
+        decision = "إشارة سلبية"
 
     try: conf = int(float(item.get("data_confidence") or 0))
     except (TypeError, ValueError): conf = 0
@@ -2536,25 +2536,25 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     risk_v = axes.get("risk")
 
     if risk_v is not None and risk_v < 35:
-        decision = "تجنّب"
+        decision = "إشارة سلبية"
         decision_why = "مخاطرة عالية جداً"
     elif not fund_data_ok or not tech_data_ok:
-        decision = "غير كافٍ"
+        decision = "بيانات غير كافية"
         decision_why = "البيانات ناقصة — لا يمكن الحكم على السهم بثقة"
     elif final >= 78 and (axes.get("technical") or 0) >= 50 and (axes.get("fundamental") or 0) >= 60:
-        decision = "تجميع"
+        decision = "إشارة إيجابية"
         decision_why = "أساسيات قوية واتجاه إيجابي"
     elif final >= 65:
-        decision = "تجميع"
+        decision = "إشارة إيجابية"
         decision_why = "نتيجة جيدة عموماً"
     elif final >= 52:
-        decision = "احتفظ"
+        decision = "إشارة محايدة"
         decision_why = "محايد — في انتظار"
     elif (axes.get("fundamental") or 0) >= 65:
-        decision = "احتفظ"
+        decision = "إشارة محايدة"
         decision_why = "أساسيات كويسة"
     else:
-        decision = "بيع"
+        decision = "إشارة سلبية"
         decision_why = "نتيجة ضعيفة ومخاطرة عالية"
 
     if missing:
@@ -3514,12 +3514,12 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     final = round(max(0, min(100, adj)), 1)
 
     # القرار بنفس المنطق
-    if axes["risk"] < 35:         decision = "تجنّب"
-    elif final >= 78 and filters_passed:  decision = "تجميع"
-    elif final >= 65:             decision = "تجميع"
-    elif final >= 52:             decision = "احتفظ"
-    elif (axes.get("fundamental") or 0) >= 65: decision = "احتفظ"
-    else:                         decision = "بيع"
+    if axes["risk"] < 35:         decision = "إشارة سلبية"
+    elif final >= 78 and filters_passed:  decision = "إشارة إيجابية"
+    elif final >= 65:             decision = "إشارة إيجابية"
+    elif final >= 52:             decision = "إشارة محايدة"
+    elif (axes.get("fundamental") or 0) >= 65: decision = "إشارة محايدة"
+    else:                         decision = "إشارة سلبية"
 
     return {
         "strategy": strategy,
