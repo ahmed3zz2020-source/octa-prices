@@ -198,6 +198,13 @@ def t_no_enumeration():
     for body in ({"pin": "1111"},
                  {"pin": "1111", "email": A_EMAIL},      # ⛔ الإيميل مسجّل
                  {"pin": "2222", "email": "ghost@x.com"}):  # ⛔ مش موجود
+        # 📌 القاعدة ① (نافذة ٦٠ ثانية) بتخلي الرد الثالث
+        #    «محتاج كود إيميل» — وده **مش** تعداد، ده عدّاد
+        #    محاولات. عشان المقارنة تبقى عن نفس العمق، بنصفّر
+        #    نافذة الـ٦٠ ثانية قبل كل نداء: التلات ردود لازم
+        #    يطلعوا متطابقين حرف بحرف.
+        up._pin_window_reset(up._pin_keys(pin="1111", ip="10.0.0.1"))
+        up._pin_window_reset(up._pin_keys(pin="2222", ip="10.0.0.1"))
         t0 = _t.time()
         r = call(LOG, body=body)
         times.append(_t.time() - t0)
@@ -593,10 +600,14 @@ def t_no_raw_pin():
     hits = re.findall(r"(?<![0-9A-Za-z])\d{4}(?![0-9A-Za-z])", raw)
     ok(not hits, "⛔⛔ أرقام ٤ خام في users.json: %s" % hits[:10])
     # ⛌ ولا في ملف القفل
+    # 📌 البحث بـحدود الرقم: الطوابع الزمنية (١٧ رقم) بتلاقي
+    #    جوّاها أي تسلسل ٤ أرقام بالصدفة، وده **مش** باسورد
+    #    خام. الباسورد الخام بيبقى ٤ أرقام لوحدها في الملف.
     if up.PINLOCK_FILE.exists():
         lraw = up.PINLOCK_FILE.read_text(encoding="utf-8")
         for p in (A_PIN, B_PIN, "6060"):
-            ok(p not in lraw, "⛔⛔ الباسورد %s موجود في pinlock.json" % p)
+            ok(not re.search(r"(?<![0-9A-Za-z])%s(?![0-9A-Za-z])" % p, lraw),
+               "⛔⛔ الباسورد %s موجود في pinlock.json" % p)
 
 
 t("⛔⛔ مافيش باسورد خام في users.json", t_no_raw_pin)

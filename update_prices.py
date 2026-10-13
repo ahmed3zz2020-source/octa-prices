@@ -434,7 +434,7 @@ ROUTES_WRITE = {"portfolio", "alerts", "dividends", "calibration", "stress"}
 ROUTES_READONLY = {"me", "status", "check"}
 
 # الحدود — كل bucket = قائمة نوافذ: [(عدد الطلبات، Window بالثواني), …]
-# ⛌ 为什么 liste مش زوج واحد: عشان نقدر نحط **سقفين** على نفس المسار.
+# ⛌ ليه قائمة مش زوج واحد: عشان نقدر نحط **سقفين** على نفس المسار.
 #    مثال: ٥/دقيقة (بيمنع المسح السريع) + ٢٠/ساعة (بيمنع المسح البطيء).
 #    أضيق نافذة هي اللي بتفرض، والاثنتين لازم تعدّي.
 LIMITS = {
@@ -451,6 +451,16 @@ LIMITS = {
     #    الساعة من غير ما يتقفل أي حاجة. ٢٠/ساعة معناها ٥٠٠٠ فحص في
     #    اليوم = ٢ يومين لتمرير المساحة كلها حتى قبل القفل الذكي.
     "pin_register": [(5, 60), (20, 3600)],
+    # ⛌⛔ كود فتح الحساب (القاعدة ①): الإرسال أغلى حاجة في
+    #    الـAPI كله — بيبعت بريد وبيحسب كود وبيكتب على القرص.
+    #    ٣ / ٥ دقايق للـIP. فوقه حد ٣ في اليوم **لكل إيميل**
+    #    جوّه الكود نفسه (مش الـIP بس) — شوف auth_pin_chal_send.
+    "pin_chal_send": [(3, 300)],
+    # ⛌ التحقق: ١٠ / ٥ دقايق. الكود نفسه بيموت بعد ٥ غلط،
+    #    فالسقف ده بيمنع المسح السريع قبل ما الكود يموت.
+    "pin_chal_verify": [(10, 300)],
+    # ⛌ اختيار الباسورد الجديد: ١٠ / ٥ دقايق — محتاج توكن فتح.
+    "pin_chal_newpin": [(10, 300)],
 }
 
 # تخزين: {ip: {bucket: deque(timestamps)}}
@@ -479,15 +489,30 @@ def _route_bucket(path):
         if name == "auth":
             sub = seg[2] if len(seg) > 2 else ""
             tail = seg[3] if len(seg) > 3 else ""
-            # ⛌ ⛌ مسار الباسورد: دخول/تغيير = حد الكتابة (٥/دقيقة).
-            #    القفل الذكي (١٥ دقيقة) أضيق بكتير من كده، بس الحد
-            #    بيمنع ٥ باسوردات في الدقيقة من غير ما يستنى القفل.
-            # ⛔ ⛔ ⛔ التسجيل = **أضيق**: نفس الـwrite + سقف ٢٠/ساعة،
-            #    لأن مس��ر ده هو اللي بيفحص المساحة كلها بسؤال
+            # ⛌ ⛌ ⛌ التسجيل = **أضيق**: نفس الـwrite + سقف ٢٠/ساعة،
+            #    لأن المسار ده هو اللي بيفحص المساحة كلها بسؤال
             #    «الباسورد ده مستخدم من قبل؟». من غير السقف، ٥/دقيقة
             #    معناها ١٠٬٠٠٠ محاولة مسح في ٣٣ ساعة.
             if sub == "pin":
-                return "pin_register" if tail == "register" else "write"
+                if tail == "register":
+                    return "pin_register"
+                # ⛌ ⛌ ⛌ مسار كود الفتح (القاعدة ①): كل خطوة
+                #    ليها سقفها. الإرسال أضيق واحد (٣/٥ دقايق)
+                #    لأنه بيبعت بريد؛ التحقق أوسع (١٠/٥ دقايق)
+                #    لأن المستخدم بيلخبط في الكود وعادي يغلط
+                #    مرتين، والكود نفسه بيموت بعد ٥ غلط.
+                if tail == "challenge":
+                    return {
+                        "send": "pin_chal_send",
+                        "verify": "pin_chal_verify",
+                        "newpin": "pin_chal_newpin",
+                    }.get(seg[4] if len(seg) > 4 else "", "write")
+                return "write"
+            # ⛌ ⛌ التجديد الصامت: سقف عادي (default) — مش
+            #    بالدقيقة. المستخدم بيتصفح ٣٠ دقيقة وبيجدد
+            #    كل ساعتين؛ سقف ضيق هنا = يقفله وهو بي brows عادي.
+            if sub == "refresh":
+                return "default"
             # ⛌ قراءة التوكن مش كتابة
             if sub in ROUTES_READONLY:
                 return "default"
@@ -650,17 +675,75 @@ def _sign(payload: str) -> str:
     return base64.urlsafe_b64encode(mac).decode().rstrip("=")[:24]
 
 
-def _make_token(user_id: str) -> str:
-    """payload.base64url(signature)"""
-    p = base64.urlsafe_b64encode(user_id.encode()).decode().rstrip("=")
+#  ⛌ عمر التوكن: ساعتين بالظبط (٧٢٠٠ ثانية).
+#     📌 القرار: الـidle (٣٠ دقيقة من غير لمسة) بيتحسب في
+#        المتصفح، مش هنا. فلو اتقفلت، الواجهة بتطلب توثيق تاني
+#        بالبصمة (موبايل) أو ٤ أرقام (تابلت/لاب) — والحالة دي
+#        خالص مش في السيرفر. يبقى عمر التوكن ٢ ساعة كفاية، ومش
+#        لازم نخلي التوكن صالح أسبوع.
+#     📌 التجديد الصامت في الخلفية بيجدد **قبل** ما يخلص
+#        (مش لما يخلص) — عشان كده ساعتين مش ٦٠ ثانية وماشي.
+#     ⛔ التوكن مش متغلبش عليه: التوقيع HMAC + وقت الانتهاء جوه
+#        الـpayload، فما حدش يعدّله ويطيل عمره.
+TOKEN_TTL = 2 * 3600
+
+
+def _make_token(user_id: str, ttl=None) -> str:
+    """payload.base64url(signature) — payload = «uid|exp»"""
+    exp = int(time.time()) + int(ttl if ttl else TOKEN_TTL)
+    p = base64.urlsafe_b64encode(
+        f"{user_id}|{exp}".encode()).decode().rstrip("=")
     return f"{p}.{_sign(p)}"
 
 
-def _read_token(tok: str):
-    """يرجّع user_id أو None — أي input غريب يرجّع None"""
+def _token_parts(tok: str):
+    """
+    ⛌Split واحد للتوكن: بيرجّع (user_id, exp) أو (None, 0).
+       كل حاجة بتقرأ توكن (require_user والتجديد) بتمرّ من هنا،
+       فمفيش مسار يقرا توكن من غير ما يتحقق من تاريخ الانتهاء.
+
+    ⛔ توكن من غير «|» = الشكل القديم (من قبل ما يبقى له عمر)
+       → مرفوض. مافيش توكن بلا تاريخ انتهاء: التوكن القديم كان
+       صالح للأبد، وده أوسع من اللازم في حد بيقرا لوج السيرفر.
+       (أول مرة بعد النشر، المستخدمين بيرجعوا يسجّلوا دخول —
+        مرة واحدة وبعدها التوكن الجديد بيمدّ نفسه لوحده.)
+    """
     # ⛔ مفيش سر = مفيش توكن. بيشتغل كقفل أمان إضافي.
     if not _SECRET:
-        return None
+        return None, 0
+    try:
+        parts = str(tok or "").split(".")
+        if len(parts) != 2:
+            return None, 0
+        p, sig = parts
+        if not p or not sig:
+            return None, 0
+        if not hmac.compare_digest(sig, _sign(p)):
+            return None, 0
+        pad = "=" * (-len(p) % 4)
+        # ⛌ strict مش ignore: بايت مش صالح = رفض. الـdecode كان
+        #    بيبتلع الأخطاء وبيطلع نص مش متوقع.
+        raw = base64.urlsafe_b64decode(p + pad).decode("utf-8", "strict")
+        if "|" not in raw:
+            return None, 0
+        uid, _, exp_s = raw.partition("|")
+        # ⛔ الـuid نص قصير مطبوع (20 حرف hex دلوقتي). التوقيع بيغطي
+        #    الـpayload أصلاً — دي طبقة تانية بس ضد المدخلات الغريبة.
+        if not uid or len(uid) > 64 or not uid.isascii() or not uid.isprintable():
+            return None, 0
+        exp = int(exp_s)
+        if exp <= int(time.time()):
+            return None, 0
+        return uid, exp
+    except Exception:
+        return None, 0
+
+
+def _read_token(tok: str):
+    """يرجّع user_id أو None — التوكن المنتهي زي الغلط بالظبط"""
+    return _token_parts(tok)[0]
+
+
     try:
         parts = str(tok or "").split(".")
         if len(parts) != 2:
@@ -710,7 +793,7 @@ def _load_users():
 def _save_users(d):
     """⛔⛔ الكتابة لازم تكون ذرّية ومقفولة.
        الكتابة العادية كانت: فتح الملف → مسحه → كتابة.
-       أي قارئ في نفس اللحظة كان بيلاقي {} —和生产 بتمسح المستخدمين.
+       أي قارئ في نفس اللحظة كان بيلاقي {} — وفي الإنتاج بتمسح المستخدمين.
        الحل: نكتب في ملف مؤقت ونعمل rename ذرّي، ومن غير قفل."""
     try:
         tmp = USERS_FILE.with_suffix(".tmp")
@@ -1287,6 +1370,391 @@ def _pinlock_reset(keys):
 
 
 # ══════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════
+#  ⏱️ القاعدة ① — نافذة ٣ محاولات في ٦٠ ثانية
+#  ──────────────────────────────────────────────────────────────
+#  📌 الده مش بديل عن القفل الذكي فوق — ده **طبقة تانية فوقه**:
+#
+#     · القاعدة ② (فوق) = ٥ غلط **إجمالياً** → قفل ١٥ دقيقة.
+#       بتمسك أي حد tries يتخطى النافذة بإطالة الوقت.
+#     · القاعدة ① (دي)  = ٣ غلط **جوّه ٦٠ ثانية** → لازم كود
+#       على الإيميل بدل ما يفضل يجرّب.
+#
+#  ⛔⛔ ليه ٦٠ ثانية بالظبط (ومفيش نافذة أطول):
+#     الباسورد ٤ أرقام = ١٠٬٠٠٠ احتمال. اللي بيحاول يفحص
+#     المساحة كلها مش هيفرق: ١٠٬٠٠٠ ÷ ٣ ≈ ٣٣٣٣ نافذة.
+#     ⛔ لو النافذة كانت دقيقتين، الحساب كله هيتفحص في ٤٤ ساعة.
+#     ⛔ لو كانت ٦٠ ثانية، الحساب كله هيتفحص في ٥٥ ساعة —
+#        والفرق الأهم: في الحالتين المهاجم بيتقفل بعد ٣ نافذة.
+#        بس النافذة القصيرة بتقفل الباب على أي حاجة أطول.
+#
+#  📌 النافذة **سلايدر** مش ثابتة: كل محاولة غلط بتقيس الـ٦٠
+#     ثانية من **أول** محاولة في النافذة الحالية. لو عدّت ٦٠
+#     ثانية من غير محاولة جديدة، السجل بينضّف والعدّاد يبدأ من
+#     الصفر — مافيش «نافذة بتتجمّد» حد يجمع فيها ١٠ محاولات.
+#     ٣ غلط متباعدين (٣٠ ثانية بين كل واحد) مش ٣ غلط في نافذة:
+#     المحاولة الأولى بتخرج من النافذة قبل ما التالتة تنزل.
+
+PIN_WINDOW_SECONDS = 60            # ⛌ طلب المواصفات: ٦٠ ثانية بالظبط
+PIN_WINDOW_FAILS = 3               # ⛌ طلب المواصفات: ٣ محاولات
+
+
+def _pin_now():
+    """
+    ⏱️ ساعة النافذة — دالة واحدة عشان كل الكود ياخد الوقت منها.
+
+    ⛌ النافذة دي **مش** على القرص كقفل، بس بتتخزّن في نفس الملف
+       (pinlock.json تحت مفتاح «w:») — عشان redeploy في نص
+       النافذة مايمسحش العدّاد. الذاكرة لوحدها كانت هتخلّي
+       «٤ غلط → deploy → ٤ غلط» يمرّ من غير ما يتحسّ.
+    """
+    return time.time()
+
+
+def _pin_window_prune(store):
+    """
+    🧹 نضّف السجلات اللي خلصت نافذتها.
+
+    ⛔ «لو عدّت من غير محاولة جديدة العدّاد يبدأ من الصفر» —
+       بالظبط السطر ده: أي طابع أقدم من ٦٠ ثانية بينمسح، ولو
+       السجل فضّى من غيره بينمسح هو كمان.
+    """
+    now = _pin_now()
+    w = store.get("w") or {}
+    for key in list(w.keys()):
+        rec = w.get(key) or {}
+        live = [t for t in (rec.get("t") or [])
+                if (now - t) < PIN_WINDOW_SECONDS]
+        if live:
+            rec["t"] = live
+            w[key] = rec
+        else:
+            w.pop(key, None)
+    store["w"] = w
+    return store
+
+
+def _pin_window_peek(keys):
+    """
+    👁️ قراءة بس — كام محاولة غلط في نافذة الـ٦٠ ثانية دي؟
+    بيرجّع أكبر عدد في أي واحد من الـkeys (الباسورد أو الـIP).
+    مافيش تعديل على أي ملف.
+    """
+    now = _pin_now()
+    best = 0
+    try:
+        store = _pinlock_load()
+    except Exception:
+        return 0
+    w = store.get("w") or {}
+    for k in keys:
+        rec = w.get(k) or {}
+        n = 0
+        for t in (rec.get("t") or []):
+            if (now - t) < PIN_WINDOW_SECONDS:
+                n += 1
+        best = max(best, n)
+    return best
+
+
+def _pin_window_fail(keys):
+    """
+    ⛔ يسجّل محاولة غلط جوّه النافذة وبيقفل **هو** المفتاح.
+
+    بيرجّع (عدد المحاولات في النافذة، محتاج كود إيميل؟)
+
+    📌 الترتيب مع القاعدة ② مهم: المستدعي بينادي `_pinlock_fail`
+       **الأول**. يعني لو fifth محاولة وصلت: القفل الـ١٥ دقيقة
+       بياخد الأولوية (٥ إجمالاً)، والقاعدة ① بتشتغل بس لحد
+       ما القفل يسيب المجال. والاتنين شغالين مع بعض زي ما هما.
+    """
+    now = _pin_now()
+    with PINLOCK_LOCK:
+        store = _pinlock_load()
+        _pinlock_purge(store)
+        _pin_window_prune(store)
+        w = store["w"]
+        best = 0
+        for k in keys:
+            rec = w.get(k) or {}
+            live = [t for t in (rec.get("t") or [])
+                    if (now - t) < PIN_WINDOW_SECONDS]
+            live.append(now)
+            rec["t"] = live
+            w[k] = rec
+            best = max(best, len(live))
+        _pinlock_save(store)
+    return best, best >= PIN_WINDOW_FAILS
+
+
+def _pin_window_reset(keys):
+    """✅ دخول صح / فتح الحساب — النافذة تصفّر"""
+    with PINLOCK_LOCK:
+        store = _pinlock_load()
+        w = store.get("w") or {}
+        for k in keys:
+            w.pop(k, None)
+        store["w"] = w
+        _pinlock_save(store)
+
+
+# ══════════════════════════════════════════════════════════════════
+#  📬 كود الإيميل — فتح دائم للحساب
+#  ──────────────────────────────────────────────────────────────
+#  📌 المسار: ٣ غلط في ٦٠ ثانية (القاعدة ①) → المستخدم يشوف
+#     «اكتب إيميلك» → كود ٦ أرقام في بريده → بعد ما يتقبل يختار
+#     ٤ أرقام جديدة → الحساب شغّال بالباسورد الجديد للأبد.
+#
+#  ⛔⛔ ليه الحساب بيتفتح بالإيميل أصلاً ومافيش أحسن؟
+#     لأن ٤ أرقام = ١٠٬٠٠٠ احتمال، والقفل بيقفل المستخدم نفسه
+#     مع المهاجم. من غير مسار استرجاع، المستخدم اللي نسي باسورده
+#     بيضيع — ومن غير إيميل مافيش حاجة تتأكد إنها إنت.
+#     ⛔ الإيميل لوحده بيفتح الحساب: **مفيش باسورد حالي** ولا
+#        كلمة سر ولا كود قديم مطلوبين. هوى الإيميل + الكود بس.
+#
+#  ⛔ الكود الخام مايتكتبش في أي مكان:
+#     · في الرد      → لأ (الرد عام ومفيهوش الكود)
+#     · في users.json → لأ
+#     · في اللوج     → لأ (حتى لو مافيش خدمة إيميل)
+#     · في pinchal.json → لأ، **هاش بس** (HMAC بـ_SECRET)
+#  ⛔ الكود من `secrets.randbelow` — ⛔ مش `random` و ⛔ مش
+#     متغيّر من الوقت زي الكود القديم بتاع الاسترجاع.
+
+PIN_CHAL_FILE = Path("/app/pinchal.json")
+PIN_CHAL_LOCK = threading.Lock()
+PIN_CHAL_TTL = 10 * 60              # ⛌ طلب المواصفات: ١٠ دقايق بالظبط
+PIN_CHAL_WRONG = 5                  # ⛌ ٥ غلط على الكود = الكود يموت
+PIN_CHAL_PER_DAY = 3                # ⛌ ٣ أكواد لكل إيميل في اليوم
+PIN_CHAL_KEEP = 2 * 86400           # ننضّف السجلات بعد يومين
+PIN_UNLOCK_TTL = 10 * 60            # مهلة اختيار الباسورد الجديد
+# ⛌⛌ ٦ أرقام بظبط — [0-9] مش \d — زي الباسورد بالظبط.
+#    الـ\d في Python بيقبل أرقام Unicode، فـ«٧٣١٤٠٥» كانت
+#    هتعدّي وتتفق مع كود إنجليزي = باب تسلل مش ضوضاء.
+_CHAL_CODE_RE = _re_guard.compile(r"^[0-9]{6}$")
+
+
+def _chal_load():
+    try:
+        if PIN_CHAL_FILE.exists():
+            d = json.loads(PIN_CHAL_FILE.read_text(encoding="utf-8"))
+            if isinstance(d, dict):
+                d.setdefault("c", {})   # أكواد الإيميل
+                d.setdefault("g", {})   # توكين الفتح المؤقت
+                return d
+    except Exception:
+        pass
+    return {"v": 1, "c": {}, "g": {}}
+
+
+def _chal_save(d):
+    """ذرّي ونفس أسلوب pinlock.json"""
+    try:
+        tmp = PIN_CHAL_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(PIN_CHAL_FILE)
+    except Exception as e:
+        print(f"  💾 ⛔ pinchal.json: {type(e).__name__}", flush=True)
+
+
+def _chal_hash(code, email):
+    """
+    🔒 هاش الكود — **الكود الخام مايتخزّنش أبداً**.
+
+    ⛌ HMAC بالسر بتاع التوكن + الإيميل: نفس الكود على إيميلين
+       مختلفين = هاشين مختلفين، ونفس الإيميل بكودين = اتنين.
+       ⛔ مقارنة ثابتة الزمن (compare_digest) في التحقق.
+    """
+    msg = "chal|" + str(email or "").strip().lower() + "|" + str(code or "")
+    return hmac.new(_SECRET.encode(), msg.encode(), hashlib.sha256).hexdigest()
+
+
+def _chal_prune(d):
+    """
+    🧹 نضّف: الكود بعد ١٠ دقايق، والتوكن المؤقت بعد ١٠ دقايق،
+       وعدّاد اليوم بعد يومين. الملف مايكبرش بلا حدود.
+    """
+    now = int(time.time())
+    day = now // 86400
+    c = d.get("c") or {}
+    for em in list(c.keys()):
+        rec = c.get(em) or {}
+        if now - int(rec.get("s") or 0) > PIN_CHAL_TTL:
+            rec.pop("h", None)      # ⛔ الهاش
+            rec.pop("s", None)      # ⛔ وقت الإرسال
+            rec.pop("w", None)      # ⛔ عدّاد الغلط
+        if int(rec.get("d") or 0) < day - 1:
+            c.pop(em, None)
+    g = d.get("g") or {}
+    for tok in list(g.keys()):
+        if now - int((g.get(tok) or {}).get("e") or 0) > PIN_UNLOCK_TTL:
+            g.pop(tok, None)
+    d["c"] = c
+    d["g"] = g
+    return d
+
+
+def _chal_send(email):
+    """
+    📤 تجهيز كود الفتح — بيرجّع الكود (للإرسال) أو None.
+
+    ⛔⛔ العدّاد اليومي بيتحسب لـ**كل** طلب بإيميل، مسجّل كان أو
+       لأ. لو حسبناه للإيميلات المسجّلة بس، رد الـ429 نفسه كان
+       هيبقى «الإيميل ده موجود» — تعداد كامل في رد واحد. كده
+       الحد بيلعب نفس اللعبة على أي إيميل.
+
+    ⛔ الكود: ٦ أرقام من `secrets.randbelow` — مصدر عشوائي
+       تشفيري من الـOS، مش Mersenne Twister ومش وقت السيرفر.
+    """
+    email = str(email or "").strip().lower()[:120]
+    now = int(time.time())
+    day = now // 86400
+    with PIN_CHAL_LOCK:
+        d = _chal_prune(_chal_load())
+        c = d["c"]
+        rec = c.get(email) or {}
+        if int(rec.get("d") or 0) != day:
+            rec = {"d": day, "n": 0}
+        if int(rec.get("n") or 0) >= PIN_CHAL_PER_DAY:
+            return None                      # ⛔ الطلب الرابع → 429
+        rec["n"] = int(rec.get("n") or 0) + 1
+        c[email] = rec
+        _chal_save(d)
+
+    # ⛔⛔ مافيش باسورد في الحساب ده لازم يوصلك — الإيميل بيفتح
+    #    الحساب لوحده. فحتى لو الحساب مش موجود بنعمل الشغل
+    #    كله ونضيّع الكود (كل الردود واحدة — ما نقولش مين مسجّل).
+    code = f"{_secrets_mod.randbelow(1000000):06d}"
+    with PIN_CHAL_LOCK:
+        d = _chal_prune(_chal_load())
+        c = d["c"]
+        rec = c.get(email) or {"d": day, "n": 1}
+        rec["h"] = _chal_hash(code, email)   # ⛔ هاش بس
+        rec["s"] = now
+        rec["w"] = 0
+        c[email] = rec
+        _chal_save(d)
+    return code
+
+
+def _chal_check(email, code):
+    """
+    ✅ تحقق من كود الفتح — بيرجّع (ok, why).
+
+    ⛌ السبب بيرجع للسيرفر بس. الرد اللي بيخرج للمستخدم **واحد**
+       في كل الأحوال (غلط / منتهي / مفيش كود / الإيميل مش
+       موجود أصلاً) — عشان ما نكشفش مين عندنا حساب.
+    """
+    email = str(email or "").strip().lower()[:120]
+    with PIN_CHAL_LOCK:
+        d = _chal_prune(_chal_load())
+        c = d["c"]
+        rec = c.get(email) or {}
+        if not rec.get("h"):
+            # ⛔ مافيش كود أصلاً (مفيش طلب / اتقضى / الإيميل مش
+            #    مسجّل) — نفس النتيجة اللي المستخدم هيتشوفها لو
+            #    الكود غلط. مافيش فرق.
+            _chal_save(d)
+            return False, "no_code"
+        if int(rec.get("w") or 0) >= PIN_CHAL_WRONG:
+            # ⛔ ٥ غلط = الكود مات. مش بس مرفوض — بينمسح.
+            rec.pop("h", None)
+            rec.pop("s", None)
+            rec["w"] = 0
+            c[email] = rec
+            _chal_save(d)
+            return False, "dead"
+        got = _chal_hash(code, email)
+        if hmac.compare_digest(got, str(rec.get("h"))):
+            # ⛌ الكود واحد Lives: بينمسح فوراً بعد أول استخدام.
+            rec.pop("h", None)
+            rec.pop("s", None)
+            c[email] = rec
+            _chal_save(d)
+            return True, "ok"
+        rec["w"] = int(rec.get("w") or 0) + 1
+        if int(rec["w"]) >= PIN_CHAL_WRONG:
+            rec.pop("h", None)
+            rec.pop("s", None)
+            rec["w"] = 0
+        c[email] = rec
+        _chal_save(d)
+        return False, "wrong"
+
+
+def _chal_unlock_make(uid):
+    """
+    🔓 توكن الفتح — ⛔ **مش** توكن جلسة.
+
+    ⛔⛔ بعد ما الكود يتقبل المستخدم يدخلWebsite على طول —
+       مينفعش. لازم يختار ٤ أرقام جديدة الأول. فبنديه توكن
+       مؤقت مربوط ب_SIGNATURE تانية (_sign('u'+p) مش _sign(p)):
+       · require_user() **مش** بيقبله (401)
+       · /api/auth/refresh **مش** بيقبله (401)
+       · مينفعش يتلاعب بيه — التوقيع HMAC زي التوكن
+       · ١٠ دقايق بس، و**مرة واحدة**: بينمسح أول ما الباسورد
+         الجديد يتحط.
+    """
+    grant = _secrets_mod.token_urlsafe(18)
+    p = base64.urlsafe_b64encode(
+        f"{uid}|{grant}".encode()).decode().rstrip("=")
+    tok = f"{p}.{_sign('u' + p)}"
+    with PIN_CHAL_LOCK:
+        d = _chal_prune(_chal_load())
+        d["g"][tok] = {"u": uid, "e": int(time.time()) + PIN_UNLOCK_TTL}
+        _chal_save(d)
+    return tok
+
+
+def _chal_unlock_read(tok):
+    """يقرأ توكن الفتح — الـuid أو None. مافيش تجاوز للعمر ولا للاستخدام"""
+    if not _SECRET or not tok:
+        return None
+    try:
+        p, _, sig = str(tok).partition(".")
+        if not p or not sig:
+            return None
+        if not hmac.compare_digest(sig, _sign("u" + p)):
+            return None
+        pad = "=" * (-len(p) % 4)
+        raw = base64.urlsafe_b64decode(p + pad).decode("utf-8", "strict")
+        uid, _, grant = raw.partition("|")
+        if not uid or not grant:
+            return None
+        with PIN_CHAL_LOCK:
+            d = _chal_load()
+            rec = (d.get("g") or {}).get(tok)
+            if not rec or str(rec.get("u") or "") != uid:
+                return None
+            if time.time() > float(rec.get("e") or 0):
+                return None
+        return uid
+    except Exception:
+        return None
+
+
+def _chal_unlock_drop(tok):
+    """🗑️ التوكن المؤقت مالوش تكرار — بينمسح أول ما يتستخدم"""
+    with PIN_CHAL_LOCK:
+        d = _chal_load()
+        if (d.get("g") or {}).pop(tok, None) is not None:
+            _chal_save(d)
+
+
+def _chal_pad():
+    """
+    ⏸️ حشو بسيط — المسار اللي مافيشوش إيميل مسجّل بياخد نفس
+    الوقت تقريباً بتاع المسار اللي فيه إيميل مسجّل (كود + هاش
+    + طلب شبكة للإيميل). من غير ده: الرد واحد بس والوقت مختلف،
+    وده قناة تعداد برضه.
+    """
+    try:
+        _chal_hash("000000", "pad@pad")
+        time.sleep(0.25)
+    except Exception:
+        pass
+
+
+
 #  🧩 أدوات مشتركة لمسارات الباسورد
 #  ──────────────────────────────────────────────────────────────
 
@@ -1676,17 +2144,41 @@ def auth_pin_login():
         # ⛔⛔ المحاولة دي بتتحسب على الباسورد **عالمياً** كمان:
         #    المفتاح p: مش مربوط بجهاز، فبوتنت بـ٥٠٠ IP بيقع
         #    في نفس العدّاد = ٥ محاولات في العالم كله كل ١٥ دقيقة.
+        #    ⛌ ده **القاعدة ②** — ودي بتشتغل الأول.
         locked, retry = _pinlock_fail(keys)
         if locked:
             return _pin_locked_resp(retry)
+        # ═══ ⛔⛔⛔ القاعدة ① — نافذة ٣ محاولات في ٦٠ ثانية ═══
+        #  ٣ غلط ورا بعض جوّه ٦٠ ثانية = لازم كود على الإيميل.
+        #  ⛌ مافيش قفل هنا: القفل (١٥ دقيقة) هو **القاعدة ②**
+        #     فوق، ودي بتفتحله الباب — مش بتلغيه.
+        #  ⛌ النافذة على الباسورد وعلى الـIP، وأي واحد فيهم
+        #     عدّاده ٣ = كود إيميل. عشان «٣ باسوردات مختلفة من
+        #     جهاز واحد» تقفل برضه.
+        n_win, need_code = _pin_window_fail(keys)
+        if need_code:
+            return jsonify({
+                "ok": False,
+                "error": "محاولات كتير ورا بعض — اكتب إيميلك "
+                         "ونبعتلك كود يفتح حسابك",
+                "why": "need_code",
+                "need_code": True,
+                "attempts_left": 0,
+                "window": PIN_WINDOW_SECONDS,
+                "next": "challenge/send",
+            }), 401
         return jsonify({
             "ok": False,
             "error": "الباسورد غلط",
             "why": "bad_pin",
+            "need_code": False,
+            "attempts_left": max(0, PIN_WINDOW_FAILS - n_win),
+            "window": PIN_WINDOW_SECONDS,
         }), 401
 
     # ✅ صح — العدّاد بيتصفّر والتوقيت بيتسجل
     _pinlock_reset(keys)
+    _pin_window_reset(keys)
     with USERS_LOCK:
         users = _load_users()
         rec = users.get(uid)
@@ -1839,6 +2331,372 @@ def auth_pin_change():
 
 
 # ══════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════
+#  📬 كود الإيميل — الفتح الدائم (المسارات الثلاثة)
+#  ──────────────────────────────────────────────────────────────
+#  POST /api/auth/pin/challenge/send     { email }
+#  POST /api/auth/pin/challenge/verify    { email, code }
+#  POST /api/auth/pin/challenge/newpin    { new_pin } + توكن الفتح
+#
+#  ⛔⛔⛔ تعداد الإيميلات (enumeration) — الرد **واحد** في كل الحالات:
+#     إيميل مسجّل / إيميل مش مسجّل / إيميل منته — نفس الـstatus
+#     ونفس الـbody ونفس الوقت تقريباً. مافيش ولا endpoint في
+#     المسار كله بيفرّق.
+
+
+#  📌 الرد الواحد — ثابت واحد في الكود بيتقري في الحالتين.
+#     مش شغلتين نفس الكلام (ده بيفرق في مسافات أو علامات).
+_CHAL_SEND_REPLY = {
+    "ok": True,
+    "msg": "لو الإيميل ده بتاعك هتلاقي الكود في بريدك",
+    "next": "challenge/verify",
+}
+#  ⛌ الرد الواحد للتحقق — غلط / منتهي / مفيش كود / مفيش حساب
+_CHAL_BAD_REPLY = {
+    "ok": False,
+    "error": "الكود غلط أو خلصت صلاحيته — اطلب كود جديد",
+    "why": "bad_code",
+}
+
+
+def _pin_chal_html(code):
+    """📨 إيميل كود الفتح — الكود بيوصل بالإيميل وخلاص"""
+    return f"""<!doctype html><html dir="rtl"><body style="margin:0;padding:24px;background:#0f1621;font-family:system-ui,-apple-system,Segoe UI,sans-serif">
+<div style="max-width:460px;margin:0 auto;background:#16202e;border-radius:14px;padding:28px;color:#e8edf5">
+<div style="font-size:26px">🐙</div>
+<h2 style="margin:8px 0 4px;font-size:20px">OCTA — كود فتح حسابك</h2>
+<p style="margin:0 0 20px;color:#93a1b5;font-size:14px">محاولات كتير على الباسورد</p>
+<div style="background:#0f1621;border:1px solid #2b3a4f;border-radius:12px;padding:22px;text-align:center;letter-spacing:10px;font-size:34px;font-weight:800;color:#d4af37">{code}</div>
+<p style="margin:18px 0 0;color:#e8edf5;font-size:14px;line-height:2">
+الكود صالح <b>10 دقايق</b>، و<b>مرة واحدة</b> بس.<br>
+بعد ما تدخّله، هتختار <b>4 أرقام جديدة</b> — والباسورد القديم هيبطّل خالص.
+</p>
+<div style="background:#0f1621;border:1px solid #2b3a4f;border-radius:12px;padding:16px;color:#93a1b5;font-size:13px;line-height:2">
+⛔ <b style="color:#e8edf5">مفيش باسورد في الإيميل ده</b> — الكود مينفعش يفتح أي حساب تاني.<br>
+⛔ الكود يموت بعد 5 محاولات غلط.
+</div>
+<p style="margin:18px 0 0;color:#5f6c80;font-size:12px;line-height:1.9">
+لو مش إنت اللي عملت المحاولات دي، تجاهل الإيميل — محدش بيقدر يدخل من غير الكود.
+</p>
+</div>
+<p style="max-width:460px;margin:14px auto 0;color:#5f6c80;font-size:12px;text-align:center">octashares.com — قراءة، مش نصيحة</p>
+</body></html>"""
+
+
+@app.route("/api/auth/pin/challenge/send", methods=["POST"])
+@_pin_json
+def auth_pin_chal_send():
+    """
+    📬 طلب كود الفتح — body: { "email" }
+
+    ⛔⛔ الرد **واحد** في كل الأحوال. الإيميل المسجّل بيوصلله كود،
+       والإيميل الغلط مابياخدش حاجة — ونفس الرد بالظبط في
+       الحالتين. محدش يقدر يستنتج مين عندنا حساب.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    email = str(data.get("email") or "").strip().lower()[:120]
+    ok, why = _valid_email(email)
+    if not ok:
+        return jsonify({"ok": False, "error": why, "why": "bad_email"}), 400
+
+    ip = _client_key()
+    k_ip = _pin_keys(ip=ip)
+    # ⛔ القفل الـ15 دقيقة (القاعدة ②) بيفضل شغال على المسار ده
+    #    كمان: مينفعش حد يتخطى النافذة بإطالة الوقت ويطلب كود.
+    locked, retry = _pin_locked(k_ip)
+    if locked:
+        return _pin_locked_resp(retry)
+
+    # ⛔ الكود بيتولّد ويُخزَّن (هاش بس) لأي إيميل — عشان المسار
+    #    ياخد نفس الوقت وال replying في الحالتين.
+    code = _chal_send(email)
+    if code is None:
+        # ⛌ الحد اليومي: ٣ أكواد لكل إيميل في اليوم.
+        #    العدّاد بيتحسب لكل طلب بأي إيميل (مسجّل أو لأ)
+        #    عشان الـ429 نفسه ما يبقاش دليل على وجود الحساب.
+        return jsonify({
+            "ok": False,
+            "error": f"⛔ طلبت {PIN_CHAL_PER_DAY} أكواد على الإيميل ده "
+                     f"اليوم — استنى بكرة",
+            "why": "daily_limit",
+        }), 429
+
+    if _pin_by_email(email)[1]:
+        _send_mail(email, "كود فتح حسابك — OCTA", _pin_chal_html(code))
+        if not MAIL_ON:
+            # ⛔ مافيش خدمة إيميل = مفيش كود. ما بنطبعش الكود خالص —
+            #    لازم RESEND_API_KEY يكون مضبوط في الإنتاج.
+            print(f"  📧 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — كود الفتح "
+                  f"ماتبعتش لـ: {email}", flush=True)
+    else:
+        # ⛌ إيميل مش مسجّل: مافيش إرسال، ومافيش كلام — نفس الرد.
+        _chal_pad()
+
+    return jsonify(_CHAL_SEND_REPLY), 200
+
+
+@app.route("/api/auth/pin/challenge/verify", methods=["POST"])
+@_pin_json
+def auth_pin_chal_verify():
+    """
+    ✅ التأكد من كود الفتح — body: { "email", "code" }
+
+    ⛔⛔⛔ مافيش **توكن جلسة** في الرد. المنطق: الكود الصح مش
+       دخول — هو خطوة نص الطريق. اللي بعده إجباري: اختيار
+       ٤ أرقام جديدة (مسار newpin). لو رجعنا بتوكن هنا، حد
+       يقرا لوج السيرفر أو ياخد الرد هيكون داخل من غير ما يختار
+       باسورد — والباسورد القديم لسه شغال = الحساب مكشوف
+       لحد تاني.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    email = str(data.get("email") or "").strip().lower()[:120]
+    code = str(data.get("code") or "").strip()
+    ok, why = _valid_email(email)
+    if not ok:
+        return jsonify({"ok": False, "error": why, "why": "bad_email"}), 400
+    # ⛌ ٦ أرقام بالظبط — غلط في الشكل = غلط عادي (401 مش 400،
+    #    عشان ما نديش معلومة زيادة على اللي الـverify بيرجّعه)
+    if not _CHAL_CODE_RE.match(code):
+        return jsonify(_CHAL_BAD_REPLY), 401
+
+    ip = _client_key()
+    good, why = _chal_check(email, code)
+    uid, u = _pin_by_email(email) if good else (None, None)
+    # ⛔ الإيميل مش مسجّل = نفس الرد بالظبط زي الكود الغلط.
+    if not good or u is None:
+        return jsonify(_CHAL_BAD_REPLY), 401
+
+    # ⛌ الكد اتقبل — العدّادات بتتنضف من على الجهاز عشان
+    #    الباسورد الجديد يشتغل على طول.
+    #    ⛌ عدّاد الباسورد القديم (مفتاح p:) مش بنمسحه — إحنا
+    #    مش شايفين الباسورد القديم أصلاً، وهو كمان بقى بلا
+    #    قيمة بعد ما الباسورد الجديد يتحط.
+    _pinlock_reset(_pin_keys(ip=ip))
+    _pin_window_reset(_pin_keys(ip=ip))
+
+    return jsonify({
+        "ok": True,
+        "msg": "الكود صح — اختار 4 أرقام جديدة",
+        "need_pin": True,
+        "unlock": _chal_unlock_make(uid),
+        "next": "challenge/newpin",
+    }), 200
+
+
+@app.route("/api/auth/pin/challenge/newpin", methods=["POST"])
+@_pin_json
+def auth_pin_chal_newpin():
+    """
+    🔐 اختيار الباسورد الجديد — body: { "new_pin" } + توكن الفتح
+
+    ⛔⛔ توكن الفتح **مش** توكن جلسة: require_user() بيرفضه
+       (التوقيع مختلف) و /api/auth/refresh بيرفضه كمان. هو
+       مالوش صلاحية غير إنه يوصّلنا لطلب الباسورد الجديد مرة واحدة.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    unlock = _bearer()
+    uid = _chal_unlock_read(unlock)
+    if not uid:
+        return jsonify({
+            "ok": False,
+            "error": "انتهت صلاحية فتح الحساب — اطلب كود جديد",
+            "why": "unlock_expired",
+        }), 401
+
+    new_pin = str(data.get("new_pin") or "").strip()
+    # ⛌ نفس شروط التسجيل: ٤ أرقام بالظبط، بيشمل الفريد
+    if not _PIN_RE.match(new_pin):
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد 4 أرقام بالظبط",
+            "why": "bad_pin",
+            "hint": "4 أرقام من 0000 لـ 9999",
+        }), 400
+
+    ip = _client_key()
+    keys = _pin_keys(pin=new_pin, ip=ip)
+    locked, retry = _pin_locked(keys)
+    if locked:
+        return _pin_locked_resp(retry)
+
+    # ⛌ الباسورد الجديد فريد — زي أول تسجيل بالظبط، عشان مفيش
+    #    حسابين بنفس الأرقام ولا حد يدخل بحسابه بلباسورد حد تاني.
+    idx = _pin_index(new_pin)
+    # 📌 فاضي معناها «ما فيش مشكلة» — زي conflict في مسار التسجيل.
+    #    ⛔ لو ابتديناها بـ"taken" كانت الكتابة بتتم والرد يطلع
+    #    409 في نفس الوقت (الباسورد اتغير والرد بيقول «مستخدم»).
+    bad = ""
+    out = None
+    with USERS_LOCK:
+        users = _load_users()
+        rec = users.get(uid)
+        if rec is None:
+            bad = "no_user"
+        else:
+            taken = False
+            stale = False
+            for other_uid, o in users.items():
+                if other_uid == uid:
+                    continue
+                got = str(o.get("pin_idx") or "")
+                if len(got) == len(idx) and hmac.compare_digest(got, idx):
+                    taken = True
+                    break
+                if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
+                    stale = True
+            if not taken and stale:
+                for other_uid, o in users.items():
+                    if other_uid == uid:
+                        continue
+                    ph = str(o.get("pin_hash") or "")
+                    if ph and hmac.compare_digest(
+                            ph, _pin_hash(new_pin, o.get("pin_salt") or "")):
+                        taken = True
+                        break
+            if taken:
+                bad = "taken"
+            else:
+                # 🔄 salt جديد مع كل تغيير — الباسورد القديم
+                #    بيموت خالص: الهاش القديم بقى بلا قيمة خالص
+                #    حتى لو اتسرّب من أي مكان.
+                salt = _pin_salt_new()
+                rec["pin_salt"] = salt
+                rec["pin_hash"] = _pin_hash(new_pin, salt)
+                rec["pin_idx"] = idx
+                rec["pin_idx_id"] = _PIN_PEPPER_ID
+                rec["pin_changed"] = int(time.time())
+                rec["pin_recovered"] = int(time.time())
+                rec["pin_recoveries"] = int(rec.get("pin_recoveries") or 0) + 1
+                _save_users(users)
+                out = _pin_user_json(rec)
+
+    if bad == "no_user":
+        return jsonify({
+            "ok": False,
+            "error": "الحساب مش موجود",
+            "why": "no_user",
+        }), 404
+
+    if bad == "taken":
+        # ⛌ زي مسار التسجيل: 409 من غير عدّاد = قناة مجانية
+        #    لتس "¿الباسورد ده مستخدم من قبل؟" — فبيتحسب.
+        locked, retry = _pinlock_fail(keys)
+        if locked:
+            return _pin_locked_resp(retry)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد ده مستخدم من قبل — اختار غيره",
+            "why": "pin_taken",
+        }), 409
+
+    # ✅ اتحفظ — توكن الفrompt مالوش تكرار
+    _chal_unlock_drop(unlock)
+    _pinlock_reset(keys)
+    _pin_window_reset(keys)
+    print(f"  🔓 اتفتح الحساب بباسورد جديد: {uid}")
+
+    return jsonify({
+        "ok": True,
+        "msg": "الباسورد الجديد اتحفظ — من دلوقتي ادخل بيه",
+        "token": _make_token(uid),
+        "user": out,
+    }), 200
+
+
+# ══════════════════════════════════════════════════════════════════
+#  🔄 تجديد صامت — كل ساعتين من غير أي شاشة
+#  ──────────────────────────────────────────────────────────────
+#  POST /api/auth/refresh — Authorization: Bearer <token>
+#
+#  ⛔⛔⛔ **التوكن القديم بس**. مافيش باسورد، مافيش إيميل،
+#     مافيش كود، مافيش بصمة — ولا حاجة تانية. أي واحدة فيهم
+#     في الـbody = رفض (400). المسار ده مالوش أي مسار تاني
+#     يفتح: لو التوكن مش صالح أو خلصت مدةه → 401 وخلاص،
+#     من غير ما يطلب باسورد ومن غير ما يفتح بوابة sneaky.
+#
+#  📌 التوكن ٧ أيام والواجهة بتجدد كل ساعتين → المستخدم
+#     يقعد داخل طول ما المتصفح مفتوح، ومحدش بيشوف شاشة.
+
+
+@app.route("/api/auth/refresh", methods=["POST"])
+@_pin_json
+def auth_refresh():
+    """
+    🔄 تجديد صامت — التوكن القديم بس.
+
+    200 → { ok, token, expires_in }
+    401 → التوكن مش صالح أو خلصت مدته (وفيه غير كده ولا حاجة)
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    # ⛔⛔ أي credential في الـbody = رفض. المسار ده مصمم إنه
+    #    يتبنى بالتوken بس، ولو قبل حاجة كمانبقى ده فتح
+    #    ثانٍ مستخبي جوه «تجديد».
+    for k in ("pin", "old_pin", "new_pin", "password", "key",
+              "email", "code"):
+        if str(data.get(k) or "").strip():
+            return jsonify({
+                "ok": False,
+                "error": "⛔ التجديد الصامت مش بياخد باسورد ولا إيميل "
+                         "ولا كود — التوكن القديم بس",
+                "why": "no_credentials",
+            }), 401
+
+    uid, exp = _token_parts(_bearer())
+    if not uid:
+        # ⛔ مافيش استثناء: لا باسورد ولا إيميل ولا كود.
+        #    الواجهة بترمي التوكن وتورّد البوابة.
+        return jsonify({
+            "ok": False,
+            "error": "انتهت الجلسة — سجّل دخول تاني",
+            "why": "unauthorized",
+        }), 401
+
+    with USERS_LOCK:
+        u = _load_users().get(uid)
+    if not u:
+        return jsonify({
+            "ok": False,
+            "error": "انتهت الجلسة — سجّل دخول تاني",
+            "why": "unauthorized",
+        }), 401
+
+    return jsonify({
+        "ok": True,
+        "token": _make_token(uid),
+        "expires_in": TOKEN_TTL,
+        "renewed": True,
+        "user": {
+            "id": str(u.get("id") or uid),
+            "name": str(u.get("name") or "مستخدم"),
+            "email": u.get("email") or None,
+        },
+    }), 200
+
+
 #  🔑 استرجاع كلمة السر
 #  ──────────────────────────────────────────────────────────────
 #  قبل: لو المستخدم نسي كوده، خلاص خسران حسابه.
@@ -1935,7 +2793,7 @@ def _otp_purge(d):
     return {k: v for k, v in d.items() if now - v.get("sent", 0) < OTP_TTL}
 
 
-# ⛔⛔ آخر نتيجة إرسال — كانت بتتبلع وال말هاش أي أثر.
+# ⛔⛔ آخر نتيجة إرسال — كانت بتتبلع ومالهاش أي أثر.
 #    «الموقع قال إنه بعت» و«Resend رفض» كانوا بيتبانوا نفس الحاجة.
 MAIL_LAST = {"ok": None, "at": 0, "why": ""}
 
@@ -2462,7 +3320,7 @@ SYSTEM_PROMPT = """أنت محرك التحليل المالي OCTA — خبير
   - حجم سوقي < 1 مليار → 35
 
 **risk** = 100 - (Beta × 15 + volatility × 3 + نسبة الدين × 3)
-  - ⚠️ لاحظ: المحور ده عكسي — يعني， أعلى = رقم أقل
+  - ⚠️ لاحظ: المحور ده عكسي — يعني، أعلى = رقم أقل
 
 **news** = 45 افتراضياً (لأن ما فيش أخبار provided)
   - لو في خبر ايجابي في analysis_pass → ترفع
@@ -3035,7 +3893,7 @@ def facts_text(item):
     add("أداء 3 شهور", "perf_3m", pct=True)
     add("أداء السنة", "perf_y", pct=True)
 
-    f.append("\n  【التحليل المالي — أرقام حقيقية】")
+    f.append("\n  «التحليل المالي — أرقام حقيقية»")
     add("مضاعف الربحية", "pe")
     add("مضاعف الكتاب", "pb")
     add("العائد على حقوق الملكية", "roe", pct=True)
@@ -3045,7 +3903,7 @@ def facts_text(item):
     add("ربحية السهم", "eps")
     add("القيمة السوقية", "mkt_cap", "ج.م", dec=0)
 
-    f.append("\n  【المخاطرة والسيولة】")
+    f.append("\n  «المخاطرة والسيولة»")
     add("معامل المخاطرة (Beta)", "beta")
     add("التقلب اليومي", "volatility", pct=True)
     add("حجم نسبي مقابل 10 أيام", "rel_volume")
@@ -5841,7 +6699,7 @@ def _users_io_test():
         if p.exists():
             first = int(p.read_text(encoding="utf-8").strip() or 0)
             return {"survived": True, "age_s": now - first,
-                    "file": str(p), "note": "��لملف فضل موجود بعد النشر"}
+                    "file": str(p), "note": "الملف فضل موجود بعد النشر"}
         p.write_text(str(now), encoding="utf-8")
         return {"survived": False, "created_now": True, "file": str(p),
                 "note": "اتعمل دلوقتي — جيني تاني بعد النشر شوف"}
