@@ -139,7 +139,7 @@ def _make_snapshot_id(ts_iso):
     الهدف: لما المستخدم يفتح صفحتين أو تحديثين، يقدر يعرف إن
     البيانات قديمة ولا جديدة. مثال: "20261011-143025-a3f2"
 
-    من ts_iso ناخد التاريخ والوقت، ومن hash للبيانات变化的
+    من ts_iso ناخد التاريخ والوقت، ومن hash للبيانات المتغيّرة
     جزء عشان الرقم يتغير لو المحتوى اتغير.
     """
     try:
@@ -635,6 +635,92 @@ def _valid_email(e):
         return False, "الإيميل فيه محارف ممنوعة"
     return True, ""
 
+# ══════════════════════════════════════════════════════════════════
+# 🔐 دخول بالإيميل — كود من 6 أرقام يتبعت على الإيميل
+# ══════════════════════════════════════════════════════════════════
+# 📌 بدل «اسم + إيميل + كود يختاره المستخدم»:
+#    المستخدم يكتب إيميله → يستلم كود → يدخل بيه.
+#    ⛔ صعب إن حد يدخل بإيميل مش إيميله، وصعب إننا نكشف مين مسجّل.
+
+@app.route("/api/auth/otp/send", methods=["POST"])
+def otp_send():
+    """POST { email } → يبعت كود 6 أرقام"""
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email") or "").strip().lower()[:120]
+    ok, why = _valid_email(email)
+    if not ok:
+        return jsonify({"error": why}), 400
+
+    code = _otp_new(email)
+    if not code:
+        # ⛌ تجاوز الحد اليومي — نفس الرسالة العامة
+        return jsonify({"ok": True, "msg": "لو الإيميل ده صح، بيوصلك كود"}), 200
+
+    nm = str(data.get("name") or "").strip()[:40]
+    _send_mail(email, f"كود الدخول — OCTA", _otp_html(code, nm))
+    if not MAIL_ON:
+        print(f"  🔐 كود {email}: {code}")
+
+    # ⛔ ⛔ نفس الرد في كل الحالات — ما نقولش «الإيميل ده مش موجود»:
+    #    الرد ده بيكشف مين عندنا حساب ومين لأ.
+    return jsonify({"ok": True, "msg": "لو الإيميل ده صح، بيوصلك كود"}), 200
+
+
+@app.route("/api/auth/otp/verify", methods=["POST"])
+def otp_verify():
+    """POST { email, code } → يرجّع token"""
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email") or "").strip().lower()[:120]
+    code = str(data.get("code") or "").strip()
+
+    if not re.match(r"^\d{6}$", code or ""):
+        return jsonify({"error": "الكود 6 أرقام"}), 400
+    if not _otp_check(email, code):
+        return jsonify({"error": "الكود غلط أو خلصت صلاحيته"}), 401
+
+    # ⛔ نعمل (أو نجدد) المستخدم — الإيميل بقى هو الهوية
+    uid = _hash_key(email)[:20]
+    with USERS_LOCK:
+        users = _load_users()
+        now = int(time.time())
+        if uid not in users:
+            users[uid] = {"id": uid, "name": str(data.get("name") or "")[:40] or "مستخدم",
+                          "khash": _hash_key(str(_random.SystemRandom().randint(0, 10**9))),
+                          "email": email, "email_hash": _hash_key(email),
+                          "created": now, "portfolio": {}, "watchlist": []}
+            users[uid]["last_login"] = now
+            print(f"  👤 مستخدم جديد: {email}")
+        else:
+            users[uid]["last_login"] = now
+            nm = str(data.get("name") or "").strip()[:40]
+            if nm:
+                users[uid]["name"] = nm
+        _save_users(users)
+
+    return jsonify({
+        "ok": True, "token": _make_token(uid),
+        "user": {"id": uid, "name": users[uid]["name"], "email": email},
+    }), 200
+
+
+def _otp_html(code, name=""):
+    """الإيميل — بسيط ومقروء"""
+    who = _htmlmod.escape(name or "") or "مستخدم"
+    return f"""<!doctype html><html dir="rtl"><body style="margin:0;padding:24px;background:#0f1621;font-family:system-ui,-apple-system,Segoe UI,sans-serif">
+<div style="max-width:460px;margin:0 auto;background:#16202e;border-radius:14px;padding:28px;color:#e8edf5">
+<div style="font-size:26px">🐙</div>
+<h2 style="margin:8px 0 4px;font-size:20px">OCTA — كود الدخول</h2>
+<p style="margin:0 0 20px;color:#93a1b5;font-size:14px">أهلاً {who}</p>
+<div style="background:#0f1621;border:1px solid #2b3a4f;border-radius:12px;padding:22px;text-align:center;letter-spacing:10px;font-size:34px;font-weight:800;color:#d4af37">{code}</div>
+<p style="margin:18px 0 0;color:#93a1b5;font-size:13px;line-height:1.9">
+الكود صالح <b>15 دقيقة</b>.<br>
+⛔ لو إنت مش اللي طلبته — تجاهله. مفيش حاجة اتعملت بإيميلك.</p>
+</div>
+<p style="max-width:460px;margin:14px auto 0;color:#5f6c80;font-size:12px;text-align:center">octashares.com — قراءة، مش نصيحة</p>
+</body></html>"""
+
+
+
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
     """
@@ -728,6 +814,89 @@ def _reset_send(email, code):
     """
     print(f"[reset] {email} -> {code}", flush=True)
     return True
+
+
+
+# ══════════════════════════════════════════════════════════════════
+# 📧 إرسال الإيميل — Resend
+# ══════════════════════════════════════════════════════════════════
+# ⛌ ⛌ المفتاح **مش** هنا ولا في أي ملف. بيتقرأ من متغيرات البيئة
+#    في Railway بس:
+#        RESEND_API_KEY   = re_xxxxxxxx
+#        MAIL_FROM        = OCTA <onboarding@resend.dev>
+#
+#    ⛌ من غير مفتاح: بنردّ نفس الرسالة على كل الإيميلات
+#       (مش بنقول «الإيميل ده مش موجود») — عشان محدش يقدر
+#       يستنتج مين مسجّل عندنا.
+#    ⛌ ومن غير مفتاح بنطبع الكود في اللوج بس، عشان المالك
+#       يقدر يدخل لوحده أثناء التطوير.
+
+import random as _random
+import html as _htmlmod
+
+RESEND_KEY = str(os.environ.get("RESEND_API_KEY", "") or "").strip()
+MAIL_FROM = str(os.environ.get("MAIL_FROM", "OCTA <onboarding@resend.dev>") or "").strip()
+MAIL_ON = bool(RESEND_KEY)
+
+# عدد المحاولات في اليوم لكل إيميل — ⛌ بيمنع تخمين الكود بالقوة
+OTP_TRIES_PER_DAY = 3
+OTP_TTL = 15 * 60          # 15 دقيقة
+
+OTP_STORE = {}             # email → {code_hash, sent, tries, day}
+
+
+def _send_mail(to, subject, html):
+    """يبعت إيميل. ⛌ مابيبلعش أي خطأ —Registrationمششyg."""
+    if not MAIL_ON:
+        print(f"  📧 [بدون مفتاح] → {to} | {subject}")
+        return False
+    try:
+        r = requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {RESEND_KEY}",
+                     "Content-Type": "application/json"},
+            json={"from": MAIL_FROM, "to": [to], "subject": subject,
+                  "html": html}, timeout=20)
+        if r.status_code >= 300:
+            print(f"  📧 ⛔ {r.status_code}: {r.text[:120]}")
+            return False
+        print(f"  📧 ✅ {to}")
+        return True
+    except Exception as e:
+        print(f"  📧 ⛔ {type(e).__name__}: {str(e)[:80]}")
+        return False
+
+
+def _otp_new(email):
+    """كود جديد من 6 أرقام — ⛔ crypto مش random عشان الكود أمني."""
+    code = f"{_random.SystemRandom().randint(0, 999999):06d}"
+    now = int(time.time())
+    rec = OTP_STORE.get(email) or {}
+    day = now // 86400
+    tries = rec.get("tries", 0) if rec.get("day") == day else 0
+    if tries >= OTP_TRIES_PER_DAY:
+        return None
+    OTP_STORE[email] = {
+        "code_hash": hashlib.sha256(
+            (code + _SECRET).encode()).hexdigest(),
+        "sent": now, "tries": tries, "day": day,
+    }
+    return code
+
+
+def _otp_check(email, code):
+    rec = OTP_STORE.get(email)
+    if not rec:
+        return False
+    if int(time.time()) - rec.get("sent", 0) > OTP_TTL:
+        OTP_STORE.pop(email, None)
+        return False
+    got = hashlib.sha256((str(code) + _SECRET).encode()).hexdigest()
+    ok = hmac.compare_digest(got, rec.get("code_hash", ""))
+    if ok:
+        OTP_STORE.pop(email, None)
+    return ok
+
 
 
 RESET_STORE = {}
@@ -5520,7 +5689,7 @@ def api_egx_full():
 
 
 def _egx_full_all():
-    """الرد الكامل — الت点评 النهائي لكل الأسهم (للمستخدم المسجّل)"""
+    """الرد الكامل — التقييم النهائي لكل الأسهم (للمستخدم المسجّل)"""
     stats = _starta_stats()
     live = {s["code"]: s for s in LIVE_DATA.get("egx30", []) if s.get("code")}
     base = _load_local_stocks()
