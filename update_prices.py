@@ -4317,19 +4317,52 @@ def duplication_report():
     }
 
 
-def market_phase():
-    """يرجع حالة السوق: open / closed / weekend"""
+def cairo_now():
+    """⛌⛌ توقيت القاهرة بيشتغل من قاعدة البيانات بتاعت النظام، مش +3 ثابت.
+       مصر بترجع للتوقيت الصيفي (UTC+3) صيف و UTC+2 شتا — والـoffset الثابت
+       كان بيخلي الموقع يقول «السوق مغلق» وهو مفتوح في نص النهار.
+       ⛌ الخيار البديل (لو zoneinfo مش موجود) يقيس الإزاحة الفعلية
+       من UTC في اللحظة دي بدل ما يفترض حاجة."""
     try:
         from zoneinfo import ZoneInfo
-        now = datetime.utcnow() + timedelta(hours=3)   # UTC → القاهرة
-        cairo_now = now.time()
+        return datetime.now(ZoneInfo("Africa/Cairo"))
+    except Exception:
+        try:
+            from zoneinfo import ZoneInfo as _Z
+            _now = datetime.now(_Z("Africa/Cairo"))
+            return _now
+        except Exception:
+            pass
+    # ⛌ fallback: نقيس الإزاحة الحقيقية بدل +3 مفترضة
+    try:
+        offset = datetime.now().astimezone().utcoffset()
+        return datetime.utcnow() + (offset or timedelta(hours=2))
+    except Exception:
+        return datetime.utcnow() + timedelta(hours=2)
+
+
+def cairo_now_str():
+    try:
+        return cairo_now().strftime("%H:%M")
+    except Exception:
+        return ""
+
+
+def market_phase():
+    """يرجع حالة السوق: open / closed / weekend / pre
+
+    ⛌ حدود الجلسات بالدقائق مش بالساعات — 14:30 هي نهاية اليوم مش
+       «الساعة 15»، والفرق ده كان بيسبّب حالة غلط في آخر ساعة."""
+    try:
+        now = cairo_now()
         if now.weekday() in (4, 5):                    # الجمعة (4) والسبت (5)
             return "weekend"
-        if cairo_now.hour >= 15:
-            return "closed"
-        if cairo_now.hour < 10:
+        mins = now.hour * 60 + now.minute
+        if mins < 9 * 60 + 15:
             return "pre"
-        return "open"
+        if mins < 14 * 60 + 30:
+            return "open"
+        return "closed"
     except Exception:
         return "open"
 
@@ -4870,6 +4903,10 @@ def health():
         "tickers": len(LIVE_DATA["ticker"]),
         "stocks": len(LIVE_DATA["egx30"]),
         "gemini": "configured" if GEMINI_KEY else "NOT configured",
+        # ⛔ ⛌ الـUI بتقرأ market_phase من هنا عشان تقول «مفتوح» ولا «مغلق».
+        #    الحقل كان ناقص من الرد فالموقع كان بيقول «السوق مغلق» دايمًا.
+        "market_phase": market_phase(),
+        "cairo_time": cairo_now_str(),
         # ⛔ boolean بس — قيمة السر نفسها ما بتظهرش في أي رد أبداً.
         #    false = مفيش سر جاي من متغير بيئة (يعني وضع تطوير).
         "token_secret_configured": TOKEN_SECRET_CONFIGURED,
