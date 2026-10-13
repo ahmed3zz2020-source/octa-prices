@@ -651,12 +651,17 @@ def t_token_ttl():
     ok(jbody(r).get("expires_in") == up.TOKEN_TTL,
        "expires_in مش مساوي للـTTL")
     # ⛔ التوكن المولّد فعلاً فيه وقت انتهاء = دلوقتي + ٧٢٠٠
+    # ⛌ الشكل الجديد: «uid|exp|epoch» ⬇️ الـepoch في الآخر
+    #    (إبطال الجلسات ⬇️ تغيير الباسورد بيموت كل التوكنات)
     import base64 as _b64
     p = (r.get_json() or {})["token"].split(".")[0]
     raw = _b64.urlsafe_b64decode(p + "=" * (-len(p) % 4)).decode()
-    uid, _, exp = raw.partition("|")
-    delta = int(exp) - int(FAKE.t)
+    uid, _, rest = raw.partition("|")
+    exp_s, _, epoch_s = rest.partition("|")
+    delta = int(exp_s) - int(FAKE.t)
     ok(7190 <= delta <= 7200, "الانتهاء بعد %s ثانية" % delta)
+    # ⛔ والـepoch موجود ⬇️ وإلا إبطال الجلسات مش هيشتغل
+    ok(epoch_s != "", "مافيش epoch في التوكن ⬇️ إبطال الجلسات مكسور")
 
 
 t("عمر التوكن = ٧٢٠٠ ثانية بالظبط", t_token_ttl)

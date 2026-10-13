@@ -739,11 +739,33 @@ def _sign(payload: str) -> str:
 TOKEN_TTL = 2 * 3600
 
 
+def _user_epoch(user_id: str) -> int:
+    """⛌ قراءة الـepoch من غير القفل ⬇️ لأن دوال التوكن ممكن
+       تُستدعى **جوه** USERS_LOCK ⬇️ لو قفلنا تاني ⬇️ deadlock.
+
+       القراءة دي من ملف JSON آمنة ⬇️ و_kh всё بيستخدم
+       نفس الملف ⬇️ لو حصل تعارض ⬇️ القراءة القديمة ⬇️
+       والتواقيع بتتخزّن في الذاكرة ⬇️ ارفعها هناك.
+    """
+    try:
+        return int((_load_users().get(str(user_id)) or {}).get("token_epoch") or 0)
+    except Exception:
+        return 0
+
+
 def _make_token(user_id: str, ttl=None) -> str:
-    """payload.base64url(signature) — payload = «uid|exp»"""
+    """payload.base64url(signature) — payload = «uid|exp|epoch»
+
+    ⛔🔴 الـepoch جزء من التوقيع ⬇️ لو الـepoch بتاع المستخدم اتغيّر
+       (تغيير باسورد · استرجاع · حذف) ⬇️ التوكن القديم مابقاش يمرّ
+       ⬇️ وكل الجلسات القديمة بتموت في نفس اللحظة.
+    ⛔⛔ الدالة دي بتتنادى **من جوّه** USERS_LOCK ⬇️ فممنوع
+       أقفل جواه ⬇️ وإلا القفل نفسه يطلب القفل.
+    """
     exp = int(time.time()) + int(ttl if ttl else TOKEN_TTL)
     p = base64.urlsafe_b64encode(
-        f"{user_id}|{exp}".encode()).decode().rstrip("=")
+        ("%s|%d|%d" % (user_id, exp, _user_epoch(user_id))).encode()
+    ).decode().rstrip("=")
     return f"{p}.{_sign(p)}"
 
 
@@ -782,9 +804,20 @@ def _token_parts(tok: str):
         #    الـpayload أصلاً — دي طبقة تانية بس ضد المدخلات الغريبة.
         if not uid or len(uid) > 64 or not uid.isascii() or not uid.isprintable():
             return None, 0
+        # ⛔ payload = «uid|exp|epoch» ⬇️ نفصل الـepoch **قبل**
+        #    int(exp) ⬇️ وإلا ValueError والتوكن كله بيموت.
+        exp_s, _, _epoch_s = exp_s.partition("|")
         exp = int(exp_s)
         if exp <= int(time.time()):
             return None, 0
+
+        # ⛔🔴 إبطال الجلسات: لو الـepoch بتاع المستخدم اتغيّر
+        #    (تغيير باسورد · استرجاع · حذف) ⬇️ كل التوكنات القديمة
+        #    بتبطل فورًا ⬇️ وده اللي بيمنع توكن مسروق.
+        tok_epoch = int(_epoch_s) if _epoch_s else 0
+        if tok_epoch != _user_epoch(uid):
+            return None, 0
+
         return uid, exp
     except Exception:
         return None, 0
@@ -3709,7 +3742,15 @@ def auth_me():
 @app.route("/api/auth/delete", methods=["POST"])
 @_pin_json
 def auth_delete_account():
-    """🗑 المستخدم يحذف حسابه بنفسه — ما فيشمسار يحذف حد تاني."""
+    """🗑 المستخدم يحذف حسابه بنفسه — ما فيش مسار يحذف حد تاني.
+
+    ⛔🔴 الأسبا��ة صارت **٣ حاجات مع بعض**:
+      1. توكن جلسة صالح
+      2. الباسورد نفسه ⬇️ ⬛ يثبت إنك إنت مش حد خطف التوكن
+      3. confirm=DELETE ⬇️ ⬛ تمنع الحذف بالغلط
+    ⛔ وكل الجلسات التانية بتتمسح ⬇️ التوكن اللي إيدك مات
+       يفضل بطل مع الكود ده ⬇️ حد خطفه يقدر يحذف بيه.
+    """
     u = require_user()
     if not u:
         return jsonify({
@@ -3717,14 +3758,68 @@ def auth_delete_account():
             "error": "لازم تسجّل دخول الأول",
             "why": "unauthorized",
         }), 401
+
+    body = (request.get_json(silent=True) or {})
+    if not isinstance(body, dict):
+        return jsonify({"ok": False, "error": "طلب غير صحيح",
+                        "why": "bad_body"}), 400
+
+    # ⛔ ① لازم مكتوب DELETE بالحرف ⬇️ مافيش حذف بضغطة واحدة
+    if str(body.get("confirm") or "") != "DELETE":
+        return jsonify({
+            "ok": False,
+            "error": "اكتب DELETE في الخانة عشان نتأكد إنك عايز تحذف",
+            "why": "need_confirm",
+        }), 400
+
     uid = str(u.get("id") or "")
+    pin = str(body.get("pin") or "")
+    if not _PIN_RE.match(pin):
+        return jsonify({"ok": False, "error": "اكتب ٤ أرقام",
+                        "why": "bad_pin_format"}), 400
+
     with USERS_LOCK:
         users = _load_users()
-        if uid not in users:
+        rec = users.get(uid)
+        if not rec:
             return jsonify({"ok": False, "error": "الحساب مش موجود",
                             "why": "no_user"}), 404
-        users.pop(uid, None)
+
+        # ⛔ ② الباسورد ⬇️ توكن مسروق بدون باسورد = مابيتحذفش
+        if not _pin_verify(uid, rec, pin):
+            _pinlock_fail(_pin_keys(pin=pin, ip=_client_key()))
+            return jsonify({
+                "ok": False,
+                "error": "الباسورد غلط ⬇️ الحساب ما اتحذفش",
+                "why": "bad_pin",
+            }), 401
+
+        # ⛌ حذف ناعم: نسجّل البصمة والوقت ⬇️ لو حبينا نرجّع
+        #    الحساب، مش بنرجّع الباسورد (ما بقيناش عارفينه).
+        users[uid] = {
+            "id": uid,
+            "name": str(rec.get("name") or "")[:80],
+            "email_hash": str(rec.get("email_hash") or "")[:64],
+            "deleted_at": int(time.time()),
+            "deleted_email": str(rec.get("email") or "")[:160],
+            "pin_hash": "",          # ⛔ الباسورد بيموت مع الحساب
+            "pin_salt": "",
+            "pin_set": False,
+            "pin_idx": -1,
+            "watch": [],
+            "portfolio": [],
+            # ⛔ ③ إبطال كل الجلسات ⬇️ كل التوكنات القديمة تبقى ميتة
+            "token_epoch": int(time.time()) * 1000,
+        }
         _save_users(users)
+
+    _send_mail(
+        str(rec.get("email") or ""),
+        "تم حذف حسابك من OCTA",
+        "حسابك اتمسح بناءً على طلبك. "
+        "لو مش أنت ⬇️这道 الإيميل بتأكدلك إن حسابك اتقفل من حد تاني.",
+    )
+
     print(f"  🗑 اتمسح حساب: {uid}")
     return jsonify({"ok": True, "msg": "اتمسح الحساب بالكامل"}), 200
 
