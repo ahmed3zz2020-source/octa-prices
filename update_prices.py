@@ -6146,6 +6146,17 @@ def _egx_full_subset(codes):
 _DATA_FULL = {"mtime": 0, "payload": None, "ttl": 300}
 
 
+def _warm_data_full():
+    """⛔⛔ الملف الغني كان بيترحم بس أول ما حد يسجّل دخول.
+       فلو محدش دخل، السيرفر مبيعرفش إن الملف ناقص أصلاً.
+       ⛌ دلوقتي بيترحم عند بدء السيرفر ويطبع النتيجة في اللوج."""
+    try:
+        d = _data_full_payload()
+        print(f"[warm] data_full: {d.get('_n', 0)} سهم", flush=True)
+    except Exception as e:
+        print(f"[warm] ⛔ data_full: {type(e).__name__}: {str(e)[:120]}", flush=True)
+
+
 def _data_full_payload():
     """يقرأ data_full.json من القرص — مع كاش في الذاكرة."""
     import os as _os, json as _json
@@ -7188,3 +7199,12 @@ if __name__ == "__main__":
     print(f"Starting OCTA v3 on port {port}")
     print(f"Gemini AI: {'✅ configured' if GEMINI_KEY else '❌ NOT configured'}")
     app.run(host="0.0.0.0", port=port, debug=False)
+
+
+# ⛔ تحميل الملف الغني مرة واحدة عند الإقلاع — عشان،
+#    (١) نعرف هو موجود فعلاً قبل أي حد يدخل،
+#    (٢) أول مستخدم ما يستناش قراية 400KB.
+try:
+    _warm_data_full()
+except Exception:
+    pass
