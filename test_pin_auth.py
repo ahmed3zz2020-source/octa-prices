@@ -36,8 +36,20 @@ up.USERS_FILE = __import__("pathlib").Path(TMP) / "users.json"
 up.PINLOCK_FILE = __import__("pathlib").Path(TMP) / "pinlock.json"
 up.PIN_PEPPER_FILE = __import__("pathlib").Path(TMP) / "pin_pepper.txt"
 up.OTP_FILE = __import__("pathlib").Path(TMP) / "otp.json"
+up.SIGNUP_FILE = __import__("pathlib").Path(TMP) / "signup.json"
 up.MAIL_ON = False          # ⛔ متبعثش إيميل حقيقي في الاختبار
-up._send_mail = lambda *a, **k: True
+
+# ⛌ بنمسك الإيميل بدل ما يتبعت — والكود بيتقرا من نصّه، يعني
+#    بالظبط اللي المستخدم بيشوفه على بريده.
+MAILS = []
+
+
+def _fake_send(to, subject, html):
+    MAILS.append({"to": to, "subject": subject, "html": html})
+    return True
+
+
+up._send_mail = _fake_send
 
 # ── الـstub مافيش فيه get_data/set_data — والـafter_request بيحتاجهم ──
 if not hasattr(fl_mod.jsonify.__globals__["_Response"], "set_data"):
@@ -54,7 +66,13 @@ if not hasattr(fl_mod.jsonify.__globals__["_Response"], "set_data"):
     fl_mod.jsonify.__globals__["_Response"].set_data = _set_data
 
 app = up.app
+# ⛔⛔ المسار القديم بقى 410 — التجهيز بقى من المسار الجديد:
+#    ① الإيميل الأول (start) → ② تأكيد الكود (verify)
+#    → ③ اختيار ٤ أرقام (newpin).
 REG = "/api/auth/pin/register"
+START = "/api/auth/signup/start"
+VERIFY = "/api/auth/signup/verify"
+NEWPIN = "/api/auth/signup/newpin"
 LOG = "/api/auth/pin/login"
 CHG = "/api/auth/pin/change"
 
@@ -94,21 +112,71 @@ def call(path, method="POST", body=None, ip="10.0.0.1", token=None):
 A_PIN, A_EMAIL = "7314", "amina@example.com"
 B_PIN, B_EMAIL = "4826", "karim@example.com"
 
+
+def code_of(html):
+    """📬 الكود اللي وصل في الإيميل فعلاً"""
+    m = re.search(r">(\d{6})<", html or "")
+    return m.group(1) if m else ""
+
+
+def canon(r):
+    """الرد كملف نصي — للمقارنة حرف بحرف"""
+    return json.dumps(r.get_json() or {}, ensure_ascii=False, sort_keys=True)
+
+
+def start_signup(email, name="تجربة", ip="10.0.0.1"):
+    """خطوة ① — بترجّع (الرد، الكود اللي وصل في الإيميل)"""
+    n0 = len(MAILS)
+    r = call(START, body={"name": name, "email": email}, ip=ip)
+    code = ""
+    for m in reversed(MAILS[n0:]):
+        if m["to"] == email:
+            code = code_of(m["html"])
+            break
+    return r, code
+
+
+def unlock_for(email, name="تجربة", ip="10.0.0.1"):
+    """خطوتين ①+② — بترجّع توكن فتح جاهز لاختيار الباسورد"""
+    r, code = start_signup(email, name, ip)
+    ok(r.status_code == 200, "start %s → %s %s" % (email, r.status_code,
+                                                  canon(r)))
+    ok(code, "⛔ مافيش كود وصل في إيميل %s" % email)
+    rv = call(VERIFY, body={"email": email, "code": code}, ip=ip)
+    ok(rv.status_code == 200, "verify %s → %s %s" % (email, rv.status_code,
+                                                     canon(rv)))
+    u = (rv.get_json() or {}).get("unlock")
+    ok(u, "⛔ مافيش unlock لـ %s" % email)
+    return u
+
+
+def signup(pin, email, name="تجربة", ip="10.0.0.1"):
+    """
+    ⛔⛔ تسجيل كامل بالمسار الجديد: ① ← ② ← ③.
+
+    بيرجّع (توكن الجلسة، رد ③). الكود بيتقرا من الإيميل
+    himself — مش من متغير في السيرفر.
+    """
+    u = unlock_for(email, name, ip)
+    r = call(NEWPIN, body={"new_pin": pin}, ip=ip, token=u)
+    ok(r.status_code == 200, "newpin %s → %s %s" % (email, r.status_code,
+                                                    canon(r)))
+    return (r.get_json() or {}).get("token"), r
+
 print("\n▸ ①  التسجيل")
 print("  (ملف المستخدمين: %s)" % up.USERS_FILE)
 
 
 def t_register():
-    r = call(REG, body={"name": "أمينة", "email": A_EMAIL, "pin": A_PIN})
-    ok(r.status_code == 200, "الحالة %s مش 200 — %s" % (r.status_code, r.get_json()))
+    tok, r = signup(A_PIN, A_EMAIL, "أمينة")
     b = r.get_json()
     ok(b.get("ok") is True, "مش ok")
     ok(b.get("token"), "مافيش توكن")
-    globals()["A_TOKEN"] = b["token"]
+    globals()["A_TOKEN"] = tok
     globals()["A_UID"] = b["user"]["id"]
 
 
-t("تسجيل بـpin عادي → 200 + توكن", t_register)
+t("تسجيل كامل (إيميل ثم باسورد) → 200 + توكن", t_register)
 
 
 def t_me():
@@ -122,44 +190,76 @@ t("التوكن صالح على /api/auth/me → 200", t_me)
 
 
 def t_bad_len():
+    """⛔ ٤ أرقام بالظبط — ٣ أو ٥ أو حروف = 400.
+       ⛌ الفحص بقى في الخطوة الأخيرة (newpin)، وخطوة ① ترفض
+          أي باسورد في الطلب أصلاً."""
     for p in ("731", "73140", "abcd", "", "٧٣١٤"):
-        r = call(REG, body={"name": "x", "email": "b%d@example.com" % len(p), "pin": p})
+        em = "b%d@example.com" % (abs(hash(p)) % 9999)
+        u = unlock_for(em, "x")
+        r = call(NEWPIN, body={"new_pin": p}, token=u)
         ok(r.status_code == 400,
            "pin=%r رجّع %s (المفروض 400)" % (p, r.status_code))
         ok((r.get_json() or {}).get("why") == "bad_pin",
            "السبب %s" % (r.get_json() or {}).get("why"))
+        # ⛔ الحساب المعلّق ماتحفظش بباسورد غلط
+        rec = up._load_users().get(up._hash_key(em)[:20]) or {}
+        ok(not rec.get("pin_hash"), "⛔ اتحفظ حساب بباسورد غلط %r" % p)
+    # ⛌ وخطوة ① مافيش فيها باسورد خالص
+    r2 = call(START, body={"name": "x", "email": "np@example.com",
+                           "pin": "1234"})
+    ok(r2.status_code == 400, "start بباسورد → %s مش 400" % r2.status_code)
+    ok((r2.get_json() or {}).get("why") == "no_pin_here",
+       "السبب %s" % (r2.get_json() or {}).get("why"))
 
 
 t("pin من ٣ أو ٥ أو حروف → 400", t_bad_len)
 
 
 def t_dup_email():
-    r = call(REG, body={"name": "تاني", "email": A_EMAIL, "pin": "9999"})
-    ok(r.status_code == 409, "الحالة %s مش 409" % r.status_code)
-    ok((r.get_json() or {}).get("why") == "email_taken", "السبب غلط")
-    ok("مسجّل" in (r.get_json().get("error") or ""), "الرسالة مش بالعربي")
+    """⛔⛔⛔ مافيش «الإيميل مسجّل» تاني.
+
+       قبل كده المسار القديم كان بيرد 409 بكلمة «مسجّل» — يعني
+       تعداد كامل في رد واحد. المسار الجديد بيرد **نفس الكلام
+       بالظبط** سواء الإيميل مسجّل عندنا أو لأ.
+    """
+    r1 = call(START, body={"name": "تاني", "email": A_EMAIL}, ip="10.3.0.1")
+    ok(r1.status_code == 200, "إيميل مسجّل → %s" % r1.status_code)
+    r2 = call(START, body={"name": "جديد", "email": "brandnew@example.com"},
+              ip="10.3.0.2")
+    ok(r2.status_code == 200, "إيميل جديد → %s" % r2.status_code)
+    ok(canon(r1) == canon(r2),
+       "⛔⛔ الرد مختلف:\n   مسجّل: %s\n   جديد: %s" % (canon(r1), canon(r2)))
+    s = json.dumps(r1.get_json() or {}, ensure_ascii=False)
+    for w in ("مسجّل", "موجود", "taken"):
+        ok(w not in s, "⛔ الرد فيه %r" % w)
+    # ⛌ والحساب المسجّل ما اتغيّرش
+    rec = up._load_users().get(A_UID) or {}
+    ok(rec.get("pin_hash"), "⛔ الباسورد اتمسح")
 
 
-t("تسجيل نفس الإيميل مرتين → 409", t_dup_email)
+t("تسجيل نفس الإيميل تاني → نفس الرد (مافيش تعداد)", t_dup_email)
 
 
 def t_dup_pin():
-    r = call(REG, body={"name": "ب", "email": B_EMAIL, "pin": A_PIN})
+    """⛔⛔ الباسورد فريد — 409 في الخطوة الأخيرة، والحساب المعلّق
+       ماتحفظش بالباسورد المكرر."""
+    u = unlock_for(B_EMAIL, "ب", ip="10.3.1.1")
+    r = call(NEWPIN, body={"new_pin": A_PIN}, token=u, ip="10.3.1.1")
     ok(r.status_code == 409, "الحالة %s مش 409" % r.status_code)
     b = r.get_json()
     ok(b.get("why") == "pin_taken", "السبب %s" % b.get("why"))
     ok("مستخدم من قبل" in (b.get("error") or ""), "الرسالة مش مفهومة")
-    # ⛔ الحساب التاني **ماتعملش** خالص
+    ok(b.get("token") is None, "⛔ رجّع توكن مع 409")
+    # ⛔⛔ الحساب التاني **ماتعملش** خالص بالباسورد ده
     ok(up._pin_by_email(B_EMAIL)[1] is None, "⛔ اتعمل حساب بالباسورد المكرر")
 
 
-t("تسجيل pin مستخدم من قبل → 409", t_dup_pin)
+t("اختيار pin مستخدم من قبل → 409", t_dup_pin)
 
 
 def t_second_user():
-    r = call(REG, body={"name": "كريم", "email": B_EMAIL, "pin": B_PIN}, ip="10.0.0.2")
-    ok(r.status_code == 200, "الحالة %s — %s" % (r.status_code, r.get_json()))
-    globals()["B_TOKEN"] = (r.get_json() or {}).get("token")
+    tok, r = signup(B_PIN, B_EMAIL, "كريم", ip="10.0.0.2")
+    globals()["B_TOKEN"] = tok
     globals()["B_UID"] = (r.get_json().get("user") or {}).get("id")
 
 
@@ -400,14 +500,16 @@ def t_dup_pin_locked():
     """⛔⛔ ٥ محاولات «الباسورد ده مستخدم من قبل» = قفل زي أي غلط"""
     codes = []
     for i in range(5):
-        r = call(REG, body={"name": "x", "email": "probe%d@example.com" % i,
-                            "pin": A_PIN}, ip="10.30.0.1")
+        em = "probe%d@example.com" % i
+        u = unlock_for(em, "x", ip="10.30.0.1")
+        r = call(NEWPIN, body={"new_pin": A_PIN}, token=u, ip="10.30.0.1")
         codes.append(r.status_code)
     ok(codes[:4] == [409] * 4, "أول ٤: %s" % codes)
     ok(codes[4] == 429,
        "⛔⛔ المحاولة الخامسة رجعت %s مش 429 — القناة مفتوحة" % codes[4])
-    ra = (call(REG, body={"name": "x", "email": "p9@example.com",
-                          "pin": A_PIN}, ip="10.30.0.1").get_json() or {}).get("retry_after")
+    u9 = unlock_for("p9@example.com", "x", ip="10.30.0.1")
+    ra = (call(NEWPIN, body={"new_pin": A_PIN}, token=u9,
+               ip="10.30.0.1").get_json() or {}).get("retry_after")
     ok(isinstance(ra, int) and 600 < ra <= 900, "retry_after=%s" % ra)
 
 
@@ -423,8 +525,8 @@ def t_dup_pin_global():
     rec = (st.get("k") or {}).get("p:" + up._pin_index(A_PIN)) or {}
     ok(float(rec.get("u") or 0) > time.time(),
        "مافيش قفل على الباسورد نفسه — %s" % rec)
-    r = call(REG, body={"name": "x", "email": "p10@example.com",
-                        "pin": A_PIN}, ip="10.31.9.9")
+    u = unlock_for("p10@example.com", "x", ip="10.31.9.9")
+    r = call(NEWPIN, body={"new_pin": A_PIN}, token=u, ip="10.31.9.9")
     ok(r.status_code == 429, "من جهاز سادس → %s" % r.status_code)
 
 
@@ -432,36 +534,46 @@ t("عدّاد الباسورد عالمي (مش Per-IP)", t_dup_pin_global)
 
 
 def t_email_taken_no_pin_dos():
-    """⛔⛔⛔ حالة «الإيميل مسجّل» ماتعدّيش الباسورد.
-       غير كده حد يبعت (إيميل ضحية + أي باسورد) ٥ مرات
-       فيقفل باسورد الضحية وهو **لسه ما بيحاولش يدخل**.
-       ده حجب خدمة مش حماية."""
+    """⛔⛔⛔ تعداد الإيميلات مايقفش الباسورد بتاع حد تاني.
+
+       قبل كده «الإيميل مسجّل» كان 409 والـIP بيقفل — وحد كان
+       يقدر يبعت إيميل ضحية خمس مرات ويقفل **باسورد** الضحية
+       وهو لسه ما بيحاولش يدخل. ده حجب خدمة مش حماية.
+
+       في المسار الجديد مافيش 409 أصلاً: الرد واحد للإيميل
+       المسجّل زي الجديد بالظبط، ومافيش أي عدّاد بيلمس الباسورد.
+    """
     ip = "10.32.0.1"
-    # ⛌ بطّل الضحية على مستخدم **جديد** ما اتقفلش قبل كده
-    r0 = call(REG, body={"name": "ضحية", "email": "victim@example.com",
-                         "pin": "2121"}, ip="10.32.7.7")
-    ok(r0.status_code == 200, "تسجيل الضحية %s" % r0.status_code)
-    codes = [call(REG, body={"name": "x", "email": "victim@example.com",
-                             "pin": "3131"}, ip=ip).status_code
-             for _ in range(5)]
-    ok(codes[:4] == [409] * 4, "أول ٤: %s" % codes)
-    ok(codes[4] == 429, "الـIP اتقفل → %s" % codes[4])
-    # ⛔ ضحية «الإيميل مسجّل» لسه تقدر تدخل
-    r = call(LOG, body={"pin": "2121"}, ip="10.32.9.9")
+    victim, vpin = "victim@example.com", "2121"
+    signup(vpin, victim, "ضحية", ip="10.32.7.7")
+    # ⛌ الحد اليومي ٣ أكواد لكل إيميل — فالتكرار بياخد ٣
+    #    بالظبط وبعدين 429. المهم إن مافيش 409 ولا عدّاد على الباسورد.
+    codes = [call(START, body={"name": "x", "email": victim},
+                  ip=ip).status_code for _ in range(5)]
+    ok(all(c in (200, 429) for c in codes),
+       "⛔ الرد فيه حاجة غير متوقعة: %s" % codes)
+    ok(200 in codes, "⛔ مافيش حتى رد ٢٠٠: %s" % codes)
+    # ⛌ ما اتعملش قفل على الباسورد بتاع الضحية
+    st = _lock_state()
+    rec = (st.get("k") or {}).get("p:" + up._pin_index(vpin)) or {}
+    ok(not rec, "⛔⛔ اتعمل عدّاد على باسورد الضحية من غير ما يدخل")
+    # ⛌ وكل الردود واحدة (الـ429 يومي، مالوش علاقة بحالة الحساب)
+    j = json.dumps(call(START, body={"name": "x", "email": victim},
+                        ip="10.32.0.3").get_json() or {}, ensure_ascii=False)
+    ok("مسجّل" not in j and "taken" not in j, "⛔ الرد بيسرّب حالة الحساب")
+    # ⛔⛔ وضحية «الإيميل المسجّل» لسه تقدر تدخل
+    r = call(LOG, body={"pin": vpin}, ip="10.32.9.9")
     ok(r.status_code == 200,
        "⛔⛔ باسورد الضحية اتقفل بسبب إيميل حد تاني (%s)" % r.status_code)
 
 
-t("«الإيميل مسجّل» مافيشش فيه قفل الباسورد (DoS)", t_email_taken_no_pin_dos)
+t("تعداد الإيميلات مافيشش فيه قفل الباسورد (DoS)", t_email_taken_no_pin_dos)
 
 
 def t_change_dup_pin_locked():
     """⛔⛔ نفس الكلام في change: «الباسورد الجديد مستخدم» = عدّاد"""
     ip = "10.33.0.1"
-    r0 = call(REG, body={"name": "محوّل", "email": "changer@example.com",
-                         "pin": "4141"}, ip="10.33.7.7")
-    ok(r0.status_code == 200, "تسجيل %s" % r0.status_code)
-    tok = (r0.get_json() or {}).get("token")
+    tok, _ = signup("4141", "changer@example.com", "محوّل", ip="10.33.7.7")
     codes = []
     for i in range(5):
         r = call(CHG, body={"old_pin": "4141", "new_pin": B_PIN},
@@ -477,9 +589,7 @@ t("change «الباسورد مستخدم» ٥ مرات → 429", t_change_dup_p
 def t_change_old_pin_counted():
     """⛔ محاولات «الباسورد القديم غلط» بتتحسب كمان"""
     ip = "10.34.0.1"
-    r0 = call(REG, body={"name": "قديم", "email": "oldpin@example.com",
-                         "pin": "5151"}, ip="10.34.7.7")
-    tok = (r0.get_json() or {}).get("token")
+    tok, _ = signup("5151", "oldpin@example.com", "قديم", ip="10.34.7.7")
     codes = [call(CHG, body={"old_pin": "6161", "new_pin": "3232"},
                   ip=ip, token=tok).status_code for _ in range(5)]
     ok(codes[:4] == [401] * 4, "أول ٤: %s" % codes)
@@ -525,12 +635,15 @@ t("القفل الثالث على نفس الباسورد = ٦ ساعات", t_gl
 
 
 def t_hourly_cap():
-    """⛔⛔ سقف ٢٠/ساعة على التسجيل: لو حد عدّى ٢٠ في الساعة
-       (حتى لو كلهم من IPs مختلفة)… الـIP لوحده مكفيش، فبنفحص
-       إن النافذة الساعية موجودة وشغّالة فعلاً."""
+    """⛔⛔ السقوف على مسارات التسجيل شغّالة فعلاً.
+
+       ⛌ المسار القديم بقى 410، وسقفه (٥/دقيقة + ٢٠/ساعة) لسه
+          شغال عليه — عشان مافيش حد يسكّر عليه بلا فايدة.
+       ⛌ والمسار الجديد لكل خطوة سقفها: ٣/٥ دقايق للإرسال،
+          ١٠/٥ دقايق للتحقق ولاختيار الباسورد.
+    """
     ok(len(up.LIMITS["pin_register"]) == 2,
        "النوافذ=%s" % up.LIMITS["pin_register"])
-    # نحط ٢٠ محاولة في النافذة الساعية بس ونصدم المسار
     up._HITS.clear()
     ip = "10.36.0.1"
     now = time.time()
@@ -543,8 +656,17 @@ def t_hourly_cap():
     ok((r.get_json() or {}).get("bucket") == "pin_register",
        "الbucket=%s" % (r.get_json() or {}).get("bucket"))
 
-
-t("سقف ٢٠/ساعة على التسجيل شغّال", t_hourly_cap)
+    # ⛌ والمسار الجديد: ٣ محاولات إرسال في ٥ دقايق
+    ok(up._route_bucket(START) == "pin_signup_start", "bucket start")
+    ok(up._route_bucket(VERIFY) == "pin_signup_verify", "bucket verify")
+    ok(up._route_bucket(NEWPIN) == "pin_signup_newpin", "bucket newpin")
+    up._HITS.clear()
+    codes = [app.dispatch(START, method="POST",
+                          body={"name": "x", "email": "hc%d@example.com" % i},
+                          headers={"X-Forwarded-For": "10.36.0.2"}).status_code
+             for i in range(4)]
+    up._HITS.clear()
+    ok(codes == [200, 200, 200, 429], "السقف الجديد مش شغال: %s" % codes)
 
 
 print("\n▸ ④  تغيير الباسورد")
@@ -708,11 +830,24 @@ def t_exception_json():
     # ⛔ برضه على المسارات التانية
     up._load_users = boom
     try:
-        r2 = call(REG, body={"name": "س", "email": "z@example.com", "pin": "2020"})
+        r2 = call(LOG, body={"pin": A_PIN}, ip="10.40.0.1")
     finally:
         up._load_users = real
     ok((r2.get_json() or {}).get("why") == "RuntimeError",
-       "⛔ register مش JSON: %s" % r2.get_json())
+       "⛔ المسار التاني مش JSON: %s" % r2.get_json())
+    # ⛔ والمسار الجديد كمان: التحقق بيفتح ملف المستخدمين
+    em = "boom@example.com"
+    r = start_signup(em, "س")
+    code = r[1] if isinstance(r, tuple) else r
+    ok(code, "⛔ مافيش كود")
+    up._load_users = boom
+    try:
+        r3 = call(VERIFY, body={"email": em, "code": code})
+    finally:
+        up._load_users = real
+    ok(r3.status_code == 500, "verify → %s مش 500" % r3.status_code)
+    ok((r3.get_json() or {}).get("why") == "RuntimeError",
+       "⛔ verify مش JSON: %s" % r3.get_json())
 
 
 t("الاستثناء في أي مسار PIN → JSON فيه why", t_exception_json)
@@ -768,12 +903,13 @@ def t_stale_index_dup_pin():
     up._PIN_PEPPER_ID = _h.sha256(up._PIN_PEPPER.encode()).hexdigest()[:12]
     try:
         ok(up._pin_index_stale() is True, "⛔ الفهرس لسه متظبط")
-        r = call(REG, body={"name": "دخيل", "email": "ghost2@example.com",
-                            "pin": real_pin}, ip="10.3.3.3")
+        em = "ghost2@example.com"
+        u = unlock_for(em, "دخيل", ip="10.3.3.3")
+        r = call(NEWPIN, body={"new_pin": real_pin}, token=u, ip="10.3.3.3")
         ok(r.status_code == 409,
            "⛔⛔ الباسورد المكرر عدّى وقت ما الفهرس ميت! %s" % r.status_code)
         ok((r.get_json() or {}).get("why") == "pin_taken", "السبب غلط")
-        ok(up._pin_by_email("ghost2@example.com")[1] is None,
+        ok(up._pin_by_email(em)[1] is None,
            "⛔ اتعمل حساب بالباسورد المكرر")
         # ⛌ والدخول بالباسورد الصح برضه شغّال (بحث بطيء + تصليح الفهرس)
         r2 = call(LOG, body={"pin": real_pin}, ip="10.3.3.4")

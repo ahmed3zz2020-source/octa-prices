@@ -461,6 +461,18 @@ LIMITS = {
     "pin_chal_verify": [(10, 300)],
     # ⛌ اختيار الباسورد الجديد: ١٠ / ٥ دقايق — محتاج توكن فتح.
     "pin_chal_newpin": [(10, 300)],
+    # ⛌⛌⛔ التسجيل الجديد (الإيميل الأول): نفس منطق مسار الفتح
+    #    بالظبط — كل خطوة ليها سقفها.
+    #    start  = إرسال بريد → ٣ / ٥ دقايق (أضيق حاجة في الـAPI).
+    #    verify = المستخدم بيلخبط في الكود → ١٠ / ٥ دقايق، والكود
+    #            نفسه بيموت بعد ٥ غلط.
+    #    newpin = محتاج توكن فتح → ١٠ / ٥ دقايق.
+    #    ⛌ مافيش «تسجيل» بالمعنى القديم اللي بيفحص ١٠٬٠٠٠ احتمال
+    #    في طلب واحد — الفحص ده اتنقل لآخر خطوة (newpin) وبيبقى
+    #    وراه توكن فتح + إيميل متأكد.
+    "pin_signup_start": [(3, 300)],
+    "pin_signup_verify": [(10, 300)],
+    "pin_signup_newpin": [(10, 300)],
 }
 
 # تخزين: {ip: {bucket: deque(timestamps)}}
@@ -493,7 +505,17 @@ def _route_bucket(path):
             #    لأن المسار ده هو اللي بيفحص المساحة كلها بسؤال
             #    «الباسورد ده مستخدم من قبل؟». من غير السقف، ٥/دقيقة
             #    معناها ١٠٬٠٠٠ محاولة مسح في ٣٣ ساعة.
+            # ⛌⛌⛌ التسجيل الجديد — الإيميل يتأكد الأول والباسورد
+            #    بعده. كل خطوة ليها سقفها (شوف LIMITS فوق).
+            if sub == "signup":
+                return {
+                    "start": "pin_signup_start",
+                    "verify": "pin_signup_verify",
+                    "newpin": "pin_signup_newpin",
+                }.get(tail, "write")
             if sub == "pin":
+                # ⛌ المسار القديم بقى 410 — السقف بيفضل شغال عليه
+                #    عشان مافيش حد يسكّر عليه ٢٠/ساعة بلا فايدة.
                 if tail == "register":
                     return "pin_register"
                 # ⛌ ⛌ ⛌ مسار كود الفتح (القاعدة ①): كل خطوة
@@ -1955,143 +1977,33 @@ def _pin_welcome_html(name=""):
 #     ومحتاج قفل ذكي قوي عشان ١٠٬٠٠٠ احتمال قليل.
 
 
+# ══════════════════════════════════════════════════════════════════
+#  1️⃣  ⛔ مسار التسجيل القديم — 410 Gone
+#  ──────────────────────────────────────────────────────────────
+#  POST /api/auth/pin/register   { name, email, pin }
+#
+#  ⛔⛔⛔ ده كان بيعمل الحساب **قبل** ما الإيميل يتأكد خالص:
+#     يكفي حد يكتب إيميل حد تاني ويسجّل حساب باسمه، من غير ما
+#     يثبت إنه صاحب الإيميل ولا مرة. الحساب كان بيتعمل في
+#     request واحد، والإيميل مجرد نص بارد بعد كده.
+#
+#  المسار الجديد (signup/start → verify → newpin) بيعكس الترتيب:
+#     الإيميل يتأكد **أول حاجة** بكود ٦ أرقام، والحساب بيتعمل
+#     بعد ما الكود يتقبل، والباسورد آخر حاجة.
+#
+#  ⛔ رجعنا 410 مش 404: المسار **متشال** مش مفقود — والواجهة
+#     القديمة لو بعتت ليه هتعرف فوراً إنها محتاجة تتحدّث.
+
+
 @app.route("/api/auth/pin/register", methods=["POST"])
 @_pin_json
 def auth_pin_register():
-    try:
-        data = request.get_json(silent=True) or {}
-    except Exception:
-        data = {}
-    if not isinstance(data, dict):
-        data = {}
-
-    name = str(data.get("name") or "").strip()[:40] or "مستخدم"
-    email = str(data.get("email") or "").strip().lower()[:120]
-    pin = str(data.get("pin") or "").strip()
-
-    # ⛔ ٤ أرقام بالظبط — ٣ أو ٥ = 400
-    if not _PIN_RE.match(pin):
-        return jsonify({
-            "ok": False,
-            "error": "الباسورد ٤ أرقام بالظبط",
-            "why": "bad_pin",
-            "hint": "٤ أرقام من 0000 لـ 9999",
-        }), 400
-
-    ok, why = _valid_email(email)
-    if not ok:
-        return jsonify({"ok": False, "error": why, "why": "bad_email"}), 400
-
-    ip = _client_key()
-    k_ip = _pin_keys(ip=ip)              # العدّاد المحلي بس
-    keys = _pin_keys(pin=pin, ip=ip)     # الاتنين
-    locked, retry = _pin_locked(keys)
-    if locked:
-        return _pin_locked_resp(retry)
-
-    uid = _hash_key(email)[:20]
-    # ⛔⛔⛔ التعارض بينزل لبرّه القفل — عشان نعدّ المحاولة
-    #    (العدّاد بياخد قفل تاني، وما بنحبّش nest) وكمان عشان
-    #    نرجّع 429 لو المحاولة هي اللي قفلت الجهاز.
-    conflict = ""
-
-    with USERS_LOCK:
-        users = _load_users()
-        if uid in users:
-            conflict = "email"
-        else:
-            # ⛔⛔ الباسورد لازم يكون فريد. من غير الشرط ده، حد يسجّل
-            #    بالباسورد بتاع حد تاني ويسرق حسابه من أول دخول.
-            #    ⛌ الفحص بالفهرس (O(n) مقارنة نصوص رخيصة) مش بالهاش:
-            #    PBKDF2 لكل مستخدم = ٤٠ms×N والقفل مقفول طول الوقت.
-            idx = _pin_index(pin)
-            taken = False
-            stale = False
-            for o in users.values():
-                got = str(o.get("pin_idx") or "")
-                if len(got) == len(idx) and hmac.compare_digest(got, idx):
-                    taken = True
-                    break
-                if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
-                    stale = True
-            if not taken and stale:
-                # ⛌ الفهرس ميت (pepper اتغيّر) — الفحص البطيء بالهاش
-                for o in users.values():
-                    ph = str(o.get("pin_hash") or "")
-                    if ph and hmac.compare_digest(
-                            ph, _pin_hash(pin, o.get("pin_salt") or "")):
-                        taken = True
-                        break
-            if taken:
-                conflict = "pin"
-            else:
-                # ⛔⛔⛔ مفيش باسورد خام في أي مكان. اللي بيتكتب:
-                salt = _pin_salt_new()
-                users[uid] = {
-                    "id": uid,
-                    "name": name,
-                    "email": email,
-                    "email_hash": _hash_key(email),
-                    "pin_hash": _pin_hash(pin, salt),
-                    "pin_salt": salt,
-                    "pin_idx": idx,
-                    "pin_idx_id": _PIN_PEPPER_ID,
-                    "created": int(time.time()),
-                    "portfolio": {},
-                    "watch": [],
-                }
-                _save_users(users)
-
-    # ═══ ⛔⛔⛔ التعارض بيبقى محسوب زي أي محاولة غلط ═══
-    #  الرجوع بـ409 من غير عدّاد = قناة مجانية لفحص ١٠٬٠٠٠ احتمال:
-    #  المهاجم يبعت إيميلات وهمية وباسوردات مختلفة ويشوف مين فيهم
-    #  «مستخدم من قبل» — والقفل الذكي مش بيلاحظ خالص.
-    #  فالتعارض = محاولة غلط، بالظبط زي إنها دخلت بالباسورد وفشلت.
-    if conflict == "email":
-        # ⛌ الـIP بس: لو عدّدنا الباسورد كمان، حد يبعت
-        #    (باسورد الضحية + إيميل وهمية) ٥ مرات كان هيقفل
-        #    **باسورد الضحية** — هجوم حجب خدمة على قاعدة كله.
-        locked, retry = _pinlock_fail(k_ip)
-        if locked:
-            return _pin_locked_resp(retry)
-        return jsonify({
-            "ok": False,
-            "error": "الإيميل ده مسجّل قبل كده — "
-                     "لو نسيت الباسورد مافيش استرجاع، جرّب رقم تاني",
-            "why": "email_taken",
-        }), 409
-
-    if conflict == "pin":
-        # ⛌ هنا الباسورد **هو** اللي بيتفحص، فالمحاولة بتتحسب
-        #    عالمياً: ٢٠ محاولة على نفس الباسورد من ١٠٬٠٠٠ جهاز
-        #    = قفل ٦ ساعات للعالم كله. وبكده مسار التسجيل
-        #    بيكلّف المهاجم **نفس** تكلفة مسار الدخول — ما عادش
-        #    فيه قناة رخيصة تتخطى القفل.
-        locked, retry = _pinlock_fail(keys)
-        if locked:
-            return _pin_locked_resp(retry)
-        return jsonify({
-            "ok": False,
-            "error": "الباسورد ده مستخدم من قبل — اختار غيره",
-            "why": "pin_taken",
-        }), 409
-
-    _pinlock_reset(keys)
-    print(f"  🔢 مستخدم جديد بالباسورد: {uid}")
-
-    # 📬 إيميل **واحد بس** في عمر الحساب — تأكيد، مش استرجاع
-    _send_mail(email, "تم إنشاء حسابك — OCTA", _pin_welcome_html(name))
-    if not MAIL_ON:
-        # ⛔ مافيش خدمة إيميل = مفيش تأكيد. ما بنطبعش الباسورد خالص.
-        print(f"  📧 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — إيميل "
-              f"التأكيد ماتبعتش لـ: {email}", flush=True)
-
     return jsonify({
-        "ok": True,
-        "token": _make_token(uid),
-        "user": _pin_user_json(users[uid]),
-        "mail": "sent" if MAIL_ON else "off",
-    }), 200
+        "ok": False,
+        "error": "طريقة التسجيل القديمة اتشالت — استخدم الشاشة الجديدة",
+        "why": "gone",
+        "next": "signup/start",
+    }), 410
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -2620,6 +2532,582 @@ def auth_pin_chal_newpin():
         "user": out,
     }), 200
 
+# ══════════════════════════════════════════════════════════════════
+#  1️⃣  تسجيل حساب — **الإيميل الأول، والباسورد بعده**
+#  ──────────────────────────────────────────────────────────────
+#  POST /api/auth/signup/start     { name, email }
+#  POST /api/auth/signup/verify    { email, code }
+#  POST /api/auth/signup/newpin    { new_pin } + توكن الفتح
+#
+#  ⛔⛔⛔ ترتيب العمليات هو المغزى كله:
+#
+#     ① start  → اسم + إيميل بس. ⛔ مافيش باسورد في الطلب أصلاً.
+#     ② السيرفر يبعت كود ٦ أرقام على الإيميل.
+#     ③ verify → الكود صح؟ **عندها بس** الحساب بيتعمل، وبيوسم
+#                email_confirmed، وبيطلع **unlock** مش توكن جلسة.
+#     ④ newpin → ٤ أرقام، و**عندها بس** بيطلع توكن الدخول.
+#
+#  قبل كده المسار القديم كان بيعمل المستخدم والتسجيل كله في طلب
+#  واحد — يعني الحساب كان بيوجد قبل ما الإيميل يتأكد، وبيفضل
+#  موجود لو الإيميل ده مالوش أصلاً. دلوقتي الإيميل لازم يتأكد
+#  **قبل** ما الحساب يوجد.
+#
+#  ⛔ الكود الخام مايتكتبش في أي مكان:
+#     · في الرد      → لأ (الرد عام ومفيهوش الكود)
+#     · في users.json → لأ
+#     · في اللوج     → لأ (حتى لو مافيش خدمة إيميل)
+#     · في signup.json → لأ، **هاش بس** (HMAC بـ_SECRET)
+#  ⛔ الكود من `secrets.randbelow` — ⛔ مش `random` و ⛔ مش
+#     متغيّر من الوقت.
+
+SIGNUP_FILE = Path("/app/signup.json")
+SIGNUP_LOCK = threading.Lock()
+SIGNUP_TTL = 10 * 60          # ⛌ طلب المواصفات: ١٠ دقايق بالظبط
+SIGNUP_WRONG = 5              # ⛌ ٥ محاولات غلط ← الكود يموت
+SIGNUP_PER_DAY = 3            # ⛌ ٣ أكواد لكل إيميل في اليوم
+SIGNUP_UNLOCK_TTL = 10 * 60   # ⛌ مهلة اختيار الباسورد
+SIGNUP_KEEP = 2 * 86400       # ⛌ ننضّف السجلات بعد يومين
+# ⛌⛌ ٦ أرقام بظبط — [0-9] مش \d (زي الباسورد): الـ\d في
+#    Python بيقبل أرقام Unicode، فـ«٧٣١٤٠٥» كانت هتعدّي.
+_SIGNUP_CODE_RE = _re_guard.compile(r"^[0-9]{6}$")
+
+
+def _signup_load():
+    try:
+        if SIGNUP_FILE.exists():
+            d = json.loads(SIGNUP_FILE.read_text(encoding="utf-8"))
+            if isinstance(d, dict):
+                d.setdefault("p", {})   # ⛔ أكواد في انتظار التأكيد
+                d.setdefault("g", {})   # ⛔ توكين الفتح المؤقت
+                return d
+    except Exception:
+        pass
+    return {"v": 1, "p": {}, "g": {}}
+
+
+def _signup_save(d):
+    """ذرّي ونفس أسلوب pinchal.json"""
+    try:
+        tmp = SIGNUP_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(SIGNUP_FILE)
+    except Exception as e:
+        print(f"  💾 ⛔ signup.json: {type(e).__name__}", flush=True)
+
+
+def _signup_hash(code, email):
+    """
+    🔒 هاش الكود — **الكود الخام مايتخزّنش أبداً**.
+
+    ⛌ HMAC بالسر بتاع التوكن + الإيميل: نفس الكود على إيميلين
+       مختلفين = هاشين مختلفين. ومقارنة ثابتة الزمن في التحقق.
+    """
+    msg = "signup|" + str(email or "").strip().lower() + "|" + str(code or "")
+    return hmac.new(_SECRET.encode(), msg.encode(), hashlib.sha256).hexdigest()
+
+
+def _signup_prune(d):
+    """
+    🧹 نضّف: الكود بعد ١٠ دقايق، والتوكن المؤقت بعد ١٠ دقايق،
+       وعدّاد اليوم بعد يومين. الملف مايكبرش بلا حدود.
+    """
+    now = int(time.time())
+    day = now // 86400
+    p = d.get("p") or {}
+    for em in list(p.keys()):
+        rec = p.get(em) or {}
+        if now - int(rec.get("s") or 0) > SIGNUP_TTL:
+            rec.pop("h", None)      # ⛔ الهاش
+            rec.pop("s", None)      # ⛔ وقت الإرسال
+            rec.pop("w", None)      # ⛔ عدّاد الغلط
+        if int(rec.get("d") or 0) < day - 1:
+            p.pop(em, None)
+    g = d.get("g") or {}
+    for tok in list(g.keys()):
+        if now - int((g.get(tok) or {}).get("e") or 0) > SIGNUP_UNLOCK_TTL:
+            g.pop(tok, None)
+    d["p"] = p
+    d["g"] = g
+    return d
+
+
+def _signup_send(email, name):
+    """
+    📤 تجهيز كود التأكيد — بيرجّع الكود (للإرسال) أو None.
+
+    ⛔⛔ العدّاد اليومي بيتحسب لـ**كل** طلب بإيميل، مسجّل كان
+       أو لأ. لو حسبناه للإيميلات المسجّلة بس، رد الـ429 نفسه
+       كان هيبقى دليل على وجود الحساب.
+    """
+    email = str(email or "").strip().lower()[:120]
+    name = str(name or "").strip()[:40] or "مستخدم"
+    now = int(time.time())
+    day = now // 86400
+    with SIGNUP_LOCK:
+        d = _signup_prune(_signup_load())
+        p = d["p"]
+        rec = p.get(email) or {}
+        if int(rec.get("d") or 0) != day:
+            rec = {"d": day, "n": 0}
+        if int(rec.get("n") or 0) >= SIGNUP_PER_DAY:
+            return None                      # ⛔ الطلب الرابع → 429
+        rec["n"] = int(rec.get("n") or 0) + 1
+        p[email] = rec
+        _signup_save(d)
+
+    # ⛔⛔ ٦ أرقام من `secrets.randbelow` — مصدر عشوائي تشفيري
+    #    من الـOS، مش Mersenne Twister ومش وقت السيرفر.
+    code = f"{_secrets_mod.randbelow(1000000):06d}"
+    with SIGNUP_LOCK:
+        d = _signup_prune(_signup_load())
+        p = d["p"]
+        rec = p.get(email) or {"d": day, "n": 1}
+        rec["h"] = _signup_hash(code, email)   # ⛔ هاش بس
+        rec["s"] = now
+        rec["w"] = 0
+        rec["nme"] = name                      # 📌 الاسم survives لحد
+        p[email] = rec                         #    ما الحساب يتعمل
+        _signup_save(d)
+    return code
+
+
+def _signup_check(email, code):
+    """
+    ✅ تحقق من كود التأكيد — بيرجّع (ok, why).
+
+    ⛌ السبب بيرجع للسيرفر بس. الرد اللي بيخرج للمستخدم **واحد**
+       في كل الأحوال (غلط / منتهي / مفيش كود / مفيش طلب).
+    """
+    email = str(email or "").strip().lower()[:120]
+    with SIGNUP_LOCK:
+        d = _signup_prune(_signup_load())
+        p = d["p"]
+        rec = p.get(email) or {}
+        if not rec.get("h"):
+            # ⛔ مافيش كود أصلاً (مفيش طلب / اتقضى) — نفس النتيجة
+            #    اللي المستخدم هيتشوفها لو الكود غلط. مافيش فرق.
+            _signup_save(d)
+            return False, "no_code"
+        if int(rec.get("w") or 0) >= SIGNUP_WRONG:
+            # ⛔ ٥ غلط = الكود مات. مش بس مرفوض — بينمسح.
+            rec.pop("h", None)
+            rec.pop("s", None)
+            rec["w"] = 0
+            p[email] = rec
+            _signup_save(d)
+            return False, "dead"
+        got = _signup_hash(code, email)
+        if hmac.compare_digest(got, str(rec.get("h"))):
+            # ⛌ الكود مرة واحدة Lives: بينمسح فوراً بعد أول استخدام.
+            rec.pop("h", None)
+            rec.pop("s", None)
+            p[email] = rec
+            _signup_save(d)
+            return True, "ok"
+        rec["w"] = int(rec.get("w") or 0) + 1
+        if int(rec["w"]) >= SIGNUP_WRONG:
+            rec.pop("h", None)
+            rec.pop("s", None)
+            rec["w"] = 0
+        p[email] = rec
+        _signup_save(d)
+        return False, "wrong"
+
+
+def _signup_name(email):
+    """الاسم اللي اتكتب مع الطلب — بيفضل محفوظ بعد قبول الكود"""
+    try:
+        with SIGNUP_LOCK:
+            rec = (_signup_load().get("p") or {}).get(
+                str(email or "").strip().lower()[:120]) or {}
+        return str(rec.get("nme") or "").strip()[:40] or "مستخدم"
+    except Exception:
+        return "مستخدم"
+
+
+def _signup_unlock_make(uid):
+    """
+    🔓 توكن الفتح — ⛔ **مش** توكن جلسة.
+
+    ⛔⛔ بعد ما الكود يتقبل مينفعش المستخدم يدخل على طول.
+       لازم يختار ٤ أرقام الأول. فبنديه توكن مؤقت مربوط
+       بتوقيع تانية (_sign('s'+p) مش _sign(p)):
+       · require_user() **مش** بيقبله (401)
+       · /api/auth/refresh **مش** بيقبله (401)
+       · /api/auth/signup/newpin من غيرو = 401
+       · ١٠ دقايق بس، و**مرة واحدة**: بينمسح أول ما الباسورد
+         يتحط.
+    """
+    grant = _secrets_mod.token_urlsafe(18)
+    p = base64.urlsafe_b64encode(
+        f"{uid}|{grant}".encode()).decode().rstrip("=")
+    tok = f"{p}.{_sign('s' + p)}"
+    with SIGNUP_LOCK:
+        d = _signup_prune(_signup_load())
+        d["g"][tok] = {"u": uid, "e": int(time.time()) + SIGNUP_UNLOCK_TTL}
+        _signup_save(d)
+    return tok
+
+
+def _signup_unlock_read(tok):
+    """يقرأ توكن الفتح — الـuid أو None. مافيش تجاوز للعمر ولا للاستخدام"""
+    if not _SECRET or not tok:
+        return None
+    try:
+        p, _, sig = str(tok).partition(".")
+        if not p or not sig:
+            return None
+        if not hmac.compare_digest(sig, _sign("s" + p)):
+            return None
+        pad = "=" * (-len(p) % 4)
+        raw = base64.urlsafe_b64decode(p + pad).decode("utf-8", "strict")
+        uid, _, grant = raw.partition("|")
+        if not uid or not grant:
+            return None
+        with SIGNUP_LOCK:
+            d = _signup_load()
+            rec = (d.get("g") or {}).get(tok)
+            if not rec or str(rec.get("u") or "") != uid:
+                return None
+            if time.time() > float(rec.get("e") or 0):
+                return None
+        return uid
+    except Exception:
+        return None
+
+
+def _signup_unlock_drop(tok):
+    """🗑️ التوكن المؤقت مالوش تكرار — بينمسح أول ما يتستخدم"""
+    with SIGNUP_LOCK:
+        d = _signup_load()
+        if (d.get("g") or {}).pop(tok, None) is not None:
+            _signup_save(d)
+
+
+#  📌 الرد الواحد — ثابت واحد في الكود بيتقري في كل الحالات.
+#     مش شغلتين نفس الكلام (ده بيفرق في مسافات أو علامات).
+_SIGNUP_START_REPLY = {
+    "ok": True,
+    "msg": "لو الإيميل ده بتاعك، كود التأكيد وصل بريدك",
+    "next": "signup/verify",
+    "expires_in": SIGNUP_TTL,       # ⛌ ٦٠٠ ثانية = ١٠ دقايق
+    "digits": 6,
+}
+#  ⛌ الرد الواحد للتحقق — غلط / منتهي / مفيش كود / مفيش طلب
+_SIGNUP_BAD_REPLY = {
+    "ok": False,
+    "error": "الكود غلط أو خلصت صلاحيته — اطلب كود جديد",
+    "why": "bad_code",
+}
+
+
+def _signup_code_html(code, name=""):
+    """📨 إيميل كود تأكيد الحساب — الكود بيوصل بالإيميل وخلاص"""
+    who = _htmlmod.escape(name or "") or "مستخدم"
+    return f"""<!doctype html><html dir="rtl"><body style="margin:0;padding:24px;background:#0f1621;font-family:system-ui,-apple-system,Segoe UI,sans-serif">
+<div style="max-width:460px;margin:0 auto;background:#16202e;border-radius:14px;padding:28px;color:#e8edf5">
+<div style="font-size:26px">🐙</div>
+<h2 style="max-width:460px;margin:8px 0 4px;font-size:20px">OCTA — كود تأكيد حسابك</h2>
+<p style="margin:0 0 20px;color:#93a1b5;font-size:14px">أهلاً {who}</p>
+<div style="background:#0f1621;border:1px solid #2b3a4f;border-radius:12px;padding:22px;text-align:center;letter-spacing:10px;font-size:34px;font-weight:800;color:#d4af37">{code}</div>
+<p style="margin:18px 0 0;color:#e8edf5;font-size:14px;line-height:2">
+الكود صالح <b>10 دقايق</b>، و<b>مرة واحدة</b> بس.<br>
+بعد ما تدخّله، هتختار <b>4 أرقام</b> وتكون خلصت.
+</p>
+<div style="background:#0f1621;border:1px solid #2b3a4f;border-radius:12px;padding:16px;color:#93a1b5;font-size:13px;line-height:2">
+⛔ <b style="color:#e8edf5">مفيش باسورد في الإيميل ده</b> — إنت اللي بتختاره بعد الكود.<br>
+⛔ الكود يموت بعد 5 محاولات غلط.
+</div>
+<p style="margin:18px 0 0;color:#5f6c80;font-size:12px;line-height:1.9">
+لو مش إنت اللي طلبت الحساب، تجاهل الإيميل — مافيش حساب بيتعمل من غير الكود.
+</p>
+</div>
+<p style="max-width:460px;margin:14px auto 0;color:#5f6c80;font-size:12px;text-align:center">octashares.com — قراءة، مش نصيحة</p>
+</body></html>"""
+
+
+@app.route("/api/auth/signup/start", methods=["POST"])
+@_pin_json
+def auth_signup_start():
+    """
+    📬 ① الاسم والإيميل — body: { "name", "email" }
+
+    ⛔⛔ مافيش باسورد في الطلب ده. لو حد بعت واحد نرفض بوضوح
+       (الواجهة القديمة كانت بتبعت باسورد للمسار القديم) — أأمن
+       إن المسار الجديد مابيقاش ليه باب تاني غير الإيميل.
+    ⛔⛔ الرد **واحد** في كل الأحوال: إيميل مسجّل / إيميل مش
+       مسجّل / إيميل مالوش أصلاً — نفس الـstatus ونفس الـbody
+       بالحرف. مافيش ولا endpoint في المسار كله بيفرّق.
+    ⛌ الحساب **مش** بيتعمل هنا. مافيش مستخدم جديد، مافيش
+       كتابة في users.json — الحالة بتتخزّن مؤقتة بس.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    for k in ("pin", "new_pin", "old_pin", "password", "key"):
+        if str(data.get(k) or "").strip():
+            return jsonify({
+                "ok": False,
+                "error": "⛔ المسار ده مافيش باسورد فيه — الإيميل الأول، "
+                         "والباسورد بعد التأكيد",
+                "why": "no_pin_here",
+            }), 400
+
+    name = str(data.get("name") or "").strip()[:40] or "مستخدم"
+    email = str(data.get("email") or "").strip().lower()[:120]
+    ok, why = _valid_email(email)
+    if not ok:
+        return jsonify({"ok": False, "error": why, "why": "bad_email"}), 400
+
+    ip = _client_key()
+    k_ip = _pin_keys(ip=ip)
+    # ⛔ القفل الـ15 دقيقة بيفضل شغال على المسار ده كمان: مينفعش
+    #    حد يطلب كودا ما وراوش قفل، ويتخطى النافذة بإطالة الوقت.
+    locked, retry = _pin_locked(k_ip)
+    if locked:
+        return _pin_locked_resp(retry)
+
+    # ⛔ الكود بيتولّد ويتخزَّن (هاش بس) لأي إيميل — مسجّل كان أو
+    #    لأ — عشان المسار ياخد نفس الوقت والرد في الحالتين.
+    code = _signup_send(email, name)
+    if code is None:
+        return jsonify({
+            "ok": False,
+            "error": f"⛔ طلبت {SIGNUP_PER_DAY} أكواد على الإيميل ده "
+                     f"اليوم — استنى بكرة",
+            "why": "daily_limit",
+        }), 429
+
+    # ⛔⛔⛔ الإرسال بيتعمل **دايماً** لأي إيميل شكله صح — مسجّل
+    #    كان أو لأ. وده مقصود ومش خطأ: التسجيل وظيفته إن الإيميل
+    #    الجديد يستقبل كود، فلو ما بعتناش لغير المسجّل ما كانش في
+    #    تسجيل أصلاً.
+    #    ⛌ وده **مش** قناة تعداد: الرد واحد في الحالتين (تحت)،
+    #    والشغل اللي بيتعمل واحد في الحالتين كمان — توليد الكود،
+    #    هاشه، كتابته على القرص، وإرسال الإيميل. مافيش خطوة بتتعمل
+    #    في حالة وبتتقفز في التانية.
+    _send_mail(email, "كود تأكيد حسابك — OCTA", _signup_code_html(code, name))
+    if not MAIL_ON:
+        # ⛔ مافيش خدمة إيميل = مفيش كود. ما بنطبعش الكود خالص.
+        print(f"  📧 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — كود "
+              f"التأكيد ماتبعتش لـ: {email}", flush=True)
+
+    return jsonify(_SIGNUP_START_REPLY), 200
+
+
+@app.route("/api/auth/signup/verify", methods=["POST"])
+@_pin_json
+def auth_signup_verify():
+    """
+    ✅ ② تأكيد الإيميل — body: { "email", "code" }
+
+    ⛔⛔⛔ مافيش **توكن جلسة** في الرد. المنطق: الكود الصح مش
+       دخول — هو خطوة نص الطريق. اللي بعده إجباري: اختيار
+       ٤ أرقام (newpin). لو رجعنا بتوكن هنا، حد يقرا لوج
+       السيرفر أو ياخد الرد هيكون داخل من غير ما يختار باسورد.
+    ⛌ **من هنا بس** بيتعمل حساب المستخدم.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    email = str(data.get("email") or "").strip().lower()[:120]
+    code = str(data.get("code") or "").strip()
+    ok, why = _valid_email(email)
+    if not ok:
+        return jsonify({"ok": False, "error": why, "why": "bad_email"}), 400
+    # ⛌ ٦ أرقام بالظبط — غلط في الشكل = غلط عادي (401 مش 400،
+    #    عشان ما نديش معلومة زيادة على اللي الـverify بيرجّعه)
+    if not _SIGNUP_CODE_RE.match(code):
+        return jsonify(_SIGNUP_BAD_REPLY), 401
+
+    good, why = _signup_check(email, code)
+    if not good:
+        return jsonify(_SIGNUP_BAD_REPLY), 401
+
+    # ⛔⛔⛔ أول مرة في عمر الحساب بيتعمل مستخدم — **بعد** ما
+    #    الإيميل اتأكد. الـuid نفس بتاع كل مسارات الباسورد.
+    uid = _hash_key(email)[:20]
+    with USERS_LOCK:
+        users = _load_users()
+        rec = users.get(uid)
+        if rec is None:
+            rec = {
+                "id": uid,
+                "name": _signup_name(email),
+                "email": email,
+                "email_hash": _hash_key(email),
+                "created": int(time.time()),
+                "portfolio": {},
+                "watch": [],
+            }
+            users[uid] = rec
+        # ⛌ الإيميل اتأكد فعلاً
+        rec["email_confirmed"] = True
+        rec["email_confirmed_at"] = int(time.time())
+        # ⛌ ملحوظة: لو الحساب ده كان ليه باسورد من قبل (تسجيل
+        #    قديم)، الباسورد القديم **مش** بيتشال هنا — بيفضل
+        #    شغال لحد ما الـnewpin يقبل. عشان لو المستخدم وقف
+        #    في النص، ما يتقفلش بره من حسابه خالص.
+        _save_users(users)
+
+    # ⛌ الكد اتقبل — العدّادات بتتنضف من على الجهاز عشان
+    #    الباسورد الجديد يشتغل على طول.
+    ip = _client_key()
+    _pinlock_reset(_pin_keys(ip=ip))
+    _pin_window_reset(_pin_keys(ip=ip))
+    print(f"  ✉️ اتأكد الإيميل: {uid}")
+
+    return jsonify({
+        "ok": True,
+        "msg": "الكود صح — اختار 4 أرقام الباسورد",
+        "need_pin": True,
+        "unlock": _signup_unlock_make(uid),
+        "next": "signup/newpin",
+    }), 200
+
+
+@app.route("/api/auth/signup/newpin", methods=["POST"])
+@_pin_json
+def auth_signup_newpin():
+    """
+    🔐 ③ اختيار الباسورد — body: { "new_pin" } + توكن الفتح
+
+    ⛔⛔ توكن الفتح **مش** توكن جلسة: require_user() بيرفضه
+       (التوقيع مختلف) و /api/auth/refresh بيرفضه كمان. هو
+       مالوش صلاحية غير إنه يوصّلنا لطلب الباسورد مرة واحدة.
+    ⛔ مافيش توكن دخول قبل ما الباسورد يتقبل.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    unlock = _bearer()
+    uid = _signup_unlock_read(unlock)
+    if not uid:
+        return jsonify({
+            "ok": False,
+            "error": "انتهت صلاحية فتح الحساب — ابدأ التسجيل من الأول",
+            "why": "unlock_expired",
+        }), 401
+
+    new_pin = str(data.get("new_pin") or "").strip()
+    # ⛌ نفس شروط التسجيل القديم: ٤ أرقام بالظبط، بيشمل الفريد
+    if not _PIN_RE.match(new_pin):
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد 4 أرقام بالظبط",
+            "why": "bad_pin",
+            "hint": "4 أرقام من 0000 لـ 9999",
+        }), 400
+
+    ip = _client_key()
+    keys = _pin_keys(pin=new_pin, ip=ip)
+    locked, retry = _pin_locked(keys)
+    if locked:
+        return _pin_locked_resp(retry)
+
+    # ⛌ الباسورد فريد — مافيش حسابين بنفس الأرقام، ومحدش يدخل
+    #    بحسابه بلباسورد حد تاني.
+    idx = _pin_index(new_pin)
+    # 📌 فاضي معناها «ما فيش مشكلة».
+    bad = ""
+    out = None
+    em = nm = ""
+    with USERS_LOCK:
+        users = _load_users()
+        rec = users.get(uid)
+        if rec is None:
+            bad = "no_user"
+        else:
+            taken = False
+            stale = False
+            for other_uid, o in users.items():
+                if other_uid == uid:
+                    continue
+                got = str(o.get("pin_idx") or "")
+                if len(got) == len(idx) and hmac.compare_digest(got, idx):
+                    taken = True
+                    break
+                if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
+                    stale = True
+            if not taken and stale:
+                for other_uid, o in users.items():
+                    if other_uid == uid:
+                        continue
+                    ph = str(o.get("pin_hash") or "")
+                    if ph and hmac.compare_digest(
+                            ph, _pin_hash(new_pin, o.get("pin_salt") or "")):
+                        taken = True
+                        break
+            if taken:
+                bad = "taken"
+            else:
+                # 🔄 salt جديد مع كل كتابة — الباسورد القديم لو
+                #    كان في الحساب بيموت خالص: الهاش القديم بقى
+                #    بلا قيمة حتى لو اتسرّب من أي مكان.
+                salt = _pin_salt_new()
+                rec["pin_salt"] = salt
+                rec["pin_hash"] = _pin_hash(new_pin, salt)
+                rec["pin_idx"] = idx
+                rec["pin_idx_id"] = _PIN_PEPPER_ID
+                rec["pin_set"] = int(time.time())
+                rec["pin_first_at"] = int(
+                    rec.get("pin_first_at") or int(time.time()))
+                _save_users(users)
+                out = _pin_user_json(rec)
+                em = str(rec.get("email") or "")
+                nm = str(rec.get("name") or "")
+
+    if bad == "no_user":
+        return jsonify({
+            "ok": False,
+            "error": "الحساب مش موجود",
+            "why": "no_user",
+        }), 404
+
+    if bad == "taken":
+        # ⛌ زي التسجيل القديم: 409 من غير عدّاد = قناة مجانية
+        #    لتس «الباسورد ده مستخدم من قبل؟» — فبيتحسب.
+        locked, retry = _pinlock_fail(keys)
+        if locked:
+            return _pin_locked_resp(retry)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد ده مستخدم من قبل — اختار غيره",
+            "why": "pin_taken",
+        }), 409
+
+    # ✅ اتحفظ — توكن الفتح مالوش تكرار
+    _signup_unlock_drop(unlock)
+    _pinlock_reset(keys)
+    _pin_window_reset(keys)
+    print(f"  🔐 حساب جاهز بالباسورد: {uid}")
+
+    # 📬 إيميل **واحد بس** في عمر الحساب — تأكيد، مش استرجاع
+    if em:
+        _send_mail(em, "تم إنشاء حسابك — OCTA", _pin_welcome_html(nm))
+        if not MAIL_ON:
+            # ⛔ مافيش خدمة إيميل = مفيش تأكيد. ما بنطبعش الباسورد.
+            print(f"  📧 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — إيميل "
+                  f"التأكيد ماتبعتش لـ: {em}", flush=True)
+
+    return jsonify({
+        "ok": True,
+        "msg": "الحساب جاهز — من دلوقتي ادخل بالباسورد",
+        "token": _make_token(uid),
+        "user": out,
+    }), 200
 
 # ══════════════════════════════════════════════════════════════════
 #  🔄 تجديد صامت — كل ساعتين من غير أي شاشة
@@ -3185,7 +3673,7 @@ def auth_me():
 # ══════════════════════════════════════════════════════════════════
 #  🗑  حذف حسابي — المستخدم يحذف نفسه فقط
 #  ⛔ محمي بتوكن صالح: مش حد تاني يقدر يمسح حسابك
-#  ⛔ بيمسح: السجل + كل منبهات السعر + كل توكنات舊
+#  ⛔ بيمسح: السجل + كل منبهات السعر + كل التوكنات القديمة
 # ══════════════════════════════════════════════════════════════════
 
 

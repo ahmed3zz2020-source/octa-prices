@@ -44,6 +44,7 @@ up.PINLOCK_FILE = Path(TMP) / "pinlock.json"
 up.PIN_CHAL_FILE = Path(TMP) / "pinchal.json"
 up.PIN_PEPPER_FILE = Path(TMP) / "pin_pepper.txt"
 up.OTP_FILE = Path(TMP) / "otp.json"
+up.SIGNUP_FILE = Path(TMP) / "signup.json"
 up.MAIL_ON = False                      # ⛔ متبعثش إيميل حقيقي
 
 MAILS = []          # 📬 كل إيميل «اتبعت» في الاختبار
@@ -93,6 +94,7 @@ def clock(base=_REAL_TIME):
 
 app = up.app
 
+# ⛌ المسار القديم بقى 410 — مابيتقابلش من غير ما نتأكد
 REG = "/api/auth/pin/register"
 LOG = "/api/auth/pin/login"
 SEND = "/api/auth/pin/challenge/send"
@@ -145,11 +147,44 @@ def canon(r):
     return json.dumps(r.get_json() or {}, ensure_ascii=False, sort_keys=True)
 
 
-def new_user(pin, email, ip="10.1.0.1"):
-    r = call(REG, body={"name": "تجربة", "email": email, "pin": pin}, ip=ip)
-    ok(r.status_code == 200, "تسجيل %s فشل: %s %s" % (email, r.status_code,
-                                                      jbody(r)))
+# ⛌ المسار القديم بقى 410 — التجهيز بقى من المسار الجديد
+#    (الإيميل الأول، والباسورد بعد التأكيد).
+SIGNUP_START = "/api/auth/signup/start"
+SIGNUP_VERIFY = "/api/auth/signup/verify"
+SIGNUP_NEWPIN = "/api/auth/signup/newpin"
+
+
+def signup(pin, email, ip="10.1.0.1", name="تجربة"):
+    """
+    ⛔⛔ تسجيل كامل بالمسار الجديد: start → verify → newpin.
+
+    بترجّع توكن الجلسة (زي ما المسار القديم كان بيرجّع).
+    الكود بيتقرا من نص الإيميل اللي اتمسك — مش من متغير في السيرفر.
+    """
+    m0 = len(MAILS)
+    r = call(SIGNUP_START, body={"name": name, "email": email}, ip=ip)
+    ok(r.status_code == 200, "signup/start فشل: %s %s" % (r.status_code,
+                                                          jbody(r)))
+    ok(len(MAILS) > m0, "⛔ مافيش إيميل اتبعت لـ %s" % email)
+    code = ""
+    for m in reversed(MAILS[m0:]):
+        if m["to"] == email:
+            code = code_of(m["html"])
+            break
+    ok(code, "⛔ مافيش كود وصل في إيميل %s" % email)
+    r = call(SIGNUP_VERIFY, body={"email": email, "code": code}, ip=ip)
+    ok(r.status_code == 200, "signup/verify فشل: %s %s" % (r.status_code,
+                                                            jbody(r)))
+    unlock = (r.get_json() or {}).get("unlock")
+    ok(unlock, "⛔ مافيش unlock")
+    r = call(SIGNUP_NEWPIN, body={"new_pin": pin}, ip=ip, token=unlock)
+    ok(r.status_code == 200, "signup/newpin فشل: %s %s" % (r.status_code,
+                                                           jbody(r)))
     return (r.get_json() or {}).get("token")
+
+
+def new_user(pin, email, ip="10.1.0.1"):
+    return signup(pin, email, ip)
 
 
 def code_of(html):
