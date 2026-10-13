@@ -696,7 +696,14 @@ def otp_verify():
 
     if not re.match(r"^\d{6}$", code or ""):
         return jsonify({"error": "الكود 6 أرقام"}), 400
-    ok, why = _otp_check(email, code)
+    try:
+        ok, why = _otp_check(email, code)
+    except Exception as e:
+        # ⛌ صفحة 500 فاضية للمستخدم مش مفيدة — بنقوله نوع الخطأ ونسجله
+        import traceback as _tb
+        traceback.print_exc()
+        return jsonify({"error": "حصل خطأ في السيرفر — جرب تاني",
+                        "why": type(e).__name__}), 500
     if not ok:
         if why == "too_many_wrong":
             return jsonify({"error": "⛔ غلط كتير — اطلب كود جديد",
