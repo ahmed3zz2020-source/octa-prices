@@ -1485,7 +1485,7 @@ def calc_levels(price, decision, overall_score):
 #   ③ القايمة القديمة بس كـ fallback لو الملفات مش موجودة
 #
 # ⛔ لو الملف ناقص، السهم مالوش تقييم — مش بنخترع له اسم.
-_SCORE_ERRORS_SEEN = False
+_SCORE_ERROR = None
 _HARDCODED_EGX = EGX
 
 
@@ -4315,11 +4315,11 @@ def update_loop():
                 except Exception as _e:
                     # ⛌ كان pass — الخطأ كان بيضيع وكل السهم بيطلع بلا تقييم
                     #    من غير أي أثر. دلوقتي بيتسجل.
-                    if not _SCORE_ERRORS_SEEN:
-                        import traceback
-                        print(f"  ❌ final_score: {type(_e).__name__}: {str(_e)[:120]}")
-                        traceback.print_exc(limit=3)
-                        globals()['_SCORE_ERRORS_SEEN'] = True
+                    import traceback as _tb
+                    globals()['_SCORE_ERROR'] = (
+                        f"{type(_e).__name__}: {str(_e)[:200]}\n"
+                        + "\n".join(_tb.format_exc(limit=4).split("\n")[-6:]))
+                    print(f"  ❌ final_score: {_SCORE_ERROR[:200]}")
             # نحفظ كم مؤشر تم استنتاجه (بدل ما جاب من المصدر)
             LIVE_DATA["derived_count"] = sum(1 for s in st if s.get("_derived"))
 
@@ -5010,6 +5010,13 @@ def strategy_api(code, strategy):
             "code": (item or {}).get("code"),
             "hint": "جرّب تاني، ولو فضل قوم ابعتلنا الـcode",
         }), 500
+
+
+@app.route("/api/score-error")
+def score_error():
+    """آخر خطأ في حساب التقييم — عشان ما نلعبش.hide-and-seek"""
+    return jsonify({"error": globals().get("_SCORE_ERROR"),
+                    "ok": globals().get("_SCORE_ERROR") is None})
 
 
 @app.route("/api/rank")
