@@ -17,3 +17,4 @@ node_modules/
 *.bak*
 _backup/
 OCTAD_TOKEN_SECRET
+_scratch/
