@@ -4921,6 +4921,27 @@ threading.Thread(
 
 
 # ============ ROUTES: Prices ============
+def _users_io_test():
+    """⛔⛔ الفحص الحقيقي: نشوف نقدر نكتب users.json ولا لأ.
+    الكود كان بيبلع الاستثناءات فمحدش عرف إن الحسابات بتضيع."""
+    try:
+        d = _load_users()
+        probe = "__octa_io_probe__"
+        d[probe] = {"id": probe}
+        _save_users(d)
+        back = _load_users()
+        ok = probe in back
+        # ننضّف
+        back.pop(probe, None)
+        _save_users(back)
+        return {"write": True, "read_back": ok, "file": str(USERS_FILE),
+                "exists": USERS_FILE.exists(),
+                "bytes": USERS_FILE.stat().st_size if USERS_FILE.exists() else 0}
+    except Exception as e:
+        return {"write": False, "why": f"{type(e).__name__}: {str(e)[:120]}",
+                "file": str(USERS_FILE)}
+
+
 def _app_writable():
     """⛔ القصة: التوكن بيتعمل صح بس أي طلب بعده بيرجع 401.
     ⛌ سببين محتملين: إما الـsecret مختلف، إما users.json مش بيتكتب.
@@ -4958,6 +4979,7 @@ def health():
         #    false = مفيش سر جاي من متغير بيئة (يعني وضع تطوير).
         # ⛔⛔ تشخيص: مستخدمين مش بيتحفظوا = كل توكن بيرجع 401
         "users_n": len(_load_users()),
+        "users_io": _users_io_test(),
         "app_writable": _app_writable(),
         "mail_configured": MAIL_ON,
         "mail_last_ok": MAIL_LAST["ok"],
