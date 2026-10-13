@@ -265,14 +265,28 @@ def protect_admin_routes():
         return None
 
     # المستخدم المسجّل يقدر
-    if require_user():
-        return None
+    u = require_user()
+    if not u:
+        return jsonify({
+            "ok": False,
+            "error": "المسار ده محمي",
+            "hint": "سجّل دخول من /api/auth/register الأول",
+        }), 401
 
-    return jsonify({
-        "ok": False,
-        "error": "المسار ده محمي",
-        "hint": "سجّل دخول من /api/auth/register الأول",
-    }), 401
+    # ⛌ ⛌ الأدمن: OCTA_ADMIN_KEY كان متقرأ من Railway ومحدش بيستخدمه —
+    #    يعني أي مستخدم مسجّل (مش المالك بس) كان يقدر يقرأ التشخيص
+    #    والأرقام الداخلية. لو المتغير مضبوط، المسارات دي بتتقفل على
+    #    صاحبه بس. لو مش مضبوط، سلوكه زي ما كان عشان ما نكسرش
+    #    فحص المالك.
+    if ADMIN_KEY:
+        sent = (request.headers.get("X-Admin-Key") or "").strip()
+        if not hmac.compare_digest(sent, ADMIN_KEY):
+            return jsonify({
+                "ok": False,
+                "error": "المسار ده للأدمن بس",
+                "hint": "ابعت X-Admin-Key في الهيدر",
+            }), 403
+    return None
 
 
 @app.before_request
@@ -544,16 +558,64 @@ def rate_limit_guard():
 import hashlib
 import hmac
 import base64
+import secrets as _secrets_mod
 
 # ── الكود السري بتاع الأدمن (من Railway Variables) ──
 ADMIN_KEY = str(os.environ.get("OCTA_ADMIN_KEY", "") or "").strip()
 
-# ── مفاتيح التوقيع (من Railway Variables) ──
+
+# ══════════════════════════════════════════════════════════════
+#  🔐 سر توقيع التوكن — ⛔ مفيش سر مكتوب في الكود. أبداً.
+# ══════════════════════════════════════════════════════════════
+#  كان هنا fallback ثابت شغّال على السيرفر فعليًا: أي حد على
+#  الإنترنت يقدر يصمّم توكن صالح باسم أي مستخدم. اتشال خالص.
+#  دلوقتي السلوك مقسوم على وضعين واضحين:
+#
+#   · الإنتاج  → لازم OCTAD_TOKEN_SECRET (أو SECRET_KEY) مضبوط.
+#     لو مش موجود التطبيق **يرفض يشتغل** ويطبع السبب في اللوج.
+#     أحسن بكتير من إنه يخدم بتوكنات يتصمّمها أي حد على النت.
+#   · التطوير  → لازم opt-in صريح: OCTAD_DEV=1 أو اسم الجهاز localhost.
+#     وعندها بنولّد سر مؤقت عشوائي لكل تشغيل — مش ثابت ومش معروف
+#     لحد، ومش مكتوب في أي ملف.
+#
+#  ⛔ السر نفسه ما يتطبعش ولا يطلع في أي رد ولا لوج.
+#     كل حاجة بتقول «موجود / مش موجود» وبس.
+
+_DEV_FLAGS = {"1", "true", "yes", "on", "dev", "local"}
+_LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", "localhost.localdomain"}
+
+
+def _dev_mode():
+    """وضع التطوير — opt-in صريح، مش تخمين."""
+    if str(os.environ.get("OCTAD_DEV", "") or "").strip().lower() in _DEV_FLAGS:
+        return True
+    try:
+        import socket
+        return socket.gethostname().strip().lower() in _LOCAL_HOSTS
+    except Exception:
+        return False
+
+
 _SECRET = str(
-    os.environ.get("OCTAD_TOKEN_SECRET",
-                   os.environ.get("SECRET_KEY",
-                                  "octa-dev-only-change-me"))
+    os.environ.get("OCTAD_TOKEN_SECRET")
+    or os.environ.get("SECRET_KEY")
+    or ""
 ).strip()
+
+# true = السر جاي من متغير بيئة. ده الوضع الوحيد الصح في الإنتاج.
+TOKEN_SECRET_CONFIGURED = bool(_SECRET)
+
+if not _SECRET:
+    if not _dev_mode():
+        raise RuntimeError(
+            "OCTAD_TOKEN_SECRET غير مضبوط — التطبيق رافض يشتغل من غيره. "
+            "ضيفه في Railway Variables، أو شغّل محلي بـ OCTAD_DEV=1. "
+            "مفيش قيمة افتراضية عمداً: أي سر مكتوب في الكود يبقى سر مكشوف."
+        )
+    # تطوير محلي: سر مؤقت لكل تشغيل — مش ثابت ومش موجود في الكود.
+    _SECRET = _secrets_mod.token_urlsafe(32)
+    print("[auth] ⚠️ وضع تطوير: سر توقيع مؤقت بيتغير كل تشغيل — "
+          "ما ينفعش تنشره", flush=True)
 
 
 def _sign(payload: str) -> str:
@@ -570,6 +632,9 @@ def _make_token(user_id: str) -> str:
 
 def _read_token(tok: str):
     """يرجّع user_id أو None — أي input غريب يرجّع None"""
+    # ⛔ مفيش سر = مفيش توكن. بيشتغل كقفل أمان إضافي.
+    if not _SECRET:
+        return None
     try:
         parts = str(tok or "").split(".")
         if len(parts) != 2:
@@ -580,7 +645,14 @@ def _read_token(tok: str):
         if not hmac.compare_digest(sig, _sign(p)):
             return None
         pad = "=" * (-len(p) % 4)
-        return base64.urlsafe_b64decode(p + pad).decode("utf-8", "ignore") or None
+        # ⛌ strict مش ignore: بايت مش صالح = رفض. الـdecode كان
+        #    بيبتلع الأخطاء وبيطلع نص مش متوقع.
+        uid = base64.urlsafe_b64decode(p + pad).decode("utf-8", "strict")
+        # ⛔ الـuid نص قصير مطبوع (20 حرف hex دلوقتي). التوقيع بيغطي
+        #    الـpayload أصلاً — دي طبقة تانية بس ضد المدخلات الغريبة.
+        if not uid or len(uid) > 64 or not uid.isascii() or not uid.isprintable():
+            return None
+        return uid
     except Exception:
         return None
 
@@ -626,11 +698,18 @@ def _get_user(token):
 
 
 def _bearer():
-    """يطلّع التوكن من الـAuthorization header أو من query"""
+    """يطلّع التوكن من الـAuthorization header — وبس.
+
+    ⛔ ⛔ كان فيه fallback يقرا التوكن من ?t= في الـURL.
+       التوكن في الـURL بيتسرب في أربع أماكن: لوج Railway،
+       لوج Cloudflare، تاريخ المتصفح، وheader الـReferer.
+       والواجهة كلها بتبعت Authorization: Bearer (octa-api.js)،
+       فحذفنا المسار ده — مفيش ولا عميل محتاجه.
+    """
     h = request.headers.get("Authorization", "") or ""
     if h.lower().startswith("bearer "):
         return h[7:].strip()
-    return (request.args.get("t") or "").strip()
+    return ""
 
 
 def require_user():
@@ -697,7 +776,10 @@ def otp_send():
     nm = str(data.get("name") or "").strip()[:40]
     _send_mail(email, f"كود الدخول — OCTA", _otp_html(code, nm))
     if not MAIL_ON:
-        print(f"  🔐 كود {email}: {code}")
+        # ⛔ مافيش خدمة إيميل = الكود بيروح لوج السيرفر. لازم
+        #    RESEND_API_KEY يكون مضبوط في الإنتاج (شوف deliverable).
+        print(f"  🔐 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — الكود بيتطبع "
+              f"في اللوج: {email} → {code}")
 
     # ⛔ ⛔ نفس الرد في كل الحالات — ما نقولش «الإيميل ده مش موجود»:
     #    الرد ده بيكشف مين عندنا حساب ومين لأ.
@@ -812,13 +894,22 @@ def auth_register():
     with USERS_LOCK:
         users = _load_users()
         if uid in users:
-            # نفس الكود = نفس المستخدم (تسجيل دخول تلقائي)
+            # ⛔ ⛔ ⛔ كان بيرجّع توكن لأي حد يبعت أي كود مع إيميل
+            #    مستخدم موجود — يعني إيميل واحد بس = سرقة حساب كاملة.
+            #    دلوقتي: لازم الكود نفسه يطابق اللي متخزّن.
+            if hmac.compare_digest(str(users[uid].get("khash") or ""), khash):
+                # نفس الكود = نفس المستخدم (تسجيل دخول تلقائي)
+                return jsonify({
+                    "ok": True, "token": _make_token(uid),
+                    "user": {"id": uid, "name": users[uid]["name"],
+                             "email": users[uid].get("email")},
+                    "returning": True,
+                })
+            # ⛔ رسالة واحدة للحالتين — ما نقولش «الإيميل ده مسجل»
             return jsonify({
-                "ok": True, "token": _make_token(uid),
-                "user": {"id": uid, "name": users[uid]["name"],
-                         "email": users[uid].get("email")},
-                "returning": True,
-            })
+                "error": "الكود مش صح — لو عندك حساب بالإيميل ده، "
+                         "اطلب كود دخول من صفحة الحساب",
+            }), 401
 
         users[uid] = {
             "id": uid,
@@ -860,11 +951,15 @@ def _reset_send(email, code):
     """
     📤 إرسال كود الاسترجاع.
 
-    🚧 دلوقتي: بنطبع الكود في اللوج بس (السيرفر مافيش خدمة
-       إيميل مربوطة بيه). أول ما تربط SMTP / Resend / Brevo،
-       الاستبدال هنا سطر واحد.
+    ✅ لو Resend مضبوط → الكود يتبعت إيميل زي كود الدخول بالظبط
+       (قبل: الكود كان بيتطبع في اللوج بس، يعني أي حد يقدر يفتح
+        لوج Railway ويسرق أي حساب).
+    🚧 من غير خدمة إيميل (تطوير) → بنطبعه في اللوج زي الأول.
     """
-    print(f"[reset] {email} -> {code}", flush=True)
+    if MAIL_ON:
+        return _send_mail(email, "كود استرجاع الحساب — OCTA", _otp_html(code))
+    print(f"[reset] ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — الكود بيتطبع "
+          f"في اللوج: {email} -> {code}", flush=True)
     return True
 
 
@@ -4764,6 +4859,7 @@ threading.Thread(
 
 # ============ ROUTES: Prices ============
 @app.route("/")
+@app.route("/api/health")
 def health():
     return jsonify({
         "status": "ok",
@@ -4773,7 +4869,12 @@ def health():
             "snapshot_id": LIVE_DATA.get("snapshot_id"),
         "tickers": len(LIVE_DATA["ticker"]),
         "stocks": len(LIVE_DATA["egx30"]),
-        "gemini": "configured" if GEMINI_KEY else "NOT configured"
+        "gemini": "configured" if GEMINI_KEY else "NOT configured",
+        # ⛔ boolean بس — قيمة السر نفسها ما بتظهرش في أي رد أبداً.
+        #    false = مفيش سر جاي من متغير بيئة (يعني وضع تطوير).
+        "token_secret_configured": TOKEN_SECRET_CONFIGURED,
+        "auth": ("configured" if TOKEN_SECRET_CONFIGURED
+                 else "dev-ephemeral"),
     })
 
 @app.route("/api/prices")
