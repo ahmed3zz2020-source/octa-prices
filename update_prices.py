@@ -1984,8 +1984,17 @@ def build_sector_stats(all_stocks):
         pbs  = [v for v in (_f(x.get("pb")) for x in st) if v is not None and v > 0]
         nms  = [v for v in (_f(x.get("net_margin")) for x in st) if v is not None]
         des  = [v for v in (_f(x.get("de_ratio")) for x in st) if v is not None]
+        # وسائط تاريخ المخاطرة — لأن «تقلب 60%» رقم مطلق،
+        # وقطاع واحد ممكن يكون كله متقلب. المقارنة النسبية هي الصح.
+        vols = [v for v in (_f(x.get("vol1y")) for x in st) if v is not None and v > 0]
+        mdds = [v for v in (_f(x.get("mdd1y")) for x in st) if v is not None and v > 0]
+        shps = [v for v in (_f(x.get("sharpe3y")) for x in st) if v is not None]
         stats[sec] = {
             "count": len(st), "with_pe": len(pes),
+            "median_vol1y": round(med(vols), 2) if vols else None,
+            "median_mdd1y": round(med(mdds), 2) if mdds else None,
+            "median_sharpe3y": round(med(shps), 2) if shps else None,
+            "n_risk_hist": len(vols),
             "median_pe": round(med(pes), 2) if pes else None,
             "median_roe": round(med(roes), 2) if roes else None,
             "median_pb": round(med(pbs), 2) if pbs else None,
@@ -2398,6 +2407,51 @@ AXIS_WEIGHTS = {
 }
 
 
+
+def _compose_score(axes, liq=None, reasons=None, conf=None):
+    """محصلة واحدة في مكان واحد.
+
+    ⛌ كان في إعادة حساب في السطر ~4922 بتعملها بإيدها:
+         · من غير تطبيع على الأوزان المتاحة  ⇒ بتعيد وزن محور ناقص
+         · من غير سقف الخصم (min 15)          ⇒ الرقم المبلّغ ≠ موص��ف الكود
+         · ومن غير خصم الثقة                    ⇒ الرقم أرقام تانية خالص
+       وكل ده بعد ما final_score حسبت صح — فالموقع بيعرض رقم مش
+       اللي الكود بيقوله بيه. الدالة دي بقت المصدر الواحد للكل.
+    """
+    if reasons is None:
+        reasons = []
+    avail = {k: w for k, w in AXIS_WEIGHTS.items() if axes.get(k) is not None}
+    wsum = sum(avail.values())
+    if not wsum:
+        return {"final": None, "base": 0.0, "risk_pen": 0.0,
+                "liq_pen": 0.0, "conf_pen": 0.0}
+    base = sum(axes[k] * (avail[k] / wsum) for k in avail)
+
+    risk_pen = 0.0 if axes.get("risk") is None else min(15.0, (100 - axes["risk"]) * 0.18)
+    liq_pen = 0.0
+    if liq and liq.get("risk_level") in ("مرتفع جداً", "مرتفع"):
+        liq_pen = min(6.0, (100 - liq["score"]) * 0.10)
+
+    # الثقة بالبيانات: خصم لو ضعيفة، مكافأة صغيرة لو ممتازة
+    conf_pen = 0.0
+    if conf is not None:
+        if conf < 50:
+            conf_pen = (50 - conf) * 0.25
+            reasons.append(f"البيانات ضعيفة ({conf:.0f}/100) — خصم {conf_pen:.1f}")
+        elif conf > 80:
+            conf_pen = -(conf - 80) * 0.05      # سالب = مكافأة
+
+    total_penalty = max(0.0, risk_pen + liq_pen + conf_pen)
+    if total_penalty > 22:                 # سقف إجمالي الخصومات
+        scale = 22 / total_penalty
+        risk_pen *= scale
+        liq_pen *= scale
+        conf_pen *= scale
+
+    final = round(max(0, min(100, base - risk_pen - liq_pen - conf_pen)), 1)
+    return {"final": final, "base": base, "risk_pen": risk_pen,
+            "liq_pen": liq_pen, "conf_pen": conf_pen}
+
 def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     """
     النتيجة النهائية = مرجّحة ثم مُعدّلة بالمخاطرة والثقة والمحفظة.
@@ -2422,19 +2476,24 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     # وده غلط، إحنا مش عارفين أصلاً.
     # بدل كده: بنستبعد المحور وبنقسم على اللي اتوفر بس.
 
+    # ⚠ كل محور بيتقفل في 0-100.
+    #    الفني والأساسي كانوا بياخدوا الدرجة زي ما هي من غير حدّ —
+    #    ده خلّى 20 قراءة من 1480 تعدّي 100، والصفحة بتقول «من 100».
+    #    ⛔ مش بنقصّ الأرقام عشان نخفي المشكلة — بنصلّح المصدر.
+
     # 1) الفني
     v = _n(tech["score"], None) if tech else None
-    axes["technical"] = v if v is not None else None
+    axes["technical"] = round(max(0.0, min(100.0, v))) if v is not None else None
     if v is None: missing.append("الفني")
 
     # 2) الأساسي
     v = _n(fund["score"], None) if fund else None
-    axes["fundamental"] = v if v is not None else None
+    axes["fundamental"] = round(max(0.0, min(100.0, v))) if v is not None else None
     if v is None: missing.append("الأساسي")
 
     # 3) السيولة
     v = _n(liq["score"], None) if liq else None
-    axes["liquidity"] = v if v is not None else None
+    axes["liquidity"] = round(max(0.0, min(100.0, v))) if v is not None else None
     if v is None: missing.append("السيولة")
 
     # 4) الأخبار — لسه مفيش مصدر
@@ -2447,18 +2506,68 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         s += max(-25, min(25, p1m / 2))
     axes["sentiment"] = round(max(0, min(100, s)))
 
-    # 6) المخاطرة — عكسي (Beta + تقلب + ديون)
-    beta, vol, de = _n(item.get("beta"), None), _n(item.get("volatility"), None), _n(item.get("de_ratio"), None)
-    if beta is None and vol is None and de is None:
+    # 6) المخاطرة — أكبر محور (24%)
+    #    بيتحسب من 5 مؤشرات: بيتا · نسبة الدين · التقلب · أكبر هبوط · العائد/المخاطرة
+    #
+    #    ⚠ ليه تاريخ السعر؟ لأن عندنا 4996 شمعة لكل سهم ومحدش كان بيستخدمها.
+    #       سطر 5865-5873: vol1y · mdd1y · sharpe3y
+    #
+    #    ⚠ ليه مقارنة نسبية؟ «تقلب 60%» رقم مطلق. قطاع صناعي كله متقلب
+    #       بيطلع رديء في رقم مطلق، وهو طبيعي. فبنقارن بوسيط القطاع
+    #       (median_vol1y من build_sector_stats).
+    #
+    #    ⚠ ليه نسب جوه محور واحد؟ لو كل مؤشر لوحده 0-100 وبنجمع، السهم اللي
+    #       كل مؤشراته متوسطة بيطلع متوسط.AlternوAlternنجمع نحن الوزن النسبي
+    #       وبنطبّع على المحاور المتاحة — زي باقي المحاور بالظبط.
+    risk_n = 0          # ⛔ يتعرّف قبل كل return — كان هيفصل في الفرع الناقص
+    beta, de = _n(item.get("beta"), None), _n(item.get("de_ratio"), None)
+    vol1y = _n(item.get("vol1y"), None)
+    mdd1y = _n(item.get("mdd1y"), None)
+    shp   = _n(item.get("sharpe3y"), None)
+
+    sec_key = None
+    if sector_stats:
+        for k in (item.get("sector"), item.get("sectorAr")):
+            if k and k in sector_stats:
+                sec_key = k; break
+    ss = sector_stats.get(sec_key, {}) if sec_key else {}
+
+    # كل مؤشر بيبقى درجة 0-100 جوّه نفسه
+    parts = {}
+    if beta is not None:
+        parts["beta"] = max(0.0, min(100.0, 100.0 - (beta - 0.3) * 125.0))
+    if de is not None:
+        parts["debt"] = max(0.0, min(100.0, 100.0 - min(60.0, de * 22.0)))
+
+    # المؤشرات التاريخية — نسبية للقطاع
+    def _rel(v, med, invert=True, span=None):
+        """درجة 0-100 من مقارنة النسبة بالوسيط. med=None ⇒ ما فيش أساس للمقارنة."""
+        if v is None or med in (None, 0): return None
+        ratio = v / med
+        if invert:
+            # كل ما النسبة أكبر عن 1 كل ما الدرجة أقل
+            return max(0.0, min(100.0, 100.0 - (ratio - 0.6) * 100.0))
+        return max(0.0, min(100.0, 50.0 + (ratio - 1.0) * 100.0))
+
+    a = _rel(vol1y, ss.get("median_vol1y"), True)
+    if a is not None: parts["vol"] = a
+    a = _rel(mdd1y, ss.get("median_mdd1y"), True)
+    if a is not None: parts["drawdown"] = a
+    a = _rel(shp, ss.get("median_sharpe3y"), False)
+    if a is not None: parts["sharpe"] = a
+
+    if not parts:
         # ⛔ مافيش أي مؤشر مخاطرة — ما بنخمنش رقم
         axes["risk"] = None
         missing.append("المخاطرة")
     else:
-        r = 80.0
-        if beta is not None: r -= beta * 11
-        if vol is not None:  r -= vol * 2.8
-        if de is not None:   r -= min(22, de * 2.5)
-        axes["risk"] = round(max(0, min(100, r)))
+        # الأوزان النسبية — البيتا والدين أساس ثابت، التاريخ مكمل
+        RW = {"beta": 0.22, "debt": 0.18, "vol": 0.26,
+              "drawdown": 0.22, "sharpe": 0.12}
+        num = sum(parts[k] * RW[k] for k in parts)
+        den = sum(RW[k] for k in parts)      # ⛔ مش 1.0 — تطبيع زي باقي المحاور
+        axes["risk"] = round(max(0, min(100, num / den)))
+        risk_n = len(parts)   # كم مؤشر دخل فعلاً — للتقارير
 
     # 7) ملاءمة المحفظة — مبدئياً حسب تنوع القطاع (Phase 8 هيكمّل)
     axes["portfolio"] = 70
@@ -2480,51 +2589,22 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
             "reasons": reasons, "decision": "غير كافٍ للقرار",
         }
 
-    base = sum(axes[k] * (avail[k] / wsum) for k in avail)
-
-    # ═══ تعديل 1: المخاطرة (ضعف) ═══
-    # ⚠️ سقف الخصم: ما ينزلش أكتر من 15 نقطة من المخاطرة
-    #    السبب: الخصومات لو تراكمت بتبطل النتيجة
-    risk_pen = 0.0 if axes.get("risk") is None else min(15.0, (100 - axes["risk"]) * 0.18)
-    adj = base - risk_pen
-
-    # ═══ تعديل 2: الثقة بالبيانات ═══
+    # ═══ المحصلة — كلها في الدالة الواحدة ═══
+    # الثقة بتدخل جوه الدالة كمان عشان متبقاش زيادة برّه
     try:
         conf = float(item.get("data_confidence") or 60)
     except (TypeError, ValueError):
         conf = 60.0
-    conf_pen = 0.0
-    liq_pen = 0.0
-    if conf < 50:
-        # بيانات ضعيفة → خصم
-        conf_pen = (50 - conf) * 0.25
-        adj -= conf_pen
-        reasons.append(f"البيانات ضعيفة ({conf:.0f}/100) — خصم {conf_pen:.1f}")
-    elif conf > 80:
-        # بيانات ممتازة → مكافأة صغيرة
-        adj += (conf - 80) * 0.05
-
-    # ═══ تعديل 3: السيولة (مخاطرة عدمiquidity) ═══
-    if liq and liq["risk_level"] in ("مرتفع جداً", "مرتفع"):
-        # ⚠️ سقف الخصم: ما ينزلش أكتر من 6 نقاط
-        liq_pen = min(6.0, (100 - liq["score"]) * 0.10)
-        adj -= liq_pen
-        reasons.append(f"خصم {liq_pen:.1f} — سيولة {liq['risk_level']}")
-
-    # ═══ سقف إجمالي الخصومات: 22 نقطة كحد أقصى ═══
-    total_penalty = risk_pen + conf_pen + (liq_pen if (liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً")) else 0)
-    if total_penalty > 22:
-        scale = 22 / total_penalty
-        risk_pen *= scale
-        conf_pen *= scale
-        if liq and liq["risk_level"] in ("مرتفع", "مرتفع جداً"):
-            liq_pen *= scale
-
-    final = round(max(0, min(100, adj)), 1)
+    adj = _compose_score(axes, liq, reasons, conf)
+    final = adj["final"]
 
     # ═══ الثقة الإجمالية ═══
     # الثقة = (جودة البيانات + تغطية المحاور) / 2
-    axis_coverage = sum(1 for k in ("technical","fundamental","liquidity","risk") if axes[k] != 50)
+    # ⚠ كان مكتوب `axes[k] != 50` كاختصار لـ«فيه بيانات».
+    #   ده غلط: السهم اللي درجته الحقيقية 50 بالظبط بيتحسب ناقص،
+    #   فبيقلل ثقته. الشرط الصح هو None مش رقم.
+    axis_coverage = sum(1 for k in ("technical", "fundamental", "liquidity", "risk")
+                        if axes.get(k) is not None)
     coverage_pct = (axis_coverage / 4) * 100
     overall_conf = round((conf * 0.6) + (coverage_pct * 0.4), 1)
 
@@ -2564,9 +2644,16 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         )
 
     # ═══ مستوى المخاطرة ═══
-    if axes["risk"] >= 70: risk_level = "منخفض"
-    elif axes["risk"] >= 50: risk_level = "متوسط"
-    elif axes["risk"] >= 30: risk_level = "مرتفع"
+    # ⛌ الكود القديم كان يعمل مقارنة على axes["risk"] مباشرة.
+    #    لو المحور None (كل المؤشرات ناقصة) ⇒ TypeError بيقع،
+    #    والـtry/except في الإنتاج كان بيبلعه صامت — فالسهم
+    #    كان بيطلع من غير تقييم نهائي ومن غير رسالة خطأ.
+    _rv = axes.get("risk")
+    if _rv is None:
+        risk_level = "غير متاح"      # ⛔ مش رقم مخترع
+    elif _rv >= 70: risk_level = "منخفض"
+    elif _rv >= 50: risk_level = "متوسط"
+    elif _rv >= 30: risk_level = "مرتفع"
     else: risk_level = "مرتفع جداً"
 
     return {
@@ -2575,11 +2662,13 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         "axes": axes,
         "weights": AXIS_WEIGHTS,
         "adjustments": {
-            "أساسي مرجّح": round(base, 1),
-            "خصم المخاطرة": round(-risk_pen, 1),
-            "خصم الثقة": round(-conf_pen, 1),
-            "خصم السيولة": round(-((100 - liq["score"]) * 0.10) if liq and liq["risk_level"] in ("مرتفع","مرتفع جداً") else 0, 1),
+            "أساسي مرجّح": round(adj["base"], 1),
+            "خصم المخاطرة": round(-adj["risk_pen"], 1),
+            "خصم السيولة": round(-adj["liq_pen"], 1),
+            "خصم الثقة": round(-adj["conf_pen"], 1),
         },
+        # كم مؤشر دخل في محور المخاطرة — 5 (بيتا·دين·تقلب·هبوط·شارپ)
+        "risk_inputs": risk_n,
         "decision": decision,
         "decision_why": decision_why,
         "risk_level": risk_level,
@@ -4847,16 +4936,15 @@ def update_loop():
                         if se: fin["axes"]["sentiment"] = se["score"]
                         if pfit: fin["axes"]["portfolio"] = pfit["score"]
                         if nw: fin["axes"]["news"] = nw["score"]
-                        # إعادة حساب المحصلة
+                        # إعادة حساب المحصلة — بنفس الدالة المستخدمة في
+                        # final_score بالظبط. الكود القديم كان بيعيد الحساب
+                        # بإيده: من غير تطبيع، ومن غير أسقف الخصم، ومن غير
+                        # خصم الثقة — فكان الرقم المبلّغ مختلف عن الموصوف.
                         ax = fin["axes"]
-                        b = sum(ax[k] * AXIS_WEIGHTS[k] for k in AXIS_WEIGHTS)
-                        risk_pen = (100 - ax["risk"]) * 0.18
-                        adj = b - risk_pen
-                        if liq_score:  # نضيف خصم السيولة
-                            lq = liquidity_score(item)
-                            if lq and lq["risk_level"] in ("مرتفع", "مرتفع جداً"):
-                                adj -= (100 - lq["score"]) * 0.10
-                        fin["final_score"] = round(max(0, min(100, adj)), 1)
+                        _lq = liquidity_score(item) if liq_score else None
+                        _a2 = _compose_score(ax, _lq)
+                        if _a2["final"] is not None:
+                            fin["final_score"] = _a2["final"]
                         item["final_score"] = fin["final_score"]
                         item["confidence"] = fin["confidence"]
                         item["decision"] = fin["decision"]
