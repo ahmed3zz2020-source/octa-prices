@@ -4921,6 +4921,19 @@ threading.Thread(
 
 
 # ============ ROUTES: Prices ============
+def _app_writable():
+    """⛔ القصة: التوكن بيتعمل صح بس أي طلب بعده بيرجع 401.
+    ⛌ سببين محتملين: إما الـsecret مختلف، إما users.json مش بيتكتب.
+       ده بيكشف التاني."""
+    try:
+        p = Path("/app/.octa_write_test")
+        p.write_text("x", encoding="utf-8")
+        p.unlink()
+        return True
+    except Exception:
+        return False
+
+
 @app.route("/")
 @app.route("/api/health")
 def health():
@@ -4943,6 +4956,9 @@ def health():
         "data_full_n": (_DATA_FULL["payload"] or {}).get("_n"),
         # ⛔ boolean بس — قيمة السر نفسها ما بتظهرش في أي رد أبداً.
         #    false = مفيش سر جاي من متغير بيئة (يعني وضع تطوير).
+        # ⛔⛔ تشخيص: مستخدمين مش بيتحفظوا = كل توكن بيرجع 401
+        "users_n": len(_load_users()),
+        "app_writable": _app_writable(),
         "mail_configured": MAIL_ON,
         "mail_last_ok": MAIL_LAST["ok"],
         "mail_last_why": MAIL_LAST["why"],
