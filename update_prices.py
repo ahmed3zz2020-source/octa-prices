@@ -4914,6 +4914,10 @@ def health():
         #    الحقل كان ناقص من الرد فالموقع كان بيقول «السوق مغلق» دايمًا.
         "market_phase": market_phase(),
         "cairo_time": cairo_now_str(),
+        # ⛔⛔ تشخيص: هل ملف البيانات اتقري فعلاً؟ كان الموقع بيرجع
+        #    صفحات فاضية من غير سبب — والسبب هنا كان مخفي.
+        "data_full_loaded": _DATA_FULL["payload"] is not None,
+        "data_full_n": (_DATA_FULL["payload"] or {}).get("_n"),
         # ⛔ boolean بس — قيمة السر نفسها ما بتظهرش في أي رد أبداً.
         #    false = مفيش سر جاي من متغير بيئة (يعني وضع تطوير).
         "token_secret_configured": TOKEN_SECRET_CONFIGURED,
