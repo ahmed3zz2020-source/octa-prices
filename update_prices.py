@@ -1485,6 +1485,7 @@ def calc_levels(price, decision, overall_score):
 #   ③ القايمة القديمة بس كـ fallback لو الملفات مش موجودة
 #
 # ⛔ لو الملف ناقص، السهم مالوش تقييم — مش بنخترع له اسم.
+_SCORE_ERRORS_SEEN = False
 _HARDCODED_EGX = EGX
 
 
@@ -4311,8 +4312,14 @@ def update_loop():
                         item["valuation"] = f["valuation_status"]
                         item["fair_value"] = f["fair_value"]
                         item["upside"] = f["upside_pct"]
-                except Exception:
-                    pass
+                except Exception as _e:
+                    # ⛌ كان pass — الخطأ كان بيضيع وكل السهم بيطلع بلا تقييم
+                    #    من غير أي أثر. دلوقتي بيتسجل.
+                    if not _SCORE_ERRORS_SEEN:
+                        import traceback
+                        print(f"  ❌ final_score: {type(_e).__name__}: {str(_e)[:120]}")
+                        traceback.print_exc(limit=3)
+                        globals()['_SCORE_ERRORS_SEEN'] = True
             # نحفظ كم مؤشر تم استنتاجه (بدل ما جاب من المصدر)
             LIVE_DATA["derived_count"] = sum(1 for s in st if s.get("_derived"))
 
