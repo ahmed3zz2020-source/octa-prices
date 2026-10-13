@@ -230,6 +230,23 @@ def _log_exc(where, exc):
         pass
 
 
+@app.errorhandler(Exception)
+def _json_error_handler(exc):
+    """
+    ⛌⛌ صفحة 500 فاضية من Flask مالهاش أي فايدة — ولا للمستخدم
+    ولا لنا. أي خطأ بيرجع JSON بنوع الاستثناء + اللوج كامل.
+    ⛌ بنسيب HTTPException زي ما هو (400/401/404/429… إلخ).
+    """
+    from werkzeug.exceptions import HTTPException
+    if isinstance(exc, HTTPException):
+        return exc
+    _log_exc("unhandled", exc)
+    resp = jsonify({"error": "حصل خطأ في السيرفر — جرب تاني",
+                    "why": type(exc).__name__})
+    resp.status_code = 500
+    return resp
+
+
 @app.before_request
 def protect_admin_routes():
     """
