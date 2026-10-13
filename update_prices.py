@@ -433,15 +433,24 @@ ROUTES_WRITE = {"portfolio", "alerts", "dividends", "calibration", "stress"}
 #    فالمستخدم ميقدرش يطلب كود أصلاً.
 ROUTES_READONLY = {"me", "status", "check"}
 
-# الحدود
+# الحدود — كل bucket = قائمة نوافذ: [(عدد الطلبات، Window بالثواني), …]
+# ⛌ 为什么 liste مش زوج واحد: عشان نقدر نحط **سقفين** على نفس المسار.
+#    مثال: ٥/دقيقة (بيمنع المسح السريع) + ٢٠/ساعة (بيمنع المسح البطيء).
+#    أضيق نافذة هي اللي بتفرض، والاثنتين لازم تعدّي.
 LIMITS = {
-    "default":   (120, 60),   # (عدد الطلبات، Window بالثواني)
-    "expensive": (15, 60),
-    "write":     (5, 60),
+    "default":   [(120, 60)],
+    "expensive": [(15, 60)],
+    "write":     [(5, 60)],
     # إرسال بريد فعلي — ده أغلى حاجة في الـAPI كله
-    "otp_send":  (3, 300),
+    "otp_send":  [(3, 300)],
     # ⛌ التحقق: ١٠ محاولات / ٥ دقايق — الكود نفسه بيموت بعد ٥ غلط
-    "otp_verify": (15, 300),
+    "otp_verify": [(15, 300)],
+    # ⛔⛔ تسجيل الباسورد: نفس حد الكتابة ٥/دقيقة
+    #    + سقف ٢٠/ساعة. المسار ده بيفحص ١٠٬٠٠٠ احتمال للـ«الباسورد
+    #    ده مستخدم من قبل؟» — وخلاص، ٥/دقيقة معناها ٣٠٠ فحص في
+    #    الساعة من غير ما يتقفل أي حاجة. ٢٠/ساعة معناها ٥٠٠٠ فحص في
+    #    اليوم = ٢ يومين لتمرير المساحة كلها حتى قبل القفل الذكي.
+    "pin_register": [(5, 60), (20, 3600)],
 }
 
 # تخزين: {ip: {bucket: deque(timestamps)}}
@@ -470,12 +479,15 @@ def _route_bucket(path):
         if name == "auth":
             sub = seg[2] if len(seg) > 2 else ""
             tail = seg[3] if len(seg) > 3 else ""
-            # ⛌ ⛌ مسار الباسورد: تسجيل/دخول/تغيير = كتابة.
-            #    ٥/دقيقة لكل IP. القفل الذكي (١٥ دقيقة) أضيق بكتير من
-            #    كده، بس الحد ده بيمنع حد يجرّب ٥ باسوردات في الدقيقة
-            #    من غير ما يستنى القفل أصلاً.
+            # ⛌ ⛌ مسار الباسورد: دخول/تغيير = حد الكتابة (٥/دقيقة).
+            #    القفل الذكي (١٥ دقيقة) أضيق بكتير من كده، بس الحد
+            #    بيمنع ٥ باسوردات في الدقيقة من غير ما يستنى القفل.
+            # ⛔ ⛔ ⛔ التسجيل = **أضيق**: نفس الـwrite + سقف ٢٠/ساعة،
+            #    لأن مس��ر ده هو اللي بيفحص المساحة كلها بسؤال
+            #    «الباسورد ده مستخدم من قبل؟». من غير السقف، ٥/دقيقة
+            #    معناها ١٠٬٠٠٠ محاولة مسح في ٣٣ ساعة.
             if sub == "pin":
-                return "write"
+                return "pin_register" if tail == "register" else "write"
             # ⛌ قراءة التوكن مش كتابة
             if sub in ROUTES_READONLY:
                 return "default"
@@ -495,20 +507,28 @@ def _rate_check():
     """بيتحقق من الحد ويرجّع (allowed, retry_after, bucket)"""
     key = _client_key()
     bucket = _route_bucket(request.path)
-    max_hits, window = LIMITS[bucket]
+    windows = LIMITS[bucket]
     now = time.time()
 
     with _HITS_LOCK:
-        q = _HITS[key][bucket]
-        while q and now - q[0] > window:
-            q.popleft()
+        # ⛌ كل نافذة ليها deque مستقلة، والطلب **مش** بيتسجّل
+        #    غير لو عدّى كل النوافذ (وإلا حد رجعه من حد الدقيقة
+        #    هيتحسب من حد الساعة وميعديش صح).
+        blocked = None
+        for wi, (max_hits, window) in enumerate(windows):
+            q = _HITS[key]["%s#%d" % (bucket, wi)]
+            while q and now - q[0] > window:
+                q.popleft()
+            if len(q) >= max_hits:
+                oldest = q[0]
+                retry = int(max(1, window - (now - oldest)))
+                if blocked is None or retry > blocked[0]:
+                    blocked = (retry, wi, max_hits)
+        if blocked is not None:
+            return False, blocked[0], bucket
 
-        if len(q) >= max_hits:
-            oldest = q[0]
-            retry = int(max(1, window - (now - oldest)))
-            return False, retry, bucket
-
-        q.append(now)
+        for wi in range(len(windows)):
+            _HITS[key]["%s#%d" % (bucket, wi)].append(now)
 
         # تنظيف عشان ما نكبرش بلا حدود
         if len(_HITS) > 5000:
@@ -539,7 +559,7 @@ def rate_limit_guard():
         })
         resp.status_code = 429
         resp.headers["Retry-After"] = str(retry)
-        resp.headers["X-RateLimit-Limit"] = str(LIMITS[bucket][0])
+        resp.headers["X-RateLimit-Limit"] = str(LIMITS[bucket][0][0])
         resp.headers["X-RateLimit-Bucket"] = bucket
         return resp
     return None
@@ -1102,6 +1122,17 @@ PIN_LOCK_FIRST = 15 * 60             # أول قفل = ١٥ دقيقة
 PIN_LOCK_NEXT = 60 * 60              # بعد كده = ساعة
 PIN_PURGE_AGE = 7 * 86400            # ننضّف السجلات بعد أسبوع
 PIN_SCAN_LIMIT = 50                  # أقصى عدد سجلات في الفحص البطيء
+# ⛔⛔ القفل **العالمي** على الباسورد — وده موجود فعلاً، بس مش في
+#    متغيّر لوحده: مفتاح الباسورد (p:) **مش** مربوط بـIP خالص،
+#    فهو عدّاد واحد مشترك بين كل الأجهزة. مهاجم بـ٥٠٠ IP بيقع
+#    في نفس العدّاد، والحد الأقصى ٥ محاولات على الباسورد ده في
+#    العالم كله كل ١٥ دقيقة. ده أقوى حاجة في التصميم كله.
+#
+#    الفرق الوحيد إنه أطول: القفل **الثالث** على نفس الباسورد
+#    (مش على نفس الجهاز) بيوصل ٦ ساعات بدل ساعة. الهدف هنا مش
+#    حد ناسي باسورد — ده حد عايز ياخد حساب، والقفل الطويل
+#    بيمنع المحاولات الموزّعة على أجهزة مختلفة.
+PIN_LOCK_GLOBAL = 6 * 3600           # القفل الثالث على نفس الباسورد
 
 
 def _pinlock_load():
@@ -1160,6 +1191,11 @@ def _pin_keys(pin=None, ip=None):
     return ks
 
 
+def _pin_until(rec):
+    """⛌ وقت قفل السجل — ٠ يعني مفتوح"""
+    return float((rec or {}).get("u") or 0)
+
+
 def _pin_locked(keys):
     """⛔ قراءة بس — مفيش تعديل. بيرجّع (مقفول؟، كام ثانية)"""
     now = time.time()
@@ -1168,15 +1204,32 @@ def _pin_locked(keys):
     except Exception:
         return False, 0
     for k in keys:
-        u = float((store.get("k", {}).get(k) or {}).get("u") or 0)
+        u = _pin_until(store.get("k", {}).get(k))
         if u > now:
             return True, int(u - now) + 1
     return False, 0
 
 
 def _pinlock_fail(keys):
-    """يسجّل محاولة غلط — وبيقفل لو وصلنا للحد.
-    بيرجّع (مقفول دلوقتي؟، كام ثانية)"""
+    """
+    يسجّل محاولة غلط — وبيقفل لو وصلنا الحد.
+    بيرجّع (مقفول دلوقتي؟، كام ثانية)
+
+    ⛔⛔⛔ `keys` = كل العدّادات اللي لازم تتحسَب. **أي** مسار
+    بيفشل لازم يمرّ من هنا — حتى لو راجع 409 مش 401. الرجوع
+    بـ409 من غير عدّاد = قناة مجانية لفحص ١٠٬٠٠٠ احتمال من غير
+    ما القفل الذكي يلاحظ خالص (شوف auth_pin_register).
+
+    ⛌⛌ المفتاح `p:` (الباسورد) مربوط بالجهاز **أبداً** — ده
+    العدّاد العالمي، مشترك بين كل الأجهزة. والمفتاح `i:` (الـIP)
+    عدّاد محلي. الاتنين بيترتفعوا مع بعض لما يبقى الخطأ على
+    الباسورد نفسه.
+
+    ⚠️⛔⛔ خطر لازم نتفادىه: في حالة «الإيميل مسجّل» لازم نعدّ
+    **الـIP بس**. غير كده حد يبعت (إيميل ضحية + أي باسورد) ٥ مرات
+    فيقفل **باسورد** الضحية ١٥ دقيقة — وهو لسه ما بيحاولش
+    يدخل أصلاً. ده حجب خدمة على قاعدة المستخدمين، مش حماية.
+    """
     now = time.time()
     with PINLOCK_LOCK:
         store = _pinlock_purge(_pinlock_load())
@@ -1185,7 +1238,7 @@ def _pinlock_fail(keys):
         # ⛌ القفل لازم يتفحص **قبل** ما نزيد العدّاد، وإلا
         #    محاولة من IP مقفول كانت هتعدّي.
         for k in keys:
-            u = float((kmap.get(k) or {}).get("u") or 0)
+            u = _pin_until(kmap.get(k))
             if u > now:
                 return True, int(u - now) + 1
 
@@ -1202,6 +1255,10 @@ def _pinlock_fail(keys):
             if rec["f"] >= PIN_FAIL_LIMIT:
                 lvl = int(rec.get("l") or 0)
                 dur = PIN_LOCK_FIRST if lvl <= 0 else PIN_LOCK_NEXT
+                if k.startswith("p:") and lvl >= 2:
+                    # 🌍 الباسورد: القفل الثالث = ٦ ساعات
+                    #    (العدّاد ده عالمي — كل الأجهزة مع بعض)
+                    dur = PIN_LOCK_GLOBAL
                 rec["u"] = now + dur
                 rec["l"] = min(lvl + 1, 20)
                 rec["f"] = 0
@@ -1211,7 +1268,7 @@ def _pinlock_fail(keys):
 
     locked, retry = False, 0
     for k in keys:
-        u = float((store["k"].get(k) or {}).get("u") or 0)
+        u = _pin_until(store["k"].get(k))
         if u > now:
             locked = True
             retry = max(retry, int(u - now) + 1)
@@ -1457,67 +1514,99 @@ def auth_pin_register():
     if not ok:
         return jsonify({"ok": False, "error": why, "why": "bad_email"}), 400
 
-    keys = _pin_keys(pin=pin, ip=_client_key())
+    ip = _client_key()
+    k_ip = _pin_keys(ip=ip)              # العدّاد المحلي بس
+    keys = _pin_keys(pin=pin, ip=ip)     # الاتنين
     locked, retry = _pin_locked(keys)
     if locked:
         return _pin_locked_resp(retry)
 
     uid = _hash_key(email)[:20]
+    # ⛔⛔⛔ التعارض بينزل لبرّه القفل — عشان نعدّ المحاولة
+    #    (العدّاد بياخد قفل تاني، وما بنحبّش nest) وكمان عشان
+    #    نرجّع 429 لو المحاولة هي اللي قفلت الجهاز.
+    conflict = ""
 
     with USERS_LOCK:
         users = _load_users()
         if uid in users:
-            return jsonify({
-                "ok": False,
-                "error": "الإيميل ده مسجّل قبل كده — "
-                         "لو نسيت الباسورد مافيش استرجاع، جرّب رقم تاني",
-                "why": "email_taken",
-            }), 409
-
-        # ⛔⛔ الباسورد لازم يكون فريد. من غير الشرط ده، حد يسجّل
-        #    بالباسورد بتاع حد تاني ويسرق حسابه من أول دخول.
-        #    ⛌ الفحص بالفهرس (O(n) مقارنة نصوص رخيصة) مش بالهاش:
-        #    PBKDF2 لكل مستخدم = ٤٠ms×N والقفل مقفول طول الوقت.
-        idx = _pin_index(pin)
-        taken = False
-        stale = False
-        for o in users.values():
-            got = str(o.get("pin_idx") or "")
-            if len(got) == len(idx) and hmac.compare_digest(got, idx):
-                taken = True
-                break
-            if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
-                stale = True
-        if not taken and stale:
-            # ⛌ الفهرس ميت (pepper اتغيّر) — الفحص البطيء بالهاش الحقيقي
+            conflict = "email"
+        else:
+            # ⛔⛔ الباسورد لازم يكون فريد. من غير الشرط ده، حد يسجّل
+            #    بالباسورد بتاع حد تاني ويسرق حسابه من أول دخول.
+            #    ⛌ الفحص بالفهرس (O(n) مقارنة نصوص رخيصة) مش بالهاش:
+            #    PBKDF2 لكل مستخدم = ٤٠ms×N والقفل مقفول طول الوقت.
+            idx = _pin_index(pin)
+            taken = False
+            stale = False
             for o in users.values():
-                ph = str(o.get("pin_hash") or "")
-                if ph and hmac.compare_digest(ph, _pin_hash(pin, o.get("pin_salt") or "")):
+                got = str(o.get("pin_idx") or "")
+                if len(got) == len(idx) and hmac.compare_digest(got, idx):
                     taken = True
                     break
-        if taken:
-            return jsonify({
-                "ok": False,
-                "error": "الباسورد ده مستخدم من قبل — اختار غيره",
-                "why": "pin_taken",
-            }), 409
+                if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
+                    stale = True
+            if not taken and stale:
+                # ⛌ الفهرس ميت (pepper اتغيّر) — الفحص البطيء بالهاش
+                for o in users.values():
+                    ph = str(o.get("pin_hash") or "")
+                    if ph and hmac.compare_digest(
+                            ph, _pin_hash(pin, o.get("pin_salt") or "")):
+                        taken = True
+                        break
+            if taken:
+                conflict = "pin"
+            else:
+                # ⛔⛔⛔ مفيش باسورد خام في أي مكان. اللي بيتكتب:
+                salt = _pin_salt_new()
+                users[uid] = {
+                    "id": uid,
+                    "name": name,
+                    "email": email,
+                    "email_hash": _hash_key(email),
+                    "pin_hash": _pin_hash(pin, salt),
+                    "pin_salt": salt,
+                    "pin_idx": idx,
+                    "pin_idx_id": _PIN_PEPPER_ID,
+                    "created": int(time.time()),
+                    "portfolio": {},
+                    "watch": [],
+                }
+                _save_users(users)
 
-        # ⛔⛔⛔ مفيش باسورد خام في أي مكان. اللي بيتكتب:
-        salt = _pin_salt_new()
-        users[uid] = {
-            "id": uid,
-            "name": name,
-            "email": email,
-            "email_hash": _hash_key(email),
-            "pin_hash": _pin_hash(pin, salt),
-            "pin_salt": salt,
-            "pin_idx": idx,
-            "pin_idx_id": _PIN_PEPPER_ID,
-            "created": int(time.time()),
-            "portfolio": {},
-            "watch": [],
-        }
-        _save_users(users)
+    # ═══ ⛔⛔⛔ التعارض بيبقى محسوب زي أي محاولة غلط ═══
+    #  الرجوع بـ409 من غير عدّاد = قناة مجانية لفحص ١٠٬٠٠٠ احتمال:
+    #  المهاجم يبعت إيميلات وهمية وباسوردات مختلفة ويشوف مين فيهم
+    #  «مستخدم من قبل» — والقفل الذكي مش بيلاحظ خالص.
+    #  فالتعارض = محاولة غلط، بالظبط زي إنها دخلت بالباسورد وفشلت.
+    if conflict == "email":
+        # ⛌ الـIP بس: لو عدّدنا الباسورد كمان، حد يبعت
+        #    (باسورد الضحية + إيميل وهمية) ٥ مرات كان هيقفل
+        #    **باسورد الضحية** — هجوم حجب خدمة على قاعدة كله.
+        locked, retry = _pinlock_fail(k_ip)
+        if locked:
+            return _pin_locked_resp(retry)
+        return jsonify({
+            "ok": False,
+            "error": "الإيميل ده مسجّل قبل كده — "
+                     "لو نسيت الباسورد مافيش استرجاع، جرّب رقم تاني",
+            "why": "email_taken",
+        }), 409
+
+    if conflict == "pin":
+        # ⛌ هنا الباسورد **هو** اللي بيتفحص، فالمحاولة بتتحسب
+        #    عالمياً: ٢٠ محاولة على نفس الباسورد من ١٠٬٠٠٠ جهاز
+        #    = قفل ٦ ساعات للعالم كله. وبكده مسار التسجيل
+        #    بيكلّف المهاجم **نفس** تكلفة مسار الدخول — ما عادش
+        #    فيه قناة رخيصة تتخطى القفل.
+        locked, retry = _pinlock_fail(keys)
+        if locked:
+            return _pin_locked_resp(retry)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد ده مستخدم من قبل — اختار غيره",
+            "why": "pin_taken",
+        }), 409
 
     _pinlock_reset(keys)
     print(f"  🔢 مستخدم جديد بالباسورد: {uid}")
@@ -1584,6 +1673,9 @@ def auth_pin_login():
     if u is None or not _pin_verify(uid, u, pin):
         # ⛌ نفس المسار ونفس الرد في كل الأحوال
         _pin_timing_pad(pin)
+        # ⛔⛔ المحاولة دي بتتحسب على الباسورد **عالمياً** كمان:
+        #    المفتاح p: مش مربوط بجهاز، فبوتنت بـ٥٠٠ IP بيقع
+        #    في نفس العدّاد = ٥ محاولات في العالم كله كل ١٥ دقيقة.
         locked, retry = _pinlock_fail(keys)
         if locked:
             return _pin_locked_resp(retry)
@@ -1647,70 +1739,94 @@ def auth_pin_change():
             "hint": "٤ أرقام من 0000 لـ 9999",
         }), 400
 
-    keys = _pin_keys(pin=new_pin, ip=_client_key())
-    locked, retry = _pin_locked(keys)
+    ip = _client_key()
+    k_ip = _pin_keys(ip=ip)
+    k_pin_old = _pin_keys(pin=old_pin)   # القديم اللي بيتفحص
+    keys = _pin_keys(pin=new_pin, ip=ip)
+    locked, retry = _pin_locked(keys + k_ip + k_pin_old)
     if locked:
         return _pin_locked_resp(retry)
 
     uid = str(u.get("id") or "")
+    bad = ""          # "", "not_pin", "old", "taken"
+    rec = None
     with USERS_LOCK:
         users = _load_users()
         rec = users.get(uid)
         if rec is None or not rec.get("pin_hash"):
-            return jsonify({
-                "ok": False,
-                "error": "الحساب ده مش حساب باسورد",
-                "why": "not_pin_account",
-            }), 400
-
-        # ⛔ الباسورد القديم لازم يصح — من غير توكن صالح
-        if not _pin_verify(uid, rec, old_pin):
-            return jsonify({
-                "ok": False,
-                "error": "الباسورد القديم غلط",
-                "why": "bad_old_pin",
-            }), 401
-
-        # ⛔ والباسورد الجديد لازم يكون فريد زي أول مرّة
-        idx = _pin_index(new_pin)
-        taken = False
-        stale = False
-        for other_uid, o in users.items():
-            if other_uid == uid:
-                continue
-            got = str(o.get("pin_idx") or "")
-            if len(got) == len(idx) and hmac.compare_digest(got, idx):
-                taken = True
-                break
-            if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
-                stale = True
-        if not taken and stale:
+            bad = "not_pin"
+        elif not _pin_verify(uid, rec, old_pin):
+            # ⛔ الباسورد القديم لازم يصح — من غير توكن صالح
+            bad = "old"
+        else:
+            # ⛔ والباسورد الجديد لازم يكون فريد زي أول مرّة
+            idx = _pin_index(new_pin)
+            taken = False
+            stale = False
             for other_uid, o in users.items():
                 if other_uid == uid:
                     continue
-                ph = str(o.get("pin_hash") or "")
-                if ph and hmac.compare_digest(ph, _pin_hash(new_pin, o.get("pin_salt") or "")):
+                got = str(o.get("pin_idx") or "")
+                if len(got) == len(idx) and hmac.compare_digest(got, idx):
                     taken = True
                     break
-        if taken:
-            return jsonify({
-                "ok": False,
-                "error": "الباسورد ده مستخدم من قبل — اختار غيره",
-                "why": "pin_taken",
-            }), 409
+                if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
+                    stale = True
+            if not taken and stale:
+                for other_uid, o in users.items():
+                    if other_uid == uid:
+                        continue
+                    ph = str(o.get("pin_hash") or "")
+                    if ph and hmac.compare_digest(
+                            ph, _pin_hash(new_pin, o.get("pin_salt") or "")):
+                        taken = True
+                        break
+            if taken:
+                bad = "taken"
+            else:
+                # 🔄 salt جديد مع كل تغيير — لو الباسورد القديم اتسرّب
+                #    من أي مكان، السطر القديم مش بيفتح الحساب تاني.
+                salt = _pin_salt_new()
+                rec["pin_salt"] = salt
+                rec["pin_hash"] = _pin_hash(new_pin, salt)
+                rec["pin_idx"] = idx
+                rec["pin_idx_id"] = _PIN_PEPPER_ID
+                rec["pin_changed"] = int(time.time())
+                _save_users(users)
+                out = _pin_user_json(rec)
 
-        # 🔄 salt جديد مع كل تغيير — لو الباسورد القديم اتسرّب
-        #    من أي مكان، السطر القديم مش بيفتح الحساب تاني.
-        salt = _pin_salt_new()
-        rec["pin_salt"] = salt
-        rec["pin_hash"] = _pin_hash(new_pin, salt)
-        rec["pin_idx"] = idx
-        rec["pin_idx_id"] = _PIN_PEPPER_ID
-        rec["pin_changed"] = int(time.time())
-        _save_users(users)
-        out = _pin_user_json(rec)
+    # ═══ ⛔⛔ كل فشل هنا بيبقى محسوب — مفيش استثناء ═══
+    #  نفس منطق تسجيل: 409 من غير عدّاد = قناة مجانية لفحص
+    #  «الباسورد ده مستخدم من قبل؟» ببلاش.
+    if bad == "not_pin":
+        return jsonify({
+            "ok": False,
+            "error": "الحساب ده مش حساب باسورد",
+            "why": "not_pin_account",
+        }), 400
 
-    _pinlock_reset(keys)
+    if bad == "old":
+        # ⛌ الباسورد القديم هو اللي بيتفحص → عدّاده هو اللي بيرتفع
+        locked, retry = _pinlock_fail(k_ip + k_pin_old)
+        if locked:
+            return _pin_locked_resp(retry)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد القديم غلط",
+            "why": "bad_old_pin",
+        }), 401
+
+    if bad == "taken":
+        locked, retry = _pinlock_fail(keys)
+        if locked:
+            return _pin_locked_resp(retry)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد ده مستخدم من قبل — اختار غيره",
+            "why": "pin_taken",
+        }), 409
+
+    _pinlock_reset(keys + k_ip + k_pin_old)
     print(f"  🔢 اتغيّر الباسورد: {uid}")
 
     # ⛔ التوكن مش بيتغيّر (مربوط بالـuid) — المستخدم يفضل داخل
