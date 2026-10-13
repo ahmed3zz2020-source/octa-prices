@@ -409,6 +409,8 @@ LIMITS = {
     "write":     (5, 60),
     # إرسال بريد فعلي — ده أغلى حاجة في الـAPI كله
     "otp_send":  (3, 300),
+    # ⛌ التحقق: ١٠ محاولات / ٥ دقايق — الكود نفسه بيموت بعد ٥ غلط
+    "otp_verify": (10, 300),
 }
 
 # تخزين: {ip: {bucket: deque(timestamps)}}
@@ -436,9 +438,14 @@ def _route_bucket(path):
         name = seg[1]
         if name == "auth":
             sub = seg[2] if len(seg) > 2 else ""
+            tail = seg[3] if len(seg) > 3 else ""
             # ⛌ قراءة التوكن مش كتابة
             if sub in ROUTES_READONLY:
                 return "default"
+            # ⛌ ⛌ التحقق ليه حد أوسع من الإرسال:
+            #    المستخدم لو غلط في الكود مرتين مش بيتقفل بره
+            if tail == "verify" or sub == "verify":
+                return "otp_verify"
             return "otp_send"
         if name in ROUTES_WRITE:
             return "write"
@@ -689,8 +696,15 @@ def otp_verify():
 
     if not re.match(r"^\d{6}$", code or ""):
         return jsonify({"error": "الكود 6 أرقام"}), 400
-    if not _otp_check(email, code):
-        return jsonify({"error": "الكود غلط أو خلصت صلاحيته"}), 401
+    ok, why = _otp_check(email, code)
+    if not ok:
+        if why == "too_many_wrong":
+            return jsonify({"error": "⛔ غلط كتير — اطلب كود جديد",
+                            "why": why}), 429
+        if why == "no_code":
+            return jsonify({"error": "الكود مش موجود أو خلصت صلاحيته — اطلب كود جديد",
+                            "why": why}), 401
+        return jsonify({"error": "الكود غلط", "why": why}), 401
 
     # ⛔ نعمل (أو نجدد) المستخدم — الإيميل بقى هو الهوية
     uid = _hash_key(email)[:20]
@@ -855,8 +869,40 @@ MAIL_ON = bool(RESEND_KEY)
 # عدد المحاولات في اليوم لكل إيميل — ⛌ بيمنع تخمين الكود بالقوة
 OTP_TRIES_PER_DAY = 3
 OTP_TTL = 15 * 60          # 15 دقيقة
+# ⛌ كام غلطة في كود واحد قبل ما الكود يموت
+OTP_MAX_WRONG = 5
 
-OTP_STORE = {}             # email → {code_hash, sent, tries, day}
+# ⛌ ⛌ الكود لازم يعيش على القرص مش في الذاكرة.
+#    Railway بيعمل redeploy عند كل git push، والذاكرة بتتمسح →
+#    المستخدم بيستنى إيميل فيه كود صحيحMICROSOFTالسيرفرsays «الكود غلط».
+OTP_FILE = Path("/app/otp.json")
+OTP_LOCK = threading.Lock()
+
+
+def _otp_load():
+    try:
+        if OTP_FILE.exists():
+            d = json.loads(OTP_FILE.read_text(encoding="utf-8"))
+            if isinstance(d, dict):
+                return d
+    except Exception:
+        pass
+    return {}
+
+
+def _otp_save(d):
+    try:
+        tmp = OTP_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(OTP_FILE)
+    except Exception as e:
+        print(f"  💾 ⛔ otp.json: {type(e).__name__}", flush=True)
+
+
+def _otp_purge(d):
+    """نشيل السجلات المنتهية — الخريطة بتتمسح لوحدها"""
+    now = int(time.time())
+    return {k: v for k, v in d.items() if now - v.get("sent", 0) < OTP_TTL}
 
 
 def _send_mail(to, subject, html):
@@ -882,34 +928,47 @@ def _send_mail(to, subject, html):
 
 
 def _otp_new(email):
-    """كود جديد من 6 أرقام — ⛔ crypto مش random عشان الكود أمني."""
+    """كود جديد من 6 أرقام — ⛌ crypto مش random عشان الكود أمني."""
     code = f"{_random.SystemRandom().randint(0, 999999):06d}"
     now = int(time.time())
-    rec = OTP_STORE.get(email) or {}
-    day = now // 86400
-    tries = rec.get("tries", 0) if rec.get("day") == day else 0
-    if tries >= OTP_TRIES_PER_DAY:
-        return None
-    OTP_STORE[email] = {
-        "code_hash": hashlib.sha256(
-            (code + _SECRET).encode()).hexdigest(),
-        "sent": now, "tries": tries, "day": day,
-    }
+    with OTP_LOCK:
+        store = _otp_purge(_otp_load())
+        rec = store.get(email) or {}
+        day = now // 86400
+        tries = rec.get("tries", 0) if rec.get("day") == day else 0
+        if tries >= OTP_TRIES_PER_DAY:
+            return None
+        # ⛌ ⛌ كان السطر ده ناقص — العدّاد بيتحسب بس مش بيتحدّث،
+        #    فـ OTP_TRIES_PER_DAY كان حرف ميت
+        store[email] = {
+            "code_hash": hashlib.sha256(
+                (code + _SECRET).encode()).hexdigest(),
+            "sent": now, "tries": tries + 1, "day": day, "wrong": 0,
+        }
+        _otp_save(store)
     return code
 
 
 def _otp_check(email, code):
-    rec = OTP_STORE.get(email)
-    if not rec:
-        return False
-    if int(time.time()) - rec.get("sent", 0) > OTP_TTL:
-        OTP_STORE.pop(email, None)
-        return False
-    got = hashlib.sha256((str(code) + _SECRET).encode()).hexdigest()
-    ok = hmac.compare_digest(got, rec.get("code_hash", ""))
-    if ok:
-        OTP_STORE.pop(email, None)
-    return ok
+    """⛌ بترجّع (ok, why) — وعدّاد الغلط بيتزاد"""
+    with OTP_LOCK:
+        store = _otp_purge(_otp_load())
+        rec = store.get(email)
+        if not rec:
+            return False, "no_code"
+        if rec.get("wrong", 0) >= OTP_MAX_WRONG:
+            store.pop(email, None)
+            _otp_save(store)
+            return False, "too_many_wrong"
+        got = hashlib.sha256((str(code) + _SECRET).encode()).hexdigest()
+        ok = hmac.compare_digest(got, rec.get("code_hash", ""))
+        if ok:
+            store.pop(email, None)
+        else:
+            rec["wrong"] = rec.get("wrong", 0) + 1
+            store[email] = rec
+        _otp_save(store)
+    return ok, ("ok" if ok else "wrong")
 
 
 
