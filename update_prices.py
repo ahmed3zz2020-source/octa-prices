@@ -682,10 +682,16 @@ def _load_users():
 
 
 def _save_users(d):
+    """⛔⛔ الكتابة لازم تكون ذرّية ومقفولة.
+       الكتابة العادية كانت: فتح الملف → مسحه → كتابة.
+       أي قارئ في نفس اللحظة كان بيلاقي {} —和生产 بتمسح المستخدمين.
+       الحل: نكتب في ملف مؤقت ونعمل rename ذرّي، ومن غير قفل."""
     try:
-        USERS_FILE.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
-    except Exception:
-        pass
+        tmp = USERS_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(USERS_FILE)
+    except Exception as e:
+        print(f"  💾 ⛔ users.json: {type(e).__name__}: {str(e)[:100]}", flush=True)
 
 
 def _get_user(token):
@@ -4922,24 +4928,21 @@ threading.Thread(
 
 # ============ ROUTES: Prices ============
 def _users_io_test():
-    """⛔⛔ الفحص الحقيقي: نشوف نقدر نكتب users.json ولا لأ.
-    الكود كان بيبلع الاستثناءات فمحدش عرف إن الحسابات بتضيع."""
+    """⛔⛔ الفحص الأول كان بيعمل read→write على users.json نفسه —
+    وأي تسجيل بيحصل في نفس اللحظة كان بيتمسح.
+    ⛌ دلوقتي بيكتب في ملف لوحده ومفيش أي تعارض."""
+    p = Path("/app/.octa_persist_probe")
+    now = int(time.time())
     try:
-        d = _load_users()
-        probe = "__octa_io_probe__"
-        d[probe] = {"id": probe}
-        _save_users(d)
-        back = _load_users()
-        ok = probe in back
-        # ننضّف
-        back.pop(probe, None)
-        _save_users(back)
-        return {"write": True, "read_back": ok, "file": str(USERS_FILE),
-                "exists": USERS_FILE.exists(),
-                "bytes": USERS_FILE.stat().st_size if USERS_FILE.exists() else 0}
+        if p.exists():
+            first = int(p.read_text(encoding="utf-8").strip() or 0)
+            return {"survived": True, "age_s": now - first,
+                    "file": str(p), "note": "��لملف فضل موجود بعد النشر"}
+        p.write_text(str(now), encoding="utf-8")
+        return {"survived": False, "created_now": True, "file": str(p),
+                "note": "اتعمل دلوقتي — جيني تاني بعد النشر شوف"}
     except Exception as e:
-        return {"write": False, "why": f"{type(e).__name__}: {str(e)[:120]}",
-                "file": str(USERS_FILE)}
+        return {"ok": False, "why": f"{type(e).__name__}: {str(e)[:100]}"}
 
 
 def _app_writable():
