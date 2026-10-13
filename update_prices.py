@@ -540,6 +540,10 @@ def _read_token(tok: str):
         return None
 
 
+# ⛌ الكود = 6 أرقام بالظبط. مش كلمة سر ومش حروف.
+_CODE_RE = __import__('re').compile(r'^\d{6}$')
+
+
 def _hash_key(raw: str) -> str:
     """هاش الكود السري — ما بنخزنش الأصلي أبداً"""
     salt = _SECRET[:12]
@@ -628,7 +632,13 @@ def _valid_email(e):
 def auth_register():
     """
     تسجيل حساب جديد.
-    body: { "name": "أحمد", "key": "أي كلمة سرية يحفظها المستخدم" }
+    body: { "name", "key", "email" }
+
+    📌 «الكود» مش كلمة سر — هو رقم يتحفظ في.USER``.
+    مفيش قيمة في إن حد يعمل كلمة سر وهو بيجرّب الموقع، والمفروض
+    نطلب أقل ما يمكن ف.browser.
+    ⛔ 6 أرقام، مش حروف: أرقام أسرع في الكتابة على الموبايل
+       وأصعب في التخمين.
     """
     try:
         data = request.get_json(silent=True) or {}
@@ -639,8 +649,11 @@ def auth_register():
     key = str(data.get("key") or "").strip()
     email = str(data.get("email") or "").strip().lower()[:120]
 
-    if len(key) < 6:
-        return jsonify({"error": "الكود السري قصير — 6 حروف على الأقل"}), 400
+    if not _CODE_RE.match(key):
+        return jsonify({
+            "error": "الكود لازم يكون 6 أرقام",
+            "hint": "مثال: 482913",
+        }), 400
 
     # ── الإيميل اختياري — مين بيسجّل من غيره لسه شغال ──
     if email:
