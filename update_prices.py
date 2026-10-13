@@ -395,14 +395,20 @@ ROUTES_EXPENSIVE = {
 }
 
 # الكتابة: بتغيّر حالة
-ROUTES_WRITE = {"portfolio", "alerts", "dividends", "calibration", "stress",
-                 "auth"}
+ROUTES_WRITE = {"portfolio", "alerts", "dividends", "calibration", "stress"}
+
+# ⛔ مسارات قراءة جوّه /api/auth — مش بتغيّر حالة
+#    كانت بتتصنّف "write" فحد الـ5/دقيقة كان بيتخلص من أول تحميل للصفحة،
+#    فالمستخدم ميقدرش يطلب كود أصلاً.
+ROUTES_READONLY = {"me", "status", "check"}
 
 # الحدود
 LIMITS = {
     "default":   (120, 60),   # (عدد الطلبات، Window بالثواني)
     "expensive": (15, 60),
     "write":     (5, 60),
+    # إرسال بريد فعلي — ده أغلى حاجة في الـAPI كله
+    "otp_send":  (3, 300),
 }
 
 # تخزين: {ip: {bucket: deque(timestamps)}}
@@ -428,6 +434,12 @@ def _route_bucket(path):
     seg = [x for x in path.strip("/").split("/") if x]
     if len(seg) >= 2 and seg[0] == "api":
         name = seg[1]
+        if name == "auth":
+            sub = seg[2] if len(seg) > 2 else ""
+            # ⛌ قراءة التوكن مش كتابة
+            if sub in ROUTES_READONLY:
+                return "default"
+            return "otp_send"
         if name in ROUTES_WRITE:
             return "write"
         if name in ROUTES_EXPENSIVE:
