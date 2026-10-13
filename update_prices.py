@@ -1032,6 +1032,11 @@ def _otp_purge(d):
     return {k: v for k, v in d.items() if now - v.get("sent", 0) < OTP_TTL}
 
 
+# ⛔⛔ آخر نتيجة إرسال — كانت بتتبلع وال말هاش أي أثر.
+#    «الموقع قال إنه بعت» و«Resend رفض» كانوا بيتبانوا نفس الحاجة.
+MAIL_LAST = {"ok": None, "at": 0, "why": ""}
+
+
 def _send_mail(to, subject, html):
     """يبعت إيميل. ⛌ مابيبلعش أي خطأ —Registrationمششyg."""
     if not MAIL_ON:
@@ -1045,12 +1050,17 @@ def _send_mail(to, subject, html):
             json={"from": MAIL_FROM, "to": [to], "subject": subject,
                   "html": html}, timeout=20)
         if r.status_code >= 300:
-            print(f"  📧 ⛔ {r.status_code}: {r.text[:120]}")
+            _why = f"HTTP {r.status_code}: {r.text[:160]}"
+            print(f"  📧 ⛔ {_why}")
+            MAIL_LAST.update(ok=False, at=int(time.time()), why=_why)
             return False
         print(f"  📧 ✅ {to}")
+        MAIL_LAST.update(ok=True, at=int(time.time()), why="")
         return True
     except Exception as e:
-        print(f"  📧 ⛔ {type(e).__name__}: {str(e)[:80]}")
+        _why = f"{type(e).__name__}: {str(e)[:120]}"
+        print(f"  📧 ⛔ {_why}")
+        MAIL_LAST.update(ok=False, at=int(time.time()), why=_why)
         return False
 
 
@@ -4928,6 +4938,9 @@ def health():
         "data_full_n": (_DATA_FULL["payload"] or {}).get("_n"),
         # ⛔ boolean بس — قيمة السر نفسها ما بتظهرش في أي رد أبداً.
         #    false = مفيش سر جاي من متغير بيئة (يعني وضع تطوير).
+        "mail_configured": MAIL_ON,
+        "mail_last_ok": MAIL_LAST["ok"],
+        "mail_last_why": MAIL_LAST["why"],
         "token_secret_configured": TOKEN_SECRET_CONFIGURED,
         "auth": ("configured" if TOKEN_SECRET_CONFIGURED
                  else "dev-ephemeral"),
