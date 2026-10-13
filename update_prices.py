@@ -1128,7 +1128,14 @@ def _reset_request():
     if rec["done"] >= RESET_MAX_PER_DAY:
         return jsonify({"error": "وصلت للحد اليومي — جرب بكره"}, 429)
 
-    code = str(int(now * 1000) % 1000000).zfill(6)
+    # ⛔⛔⛔ كان السطر ده: str(int(now * 1000) % 1000000).zfill(6)
+    #    ⛔⛔⛔ تسريب كامل: الكود مش عشوائي أصلاً — هو آخر 6 أرقام من
+    #    وقت السيرفر بالمللي ثانية. أي حد عارف وقت الطلب تقريباً
+    #    (من توقيت الرد، أو بتخمين بسيط) يقدر يحسب الأرقام دي
+    #    ويجربها، و /api/auth/reset/verify مش بيتقفل بعدد محاولات.
+    #    ⛌ دلوقتي نفس نمط كود الـOTP بالظبط: SystemRandom + 6 أرقام.
+    #    العدّاد (RESET_MAX_PER_DAY) والـTTL (RESET_TTL) زي ما هما.
+    code = f"{_random.SystemRandom().randint(0, 999999):06d}"
     rec["code_hash"] = _hash_key(code + email)
     rec["sent"].append(now)
     rec["uid"] = match["id"]
@@ -5228,6 +5235,21 @@ def intelligence(code):
 @app.route("/api/ranking")
 def ranking():
     """أفضل الأسهم مرتبة — بالنتيجة النهائية"""
+    # 🔒 الحماية: ⛔⛔⛔ كان المسار ده مفتوح للزائر المجهول — أي حد
+    #    كان بياخد ترتيب 20 سهم بالنتيجة والقرار والثقة وبلا توكن.
+    #    ⛌ بقى زي /api/egx_full بالظبط: 401 من غير توكن صالح.
+    #    ⛌ top20 الفاضية في الـbody عشان الواجهة ما تكسرش لو الطلب
+    #    طلع من غير gate — نفس الشكل القديم.
+    if not require_user():
+        return jsonify({
+            "ok": False,
+            "error": "النسخة الكاملة محمية",
+            "hint": "سجّل دخول من /api/auth/register",
+            "total": 0,
+            "top20": [],
+            "_protected": True,
+        }), 401
+
     st = LIVE_DATA.get("egx30", [])
     ranked = sorted([s for s in st if s.get("final_score") is not None],
                     key=lambda x: -x["final_score"])
@@ -5243,31 +5265,40 @@ def ranking():
     })
 
 
-def _user_portfolio():
+def _user_portfolio(u=None):
     """
     📦 محفظة المستخدم الحالي.
 
     ⛔ قبل: كل الزوار كانوا بيشاركوا نفس المحفظة (PORTFOLIO العام) —
        أي حد يقدر يمسح محفظة أي حد تاني. دلوقتي كل واحد ليه حجته.
 
-    بدون توكن → محفظة فاضية مؤقتة (يعني محدش بيشوف حجته).
+    ⛌ ⛌ الحارس بيتبعت مع المستخدم (u) من فوق — الدالة دي مبقتش
+       تعمل require_user تاني، ومش بترجع محفظة فاضية لحد.
     """
-    u = require_user()
-    if u:
-        return u.get("portfolio") or {}
-    return {"holdings": {}, "cash": 0}
+    if u is None:
+        u = require_user()
+    if not u:
+        return {}
+    return u.get("portfolio") or {}
 
 
 @app.route("/api/portfolio", methods=["GET", "POST"])
 def portfolio_api():
     """عرض وتعديل المحفظة — 🔒 خاصة بكل مستخدم"""
-    # ── POST: لازم توكن ──
-    if request.method == "POST":
-        u = require_user()
-        if not u:
-            return jsonify({"error": "لازم تسجّل دخول عشان تعدّل المحفظة",
-                           "hint": "POST /api/auth/register"}), 401
+    # ⛔⛔⛔ القفل كان على POST بس. النتيجة: GET بيرد 200 لزائر مجهول
+    #    بمحفظة فاضية افتراضية — يعني مسار المعرفة كان مفتوح، والواجهة
+    #    كانت بتتعامل معاه كأنه عادي. ⛌ دلوقتي القفل فوق الخطّارين
+    #    الزائر لازم يسجّل (401) — زي /api/stats بالظبط.
+    u = require_user()
+    if not u:
+        return jsonify({
+            "ok": False,
+            "error": "لازم تسجّل دخول عشان تشوف المحفظة",
+            "hint": "سجّل دخول الأول من /api/auth/register",
+        }), 401
 
+    # ── POST: تعديل المحفظة ──
+    if request.method == "POST":
         try:
             data = request.get_json(silent=True) or {}
         except Exception:
@@ -5323,8 +5354,8 @@ def portfolio_api():
             _save_users(users)
         return jsonify({"ok": True, "portfolio": pf})
 
-    # ── GET: محفظة المستخدم أو فاضية ──
-    pf = _user_portfolio()
+    # ── GET: محفظة المستخدم (اتأكدنا فوق إن في توكن) ──
+    pf = _user_portfolio(u)
     holdings = pf.get("holdings") or {}
     cash = float(pf.get("cash", 0) or 0)
 
