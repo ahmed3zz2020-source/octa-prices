@@ -276,6 +276,79 @@ def guard_preflight():
 
 
 
+# ══════════════════════════════════════════════════════════════════
+# 🛡️ تنظيف المدخلات — قبل أي route
+# ══════════════════════════════════════════════════════════════════
+# ⛌ ليش: أي string بييجي من المستخدم بيروح لـSQL أو filesystem أو
+#    شارت أو اسم دالة. من غير حدّ، مدخل واحد يقدر يقرا ملف
+#    أو يكسر الصفحة. القواعد هنا بتغطي كل الـ30+ endpoint.
+#
+# 📌 القاعدة: هنقبل الحروف والأرقام والرموز الآمنة بس.
+#    أي حاجة تانية بترجع 400 صريح — مش بنخمن وبنحاول.
+import re as _re_guard
+
+_ALLOWED_CODES = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-_")
+
+def clean_code(v, maxlen=12):
+    """رمز سهم — بيقبل الحروف والأرقام والنقطة والشرطة بس.
+    ⛔ أي حاجة تانية = مدخل مش مصرح. بيرجع None مش 'cleaned'."""
+    if v is None:
+        return None
+    s = str(v).strip().upper()
+    if not s or len(s) > maxlen:
+        return None
+    if not set(s) <= _ALLOWED_CODES:
+        return None
+    return s
+
+
+def clean_text(v, maxlen=200):
+    """نص حرّ — بيشيل المحارف التحكم وبيلصق سطر واحد."""
+    if v is None:
+        return ""
+    s = str(v)
+    s = _re_guard.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", s)
+    s = s.replace("\n", " ").replace("\r", " ")
+    return s.strip()[:maxlen]
+
+
+def clean_num(v, lo=None, hi=None, default=None):
+    """رقم — وبيقفل المدى عشان حد ما يطلبش limit=999999999."""
+    try:
+        n = float(v)
+    except (TypeError, ValueError):
+        return default
+    if n != n or n in (float("inf"), float("-inf")):
+        return default
+    if lo is not None and n < lo:
+        return default
+    if hi is not None and n > hi:
+        return default
+    return n
+
+
+@app.before_request
+def _sanitize_request():
+    """بيتنضف كل طلب قبل أي route يلمسها.
+    ⛌ مش بنرمي 400 هنا — الـroutes نفسها بترجع 400 لو محتاجة.
+       الغرض إن الـroute يشوف قيمة نظيفة أو فاضية، مش نص مبتور."""
+    try:
+        for k, v in list(request.args.items()):
+            kl = k.lower()
+            if kl in ("code", "symbol", "codes"):
+                request.args[k] = clean_code(v) or ""
+            elif kl in ("limit", "count", "days", "n", "top", "periods"):
+                request.args[k] = clean_num(v, 1, 2000, 20)
+            elif kl in ("min_score", "min_safety", "min_liquidity", "max_risk",
+                        "max_pe", "min_div_yield"):
+                request.args[k] = clean_num(v, 0, 1000, None)
+            else:
+                request.args[k] = clean_text(v, 300)
+    except Exception:
+        pass
+
+
+
 @app.route("/<path:any>", methods=["OPTIONS"])
 @app.route("/", methods=["OPTIONS"])
 def preflight(any=""):
