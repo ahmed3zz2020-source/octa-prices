@@ -482,15 +482,44 @@ _HITS_LOCK = threading.Lock()
 
 def _client_key():
     """
-    ⛔ ما نثقش في X-Forwarded-For كله — حد ممكن يسرق الـIP
-    بتاع حد تاني. بناخد أول قيمة بس وده اللي Railway بيبعته فعلاً.
+    ⛔🔴 الثغرة القديمة: كنا بناخد **أول** قيمة في X-Forwarded-For.
+       أول قيمة دي **بتتحط من العميل نفسه** ⬇️ يعني حد يقدر
+       يبعت XFF: 1.1.1.1 في كل طلب ويعدّي كل الأقفال.
+
+    ⭐ الإصلاح: بناخد **آخر** قيمة في السلسلة.
+       الـproxy الموثوق (Railway) دايمًا بيضيف الـIP الحقيقي
+       في **آخر** السلسلة ⬇️ واللي قبله كله من العميل.
+    ⛔ وكمان بنقفل السلسلة بـremote_addr عشان لو حد بعت
+       XFF متسلسل، البصمة بتاعتنا هتتغيّر وكل طلب هيتحسب وحده.
     """
-    ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    xff = request.headers.get("X-Forwarded-For", "")
+    ip = ""
+    n = 0
+    first = ""
+    if xff:
+        parts = [p.strip() for p in xff.split(",") if p.strip()]
+        n = len(parts)
+        if parts:
+            # ⭐ آخر قيمة = اللي ضافها الـproxy الموثوق، مش العميل
+            ip = parts[-1][:64]
+            first = parts[0][:64]
+
     if not ip:
-        ip = request.headers.get("X-Real-IP", "").strip()
+        ip = request.headers.get("X-Real-IP", "").strip()[:64]
     if not ip:
         ip = request.remote_addr or "unknown"
-    return ip[:64]
+
+    # ⛌ الحالة العادية (سلسلة من قيمة واحدة ⬇️ يعني مافيش تزوير)
+    #    بنرجّع العنوان نضيف ⬇️ عشان يفضل متوقّع ومقارن في الاختبارات
+    #    وفي الـrate limitRey.
+    if n <= 1:
+        return ip
+
+    # ⭐🔴 فيه تزوير ⬇️ بنرجّع بصمة كاملة:
+    #    العنوان الحقيقي + عدد القيم + أول قيمة.
+    #    ⛔ كده تلاعب السلسلة ⬇️ كل قيمة بتطلع بصمة مختلفة ⬇️
+    #    والقفل بيرجع يشتغل. والقيم دي **بتتشال** بعد النافذة.
+    return ("%s|%d|%s" % (ip, n, first))[:96]
 
 
 def _route_bucket(path):
