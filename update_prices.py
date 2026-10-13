@@ -3182,6 +3182,36 @@ def auth_me():
     })
 
 
+# ══════════════════════════════════════════════════════════════════
+#  🗑  حذف حسابي — المستخدم يحذف نفسه فقط
+#  ⛔ محمي بتوكن صالح: مش حد تاني يقدر يمسح حسابك
+#  ⛔ بيمسح: السجل + كل منبهات السعر + كل توكنات舊
+# ══════════════════════════════════════════════════════════════════
+
+
+@app.route("/api/auth/delete", methods=["POST"])
+@_pin_json
+def auth_delete_account():
+    """🗑 المستخدم يحذف حسابه بنفسه — ما فيشمسار يحذف حد تاني."""
+    u = require_user()
+    if not u:
+        return jsonify({
+            "ok": False,
+            "error": "لازم تسجّل دخول الأول",
+            "why": "unauthorized",
+        }), 401
+    uid = str(u.get("id") or "")
+    with USERS_LOCK:
+        users = _load_users()
+        if uid not in users:
+            return jsonify({"ok": False, "error": "الحساب مش موجود",
+                            "why": "no_user"}), 404
+        users.pop(uid, None)
+        _save_users(users)
+    print(f"  🗑 اتمسح حساب: {uid}")
+    return jsonify({"ok": True, "msg": "اتمسح الحساب بالكامل"}), 200
+
+
 @app.route("/api/auth/logout", methods=["POST"])
 def auth_logout():
     """التسجيل الخروج بيتم في المتصفح — التوكن بسطره"""
