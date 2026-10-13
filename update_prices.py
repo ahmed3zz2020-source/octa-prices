@@ -5975,6 +5975,95 @@ def _egx_full_subset(codes):
 
 
 # ─────────────────────────────────────────────────────────────
+# ③-b  /api/data_full  —  نفس data_full.json بس محمي
+# ─────────────────────────────────────────────────────────────
+#  ⛔ ليش المسار ده أصلاً؟
+#
+#  الملف data_full.json كان بيتنشر كـ static على Cloudflare
+#  (382KB) — أي زائر ينزّله من المتصفح من غير تسجيل.
+#  شِلناه من حزمة النشر، لكن الواجهة محتاجة الأرقام دي.
+#
+#  ⚠️ ليه مش /api/egx_full؟
+#  لأن /api/egx_full بيرجّع شكل مختلف تماماً:
+#    data_full.json → total · verdict · q · m · sf · lq · conf
+#                     · sectorAr · pack · why · partial · missing
+#                     · de · cr · qr · roic · ps · av30 · relvol …
+#    /api/egx_full  → n · en · s · score · decision · s_rsi · s_dy …
+#  يعني التوجيه المباشر كان هيسقط 22 حقل بصمت
+#  والفلاتر الثمانية و kart القرار هيبقوا فاضيين.
+#
+#  فبناهنا: نفس الملف، نفس الشكل بالظبط — بس جوه الـAPI محمي.
+#  مفيش أي تغيير في رقم ولا وزن ولا عتبة ولا اسم سهم.
+#  _shape عشان الواجهة تعرف الشكل وتعرف وقت ما يقع علىFallback.
+#
+#  🔒 الحماية: نفس require_user بتاعة /api/egx_full — توكن لازم.
+#  📦 الكاش: في الذاكرة، بيتحدّث لما يتغيّر وقت الملف (mtime).
+#
+#  🚫 فلتر EGS: الملف فيه 296 كود، منهم 11 سند حكومي مصري
+#     (EGS30AJ1C016-EGP …) مش أسهم — وبيبقوا في الشاشة لو ما فلترناش.
+#     الفلتر ده بيخلي الرد 285 سهم بالظبط زي الملف القديم:
+#     نفس الكودز، نفس الأرقام، صفر فرق. (اتحقّق بالمقارنة)
+# ─────────────────────────────────────────────────────────────
+_DATA_FULL = {"mtime": 0, "payload": None, "ttl": 300}
+
+
+def _data_full_payload():
+    """يقرأ data_full.json من القرص — مع كاش في الذاكرة."""
+    import os as _os, json as _json
+    for p in (Path(__file__).parent / "data_full.json", Path("/app/data_full.json")):
+        try:
+            if not _os.path.isfile(p):
+                continue
+            mt = _os.path.getmtime(p)
+            if _DATA_FULL["payload"] is not None and mt == _DATA_FULL["mtime"]:
+                return _DATA_FULL["payload"]
+            with open(p, encoding="utf-8") as fh:
+                d = _json.load(fh)
+            if not (isinstance(d, dict) and d.get("stocks")):
+                continue
+            # 🚫.non-equity: أكواد السندات الحكومية (EGS…) — مش أسهم
+            st = {c: v for c, v in d["stocks"].items()
+                  if not str(c).upper().startswith("EGS")}
+            if not st:
+                continue
+            out = dict(d)
+            out["stocks"] = st
+            out["_shape"] = "full"
+            out["_n"] = len(st)
+            _DATA_FULL.update(mtime=mt, payload=out, ttl=300)
+            print(f"[data_full] loaded {out['_n']} shares (skipped "
+                  f"{len(d['stocks']) - len(st)} non-equity)")
+            return out
+        except Exception as e:
+            print(f"[data_full] {p}: {e}")
+    return None
+
+
+@app.route("/api/data_full")
+def api_data_full():
+    """
+    🔒 محمي — توكن صالح لازم، زي /api/egx_full بالظبط.
+
+    بيرجّع data_full.json (296 سهم · تقييم الأذرع الخمسة) كما هو
+    بالحرف — مفيش أي إعادة حساب ولا تقريب ولا تعديل.
+    """
+    if not require_user():
+        return jsonify({
+            "ok": False,
+            "error": "النسخة الكاملة محمية",
+            "hint": "لازم تسجّل دخول الأول",
+            "n": 0, "stocks": {},
+            "_protected": True,
+        }), 401
+
+    d = _data_full_payload()
+    if not d:
+        return jsonify({"ok": False, "error": "data_full غير متاح",
+                        "n": 0, "stocks": {}, "_protected": True}), 503
+    return jsonify(d)
+
+
+# ─────────────────────────────────────────────────────────────
 # ④  /api/ipo  —  رادار الاكتتاب (snapshot متجدد كل ساعة)
 # ─────────────────────────────────────────────────────────────
 def _clean(t):
