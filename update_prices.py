@@ -470,6 +470,12 @@ def _route_bucket(path):
         if name == "auth":
             sub = seg[2] if len(seg) > 2 else ""
             tail = seg[3] if len(seg) > 3 else ""
+            # ⛌ ⛌ مسار الباسورد: تسجيل/دخول/تغيير = كتابة.
+            #    ٥/دقيقة لكل IP. القفل الذكي (١٥ دقيقة) أضيق بكتير من
+            #    كده، بس الحد ده بيمنع حد يجرّب ٥ باسوردات في الدقيقة
+            #    من غير ما يستنى القفل أصلاً.
+            if sub == "pin":
+                return "write"
             # ⛌ قراءة التوكن مش كتابة
             if sub in ROUTES_READONLY:
                 return "default"
@@ -774,6 +780,18 @@ def otp_send():
     if not ok:
         return jsonify({"error": why}), 400
 
+    # ⛔⛔⛔ حساب الباسورد: الإيميل **مش** وسيلة دخول.
+    #    الإيميل بيوصل مرة واحدة بس وقت التسجيل، والباقي الباسورد.
+    #    لو الكود اتبعت لحساب باسورد، فهو بيوصل لصاحبه بس — ومينفعش
+    #    يبقى معناه «ادخل بالإيميل» أصلاً.
+    if _pin_by_email(email)[1]:
+        return jsonify({
+            "ok": False,
+            "error": "⛔ الحساب ده بيستخدم باسورد ٤ أرقام — "
+                     "الإيميل بيوصل مرة واحدة بس وقت التسجيل",
+            "why": "pin_account",
+        }), 409
+
     code = _otp_new(email)
     if not code:
         # ⛔⛔ الطلب القديم كان بيرجّع «أيوه بعثنا» وهو مش بعت حاجة —
@@ -809,6 +827,20 @@ def otp_verify():
 
     if not _re_guard.fullmatch(r"^\d{6}$", code or ""):
         return jsonify({"error": "الكود 6 أرقام"}), 400
+
+    # ⛔⛔⛔ حساب الباسورد ما بيقبلش كود إيميل — أبداً.
+    #    المسار ده بيرجّع توكن لأي حد يعرف الإيميل — حتى من غير ما
+    #    يبقى الكود صح. لو حساب باسورد عدّى من هنا، الباسورد كله
+    #    بلا قيمة وأي حد عارف الإيميل ياخد الحساب كامل. القفل هنا مش
+    #    على الإيميل — كل حاجة فيه بتتمسك بالباسورد.
+    if _pin_by_email(email)[1]:
+        return jsonify({
+            "ok": False,
+            "error": "⛔ الحساب ده بيستخدم باسورد ٤ أرقام — "
+                     "الدخول بالباسورد بس",
+            "why": "pin_account",
+        }), 409
+
     try:
         ok, why = _otp_check(email, code)
     except Exception as e:
@@ -943,6 +975,750 @@ def auth_register():
         "emailSaved": bool(email),
     })
 
+
+
+# ══════════════════════════════════════════════════════════════════
+#  🔢 دخول بالباسورد (PIN) — ٤ أرقام، وإيميل واحد بس وقت التسجيل
+#  ──────────────────────────────────────────────────────────────
+#  📌 القرار: الإيميل بيوصل **مرة واحدة بس** وقت التسجيل (تأكيد).
+#     بعد كده مفيش إيميل خالص — الباسورد هو. مافيش استرجاع.
+#
+#  ⛔⛔ ٤ أرقام = ١٠٬٠٠٠ احتمال بس. من غير قفل ذكي، أي حد يقدر
+#     ياخد الموقع في أقل من ساعة. عشان كده القفل هو أهم جزء
+#     في الملف ده — مش الباسورد نفسه.
+#
+#  ⛔ الباسورد **مش** بيتخزن أبداً — لا في users.json ولا في رد
+#     ولا في لوج:
+#       pin_hash = PBKDF2-HMAC-SHA256(pin, salt=pin_salt, 60000 دورة)
+#       pin_salt = ١٦ حرف عشوائي لكل مستخدم
+#       ⛔ الـsalt **مستقل تماماً** عن _SECRET. لو _SECRET اتدار
+#          (وتدوير التوكنات حاجة شائعة) الباسوردات ما تتأثرش خالص.
+#       pin_idx  = HMAC بـpepper منفصل — فهرس بحث O(1)
+#       ⛌ ليه فهرس أصلاً؟ كل مستخدم ليه salt مختلف، فمفيش قيمة
+#          مشتركة نقدر ندور بيها. من غير فهرس هنعمل PBKDF2 لكل
+#          مستخدم في كل محاولة = ٥٠ms × عدد المستخدمين = denial of
+#          service من أي حد عادي. الفهرس بياخد صفر.
+#
+#  📌 البصمة دي مش بتكشف الباسورد: هي HMAC بمفتاح على السيرفر
+#     (متغير بيئة أو ملف) — مثلها مثل أي جدول تحقق من كلمات السر.
+#     ولو الـpepper اتغيّر، الفهرس بيتظبط تاني من الهاش الحقيقي.
+# ══════════════════════════════════════════════════════════════════
+
+import functools as _functools
+
+# ٤ أرقام بالظبط — ⛔ مش ٣ ومش ٥. Regex واحدة مصدر الحقيقة.
+# ⛔⛔ [0-9] مش \d: في Python الـ`\d` بيقبل أرقام Unicode كمان،
+#    فـ«٧٣١٤» (أرقام هندية) كانت بتعدّي وتخزن كأنها ٧٣١٤،
+#    والحساب فعلاً اتعمل بالأرقام دي في الاختبار. الفرق بين
+#    الأرقام دي واللي على لوحة المفاتيح باب تسلل مش ضوضاء.
+_PIN_RE = _re_guard.compile(r"^[0-9]{4}$")
+_PIN_SALT_CHARS = 16                 # ⛌ طلب المواصفات: ١٦ حرف
+_PIN_ROUNDS = 60000                  # دورات PBKDF2
+
+# ── الـpepper: مفتاح الفهرس، منفصل عن _SECRET ──
+# ⛌ ⛌ مفتاح مكتوب في الكود = مكشوف. بيشتغل بالترتيب ده:
+#    1) متغير بيئة OCTA_PIN_PEPPER  ← ده الصح في الإنتاج
+#    2) ملف على القرص (بينشأ لوحده مرة واحدة)
+#    3) مؤقت لكل تشغيل (تطوير بس — بينبّه في اللوج)
+PIN_PEPPER_FILE = Path("/app/pin_pepper.txt")
+
+
+def _pin_pepper_load():
+    p = str(os.environ.get("OCTA_PIN_PEPPER", "") or "").strip()
+    if p:
+        return p, "env"
+    try:
+        f = PIN_PEPPER_FILE
+        if f.exists():
+            v = f.read_text(encoding="utf-8").strip()
+            if v:
+                return v, "file"
+        v = _secrets_mod.token_urlsafe(32)
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(v, encoding="utf-8")
+        try:
+            os.chmod(str(f), 0o600)
+        except Exception:
+            pass
+        return v, "file"
+    except Exception as e:
+        return _secrets_mod.token_urlsafe(32), "ephemeral"
+
+
+_PIN_PEPPER, _PIN_PEPPER_SRC = _pin_pepper_load()
+# ⛌ معرّف الفهرس: بيتخزّن مع كل مستخدم. لو الـpepper اتدار
+#    (ملف اتمسح / redeploy على volume جديد) الفرق يبقى واضح
+#    والفحص البطيء بيشتغل تاني ويصلّح الفهرس من الهاش الحقيقي.
+_PIN_PEPPER_ID = hashlib.sha256(_PIN_PEPPER.encode()).hexdigest()[:12]
+if _PIN_PEPPER_SRC != "env":
+    print(f"[pin] ⚠️ الـpepper من «{_PIN_PEPPER_SRC}» مش من متغير بيئة — "
+          f"لو الملف اتمسح، الفهرس هيت calib تاني (الدخول هيشتغل بس هيبقى أبطأ)",
+          flush=True)
+
+
+def _pin_salt_new():
+    """salt جديد: ١٦ حرف عشوائي لكل مستخدم"""
+    return _secrets_mod.token_hex(_PIN_SALT_CHARS // 2)
+
+
+def _pin_hash(pin, salt):
+    """⛔ الهاش الحقيقي — ده اللي بيتخزّن و بيتقارن بيه"""
+    return hashlib.pbkdf2_hmac("sha256", str(pin).encode(),
+                               str(salt or "").encode(),
+                               _PIN_ROUNDS).hex()
+
+
+def _pin_index(pin):
+    """بصمة الفهرس — بتتطابق بس لو الـpepper واحد"""
+    return hmac.new(_PIN_PEPPER.encode(), ("pin|" + str(pin)).encode(),
+                    hashlib.sha256).hexdigest()[:40]
+
+
+# ══════════════════════════════════════════════════════════════════
+#  🔒 القفل الذكي — أهم حاجة في الملف ده
+#  ──────────────────────────────────────────────────────────────
+#  ١٠٬٠٠٠ احتمال × بلا قفل = الموقع ميت خلال ساعات.
+#
+#  الجدول:
+#     أول ٥ محاولات غلط   → ⏳ قفل ١٥ دقيقة
+#     بعد كده كل ٥ غلط    → ⏳ قفل ساعة
+#     المحاولة الصح       → تصفّر العدّاد
+#
+#  ⛔ العدّاد **على القرص** مش في الذاكرة. Railway بيعمل redeploy
+#     عند كل push، والذاكرة بتتمسح → أي حد يعمل ٤ غلط، يعمل
+#     redeploy، ويعمل ٤ غلط تاني… والقفل عمره ما هيقفل.
+#     (نفس الدرس اللي اتعلمناه من كود الـOTP.)
+#
+#  ⛔ القفل على **مستويين**:
+#     · الـpin  → عشان حد يجرّب نفس الباسورد من أجهزة مختلفة
+#     · الـIP   → عشان حد يجرّب باسوردات مختلفة من نفس الجهاز
+#     الاتنين لازم، واللي فيهم أي واحد بيقفل.
+# ══════════════════════════════════════════════════════════════════
+
+PINLOCK_FILE = Path("/app/pinlock.json")
+PINLOCK_LOCK = threading.Lock()
+PIN_FAIL_LIMIT = 5                   # ٥ غلط = قفل
+PIN_LOCK_FIRST = 15 * 60             # أول قفل = ١٥ دقيقة
+PIN_LOCK_NEXT = 60 * 60              # بعد كده = ساعة
+PIN_PURGE_AGE = 7 * 86400            # ننضّف السجلات بعد أسبوع
+PIN_SCAN_LIMIT = 50                  # أقصى عدد سجلات في الفحص البطيء
+
+
+def _pinlock_load():
+    try:
+        if PINLOCK_FILE.exists():
+            d = json.loads(PINLOCK_FILE.read_text(encoding="utf-8"))
+            if isinstance(d, dict):
+                d.setdefault("k", {})
+                return d
+    except Exception:
+        pass
+    return {"v": 1, "k": {}}
+
+
+def _pinlock_save(d):
+    """⛔ ذرّي ومقفول — نفس أسلوب users.json بالظبط.
+    الكتابة العادية (فتح → مسح → كتابة) كانت بتخلّي قارئ في نفس
+    اللحظة يلاقي ملف فاضي = بالظبط ما احنا بنحاول نمنعه."""
+    try:
+        tmp = PINLOCK_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(PINLOCK_FILE)
+    except Exception as e:
+        print(f"  🔒 ⛔ pinlock.json: {type(e).__name__}: {str(e)[:100]}",
+              flush=True)
+
+
+def _pinlock_purge(d):
+    """نشيل السجلات القديمة — الخريطة ما تكبرش بلا حدود"""
+    now = time.time()
+    k = d.get("k") or {}
+    for key in list(k.keys()):
+        rec = k.get(key) or {}
+        u = float(rec.get("u") or 0)
+        t = float(rec.get("t") or 0)
+        if u > now:
+            continue
+        if t and (now - t) > PIN_PURGE_AGE:
+            k.pop(key, None)
+    d["k"] = k
+    return d
+
+
+def _pin_keys(pin=None, ip=None):
+    """مفاتيح العدّاد: الـpin والـIP.
+
+    ⛔ ما بنخزّنش الـIP خام (track.json موعّدنا بمفيش PII)
+       ولا الباسورد خام — بنخزّن بصمة HMAC. ونفس البصمة دي
+       هي اللي في users.json، فمفيش أي معلومة جديدة في الملف."""
+    ks = []
+    if pin:
+        ks.append("p:" + _pin_index(pin))
+    if ip:
+        ks.append("i:" + hashlib.sha256(
+            ("ip|" + str(ip)).encode()).hexdigest()[:16])
+    return ks
+
+
+def _pin_locked(keys):
+    """⛔ قراءة بس — مفيش تعديل. بيرجّع (مقفول؟، كام ثانية)"""
+    now = time.time()
+    try:
+        store = _pinlock_load()
+    except Exception:
+        return False, 0
+    for k in keys:
+        u = float((store.get("k", {}).get(k) or {}).get("u") or 0)
+        if u > now:
+            return True, int(u - now) + 1
+    return False, 0
+
+
+def _pinlock_fail(keys):
+    """يسجّل محاولة غلط — وبيقفل لو وصلنا للحد.
+    بيرجّع (مقفول دلوقتي؟، كام ثانية)"""
+    now = time.time()
+    with PINLOCK_LOCK:
+        store = _pinlock_purge(_pinlock_load())
+        kmap = store["k"]
+
+        # ⛌ القفل لازم يتفحص **قبل** ما نزيد العدّاد، وإلا
+        #    محاولة من IP مقفول كانت هتعدّي.
+        for k in keys:
+            u = float((kmap.get(k) or {}).get("u") or 0)
+            if u > now:
+                return True, int(u - now) + 1
+
+        for k in keys:
+            rec = kmap.get(k) or {"f": 0, "l": 0}
+            u = float(rec.get("u") or 0)
+            if u and now >= u:
+                # ⏰ القفل خلص — نبدأ نافذة جديدة، بس **مستوى**
+                # القفل بيتفكر عشان المرة الجاية تبقى ساعة.
+                rec["f"] = 0
+                rec["u"] = 0
+            rec["f"] = int(rec.get("f") or 0) + 1
+            rec["t"] = now
+            if rec["f"] >= PIN_FAIL_LIMIT:
+                lvl = int(rec.get("l") or 0)
+                dur = PIN_LOCK_FIRST if lvl <= 0 else PIN_LOCK_NEXT
+                rec["u"] = now + dur
+                rec["l"] = min(lvl + 1, 20)
+                rec["f"] = 0
+            kmap[k] = rec
+
+        _pinlock_save(store)
+
+    locked, retry = False, 0
+    for k in keys:
+        u = float((store["k"].get(k) or {}).get("u") or 0)
+        if u > now:
+            locked = True
+            retry = max(retry, int(u - now) + 1)
+    return locked, retry
+
+
+def _pinlock_reset(keys):
+    """✅ المحاولة الصح تصفّر العدّاد"""
+    with PINLOCK_LOCK:
+        store = _pinlock_load()
+        kmap = store.get("k") or {}
+        for k in keys:
+            kmap.pop(k, None)
+        store["k"] = kmap
+        _pinlock_save(store)
+
+
+# ══════════════════════════════════════════════════════════════════
+#  🧩 أدوات مشتركة لمسارات الباسورد
+#  ──────────────────────────────────────────────────────────────
+
+def _pin_json(fn):
+    """
+    ⛔⛔ أي استثناء في مسار الباسورد يرجّع JSON فيه نوع الاستثناء.
+
+    صفحة 500 فاضية للمستخدم بتاعنا مالهاش أي فايدة، واللي بيكتب
+    الكود بيحتاج يشوف السبب. الـerrorhandler العام بيشتغل بس على
+    استثناءات مش HTTPException — فمحتاجين ده صريح.
+    """
+    @_functools.wraps(fn)
+    def _wrapped(*a, **k):
+        try:
+            return fn(*a, **k)
+        except Exception as e:
+            _log_exc(fn.__name__, e)
+            return jsonify({
+                "ok": False,
+                "error": "حصل خطأ في السيرفر — جرب تاني",
+                "why": type(e).__name__,
+            }), 500
+    return _wrapped
+
+
+def _pin_locked_resp(retry, what="الباسورد"):
+    """رد القفل — 429 + retry_after بالثواني (في الرد وفي الهيدر)"""
+    retry = max(1, int(retry or 0))
+    mins = max(1, retry // 60)
+    resp = jsonify({
+        "ok": False,
+        "error": f"⛔ {what} اتقفل مؤقتاً بعد محاولات غلط كتير — "
+                 f"استنى {mins} دقيقة",
+        "why": "locked",
+        "retry_after": retry,
+    })
+    resp.status_code = 429
+    try:
+        resp.headers["Retry-After"] = str(retry)
+    except Exception:
+        pass
+    return resp, 429
+
+
+def _pin_user_json(u):
+    """الـuser في الرد — ⛔ بدون أي بصمة باسورد ولا هاش"""
+    return {
+        "id": str(u.get("id") or ""),
+        "name": str(u.get("name") or "مستخدم"),
+        "email": u.get("email") or None,
+        "pin": True,
+    }
+
+
+def _pin_find_by_index(pin):
+    """بحث O(1) بالفهرس"""
+    idx = _pin_index(pin)
+    with USERS_LOCK:
+        users = _load_users()
+        for uid, u in users.items():
+            got = str(u.get("pin_idx") or "")
+            if len(got) == len(idx) and hmac.compare_digest(got, idx):
+                return uid, u
+    return None, None
+
+
+def _pin_index_stale():
+    """
+    ⛌ الفحص البطيء (PBKDF2 لكل مستخدم) بيتعمل **بس** لو الفهرس
+       مش متطابق — يعني الـpepper اتغيّر أو مستخدم قديم من غير فهرس.
+       من غير الشرط ده، كل باسورد غلط كان هيبقى ٥٠ms×N — وهجوم DoS
+       مجاني من أي حد عادي.
+    """
+    try:
+        with USERS_LOCK:
+            users = _load_users()
+            for u in users.values():
+                if u.get("pin_hash") and (str(u.get("pin_idx_id") or "")
+                                          != _PIN_PEPPER_ID):
+                    return True
+    except Exception:
+        return False
+    return False
+
+
+def _pin_find_by_scan(pin):
+    """
+    ⛌ بحث بطيء بالهاش الحقيقي — مسار بديل لو الفهرس مش مظبوط.
+       ⛔ محدود بـPIN_SCAN_LIMIT سجلات + حد الـIP بيقفّل، فمينفعش
+          يتحوّل لهجوم. أول ما يلاقي صاحب الباسورد، يصلّح الفهرس.
+    """
+    # ⛌ بننسخ السجلات من جوّه القفل، والـPBKDF2 برّه: ٥٠ مستخدم × ٤٠ms
+    #    = ثانيتين قفل على كل الـAPI (و workers=1). مش هنسيب حد يعمل
+    #    ده فينا عن طريق مسار تسجيل.
+    rows = []
+    with USERS_LOCK:
+        for i, (uid, u) in enumerate(_load_users().items()):
+            if i >= PIN_SCAN_LIMIT:
+                break
+            ph = str(u.get("pin_hash") or "")
+            if ph:
+                rows.append((uid, ph, str(u.get("pin_salt") or "")))
+
+    hit_uid = None
+    for uid, ph, salt in rows:
+        if hmac.compare_digest(ph, _pin_hash(pin, salt)):
+            hit_uid = uid
+            break
+    if not hit_uid:
+        return None, None
+    # 🔧 صلّح الفهرس عشان المرة الجاية تبقى O(1)
+    hit = None
+    with USERS_LOCK:
+        users = _load_users()
+        u = users.get(hit_uid)
+        if u is not None:
+            u["pin_idx"] = _pin_index(pin)
+            u["pin_idx_id"] = _PIN_PEPPER_ID
+            _save_users(users)
+            hit = (hit_uid, u)
+    return hit
+
+
+def _pin_timing_pad(pin):
+    """
+    ⛌⛌ تسريب التوقيت: لو الباسورد غلط رجعنا فوراً، ولو صح
+       عملنا PBKDF2 — الفرق باين. بنعمل PBKDF2 وهمي على المسار
+       الغلط عشان الوقت يبقى زي بعضه.
+    """
+    try:
+        _pin_hash(pin, _secrets_mod.token_hex(8))
+    except Exception:
+        pass
+
+
+def _pin_verify(uid, u, pin):
+    """تحقّق نهائي من الهاش الحقيقي — مقارنة ثابتة الزمن"""
+    ph = str(u.get("pin_hash") or "")
+    if not ph:
+        return False
+    got = _pin_hash(pin, u.get("pin_salt") or "")
+    return hmac.compare_digest(got, ph)
+
+
+def _pin_by_email(email):
+    """مستخدم الباسورد صاحب الإيميل ده (ولا None)"""
+    try:
+        with USERS_LOCK:
+            for uid, u in _load_users().items():
+                if not u.get("pin_hash"):
+                    continue
+                em = str(u.get("email") or "").lower()
+                if em and em == str(email or "").strip().lower():
+                    return uid, u
+    except Exception:
+        pass
+    return None, None
+
+
+# ══════════════════════════════════════════════════════════════════
+#  📬 إيميل التأكيد — **مرة واحدة بس** في عمر الحساب
+#  ──────────────────────────────────────────────────────────────
+#  ⛔⛔ الإيميل ده **ما فيهوش الباسورد** — ولا في موضوع ولا في نص.
+#     لو الإيميل ضاع، ما فيش طريق استرجاع — وده المقصود: الباسورد
+#     هو المفتاح الوحيد. الإيميل هنا للتأكيد بس.
+
+
+def _pin_welcome_html(name=""):
+    who = _htmlmod.escape(name or "") or "مستخدم"
+    return f"""<!doctype html><html dir="rtl"><body style="margin:0;padding:24px;background:#0f1621;font-family:system-ui,-apple-system,Segoe UI,sans-serif">
+<div style="max-width:460px;margin:0 auto;background:#16202e;border-radius:14px;padding:28px;color:#e8edf5">
+<div style="font-size:26px">🐙</div>
+<h2 style="margin:8px 0 4px;font-size:20px">OCTA — تم إنشاء حسابك</h2>
+<p style="margin:0 0 20px;color:#93a1b5;font-size:14px">أهلاً {who}</p>
+<p style="margin:0 0 14px;color:#e8edf5;font-size:15px;line-height:2">
+حسابك جاهز، والدخول من دلوقتي بـ<b>باسورد من ٤ أرقام</b> إنت اللي اخترته.
+</p>
+<div style="background:#0f1621;border:1px solid #2b3a4f;border-radius:12px;padding:16px;color:#93a1b5;font-size:13px;line-height:2">
+⛔ <b style="color:#e8edf5">الباسورد مش بيتسلّم أبداً</b> — مش في إيميل، مش في الموقع.<br>
+⛔ مفيش استرجاع بالباسورد — مافيش إيميل تاني غير ده.<br>
+⛔ بعد ٥ محاولات غلط الباسورد بيتقفل ١٥ دقيقة، وبعدها ساعة.
+</div>
+<p style="margin:18px 0 0;color:#5f6c80;font-size:12px;line-height:1.9">
+لو مش إنت اللي عملت الحساب، ارد بكلمة <b>إلغاء</b> وهنراجعه.
+</p>
+</div>
+<p style="max-width:460px;margin:14px auto 0;color:#5f6c80;font-size:12px;text-align:center">octashares.com — قراءة، مش نصيحة</p>
+</body></html>"""
+
+
+# ══════════════════════════════════════════════════════════════════
+#  1️⃣  تسجيل حساب بالباسورد
+#  ──────────────────────────────────────────────────────────────
+#  POST /api/auth/pin/register
+#  body: { "name", "email", "pin" }
+#
+#  📌 الباسورد ٤ أرقام: سريع على الموبايل (مفيش لوحة مفاتيح)،
+#     ومحتاج قفل ذكي قوي عشان ١٠٬٠٠٠ احتمال قليل.
+
+
+@app.route("/api/auth/pin/register", methods=["POST"])
+@_pin_json
+def auth_pin_register():
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    name = str(data.get("name") or "").strip()[:40] or "مستخدم"
+    email = str(data.get("email") or "").strip().lower()[:120]
+    pin = str(data.get("pin") or "").strip()
+
+    # ⛔ ٤ أرقام بالظبط — ٣ أو ٥ = 400
+    if not _PIN_RE.match(pin):
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد ٤ أرقام بالظبط",
+            "why": "bad_pin",
+            "hint": "٤ أرقام من 0000 لـ 9999",
+        }), 400
+
+    ok, why = _valid_email(email)
+    if not ok:
+        return jsonify({"ok": False, "error": why, "why": "bad_email"}), 400
+
+    keys = _pin_keys(pin=pin, ip=_client_key())
+    locked, retry = _pin_locked(keys)
+    if locked:
+        return _pin_locked_resp(retry)
+
+    uid = _hash_key(email)[:20]
+
+    with USERS_LOCK:
+        users = _load_users()
+        if uid in users:
+            return jsonify({
+                "ok": False,
+                "error": "الإيميل ده مسجّل قبل كده — "
+                         "لو نسيت الباسورد مافيش استرجاع، جرّب رقم تاني",
+                "why": "email_taken",
+            }), 409
+
+        # ⛔⛔ الباسورد لازم يكون فريد. من غير الشرط ده، حد يسجّل
+        #    بالباسورد بتاع حد تاني ويسرق حسابه من أول دخول.
+        #    ⛌ الفحص بالفهرس (O(n) مقارنة نصوص رخيصة) مش بالهاش:
+        #    PBKDF2 لكل مستخدم = ٤٠ms×N والقفل مقفول طول الوقت.
+        idx = _pin_index(pin)
+        taken = False
+        stale = False
+        for o in users.values():
+            got = str(o.get("pin_idx") or "")
+            if len(got) == len(idx) and hmac.compare_digest(got, idx):
+                taken = True
+                break
+            if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
+                stale = True
+        if not taken and stale:
+            # ⛌ الفهرس ميت (pepper اتغيّر) — الفحص البطيء بالهاش الحقيقي
+            for o in users.values():
+                ph = str(o.get("pin_hash") or "")
+                if ph and hmac.compare_digest(ph, _pin_hash(pin, o.get("pin_salt") or "")):
+                    taken = True
+                    break
+        if taken:
+            return jsonify({
+                "ok": False,
+                "error": "الباسورد ده مستخدم من قبل — اختار غيره",
+                "why": "pin_taken",
+            }), 409
+
+        # ⛔⛔⛔ مفيش باسورد خام في أي مكان. اللي بيتكتب:
+        salt = _pin_salt_new()
+        users[uid] = {
+            "id": uid,
+            "name": name,
+            "email": email,
+            "email_hash": _hash_key(email),
+            "pin_hash": _pin_hash(pin, salt),
+            "pin_salt": salt,
+            "pin_idx": idx,
+            "pin_idx_id": _PIN_PEPPER_ID,
+            "created": int(time.time()),
+            "portfolio": {},
+            "watch": [],
+        }
+        _save_users(users)
+
+    _pinlock_reset(keys)
+    print(f"  🔢 مستخدم جديد بالباسورد: {uid}")
+
+    # 📬 إيميل **واحد بس** في عمر الحساب — تأكيد، مش استرجاع
+    _send_mail(email, "تم إنشاء حسابك — OCTA", _pin_welcome_html(name))
+    if not MAIL_ON:
+        # ⛔ مافيش خدمة إيميل = مفيش تأكيد. ما بنطبعش الباسورد خالص.
+        print(f"  📧 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — إيميل "
+              f"التأكيد ماتبعتش لـ: {email}", flush=True)
+
+    return jsonify({
+        "ok": True,
+        "token": _make_token(uid),
+        "user": _pin_user_json(users[uid]),
+        "mail": "sent" if MAIL_ON else "off",
+    }), 200
+
+
+# ══════════════════════════════════════════════════════════════════
+#  2️⃣  دخول بالباسورد
+#  ──────────────────────────────────────────────────────────────
+#  POST /api/auth/pin/login
+#  body: { "pin" }
+#
+#  ⛔⛔⛔ مافيش باراميتر إيميل أصلاً، والرد **واحد** في كل الحالات:
+#     «الباسورد غلط» سواء الإيميل مسجّل عندنا أو لأ. مفيش ولا
+#     endpoint في مسار الباسورد بيفرّق بين «ده مسجّل» و«ده مش
+#     مسجّل» — ولا في التوقيت (بنعمل PBKDF2 وهمي عند الفشل).
+
+
+@app.route("/api/auth/pin/login", methods=["POST"])
+@_pin_json
+def auth_pin_login():
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    pin = str(data.get("pin") or "").strip()
+    if not _PIN_RE.match(pin):
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد ٤ أرقام بالظبط",
+            "why": "bad_pin",
+            "hint": "٤ أرقام من 0000 لـ 9999",
+        }), 400
+
+    ip = _client_key()
+    keys = _pin_keys(pin=pin, ip=ip)
+
+    # ⛔ القفل بيتفحص **قبل** أي شغل — والرد 429 مش 401
+    locked, retry = _pin_locked(keys)
+    if locked:
+        return _pin_locked_resp(retry)
+
+    uid, u = _pin_find_by_index(pin)
+    if u is None and _pin_index_stale():
+        # ⛌ الفهرس مش مظبوط (pepper اتغيّر) — بحث بالهاش الحقيقي
+        uid, u = _pin_find_by_scan(pin)
+
+    if u is None or not _pin_verify(uid, u, pin):
+        # ⛌ نفس المسار ونفس الرد في كل الأحوال
+        _pin_timing_pad(pin)
+        locked, retry = _pinlock_fail(keys)
+        if locked:
+            return _pin_locked_resp(retry)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد غلط",
+            "why": "bad_pin",
+        }), 401
+
+    # ✅ صح — العدّاد بيتصفّر والتوقيت بيتسجل
+    _pinlock_reset(keys)
+    with USERS_LOCK:
+        users = _load_users()
+        rec = users.get(uid)
+        if rec is not None:
+            rec["last_login"] = int(time.time())
+            _save_users(users)
+        else:
+            rec = u
+
+    return jsonify({
+        "ok": True,
+        "token": _make_token(uid),
+        "user": _pin_user_json(rec),
+    }), 200
+
+
+# ══════════════════════════════════════════════════════════════════
+#  3️⃣  تغيير الباسورد
+#  ──────────────────────────────────────────────────────────────
+#  POST /api/auth/pin/change
+#  body: { "old_pin", "new_pin" } + Authorization: Bearer
+
+
+@app.route("/api/auth/pin/change", methods=["POST"])
+@_pin_json
+def auth_pin_change():
+    try:
+        data = request.get_json(silent=True) or {}
+    except Exception:
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    # ⛔ لازم توكن صالح — المسار بيغيّر مفتاح الحساب
+    u = require_user()
+    if not u:
+        return jsonify({
+            "ok": False,
+            "error": "لازم تسجّل دخول الأول",
+            "why": "unauthorized",
+        }), 401
+
+    old_pin = str(data.get("old_pin") or "").strip()
+    new_pin = str(data.get("new_pin") or "").strip()
+    if not _PIN_RE.match(old_pin) or not _PIN_RE.match(new_pin):
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد ٤ أرقام بالظبط",
+            "why": "bad_pin",
+            "hint": "٤ أرقام من 0000 لـ 9999",
+        }), 400
+
+    keys = _pin_keys(pin=new_pin, ip=_client_key())
+    locked, retry = _pin_locked(keys)
+    if locked:
+        return _pin_locked_resp(retry)
+
+    uid = str(u.get("id") or "")
+    with USERS_LOCK:
+        users = _load_users()
+        rec = users.get(uid)
+        if rec is None or not rec.get("pin_hash"):
+            return jsonify({
+                "ok": False,
+                "error": "الحساب ده مش حساب باسورد",
+                "why": "not_pin_account",
+            }), 400
+
+        # ⛔ الباسورد القديم لازم يصح — من غير توكن صالح
+        if not _pin_verify(uid, rec, old_pin):
+            return jsonify({
+                "ok": False,
+                "error": "الباسورد القديم غلط",
+                "why": "bad_old_pin",
+            }), 401
+
+        # ⛔ والباسورد الجديد لازم يكون فريد زي أول مرّة
+        idx = _pin_index(new_pin)
+        taken = False
+        stale = False
+        for other_uid, o in users.items():
+            if other_uid == uid:
+                continue
+            got = str(o.get("pin_idx") or "")
+            if len(got) == len(idx) and hmac.compare_digest(got, idx):
+                taken = True
+                break
+            if o.get("pin_hash") and str(o.get("pin_idx_id") or "") != _PIN_PEPPER_ID:
+                stale = True
+        if not taken and stale:
+            for other_uid, o in users.items():
+                if other_uid == uid:
+                    continue
+                ph = str(o.get("pin_hash") or "")
+                if ph and hmac.compare_digest(ph, _pin_hash(new_pin, o.get("pin_salt") or "")):
+                    taken = True
+                    break
+        if taken:
+            return jsonify({
+                "ok": False,
+                "error": "الباسورد ده مستخدم من قبل — اختار غيره",
+                "why": "pin_taken",
+            }), 409
+
+        # 🔄 salt جديد مع كل تغيير — لو الباسورد القديم اتسرّب
+        #    من أي مكان، السطر القديم مش بيفتح الحساب تاني.
+        salt = _pin_salt_new()
+        rec["pin_salt"] = salt
+        rec["pin_hash"] = _pin_hash(new_pin, salt)
+        rec["pin_idx"] = idx
+        rec["pin_idx_id"] = _PIN_PEPPER_ID
+        rec["pin_changed"] = int(time.time())
+        _save_users(users)
+        out = _pin_user_json(rec)
+
+    _pinlock_reset(keys)
+    print(f"  🔢 اتغيّر الباسورد: {uid}")
+
+    # ⛔ التوكن مش بيتغيّر (مربوط بالـuid) — المستخدم يفضل داخل
+    return jsonify({
+        "ok": True,
+        "msg": "الباسورد اتغيّر — من دلوقتي ادخل بالباسورد الجديد",
+        "user": out,
+    }), 200
 
 
 
@@ -1148,6 +1924,18 @@ def _reset_request():
     match = next((u for u in users.values() if u.get("email") == email), None)
     if not match:
         return jsonify(generic)
+
+    # ⛔⛔⛔ مافيش استرجاع بالباسورد — بالتصميم. حساب الباسورد
+    #    مينفعش يسترجع من غير ما يعرف الباسورد، ولو بعتنا إيميل
+    #    استرجاع كده يبقى الإيميل تاني وسيلة دخول — وده اللي
+    #    بنمنعه. فبنقوله بصراحة بدل ما نبعتله كود ما ينفعش.
+    if match.get("pin_hash"):
+        return jsonify({
+            "ok": False,
+            "error": "⛔ الحساب ده بيستخدم باسورد ٤ أرقام — "
+                     "مافيش استرجاع بالباسورد",
+            "why": "pin_account",
+        }), 409
 
     # ── حد المحاولات ──
     now = time.time()
@@ -4982,6 +5770,9 @@ def health():
         #    false = مفيش سر جاي من متغير بيئة (يعني وضع تطوير).
         # ⛔⛔ تشخيص: مستخدمين مش بيتحفظوا = كل توكن بيرجع 401
         "users_n": len(_load_users()),
+        # ⛔⛔ عدد حسابات الباسورد — رقم بس، مافيش أي بصمة أو هاش.
+        "pin_users": sum(1 for u in _load_users().values()
+                         if u.get("pin_hash")),
         "users_io": _users_io_test(),
         "app_writable": _app_writable(),
         "mail_configured": MAIL_ON,
