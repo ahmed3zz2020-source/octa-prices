@@ -336,7 +336,14 @@ def _sanitize_request():
         for k, v in list(request.args.items()):
             kl = k.lower()
             if kl in ("code", "symbol", "codes"):
-                request.args[k] = clean_code(v) or ""
+                # ⛔ ⛔ مهم: التوكن بيتنقل كـquery في بعض الـendpoints
+                #   وهو base64 مش ticker — التنضيف هنا كان بيكسر التوقيع
+                #   فكل توكنIssued بيترفض فوراً (401).
+                #   ⛌ التوكن بيتشال من التنضيف خالص — مش هننضفه أبداً.
+                if "token" in kl or "." in str(v):
+                    request.args[k] = clean_text(v, 400)
+                else:
+                    request.args[k] = clean_code(v) or ""
             elif kl in ("limit", "count", "days", "n", "top", "periods"):
                 request.args[k] = clean_num(v, 1, 2000, 20)
             elif kl in ("min_score", "min_safety", "min_liquidity", "max_risk",
@@ -5717,7 +5724,7 @@ if os.environ.get("OCTA_WARMUP", "1") == "1":
 # قيم احتياطية — Railway بيرجّع المتغيرات كقالب {{ARCHON_SECRET:NAME}}
 # فلو القالب ما اتفكّش بنستخدم القيم دي مباشرة
 # ⛔ Deprecated — التوكن كان هنا ومكانش المفروض.
-#    причиبه: أي حد يقدر يفتح الكود ده ويستخدم البوت بتاعنا.
+#    السبب: أي حد يقدر يفتح الكود ده ويستخدم البوت بتاعنا.
 #    دلوقتي: بنقراه من متغيرات البيئة بس (Railway Variables).
 TG_FALLBACK = {
     # TELEGRAM_BOT_TOKEN — no hardcoded fallback on purpose.
