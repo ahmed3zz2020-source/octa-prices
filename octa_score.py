@@ -13,7 +13,7 @@
     الاستعمال:
         from octa_score import final_score, build_sector_stats
         stats = build_sector_stats(records)
-        r = final_score(item, tech_score(item), ..., stats)
+        r = final_score(item, tech_score(item), fund, liq, stats)
 """
 
 AXIS_WEIGHTS = {

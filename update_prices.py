@@ -1501,7 +1501,7 @@ def _build_egx():
         try:
             with open(p, encoding="utf-8") as fh:
                 d = _json.load(fh)
-            # الصيغة: {"names": {...}, "sectors": {...}}
+            # الصيغة: مفتاحين — names و sectors
             nm = d.get("names") or d.get("stocks") or d
             sc = d.get("sectors") or {}
             for k, v in nm.items():
