@@ -711,7 +711,7 @@ def otp_verify():
     email = str(data.get("email") or "").strip().lower()[:120]
     code = str(data.get("code") or "").strip()
 
-    if not re.match(r"^\d{6}$", code or ""):
+    if not _re_guard.fullmatch(r"^\d{6}$", code or ""):
         return jsonify({"error": "الكود 6 أرقام"}), 400
     try:
         ok, why = _otp_check(email, code)
