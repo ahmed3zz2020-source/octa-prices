@@ -27,6 +27,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TMP = tempfile.mkdtemp(prefix="chaltest_", dir="/tmp")
 sys.path.insert(0, HERE)
 
+os.environ.setdefault("PIN_FAIL_LIMIT", "5")
+os.environ.setdefault("PIN_LOCK_FIRST", "900")
+os.environ.setdefault("PIN_LOCK_NEXT", "3600")
 import _stub_env  # noqa: E402
 
 fl_mod, _ = _stub_env.install()

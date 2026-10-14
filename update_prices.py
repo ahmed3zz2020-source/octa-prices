@@ -1345,9 +1345,14 @@ def _pin_index(pin):
 
 PINLOCK_FILE = Path("/app/pinlock.json")
 PINLOCK_LOCK = threading.Lock()
-PIN_FAIL_LIMIT = 5                   # ٥ غلط = قفل
-PIN_LOCK_FIRST = 15 * 60             # أول قفل = ١٥ دقيقة
-PIN_LOCK_NEXT = 60 * 60              # بعد كده = ساعة
+# ⭐ طلب أحمد ⬇️ «عايز ٤ محاولات ⬇️ والعدّاد يتشال»
+# ⛔ الأرقام دي بتتنقرأ من Env ⬇️ فالاختبارات تقدر تختبر
+# ⬇️ القواعد القديمة والجديدة من غير ما نعدّل الكود.
+PIN_FAIL_LIMIT = int(os.environ.get("PIN_FAIL_LIMIT", "4") or 4)
+# ⛔ القفل قصير ⬇️ ٣٠ ثانية ⬇️ مش ١٥ دقيقة ⬇️ عشان لو أنا غلطت
+# ⬇️ في الباسورد ما أضطرش أقعد ١٥ دقيقة.
+PIN_LOCK_FIRST = int(os.environ.get("PIN_LOCK_FIRST", "30") or 30)
+PIN_LOCK_NEXT = int(os.environ.get("PIN_LOCK_NEXT", "30") or 30)
 PIN_PURGE_AGE = 7 * 86400            # ننضّف السجلات بعد أسبوع
 PIN_SCAN_LIMIT = 50                  # أقصى عدد سجلات في الفحص البطيء
 # ⛔⛔ القفل **العالمي** على الباسورد — وده موجود فعلاً، بس مش في
@@ -3895,6 +3900,69 @@ def auth_delete_account():
 
     print(f"  🗑 اتمسح حساب: {uid}")
     return jsonify({"ok": True, "msg": "اتمسح الحساب بالكامل"}), 200
+
+
+# ══════════════════════════════════════════════════════════════════
+#  👆 البصمة — الموبايل بس (WebAuthn-lite)
+#  ────────────────────────────────────────────────────────────────
+#  ⛔⛔ ليه مش WebAuthn كامل ⬇️ التوقيع بتاع P-256 المكتوب يدوياً
+#  ⬇️ في المسودة ⬇️ غلط ⬇️ والتوقيعات كلها بتفشل ١٠٠٪.
+#  ⌌ الحل ⬇️ **تأكيد الجهاز** ⬇️ مش تشفير ⬇️:
+#  ⬇️ المتصفح ⬇️ بيعمل «سر عشوائي» ⬇️ وبيخزنه محلياً ⬇️
+#  ⬇️ والباك ⬇️ بيخزن **هاش** منه ⬇️ مش السر نفسه.
+#  ⛌ ده ⬇️ ⭐ بيمنع أي حد ⬇️ يفتح حسابي ⬇️ من جهاز تاني ⬇️
+#  ⛔ وهو ⬇️ **مش** ⬇️ بديل عن الباسورد ⬇️ هو طبقة زيادة.
+
+
+def _device_key_hash(dev: str):
+    return hashlib.sha256((str(dev) + _SECRET).encode()).hexdigest()
+
+
+@app.route("/api/auth/bio", methods=["POST"])
+@_pin_json
+def auth_bio():
+    """تسجيل ⬇️ أو إلغاء ⬇️ بصمة الجهاز ⬇️ لازم توكن صالح."""
+    u = require_user()
+    if not u:
+        return jsonify({"ok": False, "error": "لازم تسجّل دخول",
+                        "why": "unauthorized"}), 401
+    try:
+        body = request.get_json(silent=True) or {}
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    dev = str(body.get("device") or "").strip()
+    if not dev or len(dev) < 16 or len(dev) > 200:
+        return jsonify({"ok": False, "error": "مفتاح الجهاز غير صالح",
+                        "why": "bad_device"}), 400
+
+    uid = str(u.get("id") or "")
+    # ⛌ ⬇️ off ⬇️ يلغي ⬇️ on ⬇️ يفعّل
+    if str(body.get("off") or "") in ("1", "true", "yes"):
+        _patch_user(uid, bio_hash="")
+        return jsonify({"ok": True, "bio": False}), 200
+
+    with USERS_LOCK:
+        users = _load_users()
+        if uid not in users:
+            return jsonify({"ok": False, "error": "الحساب مش موجود",
+                            "why": "no_user"}), 404
+        # ⛌ 🔴 القيد الحاسم ⬇️ البصمة جهاز واحد بس للحساب
+        # ⬇️ ⭐ ده اللي بيمنع «حد يفتح حسابي من جهازه هو».
+        old = str(users[uid].get("bio_hash") or "")
+        if old and old != _device_key_hash(dev):
+            return jsonify({
+                "ok": False,
+                "error": "البصمة متسجّلة على جهاز ⬇️ ممكنش تغيّرها من جهاز تاني. "
+                         "لو نسيت ⬇️ استخدم «نسيت كلمة المرور».",
+                "why": "bio_taken",
+            }), 409
+        users[uid]["bio_hash"] = _device_key_hash(dev)
+        users[uid]["bio_at"] = int(time.time())
+        _save_users(users)
+    return jsonify({"ok": True, "bio": True}), 200
 
 
 @app.route("/api/auth/logout", methods=["POST"])

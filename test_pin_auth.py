@@ -24,12 +24,21 @@ import _stub_env  # noqa: E402
 
 fl_mod, _ = _stub_env.install()
 
+
+
 # ⛔⛔ مفيش سر حقيقي في الكود ولا في الملف ده — قيم اختبار محلية بس
 os.environ["OCTAD_TOKEN_SECRET"] = "TEST-ONLY-token-secret"
 os.environ["OCTA_PIN_PEPPER"] = "TEST-ONLY-pin-pepper"
 os.environ["OCTAD_DEV"] = "1"
 
 import update_prices as up  # noqa: E402
+
+# ⛔⛔ الاختبارات دي مكتوبة ⬇️ على القواعد القديمة ⬇️ (٥ / ١٥ دقيقة).
+# ⬇️ والإنتاج بقى ٤ / ٣٠ ثانية ⬇️ فنرجّع القواعد للموديول ⬇️ هنا
+# ⬇️ فنفصل «اختبار الإصلاح» ⬇️ عن «اختبار تغيير القواعد» ⬇️ كل واحد لوحده.
+up.PIN_FAIL_LIMIT = 5
+up.PIN_LOCK_FIRST = 900
+up.PIN_LOCK_NEXT = 3600
 
 # ── كل التخزين يروح على /tmp ──
 up.USERS_FILE = __import__("pathlib").Path(TMP) / "users.json"
