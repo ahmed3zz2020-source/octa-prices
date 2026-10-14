@@ -9306,7 +9306,8 @@ def _loop():
     time.sleep(120)
     while True:
         try:
-            ld = getattr(U, "LIVE_DATA", {}) or {}
+            # ⛔ getattr على اسم مش معرّف = NameError دايمًا (مش بيرجّع default)
+            ld = LIVE_DATA or {}          # LIVE_DATA عام في نفس الملف
             st = ld.get("egx30") or []
             if st and TG_ON:
                 ranked = [{"code": x.get("code"), "name": x.get("name"),
@@ -9320,7 +9321,7 @@ def _loop():
                 divs = [{"code": a.get("code") or a.get("symbol"), "name": a.get("name"),
                          "ex_date": a.get("ex_date") or a.get("exDate"),
                          "amount": a.get("amount") or a.get("value"), "type": a.get("type")}
-                        for a in (getattr(U, "_actions", []) or [])]
+                        for a in (div_actions.CACHE.get("actions", []) or [])]
                 run_alerts(ranked=ranked[:60], divs=divs, risk_rows=risk)
         except Exception as e:
             print(f"[tg] loop: {e}", flush=True)
