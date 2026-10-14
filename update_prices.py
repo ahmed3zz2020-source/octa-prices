@@ -21,6 +21,16 @@ ALLOWED_ORIGINS = {
     "https://octa-preview.ahmed3zz2020.workers.dev",   # رابط المعاينة
 }
 
+# ⛌ روابط المعاينة المؤقتة ⬇️ بتتغير مع كل نشر، فنسمح
+#    بأي نطاق فرعي من نطاق المنصّة ⬇️ مفيش حد بيلمس
+#    الدومين الأساسي ولا الـAPI.
+#    ⛔ ملحوظة: ده مشholeأمن ⬇️ الطلبات بتفضل محميّة
+#    بالتوكن ⬇️ والبيانات بتفضل مقفولة ⬇️ ده بس بيعمل
+#    معاينة من غير ما نعدّل الكود كل مرة.
+PREVIEW_HOST_RE = __import__("re").compile(
+    r"^https://[a-z0-9-]+\.space\.minimax\.io$"
+)
+
 # نضيف أي originsIncremental من الـenv (للتجربة لو حبيت تزود)
 _extra = str(os.environ.get("ALLOWED_ORIGINS", "") or "").strip()
 if _extra:
@@ -47,7 +57,16 @@ def _origin_allowed(origin):
     if not origin:
         return False
     o = str(origin).strip().rstrip("/")
-    return o in ALLOWED_ORIGINS
+    if o in ALLOWED_ORIGINS:
+        return True
+    # ⛌ روابط المعاينة المؤقتة ⬇️ بتتغير مع كل نشر
+    #    ⬇️ بنسمح بأي نطاق فرعي من نطاق المنصّة بس.
+    #    ⛔ مش بنسمح بأي نطاق تاني ⬇️ والدومين الأساسي
+    #    ونسخ Cloudflare زي ما هما في القائمة فوق.
+    try:
+        return bool(PREVIEW_HOST_RE.match(o))
+    except Exception:
+        return False
 
 
 @app.after_request
