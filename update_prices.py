@@ -647,7 +647,7 @@ def rate_limit_guard():
     allowed, retry, bucket = _rate_check()
     if not allowed:
         resp = jsonify({
-            "error": "rate limit exceeded",
+            "error": "⛔ طلبات كتير في وقت قصير ⬇️ استنى شوية وحاول تاني",
             "bucket": bucket,
             "retry_after": retry,
             "hint": "استنى شوية وجرب تاني",
