@@ -553,6 +553,13 @@ def _route_bucket(path):
         if name == "auth":
             sub = seg[2] if len(seg) > 2 else ""
             tail = seg[3] if len(seg) > 3 else ""
+            # ⭐⭐ البصمة ⬇️ /api/auth/bio ⬇️ المسار بيتكوّن من
+            # ⬇️ ٣ أجزاء بس ⬇️ ⭐ sub == "bio" ⬇️ ⬇️ ⬇️ ⭐ tail
+            # ⬇️ فاضي ⬇️ ⬇️ ⬇️ ولهذا الشرط القديم ⬇️ ⬇️ ⬇️ ما
+            # ⬇️ ⬇️ ⬇️.matchش ⬇️ ⬇️ ⬇️ ووقع ⬇️ ⬇️ ⬇️ في otp_send.
+            # ⛌ لازم يكون ⬇️ ⬇️ ⬇️ الأول ⬇️ ⬇️ ⬇️ قبل أي فرع تاني.
+            if sub == "bio":
+                return "pin_bio"
             # ⛌ ⛌ ⛌ التسجيل = **أضيق**: نفس الـwrite + سقف ٢٠/ساعة،
             #    لأن المسار ده هو اللي بيفحص المساحة كلها بسؤال
             #    «الباسورد ده مستخدم من قبل؟». من غير السقف، ٥/دقيقة
@@ -565,9 +572,6 @@ def _route_bucket(path):
                     "verify": "pin_signup_verify",
                     "newpin": "pin_signup_newpin",
                 }.get(tail, "write")
-            if tail == "bio":
-                # ⭐ البصمة ⬇️ سخوطة ⬇️ مافيش قفل مزعج
-                return "pin_bio"
             if sub == "pin":
                 # ⛌ المسار القديم بقى 410 — السقف بيفضل شغال عليه
                 #    عشان مافيش حد يسكّر عليه ٢٠/ساعة بلا فايدة.
