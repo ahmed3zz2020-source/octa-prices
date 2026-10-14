@@ -3976,6 +3976,56 @@ def auth_bio():
     return jsonify({"ok": True, "bio": True}), 200
 
 
+# ====================== الدخول بالبصمة ======================
+@app.route("/api/auth/pin/fingerprint", methods=["POST"])
+@_pin_json
+def auth_pin_fingerprint():
+    """دخول بالبصمة من غير باسورد.
+
+    السبب إن اللي كان ناقص: الواجهة بتنادي المسار ده من زمان
+    بس الراوت مكانتش موجودة في الباك خالص، فأي دوسة كانت
+    بترجع 404 والواجهة كانت مش بتعرف تقرا السبب، فالمستخدم
+    بيقول "البصمة مش بتنفتح" وهو مش فاهم حاجة.
+    """
+    try:
+        body = request.get_json(silent=True) or {}
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    dev = str(body.get("device") or "").strip()
+    if not dev or len(dev) < 16 or len(dev) > 200:
+        return jsonify({"ok": False, "error": "مفتاح الجهاز غير صالح",
+                        "why": "bad_device"}), 400
+
+    want = _device_key_hash(dev)
+    with USERS_LOCK:
+        users = _load_users()
+        hit = ""
+        for uid, rec in users.items():
+            if str(rec.get("bio_hash") or "") == want:
+                hit = uid
+                break
+        if not hit:
+            return jsonify({"ok": False,
+                            "error": "البصمة مش مسجلة على الجهاز ده",
+                            "why": "bio_not_found"}), 404
+        rec = users[hit]
+        users[hit] = rec
+
+    tok = _make_token(hit)
+    _patch_user(hit, last_login=int(time.time()))
+    with USERS_LOCK:
+        users = _load_users()
+        pub = {k: v for k, v in (users.get(hit) or {}).items()
+               if k in ("id", "name", "email")}
+        pub["id"] = hit
+        pub["name"] = pub.get("name") or "مستخدم OCTA"
+        pub["email"] = pub.get("email") or ""
+    return jsonify({"ok": True, "token": tok, "user": pub}), 200
+
+
 @app.route("/api/auth/logout", methods=["POST"])
 def auth_logout():
     """التسجيل الخروج بيتم في المتصفح — التوكن بسطره"""
