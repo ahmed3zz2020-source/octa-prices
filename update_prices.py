@@ -767,7 +767,24 @@ def _user_epoch(user_id: str) -> int:
        والتواقيع بتتخزّن في الذاكرة ⬇️ ارفعها هناك.
     """
     try:
-        return int((_load_users().get(str(user_id)) or {}).get("token_epoch") or 0)
+        rec = _load_users().get(str(user_id)) or {}
+        if not rec:
+            return 0
+        # ⛌⛔⛔ ترحيل ⬇️ أي حساب قديم مافيشوش epoch ⬇️
+        # ⬇️ كل توكناته بتتنفى ⬇️ والمستخدم بيفتكر الموقع بايظ.
+        # ⬇️ الحل ⬇️ نكتب له epoch **نفس قيمة التوكن** ⬇️
+        # ⬇️ فالتوكنات الموجودة تبقى صالحة ⬇️ والحساب يعيش.
+        try:
+            if rec.get("token_epoch") is None:
+                with USERS_LOCK:
+                    users = _load_users()
+                    if uid in users:
+                        users[uid]["token_epoch"] = 0
+                        _save_users(users)
+                return 0
+        except Exception:
+            return 0
+        return int(rec.get("token_epoch") or 0)
     except Exception:
         return 0
 
@@ -3032,6 +3049,11 @@ def auth_signup_verify():
                 "created": int(time.time()),
                 "portfolio": {},
                 "watch": [],
+                # ⛔🔴 الـepoch لازم يتكتب **من أول يوم**.
+                # ⬇️ من غيره ⬇️ التوكن بيتعمل بـepoch=0 ⬇️ وبعد
+                # ⬇️ الحفظ بيبقى للمستخدم epoch غير الصفر ⬇️ فالتوكن
+                # ⬇️ يموت في أول طلب ⬇️ «حسابك مش متعرّف عليه».
+                "token_epoch": int(time.time()) * 1000,
             }
             users[uid] = rec
         # ⛌ الإيميل اتأكد فعلاً
