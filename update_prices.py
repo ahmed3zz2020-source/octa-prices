@@ -1545,8 +1545,11 @@ def _pinlock_reset(keys):
 #     ٣ غلط متباعدين (٣٠ ثانية بين كل واحد) مش ٣ غلط في نافذة:
 #     المحاولة الأولى بتخرج من النافذة قبل ما التالتة تنزل.
 
-PIN_WINDOW_SECONDS = 60            # ⛌ طلب المواصفات: ٦٠ ثانية بالظبط
-PIN_WINDOW_FAILS = 3               # ⛌ طلب المواصفات: ٣ محاولات
+# ⭐ طلب أحمد ⬇️ «عايز ٤ محاولات ⬇️ والعدّاد يتشال»
+# ⛔ الأرقام دي من Env ⬇️ فالاختبارات تقدر تختبرها
+# ⬇️ من غير ما نعدّل الكود ⬇️ والقيم الافتراضية هي الجديدة.
+PIN_WINDOW_SECONDS = int(os.environ.get("PIN_WINDOW_SECONDS", "60") or 60)
+PIN_WINDOW_FAILS = int(os.environ.get("PIN_WINDOW_FAILS", "4") or 4)
 
 
 def _pin_now():
