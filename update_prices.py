@@ -9845,6 +9845,80 @@ def _tv_scan_market(exchange, cols):
         return {}
 
 
+# ══════════════════════════════════════════════════════════════
+# 🐙 OCTA — اختبار + تقرير المالك (2026-10-14)
+# ⛔ محمي بـ OCTA_ADMIN_TOKEN من الـ env، ومفيش قيمة افتراضية.
+#    ⛔ fail-closed: مافيش توكن = 503 (مش 200).
+# ══════════════════════════════════════════════════════════════
+@app.route("/api/admin/telegram_test", methods=["POST"])
+def admin_tg_test():
+    """🧪 ابعت رسالة تجريبية على التليجرام للتأكد إن السلسلة شغالة."""
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    if not want:
+        return jsonify({"ok": False, "error": "التقرير مش متظبط"}), 503
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                          want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+
+    if not TG_ON:
+        return jsonify({"ok": False, "error": "البوت مطفيش",
+                        "tg_on": False}), 400
+    sent = send("🧪 اختبار من Mavis — السلسلة كلها شغالة.\n"
+                "أنت دلوقتي بتستقبل تنبيهات OCTA.", silent=False)
+    return jsonify({
+        "ok": bool(sent),
+        "sent": bool(sent),
+        "tg_on": TG_ON,
+        "chat": CHAT,
+        "error": TG_ERR[0],
+        "at": time.strftime("%Y-%m-%d %H:%M"),
+    }), (200 if sent else 502)
+
+
+@app.route("/api/admin/monthly", methods=["GET"])
+def admin_monthly():
+    """📊 مين سجّل، إمتى، وإيه الحالة — أرقام فقط."""
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    if not want:
+        return jsonify({"ok": False, "error": "التقرير مش متظبط"}), 503
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                          want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+
+    users = _load_users()
+    now = time.time()
+    cutoff = now - 30 * 86400
+    rows = []
+    for uid, u in (users or {}).items():
+        if not isinstance(u, dict):
+            continue
+        try:
+            created = float(u.get("created") or 0)
+        except Exception:
+            created = 0.0
+        rows.append({
+            "id": str(u.get("id") or uid)[:24],
+            "name": str(u.get("name") or "—")[:40],
+            "email": str(u.get("email") or "—")[:120],
+            "created_iso": (time.strftime("%Y-%m-%d %H:%M", time.localtime(created))
+                            if created else "—"),
+            "days_ago": int((now - created) / 86400) if created else -1,
+            "pin_set": bool(u.get("pin_set")),
+            "new_30d": bool(created and created >= cutoff),
+        })
+    rows.sort(key=lambda r: r["days_ago"])
+    return jsonify({
+        "ok": True,
+        "generated": time.strftime("%Y-%m-%d %H:%M", time.localtime(now)),
+        "total": len(rows),
+        "new_30d": sum(1 for r in rows if r["new_30d"]),
+        "pin_set_n": sum(1 for r in rows if r["pin_set"]),
+        "users": rows,
+    })
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting OCTA v3 on port {port}")
