@@ -923,6 +923,31 @@ def _save_users(d):
         print(f"  💾 ⛔ users.json: {type(e).__name__}: {str(e)[:100]}", flush=True)
 
 
+def _patch_user(uid: str, **fields):
+    """⛔🔴 يعدّل حقول المستخدم **من غير ما يطمس** الباقي.
+
+    ⛌ الكود القديم كان بيعمل ⬇️
+        u = _get_user(tok)        ⬇️ نسخة قديمة من غير قفل
+        ...
+        users = _load_users()     ⬇️ نسخة تانية تانية
+        users[uid] = u            ⬇️ الكتابة فوق كله ⬇️ طمست الحقول
+    ⬌ ⭐ أي حقل اتغيّر في نفس الوقت ⬇️ زي token_epoch ⬇️ كان
+    ⬇️ بيرجع لوضعه ⬇️ والتوكن الجديد ⬇️ يموت ⬇️ «حسابك مش متعرّف».
+
+    ⛔ الحل ⬇️ نعمل modification جوا القفل ⬇️ على النسخة الأحدث ⬇️
+    ⬇️ فمفيش lost update ⬇️ أبداً.
+    """
+    with USERS_LOCK:
+        users = _load_users()
+        rec = users.get(str(uid))
+        if not rec:
+            return None
+        for k, v in fields.items():
+            rec[k] = v
+        _save_users(users)
+        return rec
+
+
 def _get_user(token):
     """ترجّع dict المستخدم أو None"""
     uid = _read_token(token)
@@ -7873,11 +7898,8 @@ def portfolio_api():
         else:
             return jsonify({"error": "action غير معروف"}), 400
 
+        _patch_user(u["id"], portfolio=pf)
         u["portfolio"] = pf
-        with USERS_LOCK:
-            users = _load_users()
-            users[u["id"]] = u
-            _save_users(users)
         return jsonify({"ok": True, "portfolio": pf})
 
     # ── GET: محفظة المستخدم (اتأكدنا فوق إن في توكن) ──
@@ -9248,11 +9270,8 @@ def _octa_watch_post():
     if len(watch) > 100:
         return jsonify({"error": "الحد 100 منبه بس"}), 400
 
+    _patch_user(u["id"], watch=watch)
     u["watch"] = watch
-    with USERS_LOCK:
-        users = _load_users()
-        users[u["id"]] = u
-        _save_users(users)
 
     return jsonify({"ok": True, "count": len(watch)})
 
