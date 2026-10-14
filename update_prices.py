@@ -3319,7 +3319,10 @@ import random as _random
 import html as _htmlmod
 
 RESEND_KEY = str(os.environ.get("RESEND_API_KEY", "") or "").strip()
-MAIL_FROM = str(os.environ.get("MAIL_FROM", "OCTA <onboarding@resend.dev>") or "").strip()
+# ⭐ الدومين اتأكد ⬇️ octashares.com ⬇️ فيبعت لأي حد مش بس لصاحب الحساب.
+# ⛔ onboarding@resend.dev ⬇️ ده بيبعت لحساب Resend بس ⬇️ ومحدش تاني
+# ⬇️ يقدر يسجّل ⬇️ وده كان بيمنع أي مستخدم حقيقي.
+MAIL_FROM = str(os.environ.get("MAIL_FROM", "OCTA <noreply@octashares.com>") or "").strip()
 MAIL_ON = bool(RESEND_KEY)
 
 # عدد المحاولات في اليوم لكل إيميل — ⛌ بيمنع تخمين الكود بالقوة
