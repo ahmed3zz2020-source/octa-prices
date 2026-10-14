@@ -9925,6 +9925,60 @@ def admin_monthly():
             "new_30d": bool(created and created >= cutoff),
         })
     rows.sort(key=lambda r: r["days_ago"])
+
+    # ══════════════════════════════════════════════════════════
+    # 📊 تحليل الاستخدام — من track.json (نفس السجل اللي
+    #    الواجهة بتبعته: كل صفحة + كل فعل + كل مستخدم)
+    # ══════════════════════════════════════════════════════════
+    with TRACK_LOCK:
+        tr = _track_load()
+    events = tr.get("events") or []
+    tusers = tr.get("users") or {}
+
+    def since(days):
+        cut = now - days * 86400
+        return [e for e in events if (e.get("ts") or 0) >= cut]
+
+    ev7, ev30 = since(7), since(30)
+
+    def top(key, evs, n=12):
+        c = {}
+        for e in evs:
+            k = e.get(key) or "—"
+            c[k] = c.get(k, 0) + 1
+        return sorted(([k, v] for k, v in c.items() if k != "—"),
+                      key=lambda x: -x[1])[:n]
+
+    active7 = sum(1 for u in tusers.values()
+                  if (u.get("last") or 0) >= now - 7 * 86400)
+    active30 = sum(1 for u in tusers.values()
+                   if (u.get("last") or 0) >= now - 30 * 86400)
+
+    # نربط النشاط بكل مستخدم (uid في الـtrack = uid في users.json)
+    by_uid = {u["id"]: u for u in rows}
+    for u in rows:
+        t = tusers.get(u["id"]) or {}
+        first, last = t.get("first") or 0, t.get("last") or 0
+        u["hits"] = int(t.get("hits") or 0)
+        u["last_seen"] = (time.strftime("%Y-%m-%d %H:%M", time.localtime(last))
+                          if last else "—")
+        u["session_min"] = round((last - first) / 60) if first and last else 0
+        u["active_7d"] = bool(last >= now - 7 * 86400)
+        u["active_30d"] = bool(last >= now - 30 * 86400)
+    # مستخدمين نشطوا بس مش مسجّلين (زوّار)
+    anon = 0
+    for uid in tusers:
+        if uid and uid not in by_uid:
+            anon += 1
+
+    # نمو التسجيل — 6 شهور
+    growth = {}
+    for u in rows:
+        if u.get("created_iso", "—") != "—":
+            k = u["created_iso"][:7]
+            growth[k] = growth.get(k, 0) + 1
+    growth = sorted([[k, v] for k, v in growth.items()], key=lambda x: -x[1])[:12]
+
     return jsonify({
         "ok": True,
         "generated": time.strftime("%Y-%m-%d %H:%M", time.localtime(now)),
@@ -9932,6 +9986,20 @@ def admin_monthly():
         "new_30d": sum(1 for r in rows if r["new_30d"]),
         "pin_set_n": sum(1 for r in rows if r["pin_set"]),
         "users": rows,
+        "analytics": {
+            "events_total": len(events),
+            "events_7d": len(ev7),
+            "events_30d": len(ev30),
+            "active_7d": active7,
+            "active_30d": active30,
+            "tracked_users": len(tusers),
+            "anon_30d": anon,
+            "top_pages": top("p", ev30),
+            "top_actions": top("l", ev30),
+            "by_event": sorted([[k, sum(1 for e in ev30 if e.get("ev") == k)]
+                                for k in {e.get("ev") for e in ev30}], key=lambda x: -x[1]),
+            "growth": growth,
+        },
     })
 
 
