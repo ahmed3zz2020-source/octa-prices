@@ -492,6 +492,10 @@ LIMITS = {
     "pin_signup_start": [(3, 300)],
     "pin_signup_verify": [(10, 300)],
     "pin_signup_newpin": [(10, 300)],
+    # ⭐ تفعيل/إيقاف البصمة ⬇️ مش إرسال ⬇️ ومشguess ⬇️
+    # ⬇️ فمحتاجش حد الـwrite (٥/دقيقة) ⬇️ ⬛ المستخدم بيضغط
+    # ⬇️ بصمتين ورا بعض ⬇️ ⬛ ف بيتقفل ⬇️ ⬛ وبيتوه.
+    "pin_bio": [(20, 60)],
 }
 
 # تخزين: {ip: {bucket: deque(timestamps)}}
@@ -561,6 +565,9 @@ def _route_bucket(path):
                     "verify": "pin_signup_verify",
                     "newpin": "pin_signup_newpin",
                 }.get(tail, "write")
+            if tail == "bio":
+                # ⭐ البصمة ⬇️ سخوطة ⬇️ مافيش قفل مزعج
+                return "pin_bio"
             if sub == "pin":
                 # ⛌ المسار القديم بقى 410 — السقف بيفضل شغال عليه
                 #    عشان مافيش حد يسكّر عليه ٢٠/ساعة بلا فايدة.
