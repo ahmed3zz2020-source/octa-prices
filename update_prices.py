@@ -908,7 +908,23 @@ def _hash_key(raw: str) -> str:
 
 
 # ── قاعدة البيانات (ملف JSON بسيط) ──
-USERS_FILE = Path("/app/users.json")
+# ══════════════════════════════════════════════════════════════
+# 📁 مجلد البيانات الدائم (Railway volume)
+# ⛔ أي ملف هنا بيفضل موجود بعد كل إعادة نشر.
+#    الملفات دي: الحسابات · كود الدخول · الـpepper · حالة التسجيل.
+#    لو بترجع لـ /app (الكود) بتتمسح مع كل نشر.
+# ══════════════════════════════════════════════════════════════
+DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    _probe = DATA_DIR / ".w"
+    _probe.write_text("ok", encoding="utf-8")
+    _probe.unlink()
+except Exception:
+    # ⛔ مافيش volume (وضع تطوير) → ارجع لمجلد الكود زي الأول
+    DATA_DIR = Path(__file__).resolve().parent
+
+USERS_FILE = DATA_DIR / "users.json"
 USERS_LOCK = threading.Lock()
 
 
@@ -1279,7 +1295,7 @@ _PIN_ROUNDS = 60000                  # دورات PBKDF2
 #    1) متغير بيئة OCTA_PIN_PEPPER  ← ده الصح في الإنتاج
 #    2) ملف على القرص (بينشأ لوحده مرة واحدة)
 #    3) مؤقت لكل تشغيل (تطوير بس — بينبّه في اللوج)
-PIN_PEPPER_FILE = Path("/app/pin_pepper.txt")
+PIN_PEPPER_FILE = DATA_DIR / "pin_pepper.txt"
 
 
 def _pin_pepper_load():
@@ -1354,7 +1370,7 @@ def _pin_index(pin):
 #     الاتنين لازم، واللي فيهم أي واحد بيقفل.
 # ══════════════════════════════════════════════════════════════════
 
-PINLOCK_FILE = Path("/app/pinlock.json")
+PINLOCK_FILE = DATA_DIR / "pinlock.json"
 PINLOCK_LOCK = threading.Lock()
 # ⭐ طلب أحمد ⬇️ «عايز ٤ محاولات ⬇️ والعدّاد يتشال»
 # ⛔ الأرقام دي بتتنقرأ من Env ⬇️ فالاختبارات تقدر تختبر
@@ -1684,7 +1700,7 @@ def _pin_window_reset(keys):
 #  ⛔ الكود من `secrets.randbelow` — ⛔ مش `random` و ⛔ مش
 #     متغيّر من الوقت زي الكود القديم بتاع الاسترجاع.
 
-PIN_CHAL_FILE = Path("/app/pinchal.json")
+PIN_CHAL_FILE = DATA_DIR / "pinchal.json"
 PIN_CHAL_LOCK = threading.Lock()
 PIN_CHAL_TTL = 10 * 60              # ⛌ طلب المواصفات: ١٠ دقايق بالظبط
 PIN_CHAL_WRONG = 5                  # ⛌ ٥ غلط على الكود = الكود يموت
@@ -2749,7 +2765,7 @@ def auth_pin_chal_newpin():
 #  ⛔ الكود من `secrets.randbelow` — ⛔ مش `random` و ⛔ مش
 #     متغيّر من الوقت.
 
-SIGNUP_FILE = Path("/app/signup.json")
+SIGNUP_FILE = DATA_DIR / "signup.json"
 SIGNUP_LOCK = threading.Lock()
 SIGNUP_TTL = 10 * 60          # ⛌ طلب المواصفات: ١٠ دقايق بالظبط
 SIGNUP_WRONG = 5              # ⛌ ٥ محاولات غلط ← الكود يموت
@@ -3452,7 +3468,7 @@ OTP_MAX_WRONG = 5
 # ⛌ ⛌ الكود لازم يعيش على القرص مش في الذاكرة.
 #    Railway بيعمل redeploy عند كل git push، والذاكرة بتتمسح →
 #    المستخدم بيستنى إيميل فيه كود صحيحMICROSOFTالسيرفرsays «الكود غلط».
-OTP_FILE = Path("/app/otp.json")
+OTP_FILE = DATA_DIR / "otp.json"
 OTP_LOCK = threading.Lock()
 
 
@@ -3706,7 +3722,7 @@ def _auth_reset_verify():
 #  ⚠️ مفيش PII — بنسجل event + اسم صفحة، مش IP ولا إيميل.
 # ══════════════════════════════════════════════════════════════
 
-TRACK_FILE = Path("/app/track.json")
+TRACK_FILE = DATA_DIR / "track.json"
 TRACK_LOCK = threading.Lock()
 TRACK_DAYS = 90          # نحتفظ بآخر 90 يوم
 
@@ -4080,7 +4096,7 @@ def auth_logout():
 
 
 
-CACHE_FILE = Path("/app/cache.json")
+CACHE_FILE = DATA_DIR / "cache.json"
 LIVE_DATA = {
     "lastUpdate": None,
     "market": "EGX",
@@ -4105,7 +4121,7 @@ AI_CACHE_TTL = 21600  # 6 ساعات
 AI_CACHE_MAX = 300    # أكبر عدد أسmemo محفوظة في الذاكرة
 
 # كاش على القرص — يفضل موجود حتى لو السيرفر اتعمله restart
-AI_DISK = Path("/app/ai_cache.json")
+AI_DISK = DATA_DIR / "ai_cache.json"
 
 def _load_ai_disk():
     try:
@@ -6269,7 +6285,7 @@ def available_filters(all_stocks):
 #   هل الأسهم اللي رشحّناها اتحركت فعلاً ولا لأ.
 #   ده أصدق من backtest على بيانات مفترضة.
 
-BT_FILE = Path("/app/backtest_snapshots.json")
+BT_FILE = DATA_DIR / "backtest_snapshots.json"
 BACKTEST = {"snapshots": {}, "results": [], "stats": {}}
 
 
@@ -9010,7 +9026,7 @@ CHAT = _tg_env(os.environ.get("TELEGRAM_CHAT_ID", ""))
 TG_ON = bool(TOKEN and CHAT)
 TG_API = f"https://api.telegram.org/bot{TOKEN}"
 
-STATE = "alerts_state.json"
+STATE = str(DATA_DIR / "alerts_state.json")
 COOLDOWN = 240          # 4 ساعات بين نفس التنبيه
 DIGEST_HOUR = 9
 
