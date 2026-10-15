@@ -9965,6 +9965,60 @@ def admin_tg_test():
     }), (200 if sent else 502)
 
 
+@app.route("/api/admin/users", methods=["GET"])
+def admin_users_list():
+    """📋 كل الحسابات + بياناتها — محمي بتوكن الأدمن."""
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                                       want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+    users = _load_users() or {}
+    out = []
+    for uid, u in users.items():
+        if not isinstance(u, dict):
+            continue
+        out.append({
+            "uid": str(uid),
+            "name": u.get("name") or "",
+            "email": u.get("email") or "",
+            "hasPin": bool(u.get("pin") or u.get("key")),
+            "created": u.get("created"),
+            "watch": len(u.get("watch") or []),
+            "keys": sorted([k for k in u.keys() if k not in ("pin", "key", "salt", "hash")]),
+        })
+    return jsonify({"ok": True, "n": len(out), "users": out})
+
+
+@app.route("/api/admin/user/<uid>", methods=["DELETE"])
+def admin_user_delete(uid):
+    """🗑️ حذف حساب واحد + كل بياناته. محمي بتوكن الأدمن."""
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                                       want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+    users = _load_users() or {}
+    uid = str(uid)
+    if uid not in users:
+        return jsonify({"ok": False, "error": "مفيش حساب بالـid ده"}), 404
+    gone = users.pop(uid)
+    _save_users(users)
+    # ⛔ نمسح من ملف التتبع برضه — يحذف حسابه من كل إحصائيات
+    try:
+        tp = DATA_DIR / "track.json"
+        if tp.exists():
+            tr = json.loads(tp.read_text(encoding="utf-8"))
+            tr.pop(uid, None)
+            tp.write_text(json.dumps(tr, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+    return jsonify({"ok": True, "deleted": uid,
+                    "name": (gone or {}).get("name") or "",
+                    "email": (gone or {}).get("email") or "",
+                    "remaining": len(_load_users() or {})})
+
+
 @app.route("/api/admin/monthly", methods=["GET"])
 def admin_monthly():
     """📊 مين سجّل، إمتى، وإيه الحالة — أرقام فقط."""
