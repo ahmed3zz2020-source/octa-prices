@@ -8952,25 +8952,88 @@ def api_ipo():
 # ─────────────────────────────────────────────────────────────
 # ⑤  /api/obdepth  —  عمق السوق (اختياري — محتاج EGX_LIVE_KEY)
 # ─────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════
+# 📦 عمق السوق — كاش + حاجز ميزانية
+# ⛔ السبب: الواجهة بتطلب كل ثانية. 43,200 طلب/شهر لو كل واحد
+#    بيفتح الشاشة طول الوقت. الخطة المجانية = 100 طلب/شهر.
+# ⛔ الحل: نجيب من المصدر كل OB_CACHE_TTL ثانية، ونقدّم الكاش
+#    للكل. + حاجز صلب على عدد نداءات المصدر شهريًا.
+# ══════════════════════════════════════════════════════════════
+_OB_CACHE = {}            # {symbol: {"at": ts, "data": {...}}}
+_OB_HITS = {"month": "", "n": 0}
+_OB_LOCK = threading.Lock()
+OB_CACHE_TTL = int(str(os.environ.get("OB_CACHE_TTL", "60")).strip() or 60)
+OB_MAX_MONTH = int(str(os.environ.get("OB_MAX_MONTH", "80")).strip() or 80)
+
+
+def _ob_month_key():
+    return time.strftime("%Y-%m")
+
+
 @app.route("/api/obdepth/<code>")
 def api_obdepth(code):
-    """⛔ المفتاح في ENVIRONMENT VARIABLE — مش في الكود أبداً."""
+    """
+    📊 عمق السوق لحظي — مع كاش وحاجز ميزانية.
+
+    ⛔ ⛔ ثلاث حمايات:
+      1) المفتاح في ENVIRONMENT فقط — مينفعش يطلع في رد ولا في كود
+      2) كاش: نجيب من المصدر كل OB_CACHE_TTL ثانية ونقدّم الكاش
+      3) حاجز: OB_MAX_MONTH نداء للمصدر في الشهر. بعده ⛔ 429
+    """
     key = os.environ.get("EGX_LIVE_KEY")
     if not key:
-        return jsonify({"error": "no_key",
-                        "hint": "ضبط EGX_LIVE_KEY في Railway Variables"}), 503
+        return jsonify({"ok": False, "error": "no_key",
+                        "hint": "المصدر غير مفعّل — البيانات الحقيقية غير متاحة"}), 503
+
+    sym = str(code or "").upper()[:12]
+    if not re.match(r"^[A-Z0-9.]{1,12}$", sym):
+        return jsonify({"ok": False, "error": "رمز غير صالح"}), 400
+
+    now = time.time()
+
+    # ── ① كاش: لو لسه طازج، رجّعه بدون أي نداء للمصدر ──
+    with _OB_LOCK:
+        c = _OB_CACHE.get(sym)
+        if c and (now - c["at"]) < OB_CACHE_TTL:
+            return jsonify({"ok": True, "cached": True,
+                            "age_s": int(now - c["at"]),
+                            "source": "egx-live",
+                            "data": c["data"]})
+
+        # ── ② حاجز الشهر ──
+        mk = _ob_month_key()
+        if _OB_HITS["month"] != mk:
+            _OB_HITS["month"] = mk
+            _OB_HITS["n"] = 0
+        if _OB_HITS["n"] >= OB_MAX_MONTH:
+            return jsonify({
+                "ok": False, "error": "quota",
+                "used": _OB_HITS["n"], "cap": OB_MAX_MONTH,
+                "hint": "خلص الحد الشهري لبيانات عمق السوق الحقيقية — "
+                        "مش هنعرض أرقام مش حقيقية",
+            }), 429
+        _OB_HITS["n"] += 1
+        used = _OB_HITS["n"]
+
+    # ── ③ النداء الحقيقي (برا القفل عشان ما يبقاش بطيء) ──
     try:
         r = requests.get(
-            f"https://egx-live.p.rapidapi.com/depth/{code.upper()}",
+            f"https://egx-live.p.rapidapi.com/depth/{sym}",
             headers={"x-rapidapi-key": key,
                      "x-rapidapi-host": "egx-live.p.rapidapi.com"},
             params={"level": 15}, timeout=12)
         if not r.ok:
-            return jsonify({"error": "upstream", "code": r.status_code}), 502
-        return jsonify(r.json())
+            return jsonify({"ok": False, "error": "upstream",
+                            "code": r.status_code, "used": used}), 502
+        payload = r.json()
+        with _OB_LOCK:
+            _OB_CACHE[sym] = {"at": now, "data": payload}
+        return jsonify({"ok": True, "cached": False,
+                        "used": used, "remaining": OB_MAX_MONTH - used,
+                        "source": "egx-live", "data": payload})
     except Exception as e:
         _log_exc("upstream-502", e)
-        return jsonify({"error": "تعذّر جلب البيانات من المصدر"}), 502
+        return jsonify({"ok": False, "error": "تعذّر جلب البيانات من المصدر"}), 502
 
 
 # ══════════════════════════════════════════════════════════════
