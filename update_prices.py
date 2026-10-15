@@ -1,4 +1,5 @@
 import json, time, requests, os, threading
+import os as _os  # alias للمعاملات (EGX_RISK_FREE) — واحد يكفي، وده أوضح
 import div_actions
 from flask import Flask, jsonify, request, Response
 from pathlib import Path
@@ -8603,7 +8604,16 @@ def _risk_metrics(hist):
         cagr = (cl[-1] / cl[-756]) ** (1 / 3.0) - 1
         out["cagr3y"] = round(cagr * 100, 2)
         if out.get("vol3y"):
-            out["sharpe3y"] = round((cagr * 100) / out["vol3y"], 2)
+            # 🔴 إصلاح 2026-10-15 — شارب كان ناقص فائدة خالصة.
+            #   كان: (نمو × 100) ÷ تقلب   ← بيقارن نمو السهم بفائدة الصفر.
+            #   Shar는: (العائد − العائد الخالي) ÷ التقلب.
+            #   ⛔ من غير خصم الـ19% (فائدة إيداع البنك المركزي المصري، 2026-09-24)
+            #      أي سهم نموه أقل من 19% كان بيطلع شارب موجب — وده غلط.
+            #   المعادلة: (نمو − فائدة) ÷ تقلب. التقلب بيفضل زي ما هو.
+            #   ⛔ الرقم في env عشان لما الفائدة تتغير نعدّلها من غير كود.
+            #   المصدر: كتاب دوري البنك المركزي المصري — إيداع 19٪ / إقراض 20٪
+            _rf = float(_os.environ.get("EGX_RISK_FREE", "19.0"))
+            out["sharpe3y"] = round(((cagr * 100) - _rf) / out["vol3y"], 2)
         neg = [x for x in _log_ret(cl[-756:]) if x < 0]
         if len(neg) > 20:
             m = sum(neg) / len(neg)
