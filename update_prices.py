@@ -4604,35 +4604,448 @@ EGX = [
     ("ZMID","زهراء المعادي للاستثمار والتعمير","عقارات"),
 ]
 
-def calc_levels(price, decision, overall_score):
-    """يحسب الهدف والستوب لوس رياضياً من السعر الحقيقي + القرار
+# ══════════════════════════════════════════════════════════════════════
+# 🧮 نور · محرك التحليل الخماسي + السعر العادل  (15 أكتوبر 2026)
+# ──────────────────────────────────────────────────────────────────────
+# قرار أحمد (ملزم): 5 محاور بأوزان
+#   الأساسيات 30٪ · المخاطرة 25٪ · الفني 20٪ · التقييم 15٪ · التوزيع 10٪
+#
+# ⛔ القواعد:
+#   1. المؤشر الناقص بيتشال من الحساب — مش بيبقى صفر — ووزنه بينتشر على
+#      الموجودين. المحور كله ناقص بيتشال ووزنه بينتقل للمحاور التانية.
+#   2. كل المؤشرات جوّه المحور: وزن متساوي.
+#   3. مفيش رقم مخترع. المفقود = None (والواجهة بتعرضه «—»).
+#   4. مفيش look-ahead: كل القراءات من نفس اللقطة وقت التشغيل.
+#
+# ⚠ نفس الأوزان والحدود مكتوبة في assets/js/octa-filters.js (NZ_AXES)
+#   — أي تعديل في واحدة لازم يتعمل في التانية.
+# ══════════════════════════════════════════════════════════════════════
+NZ_R = 1e9
 
-    نسبة الهدف: 8% → 30% حسب قوة التوصية
-    نسبة الستوب: ثابتة 7-12% حسب مستوى الخطورة
+
+def _n(v, d=None):
+    """رقم صالح ولا None — ⛔ صفر Pretoria الكسور بتتحوّل لصفر مش ناقص"""
+    if v is None or isinstance(v, bool):
+        return d
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return d
+    if f != f or f in (float("inf"), float("-inf")):
+        return d
+    return f
+
+
+def _nz_band(v, bands):
+    """أول حدّ الرقم أصغر منه = الدرجة. None ⇒ مفيش أساس."""
+    if v is None or not bands:
+        return None
+    for lim, sc in bands:
+        if v <= lim:
+            return float(sc)
+    return float(bands[-1][1])
+
+
+def _nz_is_bank(rec):
+    sec = " ".join(str(rec.get(k) or "") for k in ("sectorAr", "sector", "industry"))
+    return ("بنك" in sec) or ("مالي" in sec) or ("Finance" in sec)
+
+
+def _nz_ma_gap(rec, key):
+    px = _n(rec.get("price"))
+    ma = _n(rec.get(key))
+    if px is None or px <= 0 or ma is None or ma <= 0:
+        return None
+    return (px - ma) / px * 100.0
+
+
+_NZ_B_GAP = [(-NZ_R, 8), (-25, 18), (-12, 35), (-5, 55), (-1, 72), (1, 85), (5, 95), (NZ_R, 100)]
+_NZ_GAPF = lambda k: (lambda r: _nz_ma_gap(r, k))
+
+# (المفتاح, الاسم, الوحدة, الدالة, الحدود, حدود البنوك)
+NZ5_AXES = [
+    ("fund", "الأساسيات", 30, [
+        ("roe", "العائد على حقوق الملكية", "٪", lambda r: _n(r.get("roe")),
+         [(0, 0), (8, 30), (15, 55), (25, 75), (35, 90), (NZ_R, 100)], None),
+        ("roa", "العائد على الأصول", "٪", lambda r: _n(r.get("roa")),
+         [(0, 0), (2, 35), (5, 55), (10, 75), (18, 90), (NZ_R, 100)], None),
+        ("roic", "العائد على رأس المال المستثمر", "٪", lambda r: _n(r.get("roic")),
+         [(0, 0), (5, 30), (12, 55), (20, 78), (30, 92), (NZ_R, 100)], None),
+        ("om", "هامش التشغيل", "٪", lambda r: _n(r.get("op_margin")),
+         [(0, 5), (5, 30), (15, 55), (30, 78), (50, 92), (NZ_R, 100)], None),
+        ("nm", "هامش الربح الصافي", "٪", lambda r: _n(r.get("net_margin")),
+         [(0, 5), (5, 30), (15, 55), (30, 80), (50, 93), (NZ_R, 100)], None),
+        ("fcfm", "هامش التدفق الحر", "٪", lambda r: _nz_fcf_margin(r),
+         [(-NZ_R, 5), (-20, 22), (0, 35), (5, 52), (10, 68), (20, 82), (40, 93), (80, 100), (NZ_R, 70)], None),
+        # ⛔ الحقل من المحرك = debt_to_equity (الدين ÷ حقوق الملكية) مش
+        #    دين ÷ أصول زي حقل الواجهة — فبنستخدم حدود الدين÷حقوق الملكية
+        ("deRatio", "الدين ÷ حقوق الملكية", "×", lambda r: _n(r.get("de_ratio")),
+         [(0.2, 95), (0.5, 85), (1, 70), (2, 52), (3, 35), (NZ_R, 18)],
+         [(0.5, 92), (1, 82), (1.5, 70), (2.5, 55), (4, 35), (NZ_R, 20)]),
+        ("cr", "نسبة التداول", "×", lambda r: _n(r.get("current_ratio")),
+         [(0, 5), (0.5, 20), (0.8, 35), (1, 50), (1.2, 65), (2, 82), (3, 92), (NZ_R, 100)],
+         [(0.3, 40), (0.5, 60), (0.7, 72), (0.9, 82), (1.1, 90), (NZ_R, 95)]),
+    ]),
+    ("risk", "المخاطرة", 25, [
+        ("vol1y", "التذبذب السنوي", "٪", lambda r: _n(r.get("vol1y")),
+         [(20, 95), (30, 85), (40, 72), (50, 58), (70, 35), (90, 18), (NZ_R, 8)], None),
+        ("vol3y", "التذبذب 3 سنين", "٪", lambda r: _n(r.get("vol3y")),
+         [(20, 95), (30, 85), (40, 72), (50, 58), (70, 35), (90, 18), (NZ_R, 8)], None),
+        ("mdd", "أكبر هبوط في تاريخه", "٪", lambda r: _n(r.get("mdd")),
+         [(40, 92), (60, 82), (75, 68), (85, 52), (92, 35), (97, 18), (NZ_R, 8)], None),
+        ("mdd1y", "أكبر هبوط في سنة", "٪", lambda r: _n(r.get("mdd1y")),
+         [(15, 92), (25, 82), (35, 68), (50, 50), (65, 32), (80, 18), (NZ_R, 8)], None),
+        ("sharpe3y", "شارب 3 سنين", "", lambda r: _n(r.get("sharpe3y")),
+         [(-NZ_R, 5), (0, 20), (0.5, 45), (1, 68), (1.5, 85), (2, 94), (NZ_R, 100)], None),
+        ("sortino3y", "سورتينو 3 سنين", "٪", lambda r: _n(r.get("sortino3y")),
+         [(10, 30), (15, 48), (25, 65), (35, 78), (50, 90), (80, 96), (NZ_R, 70)], None),
+        ("beta", "معامل المخاطرة", "", lambda r: _n(r.get("beta")),
+         [(0.2, 95), (0.5, 85), (0.8, 70), (1, 55), (1.2, 40), (1.5, 25), (NZ_R, 12)], None),
+        ("atrp", "المدى الحقيقي ÷ السعر", "٪", lambda r: _nz_atr_pct(r),
+         [(2, 92), (3.5, 82), (4.5, 70), (6, 55), (8, 38), (12, 20), (NZ_R, 10)], None),
+    ]),
+    ("tech", "الفني", 20, [
+        ("rsi", "مؤشر القوة (RSI)", "", lambda r: _n(r.get("rsi")),
+         [(25, 45), (35, 60), (45, 72), (55, 88), (65, 100), (75, 85), (85, 60), (NZ_R, 40)], None),
+        ("macdg", "تقاطع MACD", "٪", lambda r: _nz_macd_gap(r),
+         [(-NZ_R, 8), (-1.5, 18), (-0.8, 30), (-0.3, 45), (0, 60), (0.3, 75), (0.8, 90), (1.5, 100), (NZ_R, 88)], None),
+        ("sma20", "السعر مقابل المتوسط 20", "٪", _NZ_GAPF("sma20"), _NZ_B_GAP, None),
+        ("sma50", "السعر مقابل المتوسط 50", "٪", _NZ_GAPF("sma50"), _NZ_B_GAP, None),
+        ("sma100", "السعر مقابل المتوسط 100", "٪", _NZ_GAPF("sma100"), _NZ_B_GAP, None),
+        ("sma200", "السعر مقابل المتوسط 200", "٪", _NZ_GAPF("sma200"), _NZ_B_GAP, None),
+        ("ema20", "السعر مقابل EMA 20", "٪", _NZ_GAPF("ema20"), _NZ_B_GAP, None),
+        ("ema50", "السعر مقابل EMA 50", "٪", _NZ_GAPF("ema50"), _NZ_B_GAP, None),
+        ("ema200", "السعر مقابل EMA 200", "٪", _NZ_GAPF("ema200"), _NZ_B_GAP, None),
+        ("tvRec", "تقييم TradingView", "", lambda r: _n(r.get("tv_all")),
+         [(-NZ_R, 10), (-0.5, 22), (-0.2, 38), (-0.05, 55), (0.05, 72), (0.2, 88), (NZ_R, 100)], None),
+    ]),
+    ("val", "التقييم", 15, [
+        ("pe", "مضاعف الربحية", "×", lambda r: _nz_pos(_n(r.get("pe"))),
+         [(5, 95), (8, 88), (12, 78), (18, 66), (28, 52), (50, 35), (NZ_R, 20)], None),
+        ("pb", "مضاعف القيمة الدفترية", "×", lambda r: _nz_pos(_n(r.get("pb"))),
+         [(0.5, 95), (0.9, 88), (1.4, 78), (2.2, 66), (3.5, 52), (6, 35), (NZ_R, 20)], None),
+    ]),
+    ("dist", "التوزيع والسيولة", 10, [
+        ("dy", "نسبة القسيمة السنوية", "٪", lambda r: _n(r.get("div_yield")),
+         [(0, 0), (1, 45), (2.5, 65), (4, 82), (6, 92), (9, 100), (15, 85), (NZ_R, 55)], None),
+        ("mc", "حجم السوق", "ج.م", lambda r: _nz_pos_strict(_n(r.get("mkt_cap"))),
+         [(1e8, 15), (5e8, 35), (1e9, 50), (5e9, 72), (2e10, 88), (1e11, 96), (1e12, 100)], None),
+        ("floatPct", "نسبة الحرة من السوق", "٪", lambda r: _nz_float_pct(r),
+         [(5, 35), (10, 50), (20, 65), (35, 80), (60, 92), (90, 98), (NZ_R, 100)], None),
+        ("relvol", "الحجم النسبي اليوم", "×", lambda r: _nz_pos_strict(_n(r.get("rel_volume"))),
+         [(0.3, 35), (0.6, 55), (1, 80), (1.5, 90), (2.5, 75), (5, 55), (NZ_R, 35)], None),
+        ("av30", "متوسط حجم 60 يوم", "سهم/يوم", lambda r: _nz_pos_strict(_n(r.get("vol_60"))),
+         [(5e4, 20), (2e5, 40), (5e5, 60), (1e6, 75), (5e6, 90), (2e7, 97), (1e12, 100)], None),
+    ]),
+]
+
+
+def _nz_pos(v):
+    """للربحية والخسارة: 0 أو السالب = أسوأ درجة (رقم حقيقي) مش «ناقص»"""
+    return None if v is None else max(0.0, v)
+
+
+def _nz_pos_strict(v):
+    """⛔ للحقول اللي 0 فيها = «مفيش بيانات» مش «أسوأ درجة».
+       (نفس سلوك assets/js/octa-filters.js بالظبط — لازم يتمايلوا مع بعض)"""
+    return None if (v is None or v <= 0) else v
+
+
+def _nz_fcf_margin(rec):
+    f = _n(rec.get("fcf"))
+    r = _n(rec.get("revenue"))
+    if f is None or r is None or r <= 0:
+        return None
+    v = f / r * 100.0
+    return None if abs(v) > 300 else v
+
+
+def _nz_atr_pct(rec):
+    a = _n(rec.get("atr"))
+    px = _n(rec.get("price"))
+    if a is None or a <= 0 or px is None or px <= 0:
+        return None            # ⛔ ATR صفر = مفيش بيانات، مش «سهم ساكن»
+    return a / px * 100.0
+
+
+def _nz_macd_gap(rec):
+    m = _n(rec.get("macd"))
+    g = _n(rec.get("macd_signal"))
+    px = _n(rec.get("price"))
+    if m is None or g is None or px is None or px <= 0:
+        return None
+    return (m - g) / px * 100.0
+
+
+def _nz_float_pct(rec):
+    f = _n(rec.get("free_float_market_cap") or rec.get("float_mcap"))
+    m = _n(rec.get("mkt_cap"))
+    if f is None or m is None or m <= 0:
+        return None
+    v = f / m * 100.0
+    return None if v > 150 else v     # ⛔ حرة أكبر من السوق كله = تناقض
+
+
+def nz5_score(rec):
+    """الدرجة من المحاور الخمسة — مع تفصيل كل مؤشر (المحور الناقص = 0 وزن)"""
+    bank = _nz_is_bank(rec)
+    axes, tot, wgot = [], 0.0, 0.0
+    for ax_id, ax_ar, ax_w, items in NZ5_AXES:
+        rows, s_sum, have = [], 0.0, 0
+        for key, ar, unit, fn, bands, bb in items:
+            try:
+                v = fn(rec)
+            except Exception:
+                v = None
+            sc = _nz_band(v, (bb if (bank and bb) else bands))
+            if v is not None and sc is not None:
+                s_sum += sc
+                have += 1
+            rows.append({"key": key, "name": ar, "unit": unit, "value": v, "score": sc})
+        n = len(items)
+        mean = (s_sum / have) if have else None
+        eff = (ax_w / 100.0) * (have / n) if have else 0.0
+        if have and eff > 0:
+            tot += mean * eff
+            wgot += eff
+        axes.append({
+            "id": ax_id, "ar": ax_ar, "weight": ax_w, "n": n, "have": have,
+            "mean": round(mean, 1) if mean is not None else None,
+            "eff_weight": round(eff * 100, 2), "items": rows,
+        })
+    return {
+        "total": round(tot / wgot, 1) if wgot > 0 else None,
+        "coverage": round(wgot * 100, 1),
+        "axes": axes,
+    }
+
+
+# ═══ السعر العادل — 3 مصادر (40٪ · 30٪ · 30٪) ═══
+NZ5_FAIR_SOURCES = [
+    ("an", "هدف المحللين", 40),
+    ("bv", "القيمة الدفترية × وسيط القطاع", 30),
+    ("tc", "النموذج الفني", 30),
+]
+
+
+def _nz_sector_key(rec, sector_stats):
+    if not sector_stats:
+        return None
+    for k in (rec.get("sector"), rec.get("sectorAr"), rec.get("industry")):
+        if k and k in sector_stats:
+            return k
+    return None
+
+
+def nz5_fair(rec, sector_stats=None):
+    """السعر العادل = متوسط مرجّح لـ3 مصادر.
+    ⛔ مصدر ناقص = «—» ومحذوف من المتوسط (مش صفر).
+    ⛔ الناتج خارج ÷3 … ×3 السعر = مش معقول ⇒ None."""
+    px = _n(rec.get("price"))
+    out = {"price": px, "sources": [], "used": [], "notes": [], "fair": None}
+    if px is None or px <= 0:
+        out["notes"].append("السعر غير متاح")
+        return out
+
+    # ① هدف المحللين
+    tgt = _n(rec.get("price_target_median"))
+    if tgt is not None and tgt > 0:
+        out["sources"].append({"id": "an", "name": "هدف المحللين", "weight": 40,
+                               "value": round(tgt, 2),
+                               "how": "وسيط أهداف المحللين كما ورد من المصدر"})
+    else:
+        out["sources"].append({"id": "an", "name": "هدف المحللين", "weight": 40, "value": None,
+                               "why": "الحقل price_target_median غير موجود في مصدرنا الحالي — بنكتب «—» مش بنخمّن"})
+
+    # ② القيمة الدفترية × وسيط مضاعف القطاع
+    #   ⛔ بنحسب القيمة الدفترية من السعر ÷ P/B — حقل bvps في المصدر غير
+    #      متسق مع P/B (أقل بـ50 مرة) فممنوع نستخدمه
+    pb = _n(rec.get("pb"))
+    sec_key = _nz_sector_key(rec, sector_stats)
+    ss = (sector_stats or {}).get(sec_key) or {}
+    med_pb = _n(ss.get("median_pb"))
+    med_n = ss.get("count") or 0
+    if pb is not None and pb > 0 and med_pb is not None and med_pb > 0 and med_n >= 5:
+        f = (px / pb) * med_pb
+        if 0.4 <= f / px <= 2.5:
+            out["sources"].append({"id": "bv", "name": "القيمة الدفترية × وسيط القطاع", "weight": 30,
+                                   "value": round(f, 2),
+                                   "how": "(السعر ÷ مضاعف القيمة الدفترية) × وسيط مضاعف القطاع ({} من {})".format(
+                                       med_pb, med_n)})
+        else:
+            out["sources"].append({"id": "bv", "name": "القيمة الدفترية × وسيط القطاع", "weight": 30,
+                                   "value": None,
+                                   "why": "الناتج بعيد جداً عن السعر (أكبر من 2.5× أو أصغر من ÷3) — «—»"})
+    else:
+        why = ("مفيش قطاع في السوق عنده 5 أسهم بمضاعف قيمة دفترية — من غير وسيط مش بنخمّن"
+               if (not med_n or med_n < 5) else "مضاعف القيمة الدفترية غير متاح أو أقل من صفر")
+        out["sources"].append({"id": "bv", "name": "القيمة الدفترية × وسيط القطاع", "weight": 30,
+                               "value": None, "why": why})
+
+    # ③ النموذج الفني
+    parts = []
+    sma50, sma200 = _n(rec.get("sma50")), _n(rec.get("sma200"))
+    sma20, ema20 = _n(rec.get("sma20")), _n(rec.get("ema20"))
+    h52, l52 = _n(rec.get("high_52w")), _n(rec.get("low_52w"))
+    if sma50 and sma50 > 0 and sma200 and sma200 > 0:
+        parts.append(((sma50 + sma200) / 2.0, 45, "متوسط sma50 و sma200"))
+    if sma20 and sma20 > 0 and ema20 and ema20 > 0:
+        parts.append(((sma20 + ema20) / 2.0, 25, "متوسط sma20 و ema20"))
+    if l52 and l52 > 0 and h52 and h52 > l52:
+        parts.append(((l52 + h52) / 2.0, 30, "منتصف مدى 52 أسبوع"))
+    if len(parts) >= 2:
+        w = sum(p[1] for p in parts)
+        f = sum(p[0] * p[1] for p in parts) / w
+        if 0.4 <= f / px <= 2.5:
+            out["sources"].append({"id": "tc", "name": "النموذج الفني", "weight": 30, "value": round(f, 2),
+                                   "how": " · ".join("{} ({}٪)".format(p[2], p[1]) for p in parts)})
+        else:
+            out["sources"].append({"id": "tc", "name": "النموذج الفني", "weight": 30, "value": None,
+                                   "why": "الناتج بعيد جداً عن السعر — «—»"})
+    else:
+        out["sources"].append({"id": "tc", "name": "النموذج الفني", "weight": 30, "value": None,
+                               "why": "مفيش متوسطات متحركة + مدى سنة كاملة (محتاج 2 على الأقل)"})
+
+    wsum = sum(s["weight"] for s in out["sources"] if s["value"] is not None)
+    if wsum > 0:
+        f = sum(s["value"] * s["weight"] for s in out["sources"] if s["value"] is not None) / wsum
+        out["used"] = [s["id"] for s in out["sources"] if s["value"] is not None]
+        out["used_weight"] = wsum
+        if 0.33 <= f / px <= 3.0:
+            out["fair"] = round(f, 2)
+        else:
+            out["notes"].append("المتوسط المرجّح خارج المدى المعقول مقارنة بالسعر — اتعرض «—»")
+    else:
+        out["notes"].append("مفيش مصدر واحد متاح — من غير أرقام حقيقية مش بنعرض سعر عادل")
+    return out
+
+
+def nz5_plan(rec, sector_stats=None):
+    """نقطة الدخول + الهدف + وقف الخسارة — كلها من قراءة حقيقية للشارت"""
+    px = _n(rec.get("price"))
+    fv = nz5_fair(rec, sector_stats)
+    out = {"price": px, "rec": rec, "entry": None, "entry_why": "", "target": None, "stop": None, "fair": fv}
+    if px is None or px <= 0:
+        return out
+    rsi, sma20, sma50, sma200 = (_n(rec.get(k)) for k in ("rsi", "sma20", "sma50", "sma200"))
+    e, why = px, "فوق كل المتوسطات المتحركة — الدخول بسعر اليوم"
+    if rsi is not None and rsi > 68 and sma20 and sma20 > 0:
+        e, why = sma20, "مؤشر القوة فوق 68 = السهم متشبّع — نستنى رجوعه للمتوسط 20"
+    elif sma20 and sma20 > 0 and px < sma20:
+        e, why = sma20, "السعر تحت المتوسط 20 — نقطة الدخول أول ما يلمسه"
+    elif sma50 and sma50 > 0 and px < sma50:
+        e, why = sma50, "السعر تحت المتوسط 50 — نقطة الدخول عند لمسه"
+    elif sma200 and sma200 > 0 and px < sma200 * 1.02:
+        e, why = sma200, "السهم عند/تحت المتوسط 200 — نقطة الدخول أول ما يرجع لمستوى ده"
+    out["entry"], out["entry_why"] = round(e, 2), why
+    out["target"] = fv.get("fair")
+    out["target_why"] = ("الهدف = السعر العادل (متوسط 3 مصادر مرجّح)" if fv.get("fair")
+                         else (fv["notes"][0] if fv.get("notes") else "المصادر ناقصة"))
+    atr = _n(rec.get("atr"))
+    # ⛔ ATR ≈ صفر = السهم راكد/موقوف. stop = e يبقى نفس نقطة الدخول بعد
+    #    التقريب — وده مش وقف خسارة، ده رقم مضلّل. بنعرض «—» وسببها.
+    # ⛔ المقارنة على الأرقام **بعد التقريب لـ2**: سهم بـ 0.11 ج ومدى حقيقي 0.006
+    _er, _sr = round(e, 2), round(e - 2 * atr, 2) if (atr and atr > 0) else None
+    if _sr is not None and _er > 0 and 0 < _sr < _er:
+        out["stop"] = _sr
+        out["stop_why"] = "سعر الدخول ناقص 2 × المدى الحقيقي (ATR={:.4f} ج)".format(atr)
+    elif atr is not None and atr > 0:
+        out["stop_why"] = ("المدى الحقيقي (ATR={:.5f}) صغير جداً على سعر السهم — بعد التقريب "
+                           "الوقف والدخول بنفس الرقم، فمفيش وقف خسارة حقيقي").format(atr)
+    else:
+        out["stop_why"] = "المدى الحقيقي (ATR) غير متاح"
+    return out
+
+
+def post_close_picks(records, n=5, sector_stats=None):
+    """🔬 التحليل بعد قفل السوق — أحسن 5 فرص من المحاور الخمسة.
+    ⛔ بيشتغل بعد القفل بس (market_phase مقفول) — مش أثناء التداول.
+    ⛔ كل رقم جاي من اللقطة الحالية — مفيش look-ahead."""
+    phase = market_phase()
+    out = {
+        "phase": phase,
+        "ts": datetime.utcnow().strftime("%Y-%m-%d %H:%M") + " UTC",
+        "n": n, "picks": [], "skipped": None,
+    }
+    if phase not in ("closed", "weekend"):
+        out["skipped"] = "السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30"
+        return out
+    scored = []
+    for rec in (records or []):
+        try:
+            sc = nz5_score(rec)
+        except Exception:
+            continue
+        if sc["total"] is None:
+            continue
+        scored.append((sc["total"], rec, sc))
+    # ⛔ الترتيب: الأولوية للسهم اللي سعره **تحت** سعره العادل (فرصة شراء فعلاً).
+    #    وبعديه الدرجة. و«—» في الآخر. درجة عالية وسعر فوق العادل = مش فرصة دلوقتي.
+    _prep = []
+    for total, rec, sc in scored:
+        pl = nz5_plan(rec, sector_stats)
+        fv = pl.get("fair", {}).get("fair")
+        px = pl.get("price")
+        up = (fv / px - 1.0) * 100.0 if (fv and px and px > 0) else None
+        _prep.append((0 if (up is not None and up > 0) else (1 if up is not None else 2), -total, pl, sc))
+    _prep.sort(key=lambda x: (x[0], x[1]))
+    for rank, (_grp, _nt, plan, sc) in enumerate(_prep[:n], 1):
+        total = -_nt
+        rec = plan.get("rec") or {}
+        fv = plan.get("fair", {}).get("fair")
+        px = plan.get("price")
+        up = (fv / px - 1.0) * 100.0 if (fv and px and px > 0) else None
+        out["picks"].append({
+            "rank": rank,
+            "code": rec.get("code"),
+            "name": rec.get("name"),
+            "sector": rec.get("sectorAr") or rec.get("sector"),
+            "upside_pct": round(up, 1) if up is not None else None,
+            "above_fair": bool(up is not None and up < 0),
+            "price": plan["price"],
+            "score": total,
+            "coverage": sc["coverage"],
+            "axes": [{k: a[k] for k in ("id", "ar", "weight", "have", "n", "mean", "eff_weight")}
+                     for a in sc["axes"]],
+            "axis_items": {a["id"]: a["items"] for a in sc["axes"]},
+            "fair_value": plan["fair"].get("fair"),
+            "fair_sources": plan["fair"]["sources"],
+            "entry": plan["entry"], "entry_why": plan["entry_why"],
+            "target": plan["target"], "target_why": plan["target_why"],
+            "stop": plan["stop"], "stop_why": plan["stop_why"],
+        })
+    out["scored_count"] = len(scored)
+    return out
+
+
+def calc_levels(price, decision, overall_score, rec=None, sector_stats=None):
+    """الهدف ووقف الخسارة — منطقيين مش نسبة ثابتة.
+
+    ⛌ كان بيحسب نسبة ثابتة (8% → 30% للهدف، 7% → 12% للوقف) من الدرجة
+       فقط. يعني هدف أي سهم = سعره × 1.08 لو درجته 0 و × 1.30 لو 100 —
+       رقم مش ليه أي علاقة بالسهم نفسه ولا بالقطاع ولا بالمؤشرات.
+    ⛔ دلوقتي: الهدف = السعر العادل (3 مصادر مرجّحة) — ولو مفيش سعر عادل
+       بيرجع 0 («—» في الواجهة) مش رقم مخترع.
+    ⛔ وقف الخسارة = نقطة الدخول − 2 × المدى الحقيقي (ATR) — رقم حقيقي من
+       تقلّب السهم نفسه، مش نسبة ثابتة.
     """
     if not price or price <= 0:
         return 0, 0
-
-    # قوة الإشارة 0..1
-    strength = max(0.0, min(1.0, (overall_score or 50) / 100.0))
-
-    # نسبة الهدف: 8% (ضعيف) → 30% (قوي جداً)
-    up_pct = 0.08 + (strength * 0.22)
-
-    # نسبة الستوب: 12% (ضعيف) → 7% (قوي)
-    stop_pct = 0.12 - (strength * 0.05)
-
-    if decision in ("بيع", "تجنب"):
-        # في البيع: الهدف = downside، الستوب = أعلى من السعر (loss cut)
-        target = round(price * (1 - (up_pct * 0.5)), 2)
-        stop = round(price * (1 + stop_pct), 2)
-    else:
-        # في الشراء: الهدف = أعلى، الستوب = تحت الدعم
-        target = round(price * (1 + up_pct), 2)
-        stop = round(price * (1 - stop_pct), 2)
-
-    return target, stop
-
+    if not rec:
+        # ⛔ مفيش بيانات السهم — مش بنرجع نسبة ثابتة (رقم مخترع)
+        return 0, 0
+    try:
+        plan = nz5_plan(rec, sector_stats)
+    except Exception:
+        return 0, 0
+    target = plan.get("target") or 0
+    stop = plan.get("stop") or 0
+    # ⛔ sanity: الهدف لازم يكون رقم منطقي مقارنة بالسعر
+    if target and (target < price / 3 or target > price * 3):
+        target = 0
+    if stop and (stop <= 0 or stop >= price * 3):
+        stop = 0
+    return round(target, 2), round(stop, 2)
 
 # ══════════════════════════════════════════════════════════════════
 # 🐙 قوائم الأسهم — من مصدر واحد
@@ -7109,6 +7522,12 @@ TV_COLUMNS = [
     ("operating_margin",   "op_margin"),        # هامش التشغيل
     ("earnings_per_share_diluted_ttm", "eps"),  # ربحية السهم
     ("total_revenue",      "revenue"),          # الإيرادات
+    # ⭐ هدف المحللين — أحمد: من الـscanner (تحقّق منه بنفسه: EGX:COMI ⇒ 171.7)
+    # ⛔ التغطية ضعيفة (49 من 296 ≈ 17٪) — وده رقم حقيقي بيتكتب للمستخدم،
+    #    مش بنخفيه ومش بنخمّن مكانه.
+    ("price_target_median", "price_target_median"),
+    ("price_target_low",    "price_target_low"),
+    ("price_target_high",   "price_target_high"),
 ]
 
 # ═══════════ PHASE 2: الأعمدة الفنية (60 مؤشر في طلب واحد) ═══════════
@@ -7198,6 +7617,10 @@ def validate_value(field, value, price=None):
         "op_margin":    (-500.0, 300.0),    # %
         "eps":          (-1000.0, 1000.0),
         "revenue":      (0, 10_000_000_000_000),
+        # ⭐ هدف المحللين — لازم أكبر من صفر وأقل من مليون جنيه
+        "price_target_median": (0.01, 1_000_000),
+        "price_target_low":    (0.01, 1_000_000),
+        "price_target_high":   (0.01, 1_000_000),
         # ── المرحلة الثانية: الفنية ──
         "ema10":        (0.01, 1_000_000), "ema20": (0.01, 1_000_000),
         "ema50":        (0.01, 1_000_000), "ema200": (0.01, 1_000_000),
@@ -7520,6 +7943,21 @@ def update_loop():
                         f"{type(_e).__name__}: {str(_e)[:200]}\n"
                         + "\n".join(_tb.format_exc(limit=4).split("\n")[-6:]))
                     print(f"  ❌ final_score: {_SCORE_ERROR[:200]}")
+            # ═══ 🔬 التحليل بعد قفل السوق — أحسن 5 فرص بالمحاور الخمسة ═══
+            # ⛔ بيشتغل بعد القفل بس (market_phase) — مش أثناء التداول
+            # ⛔ جوّاه try/except: أي خطأ هنا ما يوقفش تحديث البيانات
+            try:
+                _cp = post_close_picks(st, n=5, sector_stats=SECTOR_STATS)
+                LIVE_DATA["close_picks"] = _cp
+                if _cp.get("picks"):
+                    print("  🔬 بعد القفل: " + " · ".join(
+                        "{} {} ({})".format(p["rank"], p["code"], p["score"]) for p in _cp["picks"]))
+                elif _cp.get("skipped"):
+                    print("  🔬 " + _cp["skipped"])
+            except Exception as _e:
+                LIVE_DATA["close_picks"] = {"error": "{}: {}".format(type(_e).__name__, str(_e)[:160])}
+                print(f"  ❌ post_close_picks: {_e}")
+
             # نحفظ كم مؤشر تم استنتاجه (بدل ما جاب من المصدر)
             LIVE_DATA["derived_count"] = sum(1 for s in st if s.get("_derived"))
 
@@ -7726,7 +8164,7 @@ def analyze():
                 quick["change"] = round(item.get("change", 0), 2)
                 quick["ai_error"] = str(result["error"])[:120]
                 quick["source"] = "quick_math"
-                t, sl = calc_levels(item.get("price", 0), quick["decision"], quick["axes"]["overall"])
+                t, sl = calc_levels(item.get("price", 0), quick["decision"], quick["axes"]["overall"], item, SECTOR_STATS)
                 quick["target"], quick["stop_loss"] = t, sl
                 quick["fundamentals"] = {k: item.get(k) for k in
                     ("pe","pb","roe","beta","volatility","div_yield","net_margin","de_ratio","eps","tv_rating")}
@@ -7800,7 +8238,7 @@ def analyze():
                 axes["overall"] = round(max(0, min(100, base - (100 - axes.get("risk", 60)) * .15)))
 
         # الهدف والستوب محسوبين رياضياً من السعر الحقيقي (مش مخمّنين)
-        t, s = calc_levels(price, result.get("decision", ""), result.get("axes", {}).get("overall"))
+        t, s = calc_levels(price, result.get("decision", ""), result.get("axes", {}).get("overall"), item, SECTOR_STATS)
         result["target"] = t
         result["stop_loss"] = s
 
@@ -8758,6 +9196,11 @@ def _egx_full_all():
             "sharpe3y": r.get("sharpe3y"), "sortino3y": r.get("sortino3y"),
             "cagr3y": r.get("cagr3y"), "frm52hi": r.get("frm52hi"),
             "h52": r.get("h52"), "l52": r.get("l52"),
+            # ⭐ هدف المحللين — من المحرك الحي. ⛔ null = المصدر ما عندوش
+            #    رقم لهذا السهم (التغطية 17٪) — مش صفر.
+            "price_target_median": _num(l.get("price_target_median")),
+            "price_target_low":    _num(l.get("price_target_low")),
+            "price_target_high":   _num(l.get("price_target_high")),
             "live": bool(l),
         }
     n = len(stocks) or 1
@@ -10129,6 +10572,21 @@ def admin_monthly():
         },
     })
 
+
+
+
+# ══════════════════════════════════════════════════════════════
+# 🆕 محرك إشارة الذهب (XAU/USD) — 16 أكتوبر 2026
+# ══════════════════════════════════════════════════════════════
+# ⛔ لازم يتربط قبل app.run عشان المسارات تتسجّل.
+#    ⛔ fail-soft: لو الملف مش موجود أو فيه خطأ، السيرفر بيفضل شغال
+#       والذهب بس بيطلع «غير متاح» — أحسن من إن الموقع كله يقع.
+try:
+    import gold_signal as _gold_mod
+    _gold_mod.register(app)
+    print("[gold] ✅ محرك إشارة الذهب متركّب", flush=True)
+except Exception as _gold_err:
+    print("[gold] ⚠️ مش متركّب: %s" % _gold_err, flush=True)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
