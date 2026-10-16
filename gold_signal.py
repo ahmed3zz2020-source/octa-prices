@@ -1397,7 +1397,7 @@ def _gold_caller_key():
 def register(app):
     from flask import jsonify, request
 
-    @app.route("/api/gold/signal")
+    @app.route("/api/gold/signal", strict_slashes=False)
     def _gs():
         # ⛔ تحديد النداءات — 16 أكتوبر 2026
         if not _gold_rate_ok("/api/gold/signal", _gold_caller_key()):
@@ -1419,7 +1419,7 @@ def register(app):
             return jsonify({"side": "HOLD", "color": "blue", "score": 0,
                             "error": str(e)[:120], "cairo": _now_cairo().strftime("%H:%M")}), 200
 
-    @app.route("/api/gold/deep")
+    @app.route("/api/gold/deep", strict_slashes=False)
     def _gd():
         # ⛔ تحديد النداءات — 16 أكتوبر 2026
         if not _gold_rate_ok("/api/gold/deep", _gold_caller_key()):
@@ -1447,7 +1447,7 @@ def register(app):
         except Exception as e:
             return jsonify({"error": str(e)[:200]}), 200
 
-    @app.route("/api/gold/learn")
+    @app.route("/api/gold/learn", strict_slashes=False)
     def _gl():
         st = _load_state()
         closed = [s for s in st["samples"] if s.get("resolved")]
@@ -1489,7 +1489,7 @@ def _gold_admin_only():
 
     # ⛔ الأوزان اتنقلت هنا من الرد العام (16 أكتوبر 2026)
     #    محمي بـ X-Admin-Key زي reset-learn بالظبط.
-    @app.route("/api/gold/learn-full")
+    @app.route("/api/gold/learn-full", strict_slashes=False)
     def _glf():
         _gate = _gold_admin_only()
         if _gate is not None:
@@ -1506,7 +1506,9 @@ def _gold_admin_only():
             "log": st.get("log", [])[-12:],
         })
 
-    @app.route("/api/gold/reset-learn", methods=["POST"])
+    # ⛔ 16 أكتوبر 2026: /api/gold موجود أصلاً في update_prices.py (سعر الجرام)
+    #    وكان بيمسك المسارات الفرعية. غيرنا Curry ل exact-match.
+    @app.route("/api/gold/reset-learn", methods=["POST"], strict_slashes=False)
     def _gr():
         _gate = _gold_admin_only()
         if _gate is not None:
