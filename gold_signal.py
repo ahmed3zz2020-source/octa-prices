@@ -1399,6 +1399,12 @@ def _gold_caller_key():
 #       والمسارات اللي بعدها (learn-full + reset-learn) عمرها ما اتسجّلتش.
 #    ✅ اتنقلت هنا كـmodule-level helper.
 
+try:
+    from flask import jsonify, request
+except Exception:  # ⛔Railway فيه flask دايماً — ده بس للحماية
+    jsonify = request = None
+
+
 def _gold_admin_only():
     """ ⛔ بوابة الأدمن — fail-closed.
 
@@ -1419,8 +1425,6 @@ def _gold_admin_only():
     return None
 
 def register(app):
-    from flask import jsonify, request
-
     @app.route("/api/gold/signal", strict_slashes=False)
     def _gs():
         # ⛔ تحديد النداءات — 16 أكتوبر 2026
