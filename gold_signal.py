@@ -1434,6 +1434,14 @@ def register(app):
                                            "all_ok", "gates")},
                 "price": v["price"], "macro": v["macro"], "news": v["news"],
                 "detail": v["detail"], "f": v["f"],
+                # ⛔ 16 أكتوبر 2026: /deep كان بيقصّ حقول موجودة في compute()
+                #    — الـUI طلبتها ومش لاقاها. الـUI بتقرأ:
+                #      · d.basis  (octa-gold.js:691)
+                #      · f_missing / f_used  (عشان «—» بدل صفر)
+                # ⛔ slim كان بيشيل tf بس والباقي بينتقل بـ v[...] واحد واحد.
+                "basis": v.get("basis"),
+                "f_missing": v.get("f_missing"),
+                "f_used": v.get("f_used"),
                 "tf": v["tf"], "learn": v["learn"], "errors": v["errors"],
             })
         except Exception as e:
