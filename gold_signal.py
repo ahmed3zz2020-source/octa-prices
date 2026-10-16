@@ -1394,6 +1394,30 @@ def _gold_caller_key():
     return "ip:" + ip
 
 
+# ⛔ بوابة الأدمن لمسارات الذهب (fail-closed) — 16 أكتوبر 2026
+#    ⛔ كانت جوّه register بـ indentation صفر ⇒ كانت بتقفل الدالة عند السطر 1450
+#       والمسارات اللي بعدها (learn-full + reset-learn) عمرها ما اتسجّلتش.
+#    ✅ اتنقلت هنا كـmodule-level helper.
+
+def _gold_admin_only():
+    """ ⛔ بوابة الأدمن — fail-closed.
+
+    ⛔ إصلاح 16 أكتوبر 2026: reset-learn كان POST مفتوح للجميع.
+    لو OCTA_ADMIN_KEY مش متظبّط في Railway ⇒ 503 والمسار مقفول.
+    مش «مفتوح زي ما كان» — لأن المسار ده بيمسح حالة التعلّم.
+    """
+    if not GOLD_ADMIN_KEY:
+        return jsonify({
+            "ok": False,
+            "error": "المسار مقفول — OCTA_ADMIN_KEY مش متظبّط",
+            "hint": "متظبّطش في RailwayVariables",
+        }), 503
+    sent = (request.headers.get("X-Admin-Key") or "").strip()
+    # ⛔ bytes مش str — مع العربي compare_digest بيرمي TypeError
+    if not hmac.compare_digest(sent.encode("utf-8"), GOLD_ADMIN_KEY.encode("utf-8")):
+        return jsonify({"ok": False, "error": "المسار ده للأدمن بس"}), 403
+    return None
+
 def register(app):
     from flask import jsonify, request
 
@@ -1465,26 +1489,6 @@ def register(app):
             "recent": [{"ts": s.get("ts"), "side": s.get("side"), "score": s.get("score"),
                         "R": s.get("R"), "res": s.get("resolved")} for s in st["samples"][-25:]],
         })
-
-
-def _gold_admin_only():
-    """ ⛔ بوابة الأدمن — fail-closed.
-
-    ⛔ إصلاح 16 أكتوبر 2026: reset-learn كان POST مفتوح للجميع.
-    لو OCTA_ADMIN_KEY مش متظبّط في Railway ⇒ 503 والمسار مقفول.
-    مش «مفتوح زي ما كان» — لأن المسار ده بيمسح حالة التعلّم.
-    """
-    if not GOLD_ADMIN_KEY:
-        return jsonify({
-            "ok": False,
-            "error": "المسار مقفول — OCTA_ADMIN_KEY مش متظبّط",
-            "hint": "متظبّطش في RailwayVariables",
-        }), 503
-    sent = (request.headers.get("X-Admin-Key") or "").strip()
-    # ⛔ bytes مش str — مع العربي compare_digest بيرمي TypeError
-    if not hmac.compare_digest(sent.encode("utf-8"), GOLD_ADMIN_KEY.encode("utf-8")):
-        return jsonify({"ok": False, "error": "المسار ده للأدمن بس"}), 403
-    return None
 
 
     # ⛔ الأوزان اتنقلت هنا من الرد العام (16 أكتوبر 2026)
