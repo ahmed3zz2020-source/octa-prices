@@ -998,7 +998,9 @@ def _pack(bars):
             "fvg": [{"dir": f["dir"], "z": [_r2(f["lo"]), _r2(f["hi"])],
                      "t": _hhmmss(f["t"])} for f in _fvg_open(bars, a)],
             "sessions": sess,
-            "raw": bars[-80:],
+            # ⛔ 17 أكتوبر 2026 — كان 80 شمعة بس والشارت الجديد محتاج
+            #   تاريخ أكتر. 300 شمعة = فريم 15د = ٧٥ ساعة.
+            "raw": bars[-300:],
             "bar_t": _hhmmss(bars[-1]["t"]),
             "bar_age_min": int((now_ts() - bars[-1]["t"]) // 60),
             "bar_t_epoch": bars[-1]["t"],
@@ -1394,38 +1396,10 @@ def _gold_caller_key():
     return "ip:" + ip
 
 
-# ⛔ بوابة الأدمن لمسارات الذهب (fail-closed) — 16 أكتوبر 2026
-#    ⛔ كانت جوّه register بـ indentation صفر ⇒ كانت بتقفل الدالة عند السطر 1450
-#       والمسارات اللي بعدها (learn-full + reset-learn) عمرها ما اتسجّلتش.
-#    ✅ اتنقلت هنا كـmodule-level helper.
-
-try:
-    from flask import jsonify, request
-except Exception:  # ⛔Railway فيه flask دايماً — ده بس للحماية
-    jsonify = request = None
-
-
-def _gold_admin_only():
-    """ ⛔ بوابة الأدمن — fail-closed.
-
-    ⛔ إصلاح 16 أكتوبر 2026: reset-learn كان POST مفتوح للجميع.
-    لو OCTA_ADMIN_KEY مش متظبّط في Railway ⇒ 503 والمسار مقفول.
-    مش «مفتوح زي ما كان» — لأن المسار ده بيمسح حالة التعلّم.
-    """
-    if not GOLD_ADMIN_KEY:
-        return jsonify({
-            "ok": False,
-            "error": "المسار مقفول — OCTA_ADMIN_KEY مش متظبّط",
-            "hint": "متظبّطش في RailwayVariables",
-        }), 503
-    sent = (request.headers.get("X-Admin-Key") or "").strip()
-    # ⛔ bytes مش str — مع العربي compare_digest بيرمي TypeError
-    if not hmac.compare_digest(sent.encode("utf-8"), GOLD_ADMIN_KEY.encode("utf-8")):
-        return jsonify({"ok": False, "error": "المسار ده للأدمن بس"}), 403
-    return None
-
 def register(app):
-    @app.route("/api/gold/signal", strict_slashes=False)
+    from flask import jsonify, request
+
+    @app.route("/api/gold/signal")
     def _gs():
         # ⛔ تحديد النداءات — 16 أكتوبر 2026
         if not _gold_rate_ok("/api/gold/signal", _gold_caller_key()):
@@ -1447,7 +1421,7 @@ def register(app):
             return jsonify({"side": "HOLD", "color": "blue", "score": 0,
                             "error": str(e)[:120], "cairo": _now_cairo().strftime("%H:%M")}), 200
 
-    @app.route("/api/gold/deep", strict_slashes=False)
+    @app.route("/api/gold/deep")
     def _gd():
         # ⛔ تحديد النداءات — 16 أكتوبر 2026
         if not _gold_rate_ok("/api/gold/deep", _gold_caller_key()):
@@ -1462,20 +1436,17 @@ def register(app):
                                            "all_ok", "gates")},
                 "price": v["price"], "macro": v["macro"], "news": v["news"],
                 "detail": v["detail"], "f": v["f"],
-                # ⛔ 16 أكتوبر 2026: /deep كان بيقصّ حقول موجودة في compute()
-                #    — الـUI طلبتها ومش لاقاها. الـUI بتقرأ:
-                #      · d.basis  (octa-gold.js:691)
-                #      · f_missing / f_used  (عشان «—» بدل صفر)
-                # ⛔ slim كان بيشيل tf بس والباقي بينتقل بـ v[...] واحد واحد.
-                "basis": v.get("basis"),
-                "f_missing": v.get("f_missing"),
-                "f_used": v.get("f_used"),
                 "tf": v["tf"], "learn": v["learn"], "errors": v["errors"],
+                # ⛔ 17 أكتوبر 2026 — الشارت الجديد (canvas) محتاج الشموع.
+                #    قبل كده الـraw كان جوّه _pack بس ومش مبعوت في /deep.
+                #    ⛔ الأمان: 300 شمعة × OHLCV = ~١٥٠٠ عدد — رد معقول.
+                "bars": {k: (v["tf"].get(k) or {}).get("raw", [])[-300:]
+                         for k in ("M5", "M15", "H1", "H4", "D1")},
             })
         except Exception as e:
             return jsonify({"error": str(e)[:200]}), 200
 
-    @app.route("/api/gold/learn", strict_slashes=False)
+    @app.route("/api/gold/learn")
     def _gl():
         st = _load_state()
         closed = [s for s in st["samples"] if s.get("resolved")]
@@ -1495,9 +1466,29 @@ def register(app):
         })
 
 
+def _gold_admin_only():
+    """ ⛔ بوابة الأدمن — fail-closed.
+
+    ⛔ إصلاح 16 أكتوبر 2026: reset-learn كان POST مفتوح للجميع.
+    لو OCTA_ADMIN_KEY مش متظبّط في Railway ⇒ 503 والمسار مقفول.
+    مش «مفتوح زي ما كان» — لأن المسار ده بيمسح حالة التعلّم.
+    """
+    if not GOLD_ADMIN_KEY:
+        return jsonify({
+            "ok": False,
+            "error": "المسار مقفول — OCTA_ADMIN_KEY مش متظبّط",
+            "hint": "متظبّطش في RailwayVariables",
+        }), 503
+    sent = (request.headers.get("X-Admin-Key") or "").strip()
+    # ⛔ bytes مش str — مع العربي compare_digest بيرمي TypeError
+    if not hmac.compare_digest(sent.encode("utf-8"), GOLD_ADMIN_KEY.encode("utf-8")):
+        return jsonify({"ok": False, "error": "المسار ده للأدمن بس"}), 403
+    return None
+
+
     # ⛔ الأوزان اتنقلت هنا من الرد العام (16 أكتوبر 2026)
     #    محمي بـ X-Admin-Key زي reset-learn بالظبط.
-    @app.route("/api/gold/learn-full", strict_slashes=False)
+    @app.route("/api/gold/learn-full")
     def _glf():
         _gate = _gold_admin_only()
         if _gate is not None:
@@ -1514,9 +1505,7 @@ def register(app):
             "log": st.get("log", [])[-12:],
         })
 
-    # ⛔ 16 أكتوبر 2026: /api/gold موجود أصلاً في update_prices.py (سعر الجرام)
-    #    وكان بيمسك المسارات الفرعية. غيرنا Curry ل exact-match.
-    @app.route("/api/gold/reset-learn", methods=["POST"], strict_slashes=False)
+    @app.route("/api/gold/reset-learn", methods=["POST"])
     def _gr():
         _gate = _gold_admin_only()
         if _gate is not None:
