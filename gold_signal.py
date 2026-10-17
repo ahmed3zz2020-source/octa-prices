@@ -1000,7 +1000,7 @@ def _pack(bars):
             "sessions": sess,
             # ⛔ 17 أكتوبر 2026 — كان 80 شمعة بس والشارت الجديد محتاج
             #   تاريخ أكتر. 300 شمعة = فريم 15د = ٧٥ ساعة.
-            "raw": bars[-300:],
+            "candles": bars[-300:],
             "bar_t": _hhmmss(bars[-1]["t"]),
             "bar_age_min": int((now_ts() - bars[-1]["t"]) // 60),
             "bar_t_epoch": bars[-1]["t"],
@@ -1056,7 +1056,7 @@ def _compute_body(cached, force):
 
         now = _now_cairo()
         errors = []
-        tf, raw = {}, {}
+        tf, candles = {}, {}
         # ══════════════════════════════════════════════════════════════
         # ⛔⛔⛔ قرار معماري: مصدر الهيكل الواحد = COMEX GC=F
         #
@@ -1105,7 +1105,7 @@ def _compute_body(cached, force):
             for k, src in (("M5", b5), ("M15", b15), ("H1", b60), ("H4", bh), ("D1", bd)):
                 try:
                     conv = _to_spot(src)
-                    raw[k] = conv
+                    candles[k] = conv
                     p = _pack(conv)
                     if p:
                         p["basis"] = _r2(basis)
@@ -1127,7 +1127,7 @@ def _compute_body(cached, force):
             #    «خام» حسب الحالة (انظر tf[t]["translated"]).
             for k, src in (("M5", b5), ("M15", b15), ("H1", b60), ("H4", bh), ("D1", bd)):
                 try:
-                    raw[k] = src[-300:]
+                    candles[k] = src[-300:]
                     pp = _pack(src)
                     if pp:
                         pp["basis"] = None
@@ -1459,7 +1459,7 @@ def register(app):
                 # ⛔ 17 أكتوبر 2026 — الشارت الجديد (canvas) محتاج الشموع.
                 #    قبل كده الـraw كان جوّه _pack بس ومش مبعوت في /deep.
                 #    ⛔ الأمان: 300 شمعة × OHLCV = ~١٥٠٠ عدد — رد معقول.
-                "bars": {k: (v["tf"].get(k) or {}).get("raw", [])[-300:]
+                "bars": {k: (v["tf"].get(k) or {}).get("candles", [])[-300:]
                          for k in ("M5", "M15", "H1", "H4", "D1")},
             })
         except Exception as e:
