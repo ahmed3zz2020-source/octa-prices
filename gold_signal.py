@@ -1111,11 +1111,30 @@ def _compute_body(cached, force):
                         p["basis"] = _r2(basis)
                         p["basis_mad"] = basis_mad
                         p["basis_n"] = basis_n
+                        p["translated"] = True
                         tf[k] = p
                 except Exception as e:
                     errors.append("%s:%s" % (k, e))
         else:
             errors.append("basis_missing: مفيش ترجمة لأسعار السبوت")
+            # ⛔ 17 أكتوبر 2026 — بدل ما نخسر كل حاجة لو الـbasis فشل:
+            #    الـOKX بيرجع 429 أحياناً ⇒ basis = None ⇒ tf كله فاضي
+            #    والشارت、向Prices مايرسمش والصفحة بتقول «لا توجد بيانات».
+            # ✅ الحل: نبني الفريمات من الأسعار الخام (بدون ترجمة) وكأنها
+            #    أسعار آجلة. التحليل كله قابل للع IndicatorsRelative — يعني
+            #    الأرقام الصح والارتفاع الصح — والقيمة المطلقة وحدها
+            #    هي اللي بتفرق. ⛔ الموضع deh والباك بيقول «مترجم» أو
+            #    «خام» حسب الحالة (انظر tf[t]["translated"]).
+            for k, src in (("M5", b5), ("M15", b15), ("H1", b60), ("H4", bh), ("D1", bd)):
+                try:
+                    raw[k] = src[-300:]
+                    pp = _pack(src)
+                    if pp:
+                        pp["basis"] = None
+                        pp["translated"] = False
+                        tf[k] = pp
+                except Exception as e:
+                    errors.append("%s:%s" % (k, e))
 
         try:
             spot = fetch_spot()
