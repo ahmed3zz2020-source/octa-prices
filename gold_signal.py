@@ -32,7 +32,6 @@
 """
 
 import json, os, math, time, threading, statistics
-import hmac
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -297,14 +296,6 @@ def fetch_spot():
 
 
 _CAL_CACHE = {}
-# ⛔ إصلاح 16 أكتوبر 2026: كاش الـcalendar + علامة إن القراءة نجحت ولا لا.
-#    من غير العلامة دي، بوابة الأخبار بتقول «مفيش خبر» لما الـfetch يكون فشل (429).
-_CAL_OK = {"ok": False, "at": 0, "err": ""}
-
-# ⛔ إصلاح 16 أكتوبر 2026 (كريم-الأمن): مفتاح الأدمن.
-#    ⛔ fail-closed: لو مش متظبّط ⇒ المسار مقفول خالص (مش مفتوح زي زمان).
-#    السبب: /api/gold/reset-learn بيمسح حالة التعلّم — تدمير بلا حماية.
-GOLD_ADMIN_KEY = str(os.environ.get("OCTA_ADMIN_KEY", "") or "").strip()
 
 
 def fetch_calendar(ttl=1800):
@@ -316,18 +307,7 @@ def fetch_calendar(ttl=1800):
     if _CAL_CACHE.get("v") and (time.time() - _CAL_CACHE["_t"]) < ttl:
         return _CAL_CACHE["v"]
     out = []
-    # ⛔ إصلاح 16 أكتوبر 2026 (حيدر-البيانات + كريم-الأمن):
-    #    _http_retry بيرمي استثناء لو رجّع 429. قبل الإصلاح كان
-    #    الاستثناء بيبتلع في compute() و cal بيفضل [] ⇒
-    #    _news_gate ملقاش حاجة ⇒ blocked = None ⇒ البوابة خضراء!
-    #    المستخدم بيشوف «مفيش خبر عالي قريب» والسبب إن السيرفر اترفض.
-    #    ⛔ دلوقتي: لو القراءة فشلت بنعلّم _CAL_OK["ok"] = False
-    #    والبوابة بتتحوّل لـ«مش معروف» بدل «مفيش خبر».
-    try:
-        cal = _http_retry("https://nfs.faireconomy.media/ff_calendar_thisweek.json")
-    except Exception as _e:
-        _CAL_OK.update({"ok": False, "at": time.time(), "err": str(_e)[:80]})
-        return _CAL_CACHE.get("v") or []
+    cal = _http_retry("https://nfs.faireconomy.media/ff_calendar_thisweek.json")
     nw = datetime.now(UTC)
     for e in cal:
         if e.get("country") != "USD":
@@ -341,8 +321,6 @@ def fetch_calendar(ttl=1800):
                         "imp": e.get("impact", "Low"),
                         "f": e.get("forecast", ""), "p": e.get("previous", "")})
     out.sort(key=lambda z: z["t"])
-    # ⛔ sucsea = رجع الرد وحلّل (مش لازم يكون فيه أحداث)
-    _CAL_OK.update({"ok": True, "at": time.time(), "err": ""})
     if out:
         _CAL_CACHE.update({"v": out, "_t": time.time()})
     return out
@@ -665,61 +643,25 @@ def _f_retest(tf):
                               "zone": near["z"], "pos": _r2(pos, 3)}
 
 
-
-def _is_missing(detail):
-    """ ⛔ إصلاح 16 أكتوبر 2026 (نور-الكوانت): التفرقة بين المحايد والناقص.
-
-    قبل: العامل بيرجّع 0.0 لما مفيش بيانات، والدرجة بتتطبيع على الوزن
-    الكامل ⇒ عامل رجع صفر **لأنه مش عارف** بيتحسب عليه بنفس وزن عامل
-    **قرا صفر حقيقي**. المستخدم مش هيقدر يفرق.
-
-    ✅ دلوقتي: العامل الناقص بيتشال من الحساب ووزنه يتوزّع على الباقي
-       (زي قاعدة الفلتر الثمانية)، وبيتبلّغ في `f_missing`.
-    """
-    return not detail or (isinstance(detail, dict) and detail.get("ok") is False)
-
-
 def _f_session(now):
-    """ سيولة الجلسة — بتحسب بـساعات القاهرة الفعلية.
-
-    ⛔ إصلاح 16 أكتوبر 2026 (سندوتش ماهر بعد مراجعة نور-الكوانت):
-       الخريطة القديمة كانت بتقفل Cairo 18:00-23:00 (= ET 15:00-20:00)
-       وهو وسط وظهر جلسة نيويورك — أكتر نافذة سيولة في اليوم.
-       وبتحسب Cairo 13:00-16:00 (= ET 10:00-13:00) سيولة 1.00 و+0.75
-       رغم إن ده وقت ضعيف نسبياً. الخريطة كانت متأخرة ~3.5 ساعة.
-
-    ✅ الساعات الصح (القاهرة = UTC+3، شتاء ن نسخة إنك confirm):
-      -Za hours لسبوت الذهب:
-         • آسيا/سيدني   : 10:00 - 14:00 القاهرة
-         • لندن تفتح    : 10:00 Cairo  (08:00 UTC)
-         • لندن الذروة   : 12:00 - 16:00 Cairo
-         • نيويورك تفتح  : 16:30 Cairo  (09:30 ET summer = 15:30 UTC)
-         • نيويورك ذروة  : 17:30 - 21:00 Cairo
-         • إغلاق نيويورك : 00:00 Cairo
-    """
+    """ سيولة الجلسة — لندن و نيويورك أعلى، آسيا أقل."""
     h = now.hour + now.minute / 60.0
     wd = now.weekday()
-    # ⛔ إغلاق نهاية الأسبوع: الجمعة كاملة + السبت حتى 01:00 + الخميس بعد 00:30
-    if wd == 4 or wd == 5 or (wd == 6 and h < 1):
-        return -1.0, {"phase": "مغلق — نهاية الأسبوع", "liquidity": 0}
-
-    if h < 6:
-        return -0.30, {"phase": "آسيا المتأخرة", "liquidity": 0.25}
-    if h < 10:
-        return -0.10, {"phase": "ما قبل لندن", "liquidity": 0.35}
-    if h < 12:
-        return 0.30, {"phase": "مطلع لندن", "liquidity": 0.60}
+    if wd == 5 or (wd == 6 and h < 22) or (wd == 4 and h >= 20):
+        return -1.0, {"phase": "مغلق", "liquidity": 0}
+    if h < 7:
+        return -0.35, {"phase": "آسيا", "liquidity": 0.3}
+    if h < 9:
+        return 0.25, {"phase": "مطلع لندن", "liquidity": 0.6}
+    if h < 11:
+        return 0.6, {"phase": "لندن", "liquidity": 0.85}
+    if h < 13:
+        return 0.45, {"phase": "تداخل لندن/نيويورك", "liquidity": 0.75}
     if h < 16:
-        return 0.55, {"phase": "لندن", "liquidity": 0.85}
-    if h < 16.5:
-        return 0.40, {"phase": "تداخل لندن/نيويورك", "liquidity": 0.75}
+        return 0.75, {"phase": "نيويورك", "liquidity": 1.0}
     if h < 18:
-        return 0.60, {"phase": "نيويورك — بدايتها", "liquidity": 0.90}
-    if h < 21:
-        return 0.75, {"phase": "نيويورك — ذروتها", "liquidity": 1.0}
-    if h < 24:
-        return 0.45, {"phase": "آخر نيويورك", "liquidity": 0.70}
-    return -0.10, {"phase": "الآسيوية", "liquidity": 0.35}
+        return 0.35, {"phase": "آخر نيويورك", "liquidity": 0.5}
+    return -0.2, {"phase": "بعد الجلسة", "liquidity": 0.25}
 
 
 def _f_macro(macro):
@@ -945,37 +887,6 @@ def _run_learn(state, price_now):
 # ══════════════════════════════════════════════════════════════════════
 #  ⑧ بناء التحليل الكامل
 # ══════════════════════════════════════════════════════════════════════
-def _to_h4(bars_h1):
-    """⛔ إصلاح 16 أكتوبر 2026 (بعد مراجعة نور-الكوانت):
-       الخريطة طلبت fetch_yahoo("GC=F","1h","1y") وسّمّتها "H4".
-       بس 1h في Yahoo = ساعة ⇒ H4 و H1 كانوا **نفس الفريم بالظبط**
-       (فرق ema200 = 0.0000). يعني أثقل عامل في المحرك
-       (htf_bias بوزن 1.30) = قراءة EMA واحدة متحسب مرتين،
-       ومافيش فريم 4 ساعات خالص.
-
-       ✅ الحل: Yahoo مافيش فريم 4h ⇒ نجمّع 4 شموع ساعية في شمعة واحدة.
-       - t = طابع أول شمعة في المجموعة (مقسوم على 14400 × 14400)
-       - o = أول open · h = أعلى high · l = أدنى low · c = آخر close
-       - الشموع الناقصة (آخر مجموعة) بتترفض — مينفعش نguess
-       """
-    if not bars_h1:
-        return []
-    out, cur, cur_t = [], [], None
-    for b in bars_h1:
-        bucket = (b["t"] // 14400) * 14400      # 4 ساعات بالثواني
-        if cur and bucket != cur_t:
-            out.append({"t": cur_t, "o": cur[0]["o"], "c": cur[-1]["c"],
-                        "h": max(x["h"] for x in cur), "l": min(x["l"] for x in cur),
-                        "v": sum(x.get("v", 0) or 0 for x in cur)})
-            cur = []
-        if not cur:
-            cur_t = bucket
-        cur.append(b)
-    # ⛔ المجموعة الأخيرة الناقصة (1-3 شمعة ساعية) — نرميها
-    #   لأن ema200 على شمعة 4س ناقصة = رقم مش معروف
-    return out
-
-
 def _pack(bars):
     if not bars:
         return None
@@ -998,9 +909,7 @@ def _pack(bars):
             "fvg": [{"dir": f["dir"], "z": [_r2(f["lo"]), _r2(f["hi"])],
                      "t": _hhmmss(f["t"])} for f in _fvg_open(bars, a)],
             "sessions": sess,
-            # ⛔ 17 أكتوبر 2026 — كان 80 شمعة بس والشارت الجديد محتاج
-            #   تاريخ أكتر. 300 شمعة = فريم 15د = ٧٥ ساعة.
-            "candles": bars[-300:],
+            "raw": bars[-80:],
             "bar_t": _hhmmss(bars[-1]["t"]),
             "bar_age_min": int((now_ts() - bars[-1]["t"]) // 60),
             "bar_t_epoch": bars[-1]["t"],
@@ -1012,51 +921,15 @@ def now_ts():
 
 
 def compute(force=False):
-    """ التحليل الكامل — بيتكاش كل SIGNAL_TTL ثانية.
-
-    ⛔ إصلاح 16 أكتوبر 2026 (كريم-الأمن) — ده كان بيجيّل السيرفر كله:
-       compute() كان كامل جوه `with LOCK:` وبيعمل ١٥ طلب خارجي جوه.
-       أسوأ حالة قِستها كريم: ٥٩٠ ثانية — والـgunicorn timeout = ١٢٠.
-       يعني طلب واحد وقت ما مصدر يكون واقع ⇒ الـworker كله ٥٠٢.
-
-       ✅ دلوقتي:
-         · قفل قصير جداً على الكاش بس (ميكروثانية)
-         · الطلبات الخارجية **برّه** أي قفل
-         · لو اتنين نداء جوا مع بعض، التاني بيرجّع الكاش القديم فوراً
-           (stale-while-revalidate) مش بيستنى
-       ⛔ والLOCK فضل على reset-learn و save_state — دول عمليات قصيرة.
-    """
-    # ── قفل ① : قراءة الكاش فقط (ميكروثانية) ──
+    """ التحليل الكامل — بيتكاش كل SIGNAL_TTL ثانية."""
     with LOCK:
         cached = SIGNAL_TTL_SLOTS.get("core")
         if cached and not force and (now_ts() - cached["_t"]) < SIGNAL_TTL:
             return cached["v"]
-        _busy = _COMPUTE_BUSY.get("v")
-    # ── stale-while-revalidate: لو حد تاني شغال، رجّع القديم وخلاص ──
-    if _busy:
-        if cached:
-            return cached["v"]
-    with _COMPUTE_LOCK:
-        _COMPUTE_BUSY["v"] = True
-        try:
-            return _compute_body(cached, force)
-        finally:
-            _COMPUTE_BUSY["v"] = False
-
-
-# ⛔ قفلان منفصلان (16 أكتوبر 2026):
-#    LOCK          — للحالات القصيرة (كاش + حفظ الملف)
-#    _COMPUTE_LOCK — واحد بس بيشغّل الحساب، والباقي بيستنى ولا يرجّع القديم
-_COMPUTE_LOCK = threading.Lock()
-_COMPUTE_BUSY = {"v": False}
-
-
-def _compute_body(cached, force):
-    if True:
 
         now = _now_cairo()
         errors = []
-        tf, candles = {}, {}
+        tf, raw = {}, {}
         # ══════════════════════════════════════════════════════════════
         # ⛔⛔⛔ قرار معماري: مصدر الهيكل الواحد = COMEX GC=F
         #
@@ -1075,12 +948,11 @@ def _compute_body(cached, force):
             _, b5 = fetch_yahoo("GC=F", "5m", "5d")
             _, b15 = fetch_yahoo("GC=F", "15m", "1mo")
             _, b60 = fetch_yahoo("GC=F", "60m", "3mo")
-            _, bh1 = fetch_yahoo("GC=F", "1h", "1y")
-            bh = _to_h4(bh1)   # ⛔ 1h مش 4h — بنجمّع 4 شموع ساعية (نور-الكوانت)
+            _, bh = fetch_yahoo("GC=F", "1h", "1y")
             _, bd = fetch_yahoo("GC=F", "1d", "2y")
         except Exception as e:
             errors.append("yahoo:%s" % e)
-            b5 = b15 = b60 = bh = bh1 = bd = []
+            b5 = b15 = b60 = bh = bd = []
 
         # basis: وسيط متحرك لفروق آخر ٨ ساعات على شموع ١٥ دقيقة
         basis, basis_mad, basis_n = None, None, 0
@@ -1105,36 +977,17 @@ def _compute_body(cached, force):
             for k, src in (("M5", b5), ("M15", b15), ("H1", b60), ("H4", bh), ("D1", bd)):
                 try:
                     conv = _to_spot(src)
-                    candles[k] = conv
+                    raw[k] = conv
                     p = _pack(conv)
                     if p:
                         p["basis"] = _r2(basis)
                         p["basis_mad"] = basis_mad
                         p["basis_n"] = basis_n
-                        p["translated"] = True
                         tf[k] = p
                 except Exception as e:
                     errors.append("%s:%s" % (k, e))
         else:
             errors.append("basis_missing: مفيش ترجمة لأسعار السبوت")
-            # ⛔ 17 أكتوبر 2026 — بدل ما نخسر كل حاجة لو الـbasis فشل:
-            #    الـOKX بيرجع 429 أحياناً ⇒ basis = None ⇒ tf كله فاضي
-            #    والشارت、向Prices مايرسمش والصفحة بتقول «لا توجد بيانات».
-            # ✅ الحل: نبني الفريمات من الأسعار الخام (بدون ترجمة) وكأنها
-            #    أسعار آجلة. التحليل كله قابل للع IndicatorsRelative — يعني
-            #    الأرقام الصح والارتفاع الصح — والقيمة المطلقة وحدها
-            #    هي اللي بتفرق. ⛔ الموضع deh والباك بيقول «مترجم» أو
-            #    «خام» حسب الحالة (انظر tf[t]["translated"]).
-            for k, src in (("M5", b5), ("M15", b15), ("H1", b60), ("H4", bh), ("D1", bd)):
-                try:
-                    candles[k] = src[-300:]
-                    pp = _pack(src)
-                    if pp:
-                        pp["basis"] = None
-                        pp["translated"] = False
-                        tf[k] = pp
-                except Exception as e:
-                    errors.append("%s:%s" % (k, e))
 
         try:
             spot = fetch_spot()
@@ -1166,11 +1019,6 @@ def _compute_body(cached, force):
         factors = {"htf_bias": f_h, "mtf_align": f_a, "sweep": f_s, "shift": f_sh,
                    "retest": f_r, "session": f_se, "macro": f_m, "volregime": f_v}
 
-        # ⛔ فهرس الـdetails — عشان نعرف مين ناقص ومين محايد (16 أكتوبر 2026)
-        fdetail = {"htf_bias": htf_det, "mtf_align": align_det, "sweep": sweep_det,
-                   "shift": shift_det, "retest": retest_det, "session": sess_det,
-                   "macro": macro_det, "volregime": vol_det}
-
         # التعلم
         state = _load_state()
         state, perf, chg = _run_learn(state, price)
@@ -1178,20 +1026,9 @@ def _compute_body(cached, force):
             _save_state(state)
         W = state["weights"]
 
-        # ⛔ إصلاح 16 أكتوبر 2026 (نور-الكوانت): فصل «المحايد» عن «مش عارف».
-        #   قبل: num/den على الـ8 كلهم — عامل رجع صفر ناقص بيتحسب عليه
-        #   بنفس وزن عامل قرا صفر حقيقي. المستخدم مش هيعرف يفرق.
-        #   ✅ دلوقتي: العامل الناقص (detail فاضي) بيتشال من الحساب
-        #   ووزنه يتوزّع على الباقي — بالظبط زي قاعدة الفلتر الثمانية.
-        #   ⛔ لو كلهم ناقصين ⇒ den = 0 ⇒ الدرجة مش معروفة ⇒ HOLD (مش 0).
-        usable = [f for f in FACTORS if not _is_missing(fdetail.get(f))]
-        f_missing = [f for f in FACTORS if _is_missing(fdetail.get(f))]
-        if usable:
-            num = sum(W[f] * factors[f] for f in usable)
-            den = sum(W[f] for f in usable) or 1.0
-            score = _clamp(num / den, -1.0, 1.0)
-        else:
-            score, den = 0.0, 0.0   # ⛔ مفيش ولا عامل متاح
+        num = sum(W[f] * factors[f] for f in FACTORS)
+        den = sum(W[f] for f in FACTORS) or 1.0
+        score = _clamp(num / den, -1.0, 1.0)
 
         # العتبة الديناميكية
         turn = TURN_BASE
@@ -1275,17 +1112,8 @@ def _compute_body(cached, force):
         lag = (now_ts() - (m5["raw"][-1]["t"] + 300)) if (m5 and m5.get("raw")) else 9999
         gates.append({"g": "fresh", "ok": lag <= 480,
                       "why": "الشموع متأخرة %d ثانية" % max(0, lag) if lag <= 900 else "الشموع واقفة"})
-        # ⛔ إصلاح 16 أكتوبر 2026 — البوابة كانت بتكذب:
-        #    لو التقويم فشل (429) ⇒ cal=[] ⇒ blocked=None ⇒ "مفيش خبر عالي قريب"
-        #    والحقيقة إننا **مfenيش عارفين**. الفرق ده مهم:
-        #    «مفيش خبر» = تمام · «مش عارف» = لازم يتحوّل لـ HOLD
-        #    ⛔ fail-closed: مش معروف ⇔ البوابة مقفولة ⇔ HOLD
-        if not _CAL_OK.get("ok"):
-            gates.append({"g": "news", "ok": False,
-                          "why": "مش معروف — التقويم مش رجّع (ممكن الضغط على المصدر)"})
-        else:
-            gates.append({"g": "news", "ok": blocked is None,
-                          "why": (blocked["title"] + " — ممنوع") if blocked else "مفيش خبر عالي قريب"})
+        gates.append({"g": "news", "ok": blocked is None,
+                      "why": (blocked["title"] + " — ممنوع") if blocked else "مفيش خبر عالي قريب"})
         gates.append({"g": "liquidity", "ok": sess_det.get("liquidity", 0) >= 0.3,
                       "why": sess_det.get("phase", "")})
         gates.append({"g": "vol", "ok": not vol_det.get("regime", "").startswith("ميت"),
@@ -1316,19 +1144,10 @@ def _compute_body(cached, force):
              "tf": {k: {kk: vv for kk, vv in d.items() if kk != "raw"}
                     for k, d in tf.items()},
              "f": {k: _r2(val, 3) for k, val in factors.items()},
-             # ⛔ 16 أكتوبر 2026: العوامل اللي مfwقدرش نقيسها (ناقصة)
-             #    بتتشال من الحساب ووزنها يتوزّع. الـUI يقدر يقول «—» بدل صفر.
-             "f_missing": f_missing,
-             "f_used": usable,
              "detail": {"htf": htf_det, "align": align_det, "sweep": sweep_det,
                         "shift": shift_det, "retest": retest_det,
                         "session": sess_det, "macro": macro_det, "vol": vol_det},
-             "basis": {"value": _r2(basis) if basis is not None else None,
-                        "mad": basis_mad, "n": basis_n,
-                        # ⛔ 16 أكتوبر 2026 (حيدر-البيانات): الأساس مش سبوت
-                        #    مباشر — PAXG توكن بيتتبع الذهب. فالتجمة تقدير.
-                        "src": "عقد الذهب الآجل ← توكن PAXG (تقدير، مش سبوت مباشر)"},
-             "news": {"cal_ok": bool(_CAL_OK.get("ok")), "blocked": ({"t": blocked["t"].astimezone(CAIRO).strftime("%m-%d %H:%M"),
+             "news": {"blocked": ({"t": blocked["t"].astimezone(CAIRO).strftime("%m-%d %H:%M"),
                                   "title": blocked["title"]} if blocked else None),
                       "upcoming": [{"t": e["t"].astimezone(CAIRO).strftime("%m-%d %H:%M"),
                                     "title": e["title"], "imp": e["imp"],
@@ -1356,73 +1175,18 @@ def _compute_body(cached, force):
             state["samples"] = state["samples"][-400:]
             _save_state(state)
 
-        # ⛔ القفل الأول بيلفّ الحفظ بس (مش الحساب كله)
-        with LOCK:
-            SIGNAL_TTL_SLOTS["core"] = {"_t": now_ts(), "v": v}
+        SIGNAL_TTL_SLOTS["core"] = {"_t": now_ts(), "v": v}
         return v
 
 
 # ══════════════════════════════════════════════════════════════════════
 #  ⑨ تسجيل المسارات (بيتستدعى من octa_app.py)
 # ══════════════════════════════════════════════════════════════════════
-# ⛔ تحديد النداءات (16 أكتوبر 2026 — كريم-الأمن)
-#    compute() فيه ١٥ طلب خارجي. من غير حد، حد واحد يطلب ١٠٠ مرة/دقيقة
-#    = ١٥٠٠ طلب خارجي على Yahoo/OKX/ForexFactory = حظر + تكلفة.
-#    ⛔ الحد على (المستخدم) مش (الـIP) — ١٠٠ شخص ورا راوتر مكتب واحد
-#       مايتقفلوش بالـIP.
-#    ⛔ /deep أرخص من /signal؟ لا — الاتنين بيحسبوا. deep أعقد فقلّله أكتر.
-_GOLD_RATE = {"buckets": {}}
-_GOLD_LIMITS = {"/api/gold/signal": (20, 60), "/api/gold/deep": (10, 60)}
-_GOLD_LIMITS_H = {"/api/gold/signal": (120, 3600), "/api/gold/deep": (60, 3600)}
-
-
-def _gold_rate_ok(path, key):
-    """ ⛔ True لو الطلب مسموح. ⛔ key = معرّف المستخدم مش الـIP. """
-    lim = _GOLD_LIMITS.get(path) or _GOLD_LIMITS_H.get(path)
-    if not lim:
-        return True
-    now = time.time()
-    b = _GOLD_RATE["buckets"].setdefault("%s|%s" % (path, key),
-                                          {"m": [], "h": []})
-    b["m"] = [t for t in b["m"] if now - t < 60]
-    b["h"] = [t for t in b["h"] if now - t < 3600]
-    if len(b["m"]) >= lim[0] or len(b["h"]) >= lim[1]:
-        return False
-    b["m"].append(now); b["h"].append(now)
-    # تنظيف عشان ما يكبرش في الذاكرة
-    if len(_GOLD_RATE["buckets"]) > 5000:
-        for k in [k for k, v in _GOLD_RATE["buckets"].items()
-                  if now - v["h"][-1] > 3600 if v["h"]]:
-            _GOLD_RATE["buckets"].pop(k, None)
-    return True
-
-
-def _gold_caller_key():
-    # ⛔ المفتاح = حساب المستخدم لو وصل في الهيدر، وإلا عنوان الشبكة.
-    #    ⛔ على المستخدم مش الـIP: ١٠٠ شخص ورا راوتر مكتب واحد
-    #       مايتقفلوش. السيرفر الأصلي بيحط X-Octa-Uid بعد التوثيق.
-    try:
-        tok = request.headers.get("X-Octa-Uid") or ""
-    except Exception:
-        tok = ""
-    if tok:
-        return "u:" + tok
-    try:
-        ip = (request.headers.get("CF-Connecting-IP")
-              or (request.headers.get("X-Forwarded-For") or "?")[:40])
-    except Exception:
-        ip = "?"
-    return "ip:" + ip
-
-
 def register(app):
     from flask import jsonify, request
 
     @app.route("/api/gold/signal")
     def _gs():
-        # ⛔ تحديد النداءات — 16 أكتوبر 2026
-        if not _gold_rate_ok("/api/gold/signal", _gold_caller_key()):
-            return jsonify({"error": "طلبات كتير — استنى دقيقة"}), 429
         try:
             v = compute()
             return jsonify({
@@ -1442,9 +1206,6 @@ def register(app):
 
     @app.route("/api/gold/deep")
     def _gd():
-        # ⛔ تحديد النداءات — 16 أكتوبر 2026
-        if not _gold_rate_ok("/api/gold/deep", _gold_caller_key()):
-            return jsonify({"error": "طلبات كتير — استنى دقيقة"}), 429
         try:
             v = compute()
             slim = dict(v)
@@ -1456,62 +1217,12 @@ def register(app):
                 "price": v["price"], "macro": v["macro"], "news": v["news"],
                 "detail": v["detail"], "f": v["f"],
                 "tf": v["tf"], "learn": v["learn"], "errors": v["errors"],
-                # ⛔ 17 أكتوبر 2026 — الشارت الجديد (canvas) محتاج الشموع.
-                #    قبل كده الـraw كان جوّه _pack بس ومش مبعوت في /deep.
-                #    ⛔ الأمان: 300 شمعة × OHLCV = ~١٥٠٠ عدد — رد معقول.
-                "bars": {k: (v["tf"].get(k) or {}).get("candles", [])[-300:]
-                         for k in ("M5", "M15", "H1", "H4", "D1")},
             })
         except Exception as e:
             return jsonify({"error": str(e)[:200]}), 200
 
     @app.route("/api/gold/learn")
     def _gl():
-        st = _load_state()
-        closed = [s for s in st["samples"] if s.get("resolved")]
-        wins = [s for s in closed if (s.get("R") or 0) > 0]
-        # ⛔ إصلاح 16 أكتوبر 2026 (كريم-الأمن): الأوزان كانت بتتسرب للعامة.
-        #    أي حد يفتح /api/gold/learn كان بيعرف وصفة المحرك بالظبط.
-        #    سيرفر OCTA عنده _HIDDEN_KEYS بيخفي الأوزان — gold_signal.py كان
-        #    مش عاملها. ⛔ الأوزان بقت في /learn_full المحمي بس.
-        return jsonify({
-            "version": st.get("version"), "frozen": st.get("frozen"),
-            "samples_n": len(closed),
-            "acc": _r2(len(wins) / float(len(closed)), 3) if closed else None,
-            "perf": _perf(closed),
-            "log": st.get("log", [])[-12:],
-            "recent": [{"ts": s.get("ts"), "side": s.get("side"), "score": s.get("score"),
-                        "R": s.get("R"), "res": s.get("resolved")} for s in st["samples"][-25:]],
-        })
-
-
-def _gold_admin_only():
-    """ ⛔ بوابة الأدمن — fail-closed.
-
-    ⛔ إصلاح 16 أكتوبر 2026: reset-learn كان POST مفتوح للجميع.
-    لو OCTA_ADMIN_KEY مش متظبّط في Railway ⇒ 503 والمسار مقفول.
-    مش «مفتوح زي ما كان» — لأن المسار ده بيمسح حالة التعلّم.
-    """
-    if not GOLD_ADMIN_KEY:
-        return jsonify({
-            "ok": False,
-            "error": "المسار مقفول — OCTA_ADMIN_KEY مش متظبّط",
-            "hint": "متظبّطش في RailwayVariables",
-        }), 503
-    sent = (request.headers.get("X-Admin-Key") or "").strip()
-    # ⛔ bytes مش str — مع العربي compare_digest بيرمي TypeError
-    if not hmac.compare_digest(sent.encode("utf-8"), GOLD_ADMIN_KEY.encode("utf-8")):
-        return jsonify({"ok": False, "error": "المسار ده للأدمن بس"}), 403
-    return None
-
-
-    # ⛔ الأوزان اتنقلت هنا من الرد العام (16 أكتوبر 2026)
-    #    محمي بـ X-Admin-Key زي reset-learn بالظبط.
-    @app.route("/api/gold/learn-full")
-    def _glf():
-        _gate = _gold_admin_only()
-        if _gate is not None:
-            return _gate
         st = _load_state()
         closed = [s for s in st["samples"] if s.get("resolved")]
         wins = [s for s in closed if (s.get("R") or 0) > 0]
@@ -1522,13 +1233,12 @@ def _gold_admin_only():
             "acc": _r2(len(wins) / float(len(closed)), 3) if closed else None,
             "perf": _perf(closed),
             "log": st.get("log", [])[-12:],
+            "recent": [{"ts": s.get("ts"), "side": s.get("side"), "score": s.get("score"),
+                        "R": s.get("R"), "res": s.get("resolved")} for s in st["samples"][-25:]],
         })
 
     @app.route("/api/gold/reset-learn", methods=["POST"])
     def _gr():
-        _gate = _gold_admin_only()
-        if _gate is not None:
-            return _gate
         with LOCK:
             _save_state(_default_state())
             SIGNAL_TTL_SLOTS.pop("core", None)
