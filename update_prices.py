@@ -20,6 +20,10 @@ ALLOWED_ORIGINS = {
     "https://www.octashares.com",
     "https://octa.ahmed3zz2020.workers.dev",   # نسخة Cloudflare
     "https://octa-preview.ahmed3zz2020.workers.dev",   # رابط المعاينة
+    # 🧪 التطوير المحلي (سيرفر ثابت على 8099) — مافيش خطر:
+    #    CORS مش مصادقة، والبيانات الحقيقية بتفضل محميّة بالتوكن.
+    "http://127.0.0.1:8099",
+    "http://localhost:8099",
 }
 
 # ⛌ روابط المعاينة المؤقتة ⬇️ بتتغير مع كل نشر، فنسمح
@@ -546,11 +550,24 @@ def _client_key():
     return ("%s|%d|%s" % (ip, n, first))[:96]
 
 
-def _route_bucket(path):
-    """نحدّد المسار ده ينتمي لأنهي bucket"""
+def _route_bucket(path, method=None):
+    """نحدّد المسار ده ينتمي لأنهي bucket
+
+    ⛌ الـmethod اختياري ⬇️ لو اتبعت ⬇️ بس المسارات اللي ليها
+       كتابة وقراءة بحدّين مختلفين.
+    ⛌ لو الـmethod مش مبعوت ⬇️ السلوك زي ما كان ⬇️ (مفيش
+       تغيير في أي مسار موجود).
+    """
     seg = [x for x in path.strip("/").split("/") if x]
     if len(seg) >= 2 and seg[0] == "api":
         name = seg[1]
+        # ⛌ شارت OCTA — الكتابة بس هي اللي بتاخد حد "write"
+        #    (٥/دقيقة) ⬇️ أما القراءة (قائمة · رسمة واحدة) فدها
+        #    عادي ١٢٠/دقيقة ⬇️ عشان فتح صفحة الشارت ميتقفلش.
+        if name == "charts":
+            if str(method or "").upper() in ("POST", "PUT", "PATCH", "DELETE"):
+                return "write"
+            return "default"
         if name == "auth":
             sub = seg[2] if len(seg) > 2 else ""
             tail = seg[3] if len(seg) > 3 else ""
@@ -613,7 +630,7 @@ def _route_bucket(path):
 def _rate_check():
     """بيتحقق من الحد ويرجّع (allowed, retry_after, bucket)"""
     key = _client_key()
-    bucket = _route_bucket(request.path)
+    bucket = _route_bucket(request.path, request.method)
     windows = LIMITS[bucket]
     now = time.time()
 
@@ -956,7 +973,7 @@ def _patch_user(uid: str, **fields):
 
     ⛌ الكود القديم كان بيعمل ⬇️
         u = _get_user(tok)        ⬇️ نسخة قديمة من غير قفل
-        ...
+        # ...
         users = _load_users()     ⬇️ نسخة تانية تانية
         users[uid] = u            ⬇️ الكتابة فوق كله ⬇️ طمست الحقول
     ⬌ ⭐ أي حقل اتغيّر في نفس الوقت ⬇️ زي token_epoch ⬇️ كان
@@ -9412,7 +9429,7 @@ def api_ipo():
 # ⛔ الحل: نجيب من المصدر كل OB_CACHE_TTL ثانية، ونقدّم الكاش
 #    للكل. + حاجز صلب على عدد نداءات المصدر شهريًا.
 # ══════════════════════════════════════════════════════════════
-_OB_CACHE = {}            # {symbol: {"at": ts, "data": {...}}}
+_OB_CACHE = {}            # {symbol: {"at": ts, "data": <object>}}
 _OB_HITS = {"month": "", "n": 0}
 _OB_LOCK = threading.Lock()
 OB_CACHE_TTL = int(str(os.environ.get("OB_CACHE_TTL", "60")).strip() or 60)
@@ -10218,6 +10235,427 @@ def api_candles(code):
     except Exception as e:
         _log_exc("upstream-502c", e)
         return jsonify({"ok": False, "error": "تعذّر جلب البيانات من المصدر"}), 502
+
+
+# ══════════════════════════════════════════════════════════════
+#  📐 شارت OCTA — حفظ الرسومات (لكل مستخدم لوحده)
+#  ──────────────────────────────────────────────────────────────
+#  الرسمة = حالة الشارت كاملة: الاسم · الملاحظة · الرمز ·
+#  الفريم · النوع · المؤشرات · أدوات الرسم.
+#
+#  ⛔ كل رسمة بتتبع صاحبها. الـuid بيتاخد من **التوكن** ⬇️
+#     مش من الـURL ولا من الـbody ⬇️ عشان حد ما يشوفش رسمة
+#     حد تاني بمجرد إنه يعرف الـid.
+#  ⛔ الـid = token_hex(8) = ١٦ حرف hex ⬇️ مش تسلسلي ⬇️
+#     عشان ما يتguessش.
+#  ⛔ مافيش ولا secret بيرجع في أي رد ⬇️ ولا بيانات مستخدم
+#     بتتسجّل في اللوج.
+#  ⛔ أي رسمة مش بتاعتك ⬇️ الرد 404 ⬇️ مش 403 ⬇️ عشان متكشفش
+#     إن دي موجودة أصلاً.
+# ══════════════════════════════════════════════════════════════
+CHARTS_FILE = DATA_DIR / "charts.json"
+CHARTS_LOCK = threading.Lock()
+
+# ── الحدود (من عقد الـAPI) ──
+CHARTS_MAX = 50                 # أقصى عدد رسومات لكل مستخدم
+CHARTS_MAX_POINTS = 300         # أقصى عدد نقاط في الرسمة الواحدة
+CHARTS_MAX_BYTES = 1024 * 1024  # أقصى حجم الطلب (1 ميجا)
+CHARTS_MAX_DRAWINGS = 300       # أقصى عدد أدوات رسم
+CHARTS_MAX_INDICATORS = 100     # أقصى عدد مؤشرات
+CHART_NAME_MAX = 80
+CHART_NOTE_MAX = 500
+CHART_SYMBOL_MAX = 12
+CHART_TF_MAX = 8
+CHART_TYPE_MAX = 16
+CHART_ID_MAX = 64
+
+
+def _charts_load():
+    """نقرأ الملف كله ⬇️ القفل بيتمسك بيه من بره."""
+    try:
+        if CHARTS_FILE.exists():
+            d = json.loads(CHARTS_FILE.read_text(encoding="utf-8"))
+            if isinstance(d, dict):
+                return d
+    except Exception:
+        pass
+    return {}
+
+
+def _charts_save(d):
+    """⛔ كتابة ذرّية ⬇️ temp في نفس المجلد ⬇️ بعدين replace.
+
+    كده مفيش لحظة الملف فيها نص مكتوب ⬇️ ولا reader يشوف
+    {} بالغلط ⬇️ ولا الملف يبقاش نص لو السيرفر قفل في النص.
+    """
+    tmp = CHARTS_FILE.with_name(".charts.%s.tmp" % _secrets_mod.token_hex(4))
+    try:
+        tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        os.replace(str(tmp), str(CHARTS_FILE))
+        return True
+    except Exception as e:
+        try:
+            tmp.unlink()
+        except Exception:
+            pass
+        # ⛔ مافيش بيانات مستخدم في اللوج ⬇️ اسم الملف والخطأ بس.
+        print("  💾 ⛔ charts.json: %s: %s" % (type(e).__name__, str(e)[:100]),
+              flush=True)
+        return False
+
+
+def _chart_body_size():
+    """حجم الطلب بالبايت ⬇️ من الـheader أو من الـbody."""
+    cl = getattr(request, "content_length", None)
+    if isinstance(cl, int) and cl > 0:
+        return cl
+    try:
+        return len(request.get_data() or b"")
+    except Exception:
+        return 0
+
+
+def _chart_id_arg(arg=None):
+    """الـid بتاع الرسمة من المسار.
+
+    ⛌ في Flask (الإنتاج) بيوصل كوسيط ⬇️ وفي بيئة الاختبار
+       (المكتبة المصغّرة) المسار بيتقرا من request.path.
+    """
+    if arg:
+        return str(arg)
+    p = str(getattr(request, "path", "") or "")
+    if p.startswith("/api/charts/"):
+        return p[len("/api/charts/"):]
+    return ""
+
+
+def _chart_uid(user):
+    """الـuid بتاع المستخدم ⬇️ من سجل الحساب ⬇️
+
+    ⛔ نفس الـuid اللي _load_users() بيستخدمه ⬇️ مافيش hash
+       جديد ⬇️ عشان الملفين يبقىوا متوافقين.
+    """
+    return str((user or {}).get("id") or "").strip()
+
+
+def _chart_points(drawings):
+    """عدد نقاط الرسمة = مجموع نقاط كل أداة رسم."""
+    n = 0
+    for d in drawings:
+        if isinstance(d, dict):
+            p = d.get("points")
+            if isinstance(p, list):
+                n += len(p)
+    return n
+
+
+def _chart_public(c):
+    """شكل الرسمة في القوائم ⬇️ من غير الحقول الكبيرة."""
+    return {
+        "id": c.get("id") or "",
+        "name": c.get("name") or "",
+        "note": c.get("note") or "",
+        "symbol": c.get("symbol") or "",
+        "tf": c.get("tf") or "",
+        "type": c.get("type") or "",
+        "updated": int(c.get("updated") or 0),
+    }
+
+
+def _chart_full(c):
+    """الرسمة كاملة ⬇️ فيها المؤشرات وأدوات الرسم."""
+    out = _chart_public(c)
+    out["indicators"] = c.get("indicators") or []
+    out["drawings"] = c.get("drawings") or []
+    out["created"] = int(c.get("created") or 0)
+    return out
+
+
+def _chart_validate(data):
+    """⛌ بيرجّع (chart, error) ⬇️ الـerror نص عربي ⬇️ والـchart
+       هو السجل بعد التنظيف. أي مخالفة = 400."""
+    if not isinstance(data, dict):
+        return None, "الطلب لازم يكون JSON object"
+
+    out = {}
+
+    # ── الاسم ──
+    name = "" if data.get("name") is None else str(data.get("name"))
+    if len(name) > CHART_NAME_MAX:
+        return None, ("الاسم طويل أوي — الحد %d حرف" % CHART_NAME_MAX)
+    out["name"] = clean_text(name, CHART_NAME_MAX)
+
+    # ── الملاحظة ──
+    note = "" if data.get("note") is None else str(data.get("note"))
+    if len(note) > CHART_NOTE_MAX:
+        return None, ("الملاحظة طويلة أوي — الحد %d حرف" % CHART_NOTE_MAX)
+    out["note"] = clean_text(note, CHART_NOTE_MAX)
+
+    # ── الرمز ──
+    sym = data.get("symbol")
+    if sym is None or str(sym).strip() == "":
+        out["symbol"] = ""
+    else:
+        c = clean_code(sym, CHART_SYMBOL_MAX)
+        if not c:
+            return None, ("الرمز غلط — حروف وأرقام بس — والحد %d حرف"
+                          % CHART_SYMBOL_MAX)
+        out["symbol"] = c
+
+    # ── الفريم ──
+    tf = data.get("tf")
+    if tf is None or str(tf).strip() == "":
+        out["tf"] = "1D"
+    else:
+        t = str(tf).strip().upper()
+        if not _re_guard.match(r"^[A-Z0-9_-]{1,%d}$" % CHART_TF_MAX, t):
+            return None, "الفريم غلط"
+        out["tf"] = t
+
+    # ── نوع الرسم ──
+    ty = data.get("type")
+    if ty is None or str(ty).strip() == "":
+        out["type"] = "candles"
+    else:
+        t = str(ty).strip().lower()
+        if not _re_guard.match(r"^[a-z0-9_-]{1,%d}$" % CHART_TYPE_MAX, t):
+            return None, "نوع الرسم غلط"
+        out["type"] = t
+
+    # ── المؤشرات ──
+    ind = data.get("indicators")
+    if ind is None:
+        ind = []
+    if not isinstance(ind, list):
+        return None, "المؤشرات لازم تكون قائمة"
+    if len(ind) > CHARTS_MAX_INDICATORS:
+        return None, ("عدد المؤشرات كبير أوي — الحد %d"
+                      % CHARTS_MAX_INDICATORS)
+    out["indicators"] = ind
+
+    # ── أدوات الرسم ──
+    drw = data.get("drawings")
+    if drw is None:
+        drw = []
+    if not isinstance(drw, list):
+        return None, "أدوات الرسم لازم تكون قائمة"
+    if len(drw) > CHARTS_MAX_DRAWINGS:
+        return None, ("عدد أدوات الرسم كبير أوي — الحد %d"
+                      % CHARTS_MAX_DRAWINGS)
+    if _chart_points(drw) > CHARTS_MAX_POINTS:
+        return None, ("الرسمة فيها نقاط كتير — الحد %d نقطة"
+                      % CHARTS_MAX_POINTS)
+    out["drawings"] = drw
+
+    # ── الـid (اختياري) — يتأكد من السيرفر مش من العميل ──
+    cid = data.get("id")
+    cid = "" if cid is None else str(cid).strip()
+    if len(cid) > CHART_ID_MAX:
+        return None, "معرف الرسمة غلط"
+    out["id"] = cid
+
+    return out, None
+
+
+def _chart_denied():
+    """401 ⬇️ بنفس رسالة الموقع."""
+    return jsonify({
+        "ok": False,
+        "error": "المسار ده محمي",
+        "hint": "سجّل دخول الأول",
+    }), 401
+
+
+def _chart_missing():
+    """404 ⬇️ مش 403 ⬇️ عشان متكشفش إن الرسمة موجودة أصلاً."""
+    return jsonify({
+        "ok": False,
+        "error": "الرسمة مش موجودة",
+    }), 404
+
+
+@app.route("/api/charts", methods=["GET"])
+def charts_list():
+    """📋 قائمة رسومات المستخدم (الأحدث الأول)."""
+    u = require_user()
+    if not u:
+        return _chart_denied()
+    uid = _chart_uid(u)
+    if not uid:
+        return _chart_denied()
+
+    with CHARTS_LOCK:
+        d = _charts_load()
+    mine = d.get(uid)
+    mine = mine if isinstance(mine, dict) else {}
+    out = [_chart_public(c) for c in mine.values() if isinstance(c, dict)]
+    out.sort(key=lambda x: x.get("updated") or 0, reverse=True)
+    return jsonify({"ok": True, "count": len(out), "charts": out})
+
+
+@app.route("/api/charts/list", methods=["GET"])
+def charts_list_alias():
+    """📋 نفس قائمة GET /api/charts ⬇️ المسار المطلوب في العقد."""
+    return charts_list()
+
+
+@app.route("/api/charts", methods=["POST"])
+def charts_save():
+    """💾 إنشاء/تحديث رسمة ⬇️ body فيه id اختياري.
+
+    ⛔ الـid اللي في الـbody بيحدّد الرسمة اللي تتحدّث ⬇️ لو
+       الـid ده مش بتاع المستخدم ⬇️ الرد 404 ⬇️ مش بنلمسش
+       رسمة حد تاني ومش بنولّدش id جديد في الحالة دي.
+    ⛔ الـid الجديد بيتولّد من السيرفر ⬇️ عميل ما يقدرش
+       يحط id من عنده.
+    """
+    u = require_user()
+    if not u:
+        return _chart_denied()
+    uid = _chart_uid(u)
+    if not uid:
+        return _chart_denied()
+
+    # ⛌ حجم الطلب
+    if _chart_body_size() > CHARTS_MAX_BYTES:
+        return jsonify({
+            "ok": False,
+            "error": "الطلب كبير أوي — الحد 1 ميجا",
+        }), 400
+
+    # ⛌ لازم يكون JSON
+    if not getattr(request, "is_json", True):
+        return jsonify({"ok": False, "error": "الطلب لازم يكون JSON"}), 400
+    try:
+        data = request.get_json(silent=True)
+    except Exception:
+        data = None
+    if data is None:
+        return jsonify({"ok": False, "error": "الطلب لازم يكون JSON"}), 400
+    if not isinstance(data, dict):
+        return jsonify({"ok": False,
+                        "error": "الطلب لازم يكون JSON object"}), 400
+
+    chart, err = _chart_validate(data)
+    if err:
+        return jsonify({"ok": False, "error": err}), 400
+
+    with CHARTS_LOCK:
+        d = _charts_load()
+        mine = d.get(uid)
+        mine = mine if isinstance(mine, dict) else {}
+
+        cid = chart.get("id") or ""
+        created = True
+
+        if cid and cid in mine:
+            # ⛔ تحديث رسمة موجودة
+            created = False
+        elif cid:
+            # ⛔ الـid ده موجود عند حد تاني ⬇️ 404 ⬇️ من غير ما
+            #    نولّد id جديد ومن غير ما نلمس رسمة حد.
+            other = False
+            for ouid, oc in d.items():
+                if ouid == uid or not isinstance(oc, dict):
+                    continue
+                if cid in oc:
+                    other = True
+                    break
+            if other:
+                return _chart_missing()
+            cid = ""
+
+        if not cid:
+            # ⛔ حد الرسومات لكل مستخدم
+            if len(mine) >= CHARTS_MAX:
+                return jsonify({
+                    "ok": False,
+                    "error": ("وصلت للحد — %d رسمة لكل مستخدم"
+                              % CHARTS_MAX),
+                }), 400
+            cid = _secrets_mod.token_hex(8)
+            created = True
+
+        now = int(time.time())
+        rec = {
+            "id": cid,
+            "name": chart["name"],
+            "note": chart["note"],
+            "symbol": chart["symbol"],
+            "tf": chart["tf"],
+            "type": chart["type"],
+            "indicators": chart["indicators"],
+            "drawings": chart["drawings"],
+            "created": now,
+            "updated": now,
+        }
+        old = mine.get(cid)
+        if isinstance(old, dict) and old.get("created"):
+            rec["created"] = int(old.get("created") or now)
+        mine[cid] = rec
+        d[uid] = mine
+        if not _charts_save(d):
+            return jsonify({
+                "ok": False,
+                "error": "حصل خطأ في الحفظ — جرب تاني",
+            }), 500
+
+    return jsonify({"ok": True, "id": cid, "created": created,
+                    "updated": rec["updated"]})
+
+
+@app.route("/api/charts/<chart_id>", methods=["GET"])
+def charts_get_one(chart_id=None):
+    """📄 رسمة واحدة — لو مش بتاعتك ⬇️ 404."""
+    u = require_user()
+    if not u:
+        return _chart_denied()
+    uid = _chart_uid(u)
+    if not uid:
+        return _chart_denied()
+
+    cid = _chart_id_arg(chart_id)
+    if not cid or cid == "list":
+        return _chart_missing()
+
+    with CHARTS_LOCK:
+        d = _charts_load()
+    mine = d.get(uid)
+    mine = mine if isinstance(mine, dict) else {}
+    rec = mine.get(cid)
+    if not isinstance(rec, dict):
+        return _chart_missing()
+    return jsonify({"ok": True, "chart": _chart_full(rec)})
+
+
+@app.route("/api/charts/<chart_id>", methods=["DELETE"])
+def charts_delete(chart_id=None):
+    """🗑️ حذف رسمة — لو مش بتاعتك ⬇️ 404."""
+    u = require_user()
+    if not u:
+        return _chart_denied()
+    uid = _chart_uid(u)
+    if not uid:
+        return _chart_denied()
+
+    cid = _chart_id_arg(chart_id)
+    if not cid:
+        return _chart_missing()
+
+    with CHARTS_LOCK:
+        d = _charts_load()
+        mine = d.get(uid)
+        if not isinstance(mine, dict) or cid not in mine:
+            return _chart_missing()
+        mine.pop(cid, None)
+        d[uid] = mine
+        if not _charts_save(d):
+            return jsonify({
+                "ok": False,
+                "error": "حصل خطأ في الحفظ — جرب تاني",
+            }), 500
+
+    return jsonify({"ok": True, "deleted": True, "id": cid})
 
 
 # ══════════════════════════════════════════════════════════════
