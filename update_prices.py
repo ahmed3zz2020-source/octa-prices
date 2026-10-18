@@ -5138,6 +5138,62 @@ def _build_egx():
     return out or _HARDCODED_EGX
 
 
+# ═══ TradingView: استكمال الأسهم الناقصة من قائمة الملفات ═══
+# السبب: قائمة الملفات (data_full) ناقصة ٣٥ سهم، فبتبقى سعرها قديم من شهور
+_UNIVERSE_READY = False  # نقراش القائمة مرة واحدة
+_TV_EXTRA = []          # [(code, name)]
+_TV_EXTRA_DONE = False
+
+
+def tv_extra_codes():
+    """يجيب الرموز الموجودة في TradingView وغير موجودة عندنا، بأسمائها.
+
+    ⛔ مفيش تخمين — الاسم لازم ييجي من TradingView نفسه.
+    لو المصدر واقع، نرجع للقائمة الفاضية وبس (مفيش بيانات مفبركة).
+    """
+    global _TV_EXTRA, _TV_EXTRA_DONE
+    if _TV_EXTRA_DONE:
+        return _TV_EXTRA
+    have = {c for c, _, _ in EGX}
+    try:
+        p = {"symbols": {"query": {"types": []}, "tickers": []},
+             "columns": ["name", "close"], "range": [0, 400]}
+        rr = requests.post(SCANNER_URL, json=p, headers=TV_HEADERS, timeout=30)
+        rr.raise_for_status()
+        rows = rr.json().get("data", [])
+    except Exception as e:
+        print(f"  ⚠️ استكمال TradingView: {str(e)[:70]}")
+        return []
+
+    # نجيب أسماء الرموز الناقصة في طلبات صغيرة
+    missing = [r["s"].replace("EGX:", "") for r in rows
+               if r["s"].replace("EGX:", "") not in have
+               and not r["s"].replace("EGX:", "").startswith("EGS")]
+    names = {}
+    CH = 40
+    for i in range(0, len(missing), CH):
+        chunk = missing[i:i + CH]
+        try:
+            q = {"symbols": {"tickers": [f"EGX:{c}" for c in chunk], "query": {"types": []}},
+                 "columns": ["name", "description"]}
+            nn = requests.post(SCANNER_URL, json=q, headers=TV_HEADERS, timeout=25)
+            for row in nn.json().get("data", []):
+                cd = row["s"].replace("EGX:", "")
+                dd = row.get("d") or []
+                desc = (dd[1] if len(dd) > 1 else "") or ""
+                desc = str(desc).strip()
+                # ⛔ لو الاسم رجع زي الرمز نفسه يبقى المصدر مش راجع اسم
+                if desc and desc.upper() != cd.upper():
+                    names[cd] = desc
+            time.sleep(0.12)
+        except Exception:
+            continue
+
+    _TV_EXTRA = [(c, names[c]) for c in sorted(names) if c not in have]
+    _TV_EXTRA_DONE = True
+    print(f"  ➕ استكمال TradingView: {len(_TV_EXTRA)} سهم ناقص أضيفوا")
+    return _TV_EXTRA
+
 EGX = _build_egx()
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
@@ -7772,6 +7828,18 @@ def update_loop():
             print(f"Market: {phase} → every {interval}s")
             print("=" * 45)
 
+            global _UNIVERSE_READY
+            if not _UNIVERSE_READY:
+                _UNIVERSE_READY = True
+                try:
+                    for _c, _n in tv_extra_codes():
+                        if _c not in EGX_MAP:
+                            EGX.append((_c, _n, "—"))
+                            EGX_MAP[_c] = (_n, "—")
+                            print(f"     ➕ {_c} — {_n[:30]}")
+                except Exception as _e:
+                    print(f"  ⚠️ إضافة الناقصين: {str(_e)[:70]}")
+
             scan = tv_scan_all()
             global LAST_KNOWN_PRICES
             known = {s["code"]: s for s in LAST_KNOWN_PRICES}
@@ -7793,13 +7861,17 @@ def update_loop():
                     # درجة الثقة بالبيانات: كام حقل فعلاً اتجاوب
                     item["data_quality"] = _quality_of(item)
                     st.append(item)
-                    known[code] = {"code": code, "price": live["price"], "change": live["change"]}
+                    known[code] = {"code": code, "price": live["price"], "change": live["change"],
+                                   "ts": now_ts}
                 elif code in known:
                     # مش موجود عند TradingView → نستخدم آخر سعر معروف
                     st.append({
                         "code": code, "name": name, "sector": sec,
                         "price": known[code]["price"], "change": known[code]["change"],
-                        "change_abs": 0, "volume": 0, "stale": True
+                        "change_abs": 0, "volume": 0,
+                        "stale": True,
+                        "stale_ts": known[code].get("ts"),
+                        "stale_reason": "المصدر الحيّ مابيرجّعش السهم ده دلوقتي"
                     })
             LAST_KNOWN_PRICES = list(known.values())
 
