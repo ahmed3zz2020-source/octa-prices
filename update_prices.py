@@ -10828,6 +10828,54 @@ _TECH_MAP = {
 _TECH = {"at": 0, "d": {}, "ttl": 300}
 _TECH_LOCK = threading.Lock()
 
+# ⛔⛔⛔ ليه المسار الخاص بالسوق وليس الـglobal؟
+#   /global/scan بيرجّع الأرقام المالية **بالدولار**:
+#     COMI  eps = 0.4148   و mc = 7,797,766,999
+#   /egypt/scan  بيرجّعها **بالجنيه**:
+#     COMI  eps = 20.79    و mc = 425,642,303,467
+#   (نسبة 50.13 و 54.58 = سعر الصرف)
+#   الأسعار في الموقع بالجنيه، فكان عمود EPS بيعرض رقم بالدولار
+#   جنب سعر بالجنيه — وعمود القيمة السوقية كمان غلط.
+#   المؤشرات الفنية (RSI · SMA200 · MACD · التذبذب) بلغة-local
+#   على النداءين، بس الأساسيات(string) هي اللي بتتعمل بـcurrency.
+_TV_SLUG = {"EGX": "egypt", "NASDAQ": "america", "TADAWUL": "ksa", "DFM": "uae"}
+# الحقول اللي بتتأثر WorkingCurrency — بتتشال لو fallback على global
+_TV_FX_SENSITIVE = ("earnings_per_share_diluted_ttm", "market_cap_basic")
+
+
+def _tv_scan_local(slug, cols):
+    """سكانر TradingView الخاص بسوق واحد — كل الأرقام بعملة السوق"""
+    try:
+        body = {
+            "symbols": {"query": {"types": []}, "tickers": []},
+            "filter": [{"left": "name", "operation": "match", "right": "."}],
+            "options": {"lang": "en"},
+            "columns": cols,
+            "range": [0, 1000],
+            "sort": {"sortBy": "market_cap_basic", "sortOrder": "desc"},
+        }
+        r = requests.post(
+            "https://scanner.tradingview.com/%s/scan" % slug,
+            data=_json.dumps(body),
+            headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"},
+            timeout=25,
+        )
+        if r.status_code != 200:
+            return {}
+        out = {}
+        for row in (r.json() or {}).get("data", []):
+            code = row["s"].split(":")[-1]
+            rec = {}
+            for i, c in enumerate(cols):
+                if i < len(row.get("d") or []) and row["d"][i] is not None:
+                    rec[c] = row["d"][i]
+            if rec:
+                out[code] = rec
+        return out
+    except Exception as e:
+        print(f"[tv_local_{slug}] {e}")
+        return {}
+
 
 def _tech_renamed(cols, rec):
     """يحوّل أعمدة TradingView لأسماء الفلتر — والمNull بتتشال"""
@@ -10868,7 +10916,13 @@ def api_market_tech():
                     for key, ex in mk_map.items():
                         if mk != "all" and mk != key:
                             continue
-                        got = _tv_scan_market(ex, _TECH_COLS)
+                        slug = _TV_SLUG.get(ex)
+                        got = _tv_scan_local(slug, _TECH_COLS) if slug else {}
+                        if not got:                       # ⛔ fallback محلي
+                            got = _tv_scan_market(ex, _TECH_COLS)
+                            for rec in got.values():        # ⛔ شيل WorkingCurrency
+                                for f in _TV_FX_SENSITIVE:
+                                    rec.pop(f, None)
                         if got:
                             out[key] = {c: _tech_renamed(_TECH_COLS, r)
                                         for c, r in got.items()}
