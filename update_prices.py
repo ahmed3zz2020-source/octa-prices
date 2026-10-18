@@ -8876,6 +8876,115 @@ def gold_api():
     })
 
 
+# ══════════════════════════════════════════════════════════════
+#  🥇 شموع الذهب — عشان التحليل الفني يبقى على أرقام حقيقية
+#  ──────────────────────────────────────────────────────────────
+#  ⛔ لازم شموع. من غيرها مافيش RSI ولا MACD ولا دعم ومقاومة.
+#     وممنوع نخترع ولا رقم واحد — لو المصدر رجّع «مفيش» بنقول
+#     «مفيش» ونقفل.
+#  📌 المصدر: Yahoo Finance chart API — من **السيرفر**.
+#     ⛔ المتصفح مش هيقدر: CORS. فلازم الطلب يبقى من هنا.
+#  📌 التوقيت: الشموع بتوقيت غرينتش — هنقصّها UTC زي ما هي.
+# ══════════════════════════════════════════════════════════════
+_GOLD_CANDLE_CACHE = {}
+_GOLD_CANDLE_TTL = 3600
+_GOLD_SYMBOLS = {
+    "XAUUSD": ("GC=F", "ذهب — Comex"),
+    "XAGUSD": ("SI=F", "فضة — Comex"),
+}
+
+
+@app.route("/api/gold/candles")
+def gold_candles_api():
+    """شموع يومية للذهب/الفضة — {t,o,h,l,c,v}"""
+    sym = (request.args.get("symbol") or "XAUUSD").upper().strip()
+    got = _GOLD_SYMBOLS.get(sym)
+    if not got:
+        return jsonify({"ok": False, "error": "الرمز ده مش مدعوم"}), 400
+    ysym, yname = got
+    try:
+        n = int(request.args.get("n", "320"))
+    except Exception:
+        n = 320
+    n = max(60, min(n, 700))
+    # ⛔ ٢٢ يوم تداول في الشهر تقريبًا — نشتري شوية زيادة عشان التقليم
+    months = max(3, int(n / 22) + 1)
+    rng = "5y" if months > 36 else ("2y" if months > 18 else ("1y" if months > 9 else "6mo"))
+
+    import time as _ct
+    ck = f"{sym}:{n}"
+    hit = _GOLD_CANDLE_CACHE.get(ck)
+    if hit and (_ct.time() - hit[0]) < _GOLD_CANDLE_TTL:
+        return jsonify({"ok": True, "symbol": sym, "name": yname,
+                        "source": "Yahoo Finance", "count": len(hit[1]),
+                        "age": int(_ct.time() - hit[0]), "candles": hit[1]})
+
+    try:
+        r = requests.get(
+            f"https://query1.finance.yahoo.com/v8/finance/chart/{ysym}",
+            params={"range": rng, "interval": "1d",
+                    "includePrePost": "false"},
+            headers={
+                "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                               "AppleWebKit/537.36 Chrome/120 Safari/537.36"),
+                "Accept": "application/json,text/plain,*/*",
+            },
+            timeout=25,
+        )
+        if r.status_code != 200:
+            return jsonify({"ok": False,
+                            "error": f"المصدر رجّع {r.status_code}"}), 502
+        try:
+            j = r.json()
+        except Exception as pe:
+            return jsonify({"ok": False, "error": f"رد غير مفهوم: {str(pe)[:40]}"}), 502
+
+        res = ((j or {}).get("chart") or {}).get("result") or []
+        if not res:
+            err = (((j or {}).get("chart") or {}).get("error") or {})
+            return jsonify({"ok": False, "error": "مفيش شموع من المصدر",
+                            "detail": str(err.get("description") or "")[:80]}), 404
+        r0 = res[0]
+        ts = r0.get("timestamp") or []
+        q = ((r0.get("indicators") or {}).get("quote") or [{}])[0]
+        o = q.get("open") or []
+        h = q.get("high") or []
+        l = q.get("low") or []
+        c = q.get("close") or []
+        v = q.get("volume") or []
+
+        out = []
+        for i in range(len(ts)):
+            try:
+                cc = float(c[i])
+                oo = float(o[i]) if i < len(o) else cc
+                hh = float(h[i]) if i < len(h) else cc
+                ll = float(l[i]) if i < len(l) else cc
+                if cc <= 0 or oo <= 0:
+                    continue
+                out.append({
+                    "t": datetime.utcfromtimestamp(int(ts[i])).strftime("%Y-%m-%d"),
+                    "o": round(oo, 2), "h": round(hh, 2),
+                    "l": round(ll, 2), "c": round(cc, 2),
+                    "v": int(v[i] or 0) if i < len(v) else 0,
+                })
+            except Exception:
+                continue
+
+        if len(out) < 30:
+            return jsonify({"ok": False, "error": "الشموع ناقصة"}), 404
+        out = out[-n:]
+        _GOLD_CANDLE_CACHE[ck] = (_ct.time(), out)
+        if len(_GOLD_CANDLE_CACHE) > 20:
+            _GOLD_CANDLE_CACHE.pop(next(iter(_GOLD_CANDLE_CACHE)))
+        return jsonify({"ok": True, "symbol": sym, "name": yname,
+                        "source": "Yahoo Finance", "count": len(out),
+                        "last": out[-1]["t"], "candles": out})
+    except Exception as e:
+        _log_exc("gold-candles", e)
+        return jsonify({"ok": False, "error": "تعذّر جلب الشموع"}), 502
+
+
 @app.route("/api/top-movers")
 def top_movers():
     """أعلى/أسفل 10 أسهم + الأكثر تداولاً"""
