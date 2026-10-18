@@ -10786,6 +10786,114 @@ def api_quotes():
     })
 
 
+# ══════════════════════════════════════════════════════════════
+# 📊  /api/market_tech  — أرقام التحليل لكل الأسهم (تتبع TradingView)
+# ──────────────────────────────────────────────────────────────
+# ⛔ ليه المسار ده؟
+#    فلتر OCTAView كان بياخد الأرقام من ملف ثابت data/data_markets.js
+#    (في ريبو الموقع) اتبنى مرة واحدة وبطّل. السعر كان بيتحدّث لحظياً
+#    من /api/quotes، بس RSI والأداء والقيمة السوقية ومضاعف الربحية
+#    والـ P/E كانت كلها ثابتة من يوم 7 أكتوبر.
+#
+#    ⛔ كل الحقول دي موجودة عند TradingView نفسه — فلتر اسمه
+#    «فلاتر TradingView» المفروض يعرض أرقام TradingView بالظبط.
+#
+# 📌 القاعدة المهمة: القيمة اللي TradingView مش متأكد منها (null)
+#    مش بتبعت خالص — عشان الفلتر يحتفظ بالقيمة اللي عنده بدل ما
+#    يشيلها. (مثلاً P/E موجود عند TV لـ59 سهم بس من 296،
+#    والباقي قيمته من مصدر التقييم الأساسي.)
+# ══════════════════════════════════════════════════════════════
+_TECH_COLS = [
+    "RSI", "SMA200", "MACD.macd", "MACD.signal",
+    "Perf.W", "Perf.1M", "Perf.3M", "Perf.6M", "Perf.Y", "Perf.YTD",
+    "Volatility.D", "market_cap_basic",
+    "price_earnings_ttm", "price_book_fq", "earnings_per_share_diluted_ttm",
+    "return_on_equity_fq", "return_on_assets", "return_on_invested_capital",
+    "debt_to_equity", "dividends_yield_current",
+    "average_volume_30d_calc", "relative_volume_10d_calc",
+]
+
+# عمود TradingView  →  اسم الحقل اللي الفلتر بيقراه
+_TECH_MAP = {
+    "RSI": "rsi", "SMA200": "sma200", "MACD.macd": "macd", "MACD.signal": "macdSig",
+    "Perf.W": "p1w", "Perf.1M": "p1m", "Perf.3M": "p3m", "Perf.6M": "p6m",
+    "Perf.Y": "p1y", "Perf.YTD": "pYtd", "Volatility.D": "volD",
+    "market_cap_basic": "mc", "price_earnings_ttm": "pe", "price_book_fq": "pb",
+    "earnings_per_share_diluted_ttm": "eps", "return_on_equity_fq": "roe",
+    "return_on_assets": "roa", "return_on_invested_capital": "roic",
+    "debt_to_equity": "de", "dividends_yield_current": "dy",
+    "average_volume_30d_calc": "av30", "relative_volume_10d_calc": "relvol",
+}
+
+_TECH = {"at": 0, "d": {}, "ttl": 300}
+_TECH_LOCK = threading.Lock()
+
+
+def _tech_renamed(cols, rec):
+    """يحوّل أعمدة TradingView لأسماء الفلتر — والمNull بتتشال"""
+    out = {}
+    for c, d in (rec or {}).items():
+        f = _TECH_MAP.get(c)
+        if f is not None and d is not None:
+            out[f] = d
+    return out
+
+
+@app.route("/api/market_tech")
+def api_market_tech():
+    """
+    أرقام التحليل لكل الأسهم مباشرة من TradingView scanner.
+    ?market=egypt|us|saudi|uae   (افتراضي: كلهم)
+    الكاش 300 ثانية — الأرقام دي بتتغير باليوم مش بالدقيقة.
+    """
+    import time as _t
+
+    mk = (request.args.get("market") or "all").lower()
+    now = _t.time()
+    if now - _TECH["at"] < _TECH["ttl"] and _TECH["d"]:
+        data = _TECH["d"]
+        fresh = False
+    else:
+        fresh = True
+        data = None
+        with _TECH_LOCK:
+            if now - _TECH["at"] < _TECH["ttl"] and _TECH["d"]:
+                data = _TECH["d"]
+                fresh = False
+            else:
+                try:
+                    mk_map = {"egypt": "EGX", "us": "NASDAQ",
+                              "saudi": "TADAWUL", "uae": "DFM"}
+                    out = {}
+                    for key, ex in mk_map.items():
+                        if mk != "all" and mk != key:
+                            continue
+                        got = _tv_scan_market(ex, _TECH_COLS)
+                        if got:
+                            out[key] = {c: _tech_renamed(_TECH_COLS, r)
+                                        for c, r in got.items()}
+                    if out:
+                        _TECH.update(at=now, d=out)
+                        data = out
+                        print(f"[market_tech] {sum(len(v) for v in out.values())} سهم")
+                except Exception as e:
+                    print(f"[market_tech] err: {e}")
+                if data is None:                       # ⛔ مفيش downtime
+                    data = _TECH["d"]
+
+    data = data or {}
+    return jsonify({
+        "ok": True,
+        "ts": int(now),
+        "updated": _TECH["at"],
+        "age": int(now - _TECH["at"]),
+        "ttl": _TECH["ttl"],
+        "fresh": fresh,
+        "markets": data,
+        "counts": {k: len(v) for k, v in data.items()},
+    })
+
+
 def _tv_scan_market(exchange, cols):
     """يجيب أسعار كل أسهم بورصة من TradingView scanner"""
     try:
