@@ -10167,7 +10167,13 @@ def api_tv_logo(logoid):
 # ══════════════════════════════════════════════════════════════
 #  📊 شموع تاريخ حقيقية — startamarkets (4996 شمعة لكل سهم)
 # ══════════════════════════════════════════════════════════════
+# ⛔⛔ الكاش كان ما عندهوش ttl خالص — _CANDLE_CACHE[ck] = out وبس.
+#   يعني أول ما السهم اتجلب مرة، الشموع بتقعد متجمدة لحد ما السيرفر
+#   يعمل restart. آخر جلسة كانت هتظهر بعد إعادة نشر مش لوحدها.
+#   ⛌ بقى عندها ttl: 30 دقيقة في جلسة التداول (عشان شمعة اليوم
+#   تظهر بعد الإغلاق) و 6 ساعات وهو مقفول.
 _CANDLE_CACHE = {}
+_CANDLE_TTL = 1800
 
 
 @app.route("/api/candles/<code>", methods=["GET"])
@@ -10184,8 +10190,11 @@ def api_candles(code):
     n = max(60, min(n, 1200))
 
     ck = f"{code}:{n}"
-    if ck in _CANDLE_CACHE:
-        return jsonify({"ok": True, "code": code, "candles": _CANDLE_CACHE[ck]})
+    import time as _ct
+    _hit = _CANDLE_CACHE.get(ck)
+    if _hit and (_ct.time() - _hit[0]) < _CANDLE_TTL:
+        return jsonify({"ok": True, "code": code, "candles": _hit[1],
+                        "age": int(_ct.time() - _hit[0])})
 
     try:
         r = requests.get(
@@ -10228,10 +10237,11 @@ def api_candles(code):
         if not out:
             return jsonify({"ok": False, "error": "parse"}), 404
 
-        _CANDLE_CACHE[ck] = out
+        _CANDLE_CACHE[ck] = (_ct.time(), out)
         if len(_CANDLE_CACHE) > 60:
             _CANDLE_CACHE.pop(next(iter(_CANDLE_CACHE)))
-        return jsonify({"ok": True, "code": code, "count": len(out), "candles": out})
+        return jsonify({"ok": True, "code": code, "count": len(out),
+                        "age": 0, "candles": out})
     except Exception as e:
         _log_exc("upstream-502c", e)
         return jsonify({"ok": False, "error": "تعذّر جلب البيانات من المصدر"}), 502
