@@ -944,6 +944,13 @@ def compute(force=False):
         # لأسعار السبوت بـ basis واحد ثابت (وسيط متحرك).
         # ⛔ ولا كلمة «نحو» في الكود — التحويل constant واحد.
         # ══════════════════════════════════════════════════════════════
+        def _age(bs):
+            """عمر آخر شمعة بالثواني — 10^9 لو مفيش شموع."""
+            try:
+                return (now_ts() - bs[-1]["t"]) if bs else 10 ** 9
+            except Exception:
+                return 10 ** 9
+
         try:
             _, b5 = fetch_yahoo("GC=F", "5m", "5d")
             _, b15 = fetch_yahoo("GC=F", "15m", "1mo")
@@ -954,15 +961,48 @@ def compute(force=False):
             errors.append("yahoo:%s" % e)
             b5 = b15 = b60 = bh = bd = []
 
+        # ⛔⛔ Yahoo وقفت بتفصّل شموع الذهب — آخر M5 عندنا ١٦ أكتوبر
+        # وبترجّعها كأنها سليمة. المحرك كان يسلّم شموع ميتة ⇒ بوابة
+        # «الشموع واقفة» دايمة ⇒ الكارت أزرق على طول وبلا Levels ولا صفقات.
+        #
+        # ⛌ الحل: لو Yahoo رجعت فاضية أو متأخرة أكتر من ٣٠ دقيقة ننتقل
+        # لـOKX (PAXG/USDT) لكل الفريمات — مصدر واحد زي المقصود، بس ده
+        # اللي بيتحدث فعلاً. والـbasis يتحسب من الفارق مع **سعر السبوت
+        # الحقيقي** بدل تقاطع شموع Yahoo الميتة.
+        # ⚠️ مفيش ولا عتبة اتغيرت — إصلاح مصدر فقط.
+        SRC = "yahoo"
+        if _age(b5) > 1800:
+            SRC = "okx"
+            errors.append("yahoo_stale: آخر شمعة M5 عمرها %d دقيقة"
+                          % (_age(b5) // 60))
+            try:
+                b5 = fetch_okx("5m", 300, 1)
+                b15 = fetch_okx("15m", 300, 1)
+                b60 = fetch_okx("1H", 300, 1)
+                bh = fetch_okx("4H", 300, 1)
+                bd = fetch_okx("1D", 300, 1)
+            except Exception as e:
+                errors.append("okx:%s" % e)
+
         # basis: وسيط متحرك لفروق آخر ٨ ساعات على شموع ١٥ دقيقة
         basis, basis_mad, basis_n = None, None, 0
         try:
-            ok = {int(x[0]) // 1000: float(x[4])
-                  for x in _http_retry(
-                      "https://www.okx.com/api/v5/market/candles"
-                      "?instId=PAXG-USDT&bar=15m&limit=300").get("data") or []}
-            ym = {b["t"] - b["t"] % 900: b["c"] for b in b15}
-            diffs = [ym[t] - ok[t] for t in sorted(set(ym) & set(ok))][-32:]
+            _ok_rows = _http_retry(
+                "https://www.okx.com/api/v5/market/candles"
+                "?instId=PAXG-USDT&bar=15m&limit=300").get("data") or []
+            ok = {int(x[0]) // 1000: float(x[4]) for x in _ok_rows}
+            if SRC == "okx":
+                # ⛌ Yahoo ميتة ⇒ مفيش تقاطع نحسب منه basis.
+                # نحسبه من الفارق الحقيقي بين OKX وسعر السبوت المتفق
+                # عليه من ٣ مصادر (نفس المنطق، بس بمصدر طازج).
+                _sp = fetch_spot()
+                _cons = float(_sp.get("consensus") or 0) if _sp else 0.0
+                _ok_sorted = [float(x[4]) for x in
+                              sorted(_ok_rows, key=lambda z: int(z[0]))][-32:]
+                diffs = ([c - _cons for c in _ok_sorted] if _cons > 0 else [])
+            else:
+                ym = {b["t"] - b["t"] % 900: b["c"] for b in b15}
+                diffs = [ym[t] - ok[t] for t in sorted(set(ym) & set(ok))][-32:]
             if len(diffs) >= 8:
                 basis = statistics.median(diffs)
                 basis_mad = _r2(statistics.fmean([abs(d - basis) for d in diffs]))
