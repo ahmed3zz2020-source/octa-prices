@@ -1194,6 +1194,10 @@ def register(app):
                 "score": v["score"], "strength": v["strength"],
                 "turn": v["turn"], "price": v["price"],
                 "all_ok": v["all_ok"], "cairo": v["cairo"],
+                # ⛔ السوق مقفول حالة مستقلة عن «خامل»:
+                # «خامل» = حلّلنا وما لقيناش حاجة.
+                # «مقفول» = السوق مش شغال أصلاً ومفيش تحليل خالص.
+                "closed": (v.get("session") or {}).get("phase") == "مغلق",
                 "news_blocked": bool(v["news"]["blocked"]),
                 "frozen": v["learn"]["frozen"],
                 "gates": v["gates"],
