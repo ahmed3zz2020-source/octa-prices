@@ -2,6 +2,8 @@ import json, time, requests, os, threading
 import os as _os  # alias للمعاملات (EGX_RISK_FREE) — واحد يكفي، وده أوضح
 import div_actions
 from flask import Flask, jsonify, request, Response
+import json as _json
+import urllib.request as _urllib
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -5193,6 +5195,40 @@ def tv_extra_codes():
     _TV_EXTRA_DONE = True
     print(f"  ➕ استكمال TradingView: {len(_TV_EXTRA)} سهم ناقص أضيفوا")
     return _TV_EXTRA
+
+# ═══ تشخيص مؤقت: مصادر بديلة للأسهم اللي TradingView مش بيجيبها ═══
+@app.route("/api/probe_alt")
+def probe_alt():
+    out = {}
+    HDRS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+            "Accept": "application/json,text/plain,*/*",
+            "Accept-Language": "en-US,en;q=0.9"}
+    try:
+        rq = _urllib.Request(
+            "https://api.investing.com/api/search/v2/search?q=FCMD",
+            headers=dict(HDRS, **{"domain-id": "www",
+                                  "Origin": "https://www.investing.com",
+                                  "Referer": "https://www.investing.com/"}))
+        b = _urllib.urlopen(rq, timeout=20).read().decode("utf-8", "replace")
+        try:
+            j = _json.loads(b)
+            out["investing"] = [(h.get("id"), h.get("symbol"), h.get("name"))
+                                for h in j if h.get("symbol") in
+                                ("FCMD", "ESAC", "NAPR", "ACRO")][:6]
+        except Exception:
+            out["investing"] = b[:150]
+    except Exception as e:
+        out["investing"] = "ERR " + str(e)[:80]
+    try:
+        rq = _urllib.Request(
+            "https://www.egx.com.eg/EGX/Shared/GetSecuritiesData"
+            "?lang=en-us&country=EG&pagesize=5",
+            headers=dict(HDRS, **{"Referer": "https://www.egx.com.eg/"}))
+        out["egx"] = _urllib.urlopen(rq, timeout=20).read().decode("utf-8", "replace")[:150]
+    except Exception as e:
+        out["egx"] = "ERR " + str(e)[:80]
+    return jsonify(out)
 
 EGX = _build_egx()
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
