@@ -5202,35 +5202,23 @@ def probe_alt():
     out = {}
     HDRS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-            "Accept": "application/json,text/plain,*/*",
-            "Accept-Language": "en-US,en;q=0.9"}
-    try:
-        rq = _urllib.Request(
-            "https://api.investing.com/api/search/v2/search?q=FCMD",
-            headers=dict(HDRS, **{"domain-id": "www",
-                                  "Origin": "https://www.investing.com",
-                                  "Referer": "https://www.investing.com/"}))
-        b = _urllib.urlopen(rq, timeout=20).read().decode("utf-8", "replace")
+            "Accept": "application/json,text/plain,*/*"}
+    for tag, url in [
+        ("site", "https://www.investing.com/search/service/search/v2/search?q=FCMD"),
+        ("api_n", "https://api.investing.com/api/search/v2/search?q=Fowler+Ceramic"),
+        ("api_c", "https://api.investing.com/api/search/v2/search?q=National+Printing+Egypt"),
+        ("api_a", "https://api.investing.com/api/search/v2/search?q=Acro+Egypt"),
+    ]:
         try:
-            j = _json.loads(b)
-            out["inv_keys"] = list(j.keys())[:12] if isinstance(j, dict) else "list"
-            _all = j.get("quotes") or j.get("data") or [] if isinstance(j, dict) else []
-            out["inv_quotes"] = [(h.get("id"), h.get("symbol"), h.get("name"),
-                                  h.get("pair_ID"), h.get("type"))
-                                 for h in _all][:8]
-            out["inv_raw_head"] = b[:400]
-        except Exception:
-            out["investing"] = b[:150]
-    except Exception as e:
-        out["investing"] = "ERR " + str(e)[:80]
-    try:
-        rq = _urllib.Request(
-            "https://www.egx.com.eg/EGX/Shared/GetSecuritiesData"
-            "?lang=en-us&country=EG&pagesize=5",
-            headers=dict(HDRS, **{"Referer": "https://www.egx.com.eg/"}))
-        out["egx"] = _urllib.urlopen(rq, timeout=20).read().decode("utf-8", "replace")[:150]
-    except Exception as e:
-        out["egx"] = "ERR " + str(e)[:80]
+            h = dict(HDRS)
+            if url.startswith("https://www."):
+                h.update({"Referer": "https://www.investing.com/", "Origin": "https://www.investing.com"})
+            else:
+                h.update({"domain-id": "www", "Referer": "https://www.investing.com/"})
+            b = _urllib.urlopen(_urllib.Request(url, headers=h), timeout=20).read().decode("utf-8", "replace")
+            out[tag] = b[:300]
+        except Exception as e:
+            out[tag] = "ERR " + str(e)[:70]
     return jsonify(out)
 
 EGX = _build_egx()
