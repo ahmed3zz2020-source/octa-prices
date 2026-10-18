@@ -261,8 +261,17 @@ def fetch_yahoo(sym, interval="15m", rng="1mo"):
 
 
 def fetch_spot():
-    """ consensus من ٣ مصادر — لو اتفقوا، السعر موثوق."""
-    mids, src = [], {}
+    """ consensus من مصادر السبوت الحقيقية — لو اتفقوا، السعر موثوق.
+
+    ⛔⛔ PAXG **مش سبوت** — ده توكن بيتداول في سوق自己的工作.
+    سعره بيختلف عن XAU/USD بـ ٥ دولارات ore أكثر في وقت السكون.
+    كان بيخلّط في الحساب فيخلّي البوابة تفشل طول ما الو_asset التلاتة
+    مش متفقين — بينما المصدرين الحقيقيين متفقين بـ٠.١٤$.
+
+    ⛌ القاعد��: التوكن يفضل **للشموع** (ملف M5 طازج ومتحرك)،
+    بس **مش بيتحسب في اتفاق السبوت**.
+    """
+    mids, src, mids_tok = [], {}, []
     try:
         g = _http_retry("https://api.gold-api.com/price/XAU")
         src["gold-api"] = g.get("price")
@@ -275,7 +284,8 @@ def fetch_spot():
         mid = (float(t["bidPx"]) + float(t["askPx"])) / 2.0
         src["okx"] = _r2(mid)
         src["okx_spread"] = _r2(float(t["askPx"]) - float(t["bidPx"]))
-        mids.append(mid)
+        src["okx_note"] = "PAXG توكن — للشموع مش للاتفاق"
+        mids_tok.append(mid)
     except Exception:
         pass
     try:
@@ -288,11 +298,13 @@ def fetch_spot():
         pass
     if not mids:
         return None
+    spread = max(mids) - min(mids)
     return {"consensus": _r2(statistics.median(mids)),
             "min": _r2(min(mids)), "max": _r2(max(mids)),
-            "spread": _r2(max(mids) - min(mids)),
+            "spread": _r2(spread),
             "n": len(mids), "src": src,
-            "verified": len(mids) >= 2 and (max(mids) - min(mids)) <= CONF_MIN}
+            "token": (_r2(statistics.median(mids_tok)) if mids_tok else None),
+            "verified": len(mids) >= 2 and spread <= CONF_MIN}
 
 
 _CAL_CACHE = {}
