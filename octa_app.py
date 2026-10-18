@@ -29,6 +29,14 @@ import update_prices as U
 app = U.app
 print(f"[octa] app loaded, routes={len(app.url_map._rules)}", flush=True)
 
+# ══════════════════════════════════════════════════════════════════
+#  🥇 محرك إشارة الذهب — طبقة مستقلة تماماً (٤ مسارات)
+#  ⛔ مابيلمسش update_prices.py خالص · مافيش state مشترك
+# ══════════════════════════════════════════════════════════════════
+import gold_signal
+gold_signal.register(app)
+print(f"[octa] gold engine registered, routes={len(app.url_map._rules)}", flush=True)
+
 
 # ══════════════════════════════════════════════════════════════
 #  ② المتغيرات
