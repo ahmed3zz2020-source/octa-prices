@@ -5196,31 +5196,6 @@ def tv_extra_codes():
     print(f"  ➕ استكمال TradingView: {len(_TV_EXTRA)} سهم ناقص أضيفوا")
     return _TV_EXTRA
 
-# ═══ تشخيص مؤقت: مصادر بديلة للأسهم اللي TradingView مش بيجيبها ═══
-@app.route("/api/probe_alt")
-def probe_alt():
-    out = {}
-    HDRS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-            "Accept": "application/json,text/plain,*/*"}
-    for tag, url in [
-        ("site", "https://www.investing.com/search/service/search/v2/search?q=FCMD"),
-        ("api_n", "https://api.investing.com/api/search/v2/search?q=Fowler+Ceramic"),
-        ("api_c", "https://api.investing.com/api/search/v2/search?q=National+Printing+Egypt"),
-        ("api_a", "https://api.investing.com/api/search/v2/search?q=Acro+Egypt"),
-    ]:
-        try:
-            h = dict(HDRS)
-            if url.startswith("https://www."):
-                h.update({"Referer": "https://www.investing.com/", "Origin": "https://www.investing.com"})
-            else:
-                h.update({"domain-id": "www", "Referer": "https://www.investing.com/"})
-            b = _urllib.urlopen(_urllib.Request(url, headers=h), timeout=20).read().decode("utf-8", "replace")
-            out[tag] = b[:300]
-        except Exception as e:
-            out[tag] = "ERR " + str(e)[:70]
-    return jsonify(out)
-
 EGX = _build_egx()
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
