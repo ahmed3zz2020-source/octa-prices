@@ -5213,9 +5213,12 @@ def probe_alt():
         b = _urllib.urlopen(rq, timeout=20).read().decode("utf-8", "replace")
         try:
             j = _json.loads(b)
-            out["investing"] = [(h.get("id"), h.get("symbol"), h.get("name"))
-                                for h in j if h.get("symbol") in
-                                ("FCMD", "ESAC", "NAPR", "ACRO")][:6]
+            out["inv_keys"] = list(j.keys())[:12] if isinstance(j, dict) else "list"
+            _all = j.get("quotes") or j.get("data") or [] if isinstance(j, dict) else []
+            out["inv_quotes"] = [(h.get("id"), h.get("symbol"), h.get("name"),
+                                  h.get("pair_ID"), h.get("type"))
+                                 for h in _all][:8]
+            out["inv_raw_head"] = b[:400]
         except Exception:
             out["investing"] = b[:150]
     except Exception as e:
