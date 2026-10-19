@@ -5196,6 +5196,28 @@ def tv_extra_codes():
     print(f"  ➕ استكمال TradingView: {len(_TV_EXTRA)} سهم ناقص أضيفوا")
     return _TV_EXTRA
 
+@app.route("/api/probe_alt")
+def probe_alt():
+    import re as _re
+    out = {}
+    HDRS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.investing.com/"}
+    for slug in ("icmi", "national-printing-holding-company-napr", "acro-egypt"):
+        try:
+            b = _urllib.urlopen(_urllib.Request(
+                "https://www.investing.com/equities/" + slug,
+                headers=HDRS), timeout=25).read().decode("utf-8", "replace")
+            ids = sorted(set(_re.findall(r'"pair_ID"\s*:\s*"?(\d+)', b)) |
+                         set(_re.findall(r'"instrumentId"\s*:\s*"?(\d+)', b)))
+            out[slug] = {"len": len(b), "ids": ids[:6],
+                         "has7_84": "7.84" in b, "has_fcmd": "FCMD" in b}
+        except Exception as e:
+            out[slug] = "ERR " + str(e)[:80]
+    return jsonify(out)
+
 EGX = _build_egx()
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
