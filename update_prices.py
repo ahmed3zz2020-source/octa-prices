@@ -5198,24 +5198,24 @@ def tv_extra_codes():
 
 @app.route("/api/probe_alt")
 def probe_alt():
-    import re as _re
     out = {}
     HDRS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://www.investing.com/"}
-    for slug in ("icmi", "national-printing-holding-company-napr", "acro-egypt"):
+            "domain-id": "www", "Origin": "https://www.investing.com",
+            "Referer": "https://www.investing.com/equities/icmi"}
+    SD = "start-date=2026-10-01&end-date=2026-10-19&interval=P1D&time-frame=Daily"
+    for tag, url in [
+        ("slug_hist", "https://api.investing.com/api/financialdata/historical/icmi?" + SD),
+        ("slug_pl", "https://api.investing.com/api/financialdata/historical/ICMI?" + SD),
+        ("search_slug", "https://api.investing.com/api/search/service/search/v2/search?q=icmi"),
+        ("quotes_api", "https://api.investing.com/api/quotes/icmi"),
+        ("info_api", "https://api.investing.com/api/financialdata/historical/icmi/historical?" + SD),
+    ]:
         try:
-            b = _urllib.urlopen(_urllib.Request(
-                "https://www.investing.com/equities/" + slug,
-                headers=HDRS), timeout=25).read().decode("utf-8", "replace")
-            ids = sorted(set(_re.findall(r'"pair_ID"\s*:\s*"?(\d+)', b)) |
-                         set(_re.findall(r'"instrumentId"\s*:\s*"?(\d+)', b)))
-            out[slug] = {"len": len(b), "ids": ids[:6],
-                         "has7_84": "7.84" in b, "has_fcmd": "FCMD" in b}
+            b = _urllib.urlopen(_urllib.Request(url, headers=HDRS), timeout=20).read().decode("utf-8", "replace")
+            out[tag] = b[:220]
         except Exception as e:
-            out[slug] = "ERR " + str(e)[:80]
+            out[tag] = "ERR " + str(e)[:70]
     return jsonify(out)
 
 EGX = _build_egx()
