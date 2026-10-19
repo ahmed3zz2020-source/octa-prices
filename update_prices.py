@@ -4161,54 +4161,11 @@ def _save_ai_disk():
 
 # آخر سعر شفناه لكل سهم (بيتبني من ENGINE_TABLE_DATA أو أي مصدر)
 # بيتحفظ هنا عشان لو السعر الحي مش متاح، نستخدم آخر سعر معروف
-LAST_KNOWN_PRICES = [
-    {"code": "COMI",  "price": 127.69, "change": 1.10},
-    {"code": "TMGH",  "price": 87.70,  "change": 0.83},
-    {"code": "HRHO",  "price": 24.20,  "change": 1.68},
-    {"code": "ISPH",  "price": 11.70,  "change": 1.74},
-    {"code": "QNBE",  "price": 59.25,  "change": 2.16},
-    {"code": "EMFD",  "price": 13.56,  "change": 10.24},
-    {"code": "VLMRA", "price": 29.70,  "change": 2.41},
-    {"code": "DSCW",  "price": 1.70,   "change": 3.03},
-    {"code": "CIRA",  "price": 39.29,  "change": 3.18},
-    {"code": "FWRY",  "price": 18.85,  "change": 3.29},
-    {"code": "ORHD",  "price": 38.90,  "change": 3.48},
-    {"code": "ETEL",  "price": 138.71, "change": 3.51},
-    {"code": "CLHO",  "price": 15.70,  "change": 3.63},
-    {"code": "CCAP",  "price": 6.88,   "change": 3.77},
-    {"code": "ORAS",  "price": 819.99, "change": 3.78},
-    {"code": "ORWE",  "price": 27.84,  "change": 4.27},
-    {"code": "BONY",  "price": 4.09,   "change": 5.14},
-    {"code": "EFIH",  "price": 23.40,  "change": 5.31},
-    {"code": "RACC",  "price": 9.32,   "change": 5.31},
-    {"code": "AMOC",  "price": 14.05,  "change": 5.72},
-    {"code": "RAYA",  "price": 6.65,   "change": 7.26},
-    {"code": "EXPA",  "price": 21.03,  "change": 0.53},
-    {"code": "MNHD",  "price": 5.20,   "change": 1.96},
-    {"code": "SKPC",  "price": 15.84,  "change": 0.13},
-    {"code": "ABUK",  "price": 73.10,  "change": 0.29},
-    {"code": "SWDY",  "price": 91.80,  "change": -0.22},
-    {"code": "PHDC",  "price": 13.00,  "change": 1.96},
-    {"code": "JUFO",  "price": 8.30,   "change": 1.22},
-    {"code": "EGCH",  "price": 40.00,  "change": 0.50},
-    {"code": "MFPC",  "price": 58.00,  "change": 0.80},
-    {"code": "OCDI",  "price": 25.00,  "change": 0.40},
-    {"code": "ALEX",  "price": 60.00,  "change": 0.30},
-    {"code": "NINH",  "price": 30.00,  "change": 1.10},
-    {"code": "HDBK",  "price": 15.00,  "change": 0.70},
-    {"code": "FAIT",  "price": 20.00,  "change": 0.90},
-    {"code": "ADIB",  "price": 47.15,  "change": 0.34},
-    {"code": "CIEB",  "price": 25.00,  "change": 0.60},
-    {"code": "EKHO",  "price": 8.50,   "change": 0.59},
-    {"code": "PIOH",  "price": 12.00,  "change": 1.20},
-    {"code": "GBCO",  "price": 15.00,  "change": 0.80},
-    {"code": "AUTO",  "price": 4.50,   "change": 0.30},
-    {"code": "EASB",  "price": 18.00,  "change": 0.50},
-    {"code": "SUFI",  "price": 35.00,  "change": 0.70},
-    {"code": "UEGC",  "price": 10.00,  "change": 0.40},
-    {"code": "EAST",  "price": 80.00,  "change": 0.20},
-    {"code": "ESRS",  "price": 120.00, "change": 1.50},
-]  # ساعة
+# ⛔ ١٩ أكتوبر ٢٠٢٦ — شِلنا ٤٦ سعر مكتوب يدوي.
+#    السبب: الأسعار دي من سنين. المحرك كان بيرجع ليها لما السهم
+#    مش موجود في TradingView ⇒ المستخدم بيشوف سعر غلط من سنين.
+#    ⛌ رقم غلط أسوأ من «—». دلوقتي: مش متاح والسبب مكتوب للمستخدم.
+LAST_KNOWN_PRICES = []
 
 
 SYSTEM_PROMPT = """أنت محرك التحليل المالي OCTA — خبير البورصة المصرية (EGX).
