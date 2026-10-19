@@ -5196,28 +5196,6 @@ def tv_extra_codes():
     print(f"  ➕ استكمال TradingView: {len(_TV_EXTRA)} سهم ناقص أضيفوا")
     return _TV_EXTRA
 
-@app.route("/api/probe_alt")
-def probe_alt():
-    out = {}
-    HDRS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-            "domain-id": "www", "Origin": "https://www.investing.com",
-            "Referer": "https://www.investing.com/equities/icmi"}
-    SD = "start-date=2026-10-01&end-date=2026-10-19&interval=P1D&time-frame=Daily"
-    for tag, url in [
-        ("slug_hist", "https://api.investing.com/api/financialdata/historical/icmi?" + SD),
-        ("slug_pl", "https://api.investing.com/api/financialdata/historical/ICMI?" + SD),
-        ("search_slug", "https://api.investing.com/api/search/service/search/v2/search?q=icmi"),
-        ("quotes_api", "https://api.investing.com/api/quotes/icmi"),
-        ("info_api", "https://api.investing.com/api/financialdata/historical/icmi/historical?" + SD),
-    ]:
-        try:
-            b = _urllib.urlopen(_urllib.Request(url, headers=HDRS), timeout=20).read().decode("utf-8", "replace")
-            out[tag] = b[:220]
-        except Exception as e:
-            out[tag] = "ERR " + str(e)[:70]
-    return jsonify(out)
-
 EGX = _build_egx()
 EGX_MAP = {c: (n, s) for c, n, s in EGX}
 
