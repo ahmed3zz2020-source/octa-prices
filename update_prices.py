@@ -10064,6 +10064,29 @@ def digest(d, ranked, divs=None):
     return False
 
 
+@app.route("/api/tg-status", methods=["GET"])
+def tg_status():
+    """🐙 تشخيص البوت — هل التوكن صح؟ الشات إيه؟ آخر خطأ إيه؟"""
+    info = {
+        "enabled": TG_ON,
+        "token_prefix": (TOKEN[:8] + "…") if TOKEN else None,
+        "chat_id": CHAT or None,
+        "last_error": TG_ERR[0] or None,
+    }
+    if TG_ON:
+        try:
+            import requests
+            me = requests.get(f"{TG_API}/getMe", timeout=12)
+            info["getMe"] = me.status_code
+            if me.status_code == 200:
+                info["bot_name"] = me.json().get("result", {}).get("username")
+            else:
+                info["getMe_body"] = me.text[:200]
+        except Exception as e:
+            info["getMe_error"] = f"{type(e).__name__}: {e}"
+    return jsonify(info)
+
+
 @app.route("/api/tg-test", methods=["GET"])
 def tg_test():
     """🐙 ٢٠ أكتوبر ٢٠٢٦ — اختبار سريع لصياغة رسالة التوصية.
