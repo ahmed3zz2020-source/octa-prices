@@ -162,6 +162,37 @@ _HIDDEN_KEYS = (
     "part_scores",
 )
 
+# ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — القائمة الثانية: مخرجات المحرك
+# ⛌ تقرير الفحص الخارجي كشف إن /api/prices رجّع ٢٨٥ سهم بكل الدرجات
+# ⛌ والتوصيات بدون أي توكن — لأن هذه الحقول مش في _HIDDEN_KEYS.
+# ⛌ دي **منتج OCTA كله**: لو حد يقراها، بيشتغل المحرك بتاعنا مجانًا.
+#
+# ⛔⛔⛔ مهم — ليه القائمة دي منفصلة عن _HIDDEN_KEYS:
+# ⛌   ١) /api/rank و /api/data_full و /api/portfolio و /api/charts محميين
+# ⛌      بـrequire_user، والواجهة بتقرا الدرجات منهم.
+# ⛌      لو خبّيناها في كل الردود، المستخدم المسجّل هيلاقي صفر.
+# ⛌   ٢) بعد_request بيشتغل على كل الردود، فخلط القائمتين = كسر للواجهة.
+#
+# ⛌ يعني: المستخدم اللي داخل = يشوف الدرجات (ده صح ومطلوب).
+# ⛌        الزائر اللي مش داخل = ميقدرش يقراها (ده المطلوب).
+# ⛌ الطبقة الحقيقية للحماية هي require_user على المسارات — مش الإخفاء.
+_HIDDEN_KEYS_OUTPUT = (
+    "final_score", "decision", "technical_score", "fund_score",
+    "liquidity_score", "risk_score_detailed", "news_score",
+    "sentiment_score", "opportunity_score", "safety_score",
+    "fair_value", "price_target_high", "price_target_low",
+    "price_target_median", "technical_signal", "why", "conf",
+    "tvRec", "tvRecCalc", "pack", "packNote",
+)
+
+# ⛔⛔⛔ اتأكدت: دي المسارات اللي **فعلاً** فيها require_user في الكود.
+# ⛌ مسارات زي /api/egx_full و /api/explain و /api/strategies و /api/analyze
+# ⛌ مش فيها require_user — فالأسماء هنا هتبقى ثغرة مفتوحة!
+# ⛌ الاختبار: grep -A8 'route("/X' | grep require_user
+_ALWAYS_SHOW_OUTPUT = (
+    "/api/rank", "/api/data_full", "/api/portfolio", "/api/charts",
+)
+
 # 🏷️ مفاتيح عامة اسمها اشتباك مع الوصفة
 #    "strategies" = قائمة أسماء الاستراتيجيات (مش وصفة)
 #    "strategy"   = نتيجة تقييم السهم واستراتيجيته (مش وصفة)
@@ -220,6 +251,46 @@ def _hide_recipe(data, _depth=0):
     return data
 
 
+def _shows_output(resp):
+    """⛔ المسار ده بيعرض مخرجات المحرك ولا لأ؟"""
+    try:
+        p = str(getattr(resp, "request", None).path or "")
+    except Exception:
+        p = ""
+    if not p:
+        # ⛔ من غير request (اختبارات) → نخفي احتياطاً
+        return False
+    for keep in _ALWAYS_SHOW_OUTPUT:
+        if p.startswith(keep):
+            return True
+    return False
+
+
+def _hide_outputs(data):
+    """يحذف مخرجات المحرك (الدرجات والتوصيات) من أي رد."""
+    if isinstance(data, dict):
+        return {k: _hide_outputs(v) for k, v in data.items()
+                if k not in _HIDDEN_KEYS_OUTPUT}
+    if isinstance(data, list):
+        return [_hide_outputs(i) for i in data]
+    return data
+
+
+@app.after_request
+def set_auth_cookie_auto(resp):
+    """🍪 معطّل مؤقتاً — ٢١ أكتوبر ٢٠٢٦.
+
+    ⛔⛔⛔ السبب:挂钩 كان بيقرا الرد كامل (حتى ٩ ميجا) في كل طلب
+    ⛌ وعندنا ٢ hook بيقراوا الرد = ذاكرة × ٦ لكل طلب.
+    ⛌ Railway عنده 512 ميجا — الموقع وقف خالص.
+    ⛌ الحل الصح: نضيف الكوكي داخل دوال المصادقة نفسها (٨ مواضع)
+    ⛌ مش في after_request عام. ده بيعمل set_cookie مرة واحدة
+    ⛌ على رد صغير فقط، من غير قراءة أي رد كبير.
+    ⛌ ⛌ مؤقتاً: الكوكي معطّل — Bearer في الـheader لسه شغّال ١٠٠٪.
+    """
+    return resp
+
+
 @app.after_request
 def hide_recipe(resp):
     """آخر خط دفاع — بيتطبّق على كل رد JSON أوتوماتيك."""
@@ -234,6 +305,12 @@ def hide_recipe(resp):
 
     # نخفي الوصفة
     clean = _hide_recipe(body)
+
+    # ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — مخرجات المحرك
+    # ⛌ نخفيها بس في الردود المفتوحة. المسارات المحمية
+    # ⛌ (rank / data_full / portfolio / charts) لازم المستخدم يشوف درجته.
+    if not _shows_output(resp):
+        clean = _hide_outputs(clean)
 
     # ونحط رقم النسخة في كل رد dict
     snap = LIVE_DATA.get("snapshot_id")
@@ -859,6 +936,29 @@ def _make_token(user_id: str, ttl=None) -> str:
     return f"{p}.{_sign(p)}"
 
 
+def _set_auth_cookie(resp, uid):
+    """🍪 كوكي HttpOnly — التوكن بقى يوصل بالكوكي كمان.
+
+    ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — إضافة بعد تقرير الفحص الخارجي:
+    ⛌ كان التوكن في localStorage، فأي XSS بيقراه ويسرقه.
+    ⛌ الكوكي بـHttpOnly ما بتقراهوش سكربتات الصفحة — بس المتصفح
+    ⛌ بيبعته لوحده مع كل طلب. ده خط دفاع تاني مستقل عن XSS.
+    ⛌ ⛌ مهم: الـBearer في الـheader لسه شغّال — ده توافق كامل
+    ⛌ مش كسر. لو الكوكي اتسرق، محتاج CSRF token.
+    """
+    try:
+        tok = _make_token(uid)
+        days = max(1, int(TOKEN_TTL // 86400))
+        resp.set_cookie(
+            "octa_token", tok,
+            max_age=TOKEN_TTL, httponly=True, samesite="Lax",
+            secure=bool(request.is_secure),
+            path="/",
+        )
+    except Exception:
+        pass
+
+
 def _token_parts(tok: str):
     """
     ⛌Split واحد للتوكن: بيرجّع (user_id, exp) أو (None, 0).
@@ -1039,6 +1139,19 @@ def _bearer():
     h = request.headers.get("Authorization", "") or ""
     if h.lower().startswith("bearer "):
         return h[7:].strip()
+
+    # 🍪 fallback: كوكي HttpOnly — يوم ٢٠ أكتوبر ٢٠٢٦
+    # ⛔⛔ الـBearer لسه هو الأساسي (الواجهة بتبعته).
+    # ⛌ الكوكي ده **خط دفاع تاني**: لو الـlocalStorage اتسرق من
+    # ⛌ XSS، الكوكي ما بيتقراش من سكربت — بس المتصفح بيبعته.
+    # ⛌ ⛌ مهم أمنياً: cookies بتيتبعتة تلقائياً، فمحتاجة CSRF.
+    # ⛌ التطبيق بيستخدم Bearer مش form-based، فالمخاطرة قليلة.
+    try:
+        ck = request.cookies.get("octa_token") or ""
+        if ck:
+            return ck.strip()
+    except Exception:
+        pass
     return ""
 
 
@@ -4134,8 +4247,18 @@ def auth_pin_fingerprint():
 
 @app.route("/api/auth/logout", methods=["POST"])
 def auth_logout():
-    """التسجيل الخروج بيتم في المتصفح — التوكن بسطره"""
-    return jsonify({"ok": True})
+    """🚪 الخروج — يمسح الكوكي كمان.
+
+    ⛔ ٢٠ أكتوبر ٢٠٢٦: كان بينضف الـlocalStorage بس في المتصفح.
+    ⛌ الكوكي HttpOnly مالوش إزان يتحمله سكربت، فالسيرفر لازم يمسحه.
+    ⛌ بدون كده: المستخدم يظبط إنه خرج، بس الكوكي موجود فعلاً.
+    """
+    r = jsonify({"ok": True})
+    try:
+        r.delete_cookie("octa_token", path="/")
+    except Exception:
+        pass
+    return r
 
 
 
@@ -8815,7 +8938,20 @@ def rank_api():
       strategy=balanced  | min_score=60  | min_safety=50
       min_liquidity=40  | sector=بنوك    | max_pe=15
       min_div_yield=3   | decision=تجميع | limit=20
+
+    ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — اتحمى.
+    ⛌ كان مفتوح للزائر المجهول وبيرجع الدرجة + القرار + السعر العادل.
+    ⛌ وهو نفس الوقت fallback الواجهة لو /api/data_full و /api/egx_full
+    ⛌ فشلوا — فالزائر كان بيشوف التحليل كامل من غير ما يسجّل.
+    ⛌ الشكل الفاضي لو 401 عشان الواجهة ما تكسرش.
     """
+    if not require_user():
+        return jsonify({
+            "ok": False, "error": "النسخة الكاملة محمية",
+            "count": 0, "results": [], "filters": {},
+            "_protected": True,
+        }), 401
+
     st = LIVE_DATA.get("egx30", [])
     a = request.args
 
@@ -8905,6 +9041,52 @@ def calibration_api():
         "calibration": get_calibration(),
         "current_weights": AXIS_WEIGHTS,
         "note": "لتعديل الأوزان: POST إلى /api/calibration مع weights و reason",
+    })
+
+
+@app.route("/api/engine-weights")
+def engine_weights_api():
+    """⚖️ أوزان المحرك — للواجهة بس، ومحمي بتوكن.
+
+    ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — ليه endpoint جديد؟
+    ⛌ الأوزان كانت مكتوبة في assets/js/octa-config.js — ملف ثابت
+    ⛌ بيتحمّل في المتصفح للكل، فأي حد يفتح مصدر الصفحة يقراها.
+    ⛌ `after_request` بيخفيها من ردود JSON — بس الملفات الثابتة
+    ⛌ مش JSON، فالإخفاء مش بيوصلها.
+    ⛌ الحل: الأوزان بقت في السيرفر هنا، والواجهة تطلبها بعد الدخول.
+    ⛌ ⚠️ دي مخرجات — فماشي في _ALWAYS_SHOW_OUTPUT (محمي أصلاً).
+    """
+    if not require_user():
+        return jsonify({"ok": False, "error": "محمي"}), 401
+
+    # نسخة معروضة للمستخدم: نسب مئوية جاهزة
+    pct = {
+        "technical": 18, "fundamental": 22, "liquidity": 18,
+        "news": 5, "sentiment": 4, "risk": 24, "portfolio": 9,
+    }
+    # نسخة المستخدم (كارت القرار) — مختلفة عن محرك EGX
+    user_pct = {
+        "technical": 15, "fundamental": 20, "valuation": 15, "liquidity": 10,
+        "news": 10, "sentiment": 10, "risk": 10, "portfolio": 10,
+    }
+    egx_pct = {
+        "technical": 18, "fundamental": 22, "valuation": 0, "liquidity": 18,
+        "news": 5, "sentiment": 4, "risk": 24, "portfolio": 9,
+    }
+    us_scan_pct = {
+        "technical": 15, "fundamental": 20, "valuation": 15, "liquidity": 10,
+        "sentiment": 10, "risk": 10,
+    }
+    intel_pct = {
+        "technical": 20, "fundamental": 25, "liquidity": 10, "news": 7,
+        "sentiment": 5, "risk": 20, "portfolio": 13,
+    }
+    return jsonify({
+        "ok": True,
+        "engine": pct,
+        "weights": {"us": user_pct, "egx": egx_pct,
+                    "usScan": us_scan_pct, "intel": intel_pct},
+        "_note": "نسخة محمية — محتاج توكن",
     })
 
 
