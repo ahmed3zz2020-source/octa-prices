@@ -277,21 +277,6 @@ def _hide_outputs(data):
 
 
 @app.after_request
-def set_auth_cookie_auto(resp):
-    """🍪 معطّل مؤقتاً — ٢١ أكتوبر ٢٠٢٦.
-
-    ⛔⛔⛔ السبب:挂钩 كان بيقرا الرد كامل (حتى ٩ ميجا) في كل طلب
-    ⛌ وعندنا ٢ hook بيقراوا الرد = ذاكرة × ٦ لكل طلب.
-    ⛌ Railway عنده 512 ميجا — الموقع وقف خالص.
-    ⛌ الحل الصح: نضيف الكوكي داخل دوال المصادقة نفسها (٨ مواضع)
-    ⛌ مش في after_request عام. ده بيعمل set_cookie مرة واحدة
-    ⛌ على رد صغير فقط، من غير قراءة أي رد كبير.
-    ⛌ ⛌ مؤقتاً: الكوكي معطّل — Bearer في الـheader لسه شغّال ١٠٠٪.
-    """
-    return resp
-
-
-@app.after_request
 def hide_recipe(resp):
     """آخر خط دفاع — بيتطبّق على كل رد JSON أوتوماتيك."""
     if not resp.is_json:
@@ -936,29 +921,6 @@ def _make_token(user_id: str, ttl=None) -> str:
     return f"{p}.{_sign(p)}"
 
 
-def _set_auth_cookie(resp, uid):
-    """🍪 كوكي HttpOnly — التوكن بقى يوصل بالكوكي كمان.
-
-    ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — إضافة بعد تقرير الفحص الخارجي:
-    ⛌ كان التوكن في localStorage، فأي XSS بيقراه ويسرقه.
-    ⛌ الكوكي بـHttpOnly ما بتقراهوش سكربتات الصفحة — بس المتصفح
-    ⛌ بيبعته لوحده مع كل طلب. ده خط دفاع تاني مستقل عن XSS.
-    ⛌ ⛌ مهم: الـBearer في الـheader لسه شغّال — ده توافق كامل
-    ⛌ مش كسر. لو الكوكي اتسرق، محتاج CSRF token.
-    """
-    try:
-        tok = _make_token(uid)
-        days = max(1, int(TOKEN_TTL // 86400))
-        resp.set_cookie(
-            "octa_token", tok,
-            max_age=TOKEN_TTL, httponly=True, samesite="Lax",
-            secure=bool(request.is_secure),
-            path="/",
-        )
-    except Exception:
-        pass
-
-
 def _token_parts(tok: str):
     """
     ⛌Split واحد للتوكن: بيرجّع (user_id, exp) أو (None, 0).
@@ -1308,10 +1270,10 @@ def otp_verify():
                 users[uid]["name"] = nm
         _save_users(users)
 
-    return jsonify({
+    return _json_auth({
         "ok": True, "token": _make_token(uid),
         "user": {"id": uid, "name": users[uid]["name"], "email": email},
-    }), 200
+    }, uid), 200
 
 
 def _otp_html(code, name=""):
@@ -1376,12 +1338,12 @@ def auth_register():
             #    دلوقتي: لازم الكود نفسه يطابق اللي متخزّن.
             if hmac.compare_digest(str(users[uid].get("khash") or ""), khash):
                 # نفس الكود = نفس المستخدم (تسجيل دخول تلقائي)
-                return jsonify({
+                return _json_auth({
                     "ok": True, "token": _make_token(uid),
                     "user": {"id": uid, "name": users[uid]["name"],
                              "email": users[uid].get("email")},
                     "returning": True,
-                })
+                }, uid)
             # ⛔ رسالة واحدة للحالتين — ما نقولش «الإيميل ده مسجل»
             return jsonify({
                 "error": "الكود مش صح — لو عندك حساب بالإيميل ده، "
@@ -1400,11 +1362,11 @@ def auth_register():
         }
         _save_users(users)
 
-    return jsonify({
+    return _json_auth({
         "ok": True, "token": _make_token(uid),
         "user": {"id": uid, "name": name, "email": email or None},
         "emailSaved": bool(email),
-    })
+    }, uid)
 
 
 
@@ -2414,11 +2376,11 @@ def auth_pin_login():
         else:
             rec = u
 
-    return jsonify({
+    return _json_auth({
         "ok": True,
         "token": _make_token(uid),
         "user": _pin_user_json(rec),
-    }), 200
+    }, uid), 200
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -2886,12 +2848,12 @@ def auth_pin_chal_newpin():
     _pin_window_reset(keys)
     print(f"  🔓 اتفتح الحساب بباسورد جديد: {uid}")
 
-    return jsonify({
+    return _json_auth({
         "ok": True,
         "msg": "الباسورد الجديد اتحفظ — من دلوقتي ادخل بيه",
         "token": _make_token(uid),
         "user": out,
-    }), 200
+    }, uid), 200
 
 # ══════════════════════════════════════════════════════════════════
 #  1️⃣  تسجيل حساب — **الإيميل الأول، والباسورد بعده**
@@ -3472,12 +3434,12 @@ def auth_signup_newpin():
             print(f"  📧 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — إيميل "
                   f"التأكيد ماتبعتش لـ: {em}", flush=True)
 
-    return jsonify({
+    return _json_auth({
         "ok": True,
         "msg": "الحساب جاهز — من دلوقتي ادخل بالباسورد",
         "token": _make_token(uid),
         "user": out,
-    }), 200
+    }, uid), 200
 
 # ══════════════════════════════════════════════════════════════════
 #  🔄 تجديد صامت — كل ساعتين من غير أي شاشة
@@ -3542,7 +3504,7 @@ def auth_refresh():
             "why": "unauthorized",
         }), 401
 
-    return jsonify({
+    return _json_auth({
         "ok": True,
         "token": _make_token(uid),
         "expires_in": TOKEN_TTL,
@@ -3552,7 +3514,7 @@ def auth_refresh():
             "name": str(u.get("name") or "مستخدم"),
             "email": u.get("email") or None,
         },
-    }), 200
+    }, uid), 200
 
 
 #  🔑 استرجاع كلمة السر
@@ -3853,11 +3815,11 @@ def _auth_reset_verify():
     RESET_STORE[email] = rec
 
     # ⛔ التوكن القديم بيبطل — لازم يسجّل دخول تاني
-    return jsonify({
+    return _json_auth({
         "ok": True,
         "msg": "اتغيرت كلمة السر — سجّل دخول تاني",
         "token": _make_token(uid),
-    })
+    }, uid)
 
 
 
