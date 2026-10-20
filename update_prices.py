@@ -9810,7 +9810,10 @@ def send(text, silent=False):
         return False
     try:
         import requests
+        # 🐙 ٢٠ أكتوبر ٢٠٢٦ — كان ناقص parse_mode=HTML، فتيليجرام كان
+        #   بيعرض <b> و</b> كنص عادي. دلوقتي بيفهمها صح.
         p = {"chat_id": CHAT, "text": str(text)[:3900],
+             "parse_mode": "HTML",
              "disable_web_page_preview": "true"}
         if silent:
             p["disable_notification"] = "true"
@@ -9956,8 +9959,8 @@ def a_decision(d, rows):
             score = int(round(float(r.get("score") or 0)))
         except (TypeError, ValueError):
             score = 0
-        bar = "█" * max(0, min(10, round(score / 10.0)))
-        bar_line = ("🎯 التقييم: <b>%d من ١٠٠</b>  %s" % (score, bar)) if score else ""
+        bar = "🟩" * max(0, min(5, round(score / 20.0))) + "⬜" * max(0, 5 - min(5, round(score / 20.0)))
+        bar_line = ("🎯 التقييم: <b>%s من ١٠٠</b>  %s" % (_ar_num(score), bar)) if score else ""
 
         msg = [
             f"{arrow} <b>{tone}</b>", "",
@@ -9968,7 +9971,7 @@ def a_decision(d, rows):
             msg.append(bar_line)
         msg.append("💡 السبب: " + esc(_why_changed(r.get("axes"), prev_axes)))
         try:
-            msg.append("💰 السعر: <b>%.2f ج</b>" % float(r.get("price") or 0))
+            msg.append("💰 السعر: <b>%s ج</b>" % _ar_num("%.2f" % float(r.get("price") or 0)))
         except (TypeError, ValueError):
             pass
         if action:
@@ -10064,6 +10067,10 @@ def digest(d, ranked, divs=None):
     return False
 
 
+def _ar_num(x):
+    """رقم بتWestern عربي (١٢٣) — أوضح في العربية من 123."""
+    return str(x).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
+
 def _tg_demo_messages(AX, AX2, AXp):
     """نماذج الرسالة للعرض/الاختبار."""
     def _esc(s): return str(s or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
@@ -10087,14 +10094,14 @@ def _tg_demo_messages(AX, AX2, AXp):
         ("ETRS", "إيسترانس للنقل", 10.12, 57, "إشارة سلبية", AX2, "إشارة محايدة"),
     ):
         up = ORDER.get(dec, 1) > ORDER.get(prevd, 1)
-        bar = "█" * max(0, min(10, round(sc / 10.0)))
+        bar = "🟩" * max(0, min(5, round(sc / 20.0))) + "⬜" * max(0, 5 - min(5, round(sc / 20.0)))
         out.append(
             f"{'⬆️' if up else '⬇️'} <b>{'اتحسّن ترشيحه' if up else 'ضعف ترشيحه'}</b>\n\n"
             f"<b>{_esc(nm)}</b> ({_esc(code)})\n"
             f"📊 التوصية: {DEC_EMOJI.get(dec, '⚪')} <b>{_esc(dec)}</b>  ←  كانت {_esc(prevd)}\n"
-            f"🎯 التقييم: <b>{sc} من ١٠٠</b>  {bar}\n"
+            f"🎯 التقييم: <b>{_ar_num(sc)} من {_ar_num(100)}</b>  {bar}\n"
             f"💡 السبب: {_esc(_why(ax, AXp))}\n"
-            f"💰 السعر: <b>{float(px):.2f} ج</b>\n\n"
+            f"💰 السعر: <b>{_ar_num('%.2f' % float(px))} ج</b>\n\n"
             f"ℹ️ {_esc(DEC_ACTION.get(dec, ''))}\n"
             f"🔎 افتح كارت القرار على OCTA")
     return out
