@@ -9703,7 +9703,66 @@ STATE = str(DATA_DIR / "alerts_state.json")
 COOLDOWN = 240          # 4 ساعات بين نفس التنبيه
 DIGEST_HOUR = 9
 
-ORDER = {"بيع": 0, "غير كافٍ": 1, "احتفظ": 2, "تجميع": 3}
+# 🐙 ٢٠ أكتوبر ٢٠٢٦ — إصلاح ORDER
+#   كان ٤ مفاتيح قديمة بس (بيع/غير كافٍ/احتفظ/تجميع)، والـAPI بيرجّع
+#   توصيات جديدة (إشارة إيجابية/محايدة/سلبية). يعني ORDER.get(dec, 1)
+#   بيرجّع ١ دايمًا ⇒ المقارنة كانت غلط والبوت بيبعت «التوصية اتغيّرت»
+#   حتى لو ما اتغيّرش حاجة.
+#   ✅ رتّبنا كل الأسماء: كل ما الرقم أكبر، التوصية أحسن.
+ORDER = {
+    # القديم (بقاوا احتياطي لو الـAPI رجّع بالأسماء دي)
+    "بيع": 0, "غير كافٍ": 1, "احتفظ": 2, "تجميع": 3,
+    # الحالي من محرك التقييم
+    "إشارة سلبية": 0, "إشارة محايدة": 1, "إشارة إيجابية": 2,
+    "بيانات غير كافية": 1,
+}
+
+# ══════════════════════════════════════════════════════════════
+#  🐙 ٢٠ أكتوبر ٢٠٢٦ — صياغة رسالة التوصية المفهومة للمستخدم
+#  ─────────────────────────────────────────────────────────────
+#  كان: «النقطة: 57.4» ← رقم بلا معنى (ده نقاط المعنويات)
+#  بقى: «التقييم: 57 من ١٠٠» + شريط + سبب + إيه اللي تعمله
+# ══════════════════════════════════════════════════════════════
+DEC_EMOJI = {
+    "إشارة إيجابية": "🟢", "إشارة محايدة": "⚪", "إشارة سلبية": "🔴",
+    "تجميع": "🟢", "احتفظ": "⚪", "بيع": "🔴", "غير كافٍ": "⚪",
+}
+DEC_ACTION = {
+    "إشارة إيجابية": "فرصة شراء محتملة — راجع الكارت قبل ما تتصرف",
+    "إشارة محايدة": "الوضع محايد — ترقّب ومتستعجلش",
+    "إشارة سلبية": "الوضع ضعيف — قلّل التعرّض واراقب",
+    "تجميع": "التقييم صاعد — ابحث عن نقطة دخول",
+    "احتفظ": "سيّده — التزم بالخطط",
+    "بيع": "اضغط بيع — قلّل التعرّض",
+}
+AX_LABEL = {
+    "technical": "الفني", "fundamental": "الأساسي", "liquidity": "السيولة",
+    "risk": "المخاطرة", "sentiment": "المعنويات", "news": "الأخبار",
+    "portfolio": "ملاءمة المحفظة",
+}
+
+
+def _why_changed(axes, prev_axes):
+    """المحور اللي حرّك التوصية — ده اللي المستخدم محتاج يعرفه."""
+    if not isinstance(axes, dict) or not axes:
+        return "التقييم الفني اتغيّر"
+    keys = [k for k in AX_LABEL if isinstance(axes.get(k), (int, float))]
+    if not keys:
+        return "المؤشرات اتغيّرت"
+    if isinstance(prev_axes, dict):
+        delta = [(abs((axes.get(k) or 50) - (prev_axes.get(k) or 50)), k) for k in keys]
+        d, k = max(delta)
+        if d >= 5:
+            up = (axes.get(k) or 0) > (prev_axes.get(k) or 0)
+            return "تغيّر محور %s %s بـ%d نقطة" % (
+                AX_LABEL[k], "فوق" if up else "تحت", round(d))
+    top = max(keys, key=lambda k: axes.get(k) or 0)
+    if (axes.get(top) or 0) >= 70:
+        return "محور %s قوي (%d من ١٠٠)" % (AX_LABEL[top], round(axes[top]))
+    low = min(keys, key=lambda k: axes.get(k) or 0)
+    return "محور %s ضعيف (%d من ١٠٠)" % (AX_LABEL[low], round(axes.get(low) or 0))
+
+
 TG_ERR = [""]
 
 
@@ -9862,26 +9921,61 @@ def a_price(d, rows):
 
 
 def a_decision(d, rows):
+    """🐙 ٢٠ أكتوبر ٢٠٢٦ — رسالة التوصية الجديدة (مفهومة للمستخدم).
+
+    كان: «التوصية اتغيّرت (ضعف)» + «النقاط: 57.4» (رقم بلا معنى).
+    بقى: اتجاه واضح + إيموجي + تقييم من ١٠٠ + شريط + سبب + إيه تعمل.
+    """
     out = []
     for r in rows or []:
         code, dec = r.get("code"), r.get("decision")
         if not code or not dec:
             continue
         prev = (d.get("decisions") or {}).get(code)
-        d.setdefault("decisions", {})[code] = {"d": dec, "t": int(time.time())}
-        if not prev or prev.get("d") == dec:
+        prev_dec = (prev or {}).get("d")
+        prev_axes = (prev or {}).get("a")
+        d.setdefault("decisions", {})[code] = {
+            "d": dec, "t": int(time.time()), "a": r.get("axes")}
+
+        # ⛔ أول مرة نشوف السهم — نسجّل بس منبعتش (مفيش «تغيّر» أصلاً)
+        if not prev_dec:
+            continue
+        if prev_dec == dec:
             continue
         k = f"dec:{code}"
         if not can(d, k):
             continue
-        up = ORDER.get(dec, 1) > ORDER.get(prev["d"], 1)
-        if send(
-            f"{'⬆️' if up else '⬇️'} <b>التوصية اتغيّرت ({'تحسّن' if up else 'ضعف'})</b>\n\n"
-            f"<b>{esc(r.get('name') or code)}</b> ({esc(code)})\n"
-            f"السعر: {float(r.get('price') or 0):.2f} ج\n"
-            f"من <b>{esc(prev['d'])}</b> ← إلى <b>{esc(dec)}</b>\n"
-            + (f"النقاط: {r.get('score')}\n" if r.get("score") else "")
-            + "💡 افتح كارت القرار على OCTA."):
+
+        up = ORDER.get(dec, 1) > ORDER.get(prev_dec, 1)
+        arrow = "⬆️" if up else "⬇️"
+        tone = "اتحسّن ترشيحه" if up else "ضعف ترشيحه"
+        emoji = DEC_EMOJI.get(dec, "⚪")
+        action = DEC_ACTION.get(dec, "")
+
+        try:
+            score = int(round(float(r.get("score") or 0)))
+        except (TypeError, ValueError):
+            score = 0
+        bar = "█" * max(0, min(10, round(score / 10.0)))
+        bar_line = ("🎯 التقييم: <b>%d من ١٠٠</b>  %s" % (score, bar)) if score else ""
+
+        msg = [
+            f"{arrow} <b>{tone}</b>", "",
+            f"<b>{esc(r.get('name') or code)}</b> ({esc(code)})",
+            f"📊 التوصية: {emoji} <b>{esc(dec)}</b>  ←  كانت {esc(prev_dec)}",
+        ]
+        if bar_line:
+            msg.append(bar_line)
+        msg.append("💡 السبب: " + esc(_why_changed(r.get("axes"), prev_axes)))
+        try:
+            msg.append("💰 السعر: <b>%.2f ج</b>" % float(r.get("price") or 0))
+        except (TypeError, ValueError):
+            pass
+        if action:
+            msg += ["", "ℹ️ " + esc(action)]
+        msg.append("🔎 افتح كارت القرار على OCTA")
+
+        if send("\n".join(msg)):
             mark(d, k); out.append(code)
     return out
 
@@ -9999,9 +10093,11 @@ def _loop():
             ld = LIVE_DATA or {}          # LIVE_DATA عام في نفس الملف
             st = ld.get("egx30") or []
             if st and TG_ON:
+                # 🐙 axes جوّه الصف عشان الرسالة تقدر تقول السبب
                 ranked = [{"code": x.get("code"), "name": x.get("name"),
                            "price": x.get("price"), "decision": x.get("decision"),
-                           "score": x.get("final_score")}
+                           "score": x.get("final_score"),
+                           "axes": x.get("all_axes") or x.get("axes")}
                           for x in st if isinstance(x, dict)]
                 ranked.sort(key=lambda r: -(r.get("score") or 0))
                 risk = [{"code": x.get("code"), "name": x.get("name"),
