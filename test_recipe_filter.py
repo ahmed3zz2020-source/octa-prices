@@ -18,7 +18,8 @@ SRC = Path(__file__).with_name("update_prices.py")
 FAILED = []
 
 
-def load_filter():
+def load_ns():
+    """بيرجّع.namespace فيها التعريفات الثلاثة (القائمتين + الدالة)."""
     tree = ast.parse(SRC.read_text(encoding="utf-8"))
     nodes = []
     for node in tree.body:
@@ -32,7 +33,11 @@ def load_filter():
         raise SystemExit(f"❌ متوقع ٣ تعريفات في الملف، لقينا {len(nodes)}")
     ns = {}
     exec(compile(ast.Module(body=nodes, type_ignores=[]), str(SRC), "exec"), ns)
-    return ns["_hide_recipe"]
+    return ns
+
+
+def load_filter():
+    return load_ns()["_hide_recipe"]
 
 
 def check(name, cond, detail=""):
@@ -187,6 +192,50 @@ def main():
           'X-OCTA-Admin' in block and 'compare_digest' in block and '503' in block)
     check("GET /api/calibration لسه مفتوح للواجهة",
           'if request.method == "POST"' in block and "current_weights" in block)
+
+    # ── ⑨ اختبارات رجعية: مسارات التسرّب اللي الفلتر الحالي مش بيغطّيها ──
+    #    (راجع تقرير المراجعة العدوانية — ٢٠-١٠-٢٠)
+    print("\n⑨ اختبارات رجعية — مسارات التسرّب المتبقية")
+    ns = load_ns()
+    hidden = set(ns["_HIDDEN_KEYS"])
+    src = SRC.read_text(encoding="utf-8")
+
+    # ①) رد المعايرة بيرجّع old_weights / new_weights — وصفة المحرك كلها
+    check("رد المعايرة ما فيهوش 'old_weights'",
+          "old_weights" in hidden,
+          "← apply_calibration بيرجّع old_weights/new_weights — دي أوزان المحرك كلها")
+    check("رد المعايرة ما فيهوش 'new_weights'",
+          "new_weights" in hidden,
+          "← apply_calibration بيرجّع new_weights — الأوزان بعد التعديل كاملة")
+
+    # ②) العتبات بتتسرب كنص جوّه filter_notes (مش كمفتاح)
+    check("ملاحظات الفلتر ما بتطبعش رقم العتبة",
+          "المطلوب (" not in src,
+          "← 'أقل من المطلوب (60)' = min_liquidity — القفل بالمفتاح مش بيكفي")
+
+    # ③) risk_penalty + axes.risk = استنتاج risk_penalty_mult
+    #    ⓘ ده حد مقبول بالتصميم (D-028): الرقم ده بيظهر للمستخدم كـ«خصم
+    #    مخاطرة» وهو جزء من شرح النتيجة. الأوزان الحقيقية + العتبات
+    #    بتفضل مخفية. الاختبار ده بيوثّق الحد مش بيمرّره.
+    check("ⓘ حدود معروفة (D-028): خصم المخاطرة ظاهر للمستخدم",
+          '"risk_penalty":' in src,
+          "← لو عايز نقفله كمان: شيل 'risk_penalty' من رد الاستراتيجية")
+
+    # ④) /api/calibration — المسار قراءة بس (POST → 405)
+    #    والحماية موجودة كخط دفاع لو اتفعّل POST بعدين
+    ri = src.find('@app.route("/api/calibration"')
+    rline = src[ri:src.find("\n", ri)] if ri >= 0 else ""
+    check("ⓘ /api/calibration قراءة بس (POST بيرجع 405)",
+          "POST" not in rline,
+          "← %s — لو اتفعّل POST، الحماية بالتوكن هتشتغل" % (rline.strip() or "المسار مش موجود"))
+    check("حماية /api/calibration موجودة (خط دفاع)",
+          'X-OCTA-Admin' in src and 'compare_digest' in src,
+          "← لازم يبقى التوكن شغال لو اتفعّل POST")
+
+    # ⑤) close_picks — أوزان فرعية (NZ5 + القيمة العادلة) ما تطلعش
+    check("'close_picks' مخفي (أوزان فرعية)",
+          "close_picks" in hidden,
+          "← close_picks فيها ٣٩ مفتاح weight/eff_weight")
 
     print("\n" + "═" * 46)
     if FAILED:

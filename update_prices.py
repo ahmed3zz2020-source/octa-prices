@@ -85,7 +85,7 @@ def add_cors_headers(response):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Headers"] = (
-            "Content-Type, X-OCTA-Client, Authorization, X-Requested-With"
+            "Content-Type, X-OCTA-Client, Authorization, X-Requested-With, X-OCTA-Admin"
         )
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Access-Control-Max-Age"] = "600"
@@ -158,6 +158,7 @@ _HIDDEN_KEYS = (
     "sub_scores", "subScores", "scoring", "formula", "formulae",
     "AXIS_WEIGHTS", "axis_weight", "risk_penalty_mult", "min_liquidity",
     "min_safety", "min_div_yield", "current_weights",
+    "old_weights", "new_weights", "close_picks",
     "part_scores",
 )
 
@@ -6556,20 +6557,23 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     adj = base - risk_pen
 
     # ═══ الفلاتر الخاصة بالاستراتيجية ═══
+    # ⚠️ العتبات (min_liquidity · min_safety · min_div_yield) مش بتتطبع
+    #    في الـnotes — عشان العتبة لو ظهرت، المستخدم يقدر يستنتج
+    #    عتبات كل الاستراتيجيات ويسيب وصفة المحرك. (D-028)
     filters_passed = True
     filter_notes = []
 
     liq_v = axes["liquidity"]
     if liq_v < st.get("min_liquidity", 0):
         adj -= (st["min_liquidity"] - liq_v) * 0.5
-        filter_notes.append(f"السيولة {liq_v:.0f} أقل من المطلوب ({st['min_liquidity']})")
+        filter_notes.append(f"السيولة {liq_v:.0f} أقل من الحد المطلوب")
         filters_passed = False
 
     if st.get("min_safety"):
         safety = _f(item.get("safety_score"))
         if safety is not None and safety < st["min_safety"]:
             adj -= (st["min_safety"] - safety) * 0.4
-            filter_notes.append(f"الأمان {safety:.0f} أقل من المطلوب ({st['min_safety']})")
+            filter_notes.append(f"الأمان {safety:.0f} أقل من الحد المطلوب")
             filters_passed = False
 
     if st.get("min_div_yield"):
@@ -6577,7 +6581,7 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         if dy is None or dy < st["min_div_yield"]:
             actual = f"{dy:.1f}%" if dy is not None else "غير متاح"
             adj -= 8
-            filter_notes.append(f"عائد التوزيعات {actual} أقل من المطلوب ({st['min_div_yield']}%)")
+            filter_notes.append(f"عائد التوزيعات {actual} أقل من الحد المطلوب")
             filters_passed = False
 
     # ═══ سقف إجمالي الخصومات: 22 نقطة كحد أقصى ═══
