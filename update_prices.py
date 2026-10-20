@@ -10064,6 +10064,40 @@ def digest(d, ranked, divs=None):
     return False
 
 
+@app.route("/api/tg-test", methods=["GET"])
+def tg_test():
+    """🐙 ٢٠ أكتوبر ٢٠٢٦ — اختبار سريع لصياغة رسالة التوصية.
+
+    ⛔ مفيش كوكي — مخصوص للتجربة. بيبعت ٣ نماذج (تحسّن/ضعف/أول ترشيح).
+    ⛔ احذف المسار بعد ما تتأكد.
+    """
+    if not TG_ON:
+        return jsonify({"ok": False, "why": "bot off"}), 503
+    AX = {"technical": 72, "fundamental": 85, "liquidity": 66,
+          "risk": 74, "sentiment": 68, "news": 45}
+    AX2 = {"technical": 38, "fundamental": 55, "liquidity": 41,
+           "risk": 33, "sentiment": 30, "news": 45}
+    AXp = {"technical": 58, "fundamental": 55, "liquidity": 41,
+           "risk": 55, "sentiment": 40, "news": 45}
+    d = {
+        "decisions": {
+            "ABUK": {"d": "إشارة محايدة", "a": AXp},
+            "ETRS": {"d": "إشارة محايدة", "a": AXp},
+        }
+    }
+    sent = []
+    old_send = globals()["send"]
+    globals()["send"] = lambda t, silent=False: (sent.append(t), True)[1]
+    try:
+        a_decision(d, [{"code": "ABUK", "name": "أبو قير للأسمدة", "price": 62.4,
+                         "decision": "إشارة إيجابية", "score": 78, "axes": AX}])
+        a_decision(d, [{"code": "ETRS", "name": "إيسترانس للنقل", "price": 10.12,
+                         "decision": "إشارة سلبية", "score": 57, "axes": AX2}])
+    finally:
+        globals()["send"] = old_send
+    return jsonify({"ok": True, "count": len(sent), "messages": sent})
+
+
 def run_alerts(ranked=None, divs=None, risk_rows=None):
     if not TG_ON:
         return
