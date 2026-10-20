@@ -10064,6 +10064,42 @@ def digest(d, ranked, divs=None):
     return False
 
 
+def _tg_demo_messages(AX, AX2, AXp):
+    """نماذج الرسالة للعرض/الاختبار."""
+    def _esc(s): return str(s or "").replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+    def _why(axes, prev):
+        if not isinstance(axes, dict) or not axes: return "التقييم الفني اتغيّر"
+        keys = [k for k in AX_LABEL if isinstance(axes.get(k), (int, float))]
+        if not keys: return "المؤشرات اتغيّرت"
+        if isinstance(prev, dict):
+            d, k = max((abs((axes.get(k) or 50) - (prev.get(k) or 50)), k) for k in keys)
+            if d >= 5:
+                up = (axes.get(k) or 0) > (prev.get(k) or 0)
+                return "تغيّر محور %s %s بـ%d نقطة" % (AX_LABEL[k], "فوق" if up else "تحت", round(d))
+        top = max(keys, key=lambda k: axes.get(k) or 0)
+        if (axes.get(top) or 0) >= 70:
+            return "محور %s قوي (%d من ١٠٠)" % (AX_LABEL[top], round(axes[top]))
+        low = min(keys, key=lambda k: axes.get(k) or 0)
+        return "محور %s ضعيف (%d من ١٠٠)" % (AX_LABEL[low], round(axes.get(low) or 0))
+    out = []
+    for (code, nm, px, sc, dec, ax, prevd) in (
+        ("ABUK", "أبو قير للأسمدة", 62.4, 78, "إشارة إيجابية", AX, "إشارة محايدة"),
+        ("ETRS", "إيسترانس للنقل", 10.12, 57, "إشارة سلبية", AX2, "إشارة محايدة"),
+    ):
+        up = ORDER.get(dec, 1) > ORDER.get(prevd, 1)
+        bar = "█" * max(0, min(10, round(sc / 10.0)))
+        out.append(
+            f"{'⬆️' if up else '⬇️'} <b>{'اتحسّن ترشيحه' if up else 'ضعف ترشيحه'}</b>\n\n"
+            f"<b>{_esc(nm)}</b> ({_esc(code)})\n"
+            f"📊 التوصية: {DEC_EMOJI.get(dec, '⚪')} <b>{_esc(dec)}</b>  ←  كانت {_esc(prevd)}\n"
+            f"🎯 التقييم: <b>{sc} من ١٠٠</b>  {bar}\n"
+            f"💡 السبب: {_esc(_why(ax, AXp))}\n"
+            f"💰 السعر: <b>{float(px):.2f} ج</b>\n\n"
+            f"ℹ️ {_esc(DEC_ACTION.get(dec, ''))}\n"
+            f"🔎 افتح كارت القرار على OCTA")
+    return out
+
+
 @app.route("/api/tg-status", methods=["GET"])
 def tg_status():
     """🐙 تشخيص البوت — هل التوكن صح؟ الشات إيه؟ آخر خطأ إيه؟"""
@@ -10108,17 +10144,20 @@ def tg_test():
             "ETRS": {"d": "إشارة محايدة", "a": AXp},
         }
     }
+    # ⛔ مبعوتش للحقيقي — ده للعرض بس. وده اللي كان مربك.
+    # لإرسال تجريبي حقيقي: /api/tg-test?live=1
+    live = request.args.get("live") == "1"
     sent = []
-    old_send = globals()["send"]
-    globals()["send"] = lambda t, silent=False: (sent.append(t), True)[1]
-    try:
-        a_decision(d, [{"code": "ABUK", "name": "أبو قير للأسمدة", "price": 62.4,
-                         "decision": "إشارة إيجابية", "score": 78, "axes": AX}])
-        a_decision(d, [{"code": "ETRS", "name": "إيسترانس للنقل", "price": 10.12,
-                         "decision": "إشارة سلبية", "score": 57, "axes": AX2}])
-    finally:
-        globals()["send"] = old_send
-    return jsonify({"ok": True, "count": len(sent), "messages": sent})
+    if live:
+        # نفس منطق a_decision بس بتبعتها للبوت الحقيقي
+        msgs = _tg_demo_messages(AX, AX2, AXp)
+        for m in msgs:
+            sent.append(bool(send(m)))
+        return jsonify({"ok": all(sent), "live": True,
+                        "sent_count": sum(1 for x in sent if x),
+                        "last_error": TG_ERR[0] or None})
+    sent = _tg_demo_messages(AX, AX2, AXp)
+    return jsonify({"ok": True, "live": False, "messages": sent})
 
 
 def run_alerts(ranked=None, divs=None, risk_rows=None):
