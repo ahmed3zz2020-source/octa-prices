@@ -151,13 +151,22 @@ def add_cors_headers(response):
 #     الموقع يشتغل زي ما هو والعميل يشوف كل حاجة.
 # ══════════════════════════════════════════════════════════════
 
+# 🔐 مفاتيح الوصفة — بتتسرّب في أي عمق (أوزان + عتبات + معادلات)
 _HIDDEN_KEYS = (
-    "weights", "strategies", "raw_scores", "rawScore",
-    "calibration", "strategy", "axis_weights", "axisWeights",
+    "weights", "raw_scores", "rawScore",
+    "calibration", "axis_weights", "axisWeights",
     "sub_scores", "subScores", "scoring", "formula", "formulae",
-    "AXIS_WEIGHTS", "risk_penalty_mult", "min_liquidity",
+    "AXIS_WEIGHTS", "axis_weight", "risk_penalty_mult", "min_liquidity",
+    "min_safety", "min_div_yield", "current_weights",
     "part_scores",
 )
+
+# 🏷️ مفاتيح عامة اسمها اشتباك مع الوصفة
+#    "strategies" = قائمة أسماء الاستراتيجيات (مش وصفة)
+#    "strategy"   = نتيجة تقييم السهم واستراتيجيته (مش وصفة)
+#    مسموحة في مستوى الرد الأعلى بس — جواها الأوزان بتفضل مخفية
+#    (وإلا /api/strategies كانت هترجّع الوصفة كلها)
+_TOP_ALLOWED_KEYS = ("strategies", "strategy")
 
 
 def _make_snapshot_id(ts_iso):
@@ -188,12 +197,25 @@ def _make_snapshot_id(ts_iso):
     return f"{compact}-{fingerprint}"
 
 
-def _hide_recipe(data):
-    """يحذف مفاتيح الوصفة من أي رد، ويباقي على كل حاجة تانية."""
+def _hide_recipe(data, _depth=0):
+    """
+    يحذف مفاتيح الوصفة من أي رد، ويباقي على كل حاجة تانية.
+
+    ⚠️ العمق مهم: `strategies` و `strategy` مسموحين في مستوى الرد
+    الأعلى (قائمة الأسماء + نتيجة التقييم) وبتتشال من أي مستوى
+    جوه (عشان نتيجة كل سهم في /api/stocks ما تطلعش).
+    """
     if isinstance(data, dict):
-        return {k: _hide_recipe(v) for k, v in data.items() if k not in _HIDDEN_KEYS}
+        out = {}
+        for k, v in data.items():
+            if k in _HIDDEN_KEYS:
+                continue
+            if k in _TOP_ALLOWED_KEYS and _depth > 0:
+                continue
+            out[k] = _hide_recipe(v, _depth + 1)
+        return out
     if isinstance(data, list):
-        return [_hide_recipe(i) for i in data]
+        return [_hide_recipe(i, _depth + 1) for i in data]
     return data
 
 
@@ -6176,7 +6198,7 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
             "axis": k,
             "name": names[k],
             "score": round(v, 1),
-            "weight": round(w * 100, 1),
+            "axis_weight": round(w * 100, 1),
             "contribution": contrib,
         })
     contributions.sort(key=lambda x: -x["contribution"])
@@ -8864,6 +8886,15 @@ def stress_api():
 def calibration_api():
     """معايرة الأوزان"""
     if request.method == "POST":
+        # ⛔ تعديل أوزان المحرك = إعادة بناء النظام.
+        #    مينفعش حد من بره يقدر يعمل كده — توكن الأدمن بس.
+        want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+        if not want:
+            return jsonify({"ok": False, "error": "التقرير مش متظبط"}), 503
+        got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+        if not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                              want.encode("utf-8", "replace")):
+            return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
         data = request.get_json(force=True, silent=True) or {}
         return jsonify(apply_calibration(data.get("weights"), data.get("reason")))
     return jsonify({
