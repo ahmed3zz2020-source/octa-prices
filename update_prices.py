@@ -1691,6 +1691,46 @@ def _pinlock_fail(keys):
     return locked, retry
 
 
+def _pinlock_clear_pins(keys_pins):
+    """🧹 مسح عدّادات الباسورد اللي mistress المستخدم خلّصها.
+
+    ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — ليه دي موجودة؟
+    ⛌ المشكلة: عدّاد الباسورد متخزّن في مفاتيح p:1234 · p:5678 …
+    ⛌ كل مفتاح = «الرقم ده اتجرّب». فلو المستخدم غلط ٣ مرات بنفس
+    ⛌ الرقم، العدّاد = ٣/٤.
+    ⛌ ⛌ ومسار «نسيت الباسورد» (OTP) كان بيمسح i:IP بس
+    ⛌ ⇒ العدّاد p: بيفضل متسلسل، والمستخدم يفضل يشوف
+    ⛌ «محاولات كتيرة» حتى لو الكود صح.
+
+    ⛌ ⛌ ⛌ الحل: عند نجاح الـOTP نمرّر **كل الأرقام اللي اتجرّبت**
+    ⛌ من الواجهة (هي اللي عارفة الـPIN القديم من الـlocalStorage)
+    ⛌ ⇒ نمسح p:1234 بالظبط. مش محتاج نعرف أرقام تانية.
+
+    ⛌ الأمان: من غير ما يعرف الرقم، محدش يتمسح — وده صح.
+    """
+    if not keys_pins:
+        return 0
+    now = time.time()
+    cleared = 0
+    try:
+        with PINLOCK_LOCK:
+            store = _pinlock_purge(_pinlock_load())
+            kmap = store["k"]
+            for k in keys_pins:
+                rec = kmap.get(k)
+                if not rec:
+                    continue
+                kmap.pop(k, None)
+                cleared += 1
+            if cleared:
+                store["k"] = kmap
+                _pinlock_save(store)
+                print(f"  🧹 مسح {cleared} عدّاد باسورد (OTP ناجح)", flush=True)
+    except Exception as e:
+        print(f"  🧹 ⚠️ {type(e).__name__}: {str(e)[:90]}", flush=True)
+    return cleared
+
+
 def _pinlock_reset(keys):
     """✅ المحاولة الصح تصفّر العدّاد"""
     with PINLOCK_LOCK:
@@ -2751,11 +2791,31 @@ def auth_pin_chal_verify():
     if not good or u is None:
         return jsonify(_CHAL_BAD_REPLY), 401
 
-    # ⛌ الكد اتقبل — العدّادات بتتنضف من على الجهاز عشان
-    #    الباسورد الجديد يشتغل على طول.
-    #    ⛌ عدّاد الباسورد القديم (مفتاح p:) مش بنمسحه — إحنا
-    #    مش شايفين الباسورد القديم أصلاً، وهو كمان بقى بلا
-    #    قيمة بعد ما الباسورد الجديد يتحط.
+    # ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — إصلاح «محاولات كتيرة» بعد نسيت الباسورد.
+    #
+    # 🔴 المشكلة: الكود الصح كان بيمسح `i:IP` بس، والعدّاد
+    #    المتسلسل هو `p:<رقم>` — فبيفضل محسوب ومقفول!
+    #    النتيجة: واحد عمل «نسيت الباسورد» + كتب الكود الصح
+    #    بيفضل يشوف «محاولات كتيرة» بلا سبب.
+    #
+    # ✅ الحل: الواجهة بتبعت `tried_pins` (الأرقام اللي المستخدم
+    #    جرّبها في الجلسة دي) ⇒ نمسح العدّادات بتاعتها بالظبط.
+    #    الأمان: من غير معرفة الرقم، محدش يتمسح.
+    #
+    # ⛌ ملاحظة: لو القائمة فاضية (عميل قديم)، بنمسح i:IP بس
+    #    زي الأول — الأرقام مش معروفة فمفيش اللي نمسحه.
+    tried = data.get("tried_pins") or []
+    keys_p = []
+    try:
+        for tp in (tried if isinstance(tried, list) else [])[:20]:
+            t = str(tp or "").strip()
+            if _PIN_RE.match(t):
+                keys_p.append("p:" + _pin_index(t))
+    except Exception:
+        keys_p = []
+
+    if keys_p:
+        _pinlock_clear_pins(keys_p)
     _pinlock_reset(_pin_keys(ip=ip))
     _pin_window_reset(_pin_keys(ip=ip))
 
@@ -4055,7 +4115,7 @@ def auth_me():
 def auth_delete_account():
     """🗑 المستخدم يحذف حسابه بنفسه — ما فيش مسار يحذف حد تاني.
 
-    ⛔🔴 الأسبا��ة صارت **٣ حاجات مع بعض**:
+    ⛔🔴 الأسبابة صارت **٣ حاجات مع بعض**:
       1. توكن جلسة صالح
       2. الباسورد نفسه ⬇️ ⬛ يثبت إنك إنت مش حد خطف التوكن
       3. confirm=DELETE ⬇️ ⬛ تمنع الحذف بالغلط
