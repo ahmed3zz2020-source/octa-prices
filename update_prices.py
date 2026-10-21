@@ -8369,8 +8369,33 @@ def ticker():
     return jsonify({"ticker": LIVE_DATA["ticker"]})
 
 @app.route("/api/stocks")
+@_require_user  # ⛔ ٢١ أكتوبر ٢٠٢٦ — محمي (كان مفتوح)
 def stocks():
     return jsonify({"egx30": LIVE_DATA["egx30"]})
+
+
+# ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — alias سوق محمي
+# ⛌ القديم: ٣٫٤ ميجا من /data/data_markets.js — مكشوف ومتسرب.
+# ⛌ الجديد: /api/markets?market=egx — محمي + مقسّم (٣٩٠ ك.ب).
+# ⛌ (لما /api/markets يتفعّل، بيانات الشاشات تبدأ تجيله من هنا).
+@app.route("/api/markets")
+@_require_user
+def markets_api():
+    """⛔⛔ داتا السوق مقسّمة — لما ٢٨٥ سهم في ٣٫٤ ميجا بيبقى ثقيل.
+    ⛌ الحل: نرجّع كل سوق منفصل (egx فقط دلوقتي) عشان الصفحة
+    ⛌ تحمل اللي بتستخدمه بس.
+    """
+    market = (request.args.get("market") or "egx").lower()
+    if market == "egx":
+        rows = LIVE_DATA.get("egx30", [])
+        return jsonify({
+            "ok": True,
+            "market": "egx",
+            "n": len(rows),
+            "codes": [r.get("code") for r in rows if r.get("code")],
+            "rows": rows,
+        })
+    return jsonify({"ok": False, "error": f"market {market} not supported"}), 400
 
 
 # ============ ROUTES: Gemini AI ============
