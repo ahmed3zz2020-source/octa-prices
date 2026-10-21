@@ -38,13 +38,33 @@ PREVIEW_HOST_RE = __import__("re").compile(
     r"^https://[a-z0-9-]+\.space\.minimax\.io$"
 )
 
+# ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — أنماط الـorigins من الـenv (wildcard)
+# ⛌ مثال: ALLOWED_ORIGINS="https://*.ahmed.com"
+# ⛌ CORS مش مصادقة — البيانات محمية بالتوكن. فالـwildcard آمن.
+ALLOWED_ORIGIN_PATTERNS = set()
+
 # نضيف أي originsIncremental من الـenv (للتجربة لو حبيت تزود)
+# ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — بقى فيه دعم للـwildcard:
+#   ALLOWED_ORIGINS="https://octashares.com,https://*.ahmed.com"
+#   ⇒ أي subdomain بتاع ahmed.com يقدر ينادي الـAPI.
+# ⛌ motivoه: دومين صاحب أحمد في السعودية محتاج يتضاف من غير
+#    ما نعدّل الكود كل مرة (الكود بيتنشر مع كل deploy).
+# ⛔⛔ الأمان: CORS مش مصادقة — البيانات محمية بالتوكن
+#    (api_gate). فالـwildcard مش بيفتح بيانات.
 _extra = str(os.environ.get("ALLOWED_ORIGINS", "") or "").strip()
 if _extra:
     for o in _extra.replace(";", ",").split(","):
         o = o.strip().rstrip("/")
         if o.startswith("http"):
             ALLOWED_ORIGINS.add(o)
+            # ⛌ wildcard → نخزّنه في نمط
+            if "*" in o:
+                try:
+                    import re as _re_cors
+                    _pat = "^" + _re_cors.escape(o).replace(r"\*", "[^./]+") + "$"
+                    ALLOWED_ORIGIN_PATTERNS.add(_re_cors.compile(_pat))
+                except Exception:
+                    pass
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -66,6 +86,13 @@ def _origin_allowed(origin):
     o = str(origin).strip().rstrip("/")
     if o in ALLOWED_ORIGINS:
         return True
+    # ⛌⛌ wildcard من الـenv (٢١ أكتوبر ٢٠٢٦)
+    for pat in ALLOWED_ORIGIN_PATTERNS:
+        try:
+            if pat.match(o):
+                return True
+        except Exception:
+            pass
     # ⛌ روابط المعاينة المؤقتة ⬇️ بتتغير مع كل نشر
     #    ⬇️ بنسمح بأي نطاق فرعي من نطاق المنصّة بس.
     #    ⛔ مش بنسمح بأي نطاق تاني ⬇️ والدومين الأساسي
@@ -417,6 +444,88 @@ def guard_preflight():
         resp.status_code = 403
         return resp
     return None
+
+
+# ══════════════════════════════════════════════════════════════════
+#  🚪 البوابة — كل مسار بيانات محمي بتوكن
+#  ──────────────────────────────────────────────────────────────
+#  ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — الفحص قال: ٧٠ من ٩١ مسار في الـAPI
+#     مفتوحين للزائر المجهول. النتيجة:
+#       · /api/prices و /api/rank و /api/stocks ⇒ تنزيل الداتا كاملة
+#       · /api/chat و /api/analyze ⇒ حرق ميزانية التحليل من غير حساب
+#       · /api/candles و /api/technical و /api/fundamental ⇒ تنزيل
+#         تاريخ كل سهم وأرقامه
+#
+#  ⛌ الحل: before_request واحد — أي مسار بيانات مش في قائمة
+#     الاستثناءات ⇒ لازم توكن صالح (require_user).
+#
+#  📌 الاستثناءات (لازم تفضل مفتوحة —和非ه سبب):
+#      /api/health      → Railway بيـpoll كل ثانية (من غيره = الموقع يقع)
+#      /api/auth/*      → التسجيل والدخول — بدايتهم لازم تكون مفتوحة
+#      /api/track       → التتبع — بييجي من زائر مش مسجّل
+#      /api/logos       → صور الشعار — بتظهر في صفحة الدخول
+#      /api/tvlogo/*    → لوجو TradingView
+#      /api/admin/*     → ليها حماية تانية (X-OCTA-Admin)
+#      /api/tg-*        → تشخيص البوت — حماية الأدمن
+#
+#  ⛔⛔ ملاحظة مهمة — المسارات دي **كلها** كانت مفتوحة وهي
+#     السبب في الـ605 حدث من زوار مجهولين. البوابة مش مودال
+#     فوق محتوى محمّل — البوابة **قبل** التحميل.
+# ══════════════════════════════════════════════════════════════════
+
+# مسارات مفتوحة بالظبط (مطابقة تامة)
+API_OPEN_PATHS = {
+    "/api/health",
+    "/api/track",
+    "/api/logos",
+}
+
+# بادئات مفتوحة
+API_OPEN_PREFIXES = (
+    "/api/auth/",
+    "/api/logos/",
+    "/api/tvlogo/",
+    "/api/admin/",
+    "/api/tg-",
+)
+
+
+def _api_is_open(path):
+    """هل المسار ده مفتوح للزائر المجهول؟"""
+    p = str(path or "")
+    if p in API_OPEN_PATHS:
+        return True
+    for pre in API_OPEN_PREFIXES:
+        if p.startswith(pre):
+            return True
+    return False
+
+
+@app.before_request
+def api_gate():
+    """
+    🚪 بوابة الـAPI — الزائر المجهول مايلقاش غير المسارات المفتوحة.
+
+    ⛔⛔ أي مسار تاني ⇒ 401 «لازم تسجّل دخول» — قبل ما الـroute
+       تشتغل خالص (مفيش تنفيذ ولا استعلام ولا حرق ميزانية).
+    """
+    p = request.path
+    if not p.startswith("/api/"):
+        return None
+    # ⛔ preflight — مش طلب بيانات، ولازم يعدّي عشان الـCORS
+    if request.method == "OPTIONS":
+        return None
+    if _api_is_open(p):
+        return None
+    # ⛌ المستخدم المسجّل = يعدّي. التوكن من الـheader أو الكوكي.
+    if require_user():
+        return None
+    return jsonify({
+        "ok": False,
+        "error": "المسار ده محمي",
+        "why": "unauthorized",
+        "hint": "سجّل دخول الأول",
+    }), 401
 
 
 
@@ -919,6 +1028,46 @@ def _make_token(user_id: str, ttl=None) -> str:
         ("%s|%d|%d" % (user_id, exp, _user_epoch(user_id))).encode()
     ).decode().rstrip("=")
     return f"{p}.{_sign(p)}"
+
+
+# ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — إصلاح عطل قاتل في الإنتاج.
+# ⛌ الـcommit b28e704 حذف الدالة `_set_auth_cookie` وحط ٨ نداءات
+#    لـ`_json_auth(...)` — **من غير ما يعرّف الدالة أصلاً**.
+#    ⛔ النتيجة: NameError → 500 على **كل** رد مصادقة ناجح:
+#    دخول بالباسورد · تسجيل · اختيار باسورد جديد · تجديد · استرجاع.
+#    ⛔ يعني: **محدش يقدر يسجّل دخول** على الإنتاج.
+# ⛌ الحل: الدالة دي موجودة دلوقتي — والاختبار اللي تحت بيتأكد
+#    إن كل المسارات الثمانية بترجّع 200 مش 500.
+def _json_auth(payload, uid):
+    """
+    🍪 رد مصادقة + كوكي جلسة HttpOnly — نقطة واحدة لكل المسارات.
+
+    📌 ليه الكوكي أصلاً؟
+       التوكن في localStorage = أي XSS بيقراه ويسرقه.
+       الكوكي بـHttpOnly ما بتقراهوش سكربتات الصفحة — بس المتصفح
+       بيبعته لوحده مع كل طلب. ده خط دفاع تاني مستقل عن XSS.
+
+    ⛔⛔ الـBearer في الـheader لسه شغّال ١٠٠٪ — الكوكي **إضافة**،
+       مش استبدال. مفيش أي كسر في الواجهة.
+    ⛔⛔ مهم أمنياً: الكوكي بيتبعت تلقائياً ⇒ لازم CSRF. التطبيق
+       بيستخدم Bearer مش form-based، فالمخاطرة قليلة.
+    ⛌⛌ الـsecure: شغّال دايماً (الإنتاج https). في التطوير
+       (http) ممكن يتقفل بمتغير بيئة — والافتراضي آمن.
+    """
+    resp = jsonify(payload)
+    try:
+        tok = _make_token(uid)
+        secure = str(os.environ.get("OCTA_COOKIE_SECURE", "1") or "1")
+        secure = secure not in ("0", "false", "no", "off")
+        resp.set_cookie(
+            "octa_token", tok,
+            max_age=TOKEN_TTL, httponly=True, samesite="Lax",
+            secure=secure, path="/",
+        )
+    except Exception:
+        # ⛌ الكوكي إضافة مش شرط — لو فشل ما نكسرش الرد.
+        pass
+    return resp
 
 
 def _token_parts(tok: str):
@@ -1563,6 +1712,52 @@ def _pin_keys(pin=None, ip=None):
     ks = []
     if pin:
         ks.append("p:" + _pin_index(pin))
+    if ip:
+        ks.append("i:" + hashlib.sha256(
+            ("ip|" + str(ip)).encode()).hexdigest()[:16])
+    return ks
+
+
+# ══════════════════════════════════════════════════════════════════
+#  🔐 مفاتيح عدّاد «اختيار/تأكيد الباسورد» — مربوطة بالحساب
+#  ──────────────────────────────────────────────────────────────
+#  ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — إصلاح ثقب المسح (الخيار A).
+#
+#  المشكلة: عدّاد المحاولات في مسارات اختيار الباسورد الجديد كان
+#  مربوطاً **بالرقم** (`p:`) مش بالحساب. النتيجة:
+#      كل رقم جديد = ميزانية ٤ محاولات جديدة
+#      ⇒ ١٠٬٠٠٠ رقم ÷ ١٠ محاولات لكل ٥ دقايق = ٨٣ ساعة مسح
+#        بإيميل واحد و IP واحد.
+#
+#  ⛔ وبعد كمان: الرد ٤٠٩ «الباسورد ده مستخدم من قبل» = قناة سرّية
+#     → أي حد يقدر يعرف أي ٤ أرقام مستخدمة، والدخول = PIN بس
+#     ⇒ عرف الرقم = دخل الحساب.
+#
+#  الحل: العدّاد يبقى مربوطاً **بالحساب** (`u:`) + **بالـIP** (`i:`).
+#      ⇒ كل حساب = ٤ محاولات بس لاختيار الباسورد (مش ٤ لكل رقم)
+#      ⇒ تغطية ١٠٬٠٠٠ رقم محتاجة ٢٬٥٠٠ حساب حقيقي (كل واحد
+#        بإيميل لازم يتأكد) = حاجز حقيقي مش رقم.
+#
+#  ⛔⛔ القفل العالمي على الـPIN (`p:`) في **مسار الدخول** ما اتغيّرش
+#     خالص — هو الحماية الأساسية ضد تخمين الدخول (٥ محاولات في
+#     العالم كله كل ١٥ دقيقة). سيبه زي ما هو.
+#  ⛌ والـ`i:` (الـIP) بيفضل زي ما هو — ٣ محاولات في ٦٠ ثانية
+#     + سقف ١٠ / ٥ دقايق. متغيّرش.
+def _pin_acct_keys(uid=None, ip=None):
+    """
+    🔐 مفاتيح العدّاد للحساب — `u:` (الحساب) + `i:` (الـIP).
+
+    ⛔ مافيش `p:` هنا — وده **مقصود**:
+       لو عدّدنا بالرقم، كل رقم جديد كان هيدّي ميزانية جديدة
+       وبيرجع المسح المجاني. العدّاد لازم يبقى على **الحساب**
+       اللي بيعمل الاختيار.
+
+    ⛔ نفس بصمة الـIP الموجودة في `_pin_keys` — فمافيش أي
+       معلومة جديدة بتتخزّن (مفيش PII خام).
+    """
+    ks = []
+    if uid:
+        ks.append("u:" + str(uid))
     if ip:
         ks.append("i:" + hashlib.sha256(
             ("ip|" + str(ip)).encode()).hexdigest()[:16])
@@ -2422,7 +2617,15 @@ def auth_pin_change():
     ip = _client_key()
     k_ip = _pin_keys(ip=ip)
     k_pin_old = _pin_keys(pin=old_pin)   # القديم اللي بيتفحص
-    keys = _pin_keys(pin=new_pin, ip=ip)
+    # ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — العدّاد بقى مربوط بالحساب مش بالرقم.
+    # ⛌ الخيار A: `u:` (الحساب) + `i:` (الـIP) بدل `p:` (الرقم).
+    # ⛌ السبب: العدّاد على الرقم = ميزانية ٤ محاولات **لكل رقم**
+    #    ⇒ مسح ١٠٬٠٠٠ رقم في ٨٣ ساعة. على الحساب = ٤ محاولات
+    #    بس للحساب كله ⇒ ٢٬٥٠٠ حساب حقيقي عشان تغطي المساحة.
+    # ⛌ `k_pin_old` زي ما هو — القفل العالمي على الباسورد القديم
+    #    هو الحماية ضد تخمين الدخول، مايتلغيش.
+    uid = str(u.get("id") or "")
+    keys = _pin_acct_keys(uid=uid, ip=ip)
     locked, retry = _pin_locked(keys + k_ip + k_pin_old)
     if locked:
         return _pin_locked_resp(retry)
@@ -2767,7 +2970,14 @@ def auth_pin_chal_newpin():
         }), 400
 
     ip = _client_key()
-    keys = _pin_keys(pin=new_pin, ip=ip)
+    # ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — الخيار A: عدّاد «اختيار الباسورد»
+    # مربوط **بالحساب** (`u:`) + **بالـIP** (`i:`) — مش بالرقم.
+    # ⛌ قبل: `p:` (الرقم) ⇒ كل رقم جديد = ميزانية ٤ محاولات جديدة
+    #    ⇒ مسح ١٠٬٠٠٠ رقم في ٨٣ ساعة بإيميل واحد.
+    # ⛌ بعد: ٤ محاولات **للحساب كله** ⇒ ٢٬٥٠٠ حساب حقيقي تغطي
+    #    المساحة. والرد ٤٠٩ «مستخدم من قبل» يفضل صريح — السبب بقى آمن.
+    # ⛌ القفل العالمي على الـPIN في مسار الدخول ما اتغيّرش.
+    keys = _pin_acct_keys(uid=uid, ip=ip)
     locked, retry = _pin_locked(keys)
     if locked:
         return _pin_locked_resp(retry)
@@ -3344,7 +3554,14 @@ def auth_signup_newpin():
         }), 400
 
     ip = _client_key()
-    keys = _pin_keys(pin=new_pin, ip=ip)
+    # ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — الخيار A: عدّاد «اختيار الباسورد»
+    # مربوط **بالحساب** (`u:`) + **بالـIP** (`i:`) — مش بالرقم.
+    # ⛌ قبل: `p:` (الرقم) ⇒ كل رقم جديد = ميزانية ٤ محاولات جديدة
+    #    ⇒ مسح ١٠٬٠٠٠ رقم في ٨٣ ساعة بإيميل واحد.
+    # ⛌ بعد: ٤ محاولات **للحساب كله** ⇒ ٢٬٥٠٠ حساب حقيقي تغطي
+    #    المساحة. والرد ٤٠٩ «مستخدم من قبل» يفضل صريح — السبب بقى آمن.
+    # ⛌ القفل العالمي على الـPIN في مسار الدخول ما اتغيّرش.
+    keys = _pin_acct_keys(uid=uid, ip=ip)
     locked, retry = _pin_locked(keys)
     if locked:
         return _pin_locked_resp(retry)
@@ -3889,7 +4106,15 @@ def track_api():
     label = str(data.get("label") or "")[:24]
     uid = str(data.get("uid") or "")[:24]
 
-    if event not in ("page_view", "action", "signup", "login"):
+    # ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — القائمة اتوسّعت.
+    # ⛌ `signup_start` و `pin_reset` كانوا مرفوضين 400 وبيمسحوا
+    #    (octa-gate.js:827 بيبعت signup_start و :1590 بيبعت
+    #    pin_reset) ⇒(funnel) كان فيه ثقب: أول خطوة في التسجيل
+    #    والاسترجاع مكانش بيتسجّل خالص.
+    # ⛌ ⛔ القاعدة: **أي** اسم حدث جديد لازم يتضاف هنا وإلا
+    #    هيتفضا زي signup_start.
+    if event not in ("page_view", "action", "signup", "login",
+                     "signup_start", "pin_reset"):
         return jsonify({"ok": False, "error": "event غير معروف"}), 400
     if event == "action" and not page:
         return jsonify({"ok": False, "error": "action محتاج page"}), 400
@@ -4060,7 +4285,16 @@ def auth_delete_account():
 
         # ⛔ ② الباسورد ⬇️ توكن مسروق بدون باسورد = مابيتحذفش
         if not _pin_verify(uid, rec, pin):
-            _pinlock_fail(_pin_keys(pin=pin, ip=_client_key()))
+            # ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — إصلاح حجب خدمة على الضحية.
+            # ⛌ كان:_pinlock_fail(_pin_keys(pin=pin, ...)) ⇒ العدّاد
+            #    على **الرقم اللي حد بعتّه** — مش رقم الحساب.
+            # ⛌ ⇒ حد عنده توكن مسروق كان يقدر يبعت ٥ أرقام
+            #    عشوائية ويقفل ٥ باسوردات لزوار تانيين **من غير ما
+            #    يحاول يدخل بحساب حد خالص** = حجب خدمة على القاعدة.
+            # ⛌ دلوقتي: العدّاد على **الحساب** (`u:`) + الـIP (`i:`).
+            #    ⇒ ٤ محاولات للحساب كله (مش ٤ لكل رقم) — وده كمان
+            #    بيقفل التخمين على باسورد الحساب نفسه.
+            _pinlock_fail(_pin_acct_keys(uid=uid, ip=_client_key()))
             return jsonify({
                 "ok": False,
                 "error": "الباسورد غلط ⬇️ الحساب ما اتحذفش",
@@ -4217,9 +4451,15 @@ def auth_logout():
     """
     r = jsonify({"ok": True})
     try:
-        r.delete_cookie("octa_token", path="/")
+        # ⛔⛔ لازم نفس صفات الكوكي الأصلي (Path · SameSite · Secure)
+        #    وإلا المتصفح considersه كوكي تاني ومش بيمسحه.
+        r.delete_cookie("octa_token", path="/", samesite="Lax",
+                        secure=True, httponly=True)
     except Exception:
-        pass
+        try:
+            r.delete_cookie("octa_token", path="/")
+        except Exception:
+            pass
     return r
 
 
@@ -9672,6 +9912,139 @@ def api_data_full():
 
 
 # ─────────────────────────────────────────────────────────────
+#  📦  /api/markets  —  داتا السوق مقسّمة، ومحمية بتوكن
+# ─────────────────────────────────────────────────────────────
+#  ⛔⛔⛔ ٢١ أكتوبر ٢٠٢٦ — الباب اللي كان مفتوح:
+#
+#    https://octashares.com/data/data_markets.js
+#    → ٣٬٤٩٩٬٧٩٦ بايت · ٢٬٢٨٩ سهم (مصر ٢٩٠ · أمريكا ١٤٦٣
+#      · السعودية ٣٨٨ · الإمارات ١٤٨) · من غير أي توكن.
+#
+#    ⛌ ده كان **تسريب تنافسي** مش بس بطء: أي حد بينزّل داتا
+#      المنصّة كاملة ويفحصها بنفسه.
+#
+#  ⛌ الحل: الملف العام اتشال من حزمة النشر، والداتا بقت جوه
+#    الـAPI ورا توكن — **مقسّمة بالسوق**:
+#      مصر ٣٩٠ ك.ب · أمريكا ٢٬١٣٢ ك.ب · السعودية ٥٦٠ ك.ب
+#      · الإمارات ٢١٤ ك.ب
+#    ⛌ الوزن اللي بينزل على الزائر: من ٣٫٤ ميجا لكل market
+#      لـ ٣٩٠ ك.ب لمصر (اللي بيبدأ بيه) —(section كاملة).
+#
+#  📌 البيانات **نفسها بالحرف**: نفس الملفات، نفس الحقول، نفس
+#     القيم. مافيش إعادة حساب ولا تقريب ولا تعديل.
+#  📌 الشكل: { "egypt": [ ... ] } — نفس shape بتاع OCTA_MK
+#     عشان الواجهة ما تتغيرش غير في طريقة التحميل.
+# ══════════════════════════════════════════════════════════════
+
+MARKETS_DIR = Path(__file__).resolve().parent / "markets"
+
+# ⛔ الأسماء المسموحة — كل سوق لازم يكون له ملف في markets/
+MARKET_IDS = ("egypt", "us", "saudi", "uae")
+
+# ⛔ بدائل مقبولة (الواجهة ممكن تبعت 'egx' بدل 'egypt')
+_MARKET_ALIAS = {
+    "egypt": "egypt", "egx": "egypt", "egy": "egypt", "cairo": "egypt",
+    "us": "us", "usa": "us", "america": "us", "nasdaq": "us",
+    "saudi": "saudi", "ksa": "saudi", "tadawul": "saudi",
+    "uae": "uae", "dfm": "uae", "dubai": "uae",
+}
+
+# الكاش: { market: (mtime, bytes) } — الحجم كبير فبنخليّه في الذاكرة
+_MARKET_CACHE = {}
+_MARKET_LOCK = threading.Lock()
+
+
+def _market_path(mk):
+    return MARKETS_DIR / (mk + ".json")
+
+
+def _market_bytes(mk):
+    """يقرا ملف السوق — مع كاش (mtime)"""
+    p = _market_path(mk)
+    try:
+        st = p.stat()
+    except Exception:
+        return None
+    with _MARKET_LOCK:
+        hit = _MARKET_CACHE.get(mk)
+        if hit and hit[0] == st.st_mtime:
+            return hit[1]
+    try:
+        raw = p.read_bytes()
+    except Exception:
+        return None
+    with _MARKET_LOCK:
+        _MARKET_CACHE[mk] = (st.st_mtime, raw)
+    return raw
+
+
+def _warm_markets():
+    """⛔ تحميل الملفات في الذاكرة عند بدء السيرفر — عشان أول
+       طلب ميفتحش ٣ ميجا من القرص."""
+    try:
+        for mk in MARKET_IDS:
+            raw = _market_bytes(mk)
+            if raw:
+                print(f"[markets] {mk}: {len(raw)//1024} KB", flush=True)
+    except Exception as e:
+        print(f"[markets] warm fail: {e}", flush=True)
+
+
+@app.route("/api/markets")
+def api_markets():
+    """
+    📦 داتا السوق — محمية بتوكن، ومقسّمة بالسوق.
+
+    ?market=egypt|us|saudi|uae   (إجباري — مافيش «الكل»)
+    ⛔⛔ مافيش `all` — الطلب combiné للكل كان هيرجّع ٣٫٤ ميجا
+       في طلب واحد = نفس التسريب بالظبط.
+    """
+    if not require_user():
+        return jsonify({
+            "ok": False,
+            "error": "المسار ده محمي",
+            "hint": "لازم تسجّل دخول الأول",
+            "markets": list(MARKET_IDS),
+        }), 401
+
+    raw_mk = str(request.args.get("market") or "").strip().lower()
+    mk = _MARKET_ALIAS.get(raw_mk, raw_mk)
+    if mk not in MARKET_IDS:
+        return jsonify({
+            "ok": False,
+            "error": "سوق مش معروف",
+            "why": "bad_market",
+            "markets": list(MARKET_IDS),
+        }), 400
+
+    raw = _market_bytes(mk)
+    if not raw:
+        return jsonify({
+            "ok": False,
+            "error": "داتا السوق مش متاحة",
+            "why": "no_data",
+        }), 503
+
+    # ⛔ gzip — الملف ممكن يكون ٢ ميجا، والمتصفح بيقبل الضغط
+    accept = str(request.headers.get("Accept-Encoding") or "").lower()
+    if "gzip" in accept:
+        import gzip as _gzip
+        try:
+            body = _gzip.compress(raw, 6)
+            resp = Response(body, mimetype="application/json")
+            resp.headers["Content-Encoding"] = "gzip"
+            resp.headers["Vary"] = "Accept-Encoding"
+            resp.headers["Cache-Control"] = "no-store"
+            return resp
+        except Exception:
+            pass
+
+    resp = Response(raw, mimetype="application/json")
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+# ─────────────────────────────────────────────────────────────
 # ④  /api/ipo  —  رادار الاكتتاب (snapshot متجدد كل ساعة)
 # ─────────────────────────────────────────────────────────────
 def _clean(t):
@@ -11739,6 +12112,11 @@ if __name__ == "__main__":
 #    (٢) أول مستخدم ما يستناش قراية 400KB.
 try:
     _warm_data_full()
+except Exception:
+    pass
+# ⛔ ٢١ أكتوبر ٢٠٢٦ — كاش داتا السوق في الذاكرة (٣ ميجا)
+try:
+    _warm_markets()
 except Exception:
     pass
 # trigger redeploy 1792487747

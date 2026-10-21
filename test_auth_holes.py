@@ -96,8 +96,12 @@ t("زائر مجهول → 401", lambda: ok(
 
 def _no_data():
     b = _R["rank"].get_json() or {}
-    ok(b.get("top20") == [], "⛔ اتسرّب ترتيب: %s" % str(b)[:120])
+    # ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — البوابة بقت قبل الـroute: الرد 401
+    #    بحت (مافيش top20 ولا total أصلاً). الاختبار قبل كده كان
+    #    متوقع `top20 == []` — دلوقتي مافيش أي بيانات أصلاً.
+    ok(not b.get("top20"), "⛔ اتسرّب ترتيب: %s" % str(b)[:120])
     ok(not b.get("total"), "⛔ اتسرّب total: %r" % b.get("total"))
+    ok(b.get("ok") is False, "⛔ الرد مش says ok=false: %s" % str(b)[:120])
 
 
 t("مفيش أي بيانات في الرد", _no_data)

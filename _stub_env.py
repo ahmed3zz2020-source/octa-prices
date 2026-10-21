@@ -20,10 +20,42 @@ import json as _json
 class Resp:
     """شكل الرد النهائي — زي ما Flask بيرجّعه"""
 
-    def __init__(self, body, status=200, headers=None):
+    def __init__(self, body, status=200, headers=None, **kw):
         self.body = body
         self.status_code = status
         self.headers = headers or {}
+        # ⛔ ٢١ أكتوبر ٢٠٢٦ — Flask's Response بياخد mimetype /
+        #    content_type — والـstub لازم يدعمهم عشان المسارات
+        #    اللي بترجّع Response(...) تشتغل في الاختبار.
+        ct = kw.get("content_type") or kw.get("mimetype")
+        if ct and "Content-Type" not in self.headers:
+            if "/" not in ct and ct in ("json", "html", "text"):
+                ct = {"json": "application/json",
+                      "html": "text/html",
+                      "text": "text/plain"}[ct]
+            self.headers["Content-Type"] = ct
+
+    # ⛔ ٢١ أكتوبر ٢٠٢٦ — الكوكي (HttpOnly) بقى جزء أساسي من
+    # المصادقة، فلازم الـstub يدعمه عشان الاختبار يشتغل صح.
+    def set_cookie(self, key, value="", **kw):
+        parts = ["%s=%s" % (key, value)]
+        if kw.get("max_age") is not None:
+            parts.append("Max-Age=%s" % kw["max_age"])
+        if kw.get("httponly"):
+            parts.append("HttpOnly")
+        if kw.get("secure"):
+            parts.append("Secure")
+        if kw.get("samesite"):
+            parts.append("SameSite=%s" % kw["samesite"])
+        if kw.get("path"):
+            parts.append("Path=%s" % kw["path"])
+        self.headers["Set-Cookie"] = "; ".join(parts)
+        return self
+
+    def delete_cookie(self, key, **kw):
+        self.headers["Set-Cookie"] = "%s=; Max-Age=0; Path=%s" % (
+            key, kw.get("path") or "/")
+        return self
 
     def get_json(self):
         return self.body
@@ -82,6 +114,9 @@ class _Request:
         self.headers = {}
         self.json = None
         self.remote_addr = "127.0.0.1"
+        # ⛔ ٢١ أكتوبر ٢٠٢٦ — الكوكي و is_secure (اختبار المصادقة)
+        self.cookies = {}
+        self.is_secure = False
 
     def get_json(self, silent=False, force=False):
         return self.json
@@ -157,6 +192,17 @@ class Flask:
         for fn in self.before_reqs:
             early = fn()
             if early is not None:
+                # ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — Flask بيقبل (body, status)
+                #    من الـbefore_request زي ما بيقبلها من الـroute.
+                #    الـstub كان بيرجّع 200 دايماً = البوابة كانت
+                #    شكلها 200 في الاختبار.
+                if isinstance(early, tuple):
+                    b = early[0] if early else Resp({})
+                    st = early[1] if len(early) > 1 else 200
+                    if isinstance(b, Resp):
+                        b.status_code = st
+                        return b
+                    return Resp(b, st)
                 return early if isinstance(early, Resp) else Resp(early)
 
         rule = None
@@ -173,10 +219,17 @@ class Flask:
             return Resp({"error": "%s: %s" % (type(e).__name__, e)}, 500)
 
         # ⛔ ⛔ Flask بيرجّع (body, status) — لازم نفكّ الطقم ourselves
+        # ⛔⛔ ٢١ أكتوبر ٢٠٢٦ — لو الـbody نفسه Response، Flask بيحافظ
+        # على الـheaders بتاعه (زي Set-Cookie) وبيغيّر الحالة بس.
+        # الكود القديم كان بيعيد بناء الرد من الصفر = الكوكي بيضيع.
         if isinstance(out, tuple):
             body = out[0] if out else Resp({})
             st = out[1] if len(out) > 1 else 200
-            out = Resp(body.get_json() if isinstance(body, Resp) else body, st)
+            if isinstance(body, Resp):
+                body.status_code = st
+                out = body
+            else:
+                out = Resp(body, st)
         if not isinstance(out, Resp):
             out = Resp(out)
         for fn in self.after_reqs:
