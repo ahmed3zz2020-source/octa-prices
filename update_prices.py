@@ -444,6 +444,12 @@ def guard_preflight():
 #
 # 📌 القاعدة: هنقبل الحروف والأرقام والرموز الآمنة بس.
 #    أي حاجة تانية بترجع 400 صريح — مش بنخمن وبنحاول.
+# ⛔ ٢١ أكتوبر ٢٠٢٦ — كان فيه `import re as _re_guard` بس،
+#    والمسار /api/obdepth كان بيستدعي re.match ⇒ NameError
+#    أول ما المفتاح يتظبط (كان مخفي لأن المسار بيرجّع 503
+#    قبل أي نداء لو مفيش مفتاح).
+#    الحل: نستورد re بالاسم العادي كمان — مفيش تعارض.
+import re
 import re as _re_guard
 
 _ALLOWED_CODES = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.-_")
