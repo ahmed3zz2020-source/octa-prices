@@ -1172,35 +1172,6 @@ def require_user():
     return None
 
 
-def _require_user(fn):
-    """
-    ⛔ ديكوريتور: يمنع المسار بالكامل لو مفيش توكن صالح → 401.
-
-    ⛔ ٢١ أكتوبر ٢٠٢٦ — كان مستخدم في /api/stocks و /api/markets
-       بس **مالتعـرّفش خالص** ⇒ NameError وقت الإقلاع ⇒
-       gunicorn مش بيقوم ⇒ كل /api/* بيرجع 502 والسا��ت ميت.
-       ⛌ الحل: نعرّفه هنا (سطر واحد) وبكده المسارات المحمية
-       تفضل محمية زي ما هي — من غير ما نكسر الإقلاع.
-
-    ملاحظة: الشكل和外ارد عند require_user() فوق (نفس 401 ونفس
-    رسالة «المسار ده محمي»).
-    """
-    def _wrapped(*args, **kwargs):
-        if not require_user():
-            return jsonify({
-                "ok": False,
-                "error": "المسار ده محمي",
-                "hint": "سجّل دخول الأول",
-            }), 401
-        return fn(*args, **kwargs)
-    try:
-        _wrapped.__name__ = getattr(fn, "__name__", "wrapped")
-        _wrapped.__doc__ = getattr(fn, "__doc__", None)
-    except Exception:
-        pass
-    return _wrapped
-
-
 # ══════════════════════════════════════════════════════════════
 #  🔐 الديكوريتور — ⛔⛔ إصلاح ٢١ أكتوبر ٢٠٢٦ (كاذب حرج)
 # ══════════════════════════════════════════════════════════════
@@ -1216,7 +1187,7 @@ def _require_user(fn):
 #  📌 بديل الـdecorator: لو مسموح، الشكل اليدوي أوضح وأأمن:
 #      def my_route():
 #          if not require_user():
-#              return jsonify({...}), 401
+#              return jsonify({"error": "محمي"}), 401
 #      ==========================
 #  ⛔ ديكوريتور الزخرفة بيلف الدالة وبيبلع الـreturn بتاعها لو مش متعامل
 #      معاه صح — فـrequire_user بيرجّع None لما مفيش يوزر، وده
