@@ -1167,6 +1167,35 @@ def require_user():
     return None
 
 
+def _require_user(fn):
+    """
+    ⛔ ديكوريتور: يمنع المسار بالكامل لو مفيش توكن صالح → 401.
+
+    ⛔ ٢١ أكتوبر ٢٠٢٦ — كان مستخدم في /api/stocks و /api/markets
+       بس **مالتعـرّفش خالص** ⇒ NameError وقت الإقلاع ⇒
+       gunicorn مش بيقوم ⇒ كل /api/* بيرجع 502 والسا��ت ميت.
+       ⛌ الحل: نعرّفه هنا (سطر واحد) وبكده المسارات المحمية
+       تفضل محمية زي ما هي — من غير ما نكسر الإقلاع.
+
+    ملاحظة: الشكل和外ارد عند require_user() فوق (نفس 401 ونفس
+    رسالة «المسار ده محمي»).
+    """
+    def _wrapped(*args, **kwargs):
+        if not require_user():
+            return jsonify({
+                "ok": False,
+                "error": "المسار ده محمي",
+                "hint": "سجّل دخول الأول",
+            }), 401
+        return fn(*args, **kwargs)
+    try:
+        _wrapped.__name__ = getattr(fn, "__name__", "wrapped")
+        _wrapped.__doc__ = getattr(fn, "__doc__", None)
+    except Exception:
+        pass
+    return _wrapped
+
+
 # ══════════════════════════════════════════════════════════════
 #  📋 الحسابات
 # ══════════════════════════════════════════════════════════════
@@ -9929,20 +9958,32 @@ def api_obdepth(code):
 
     # ── ③ النداء الحقيقي (برا القفل عشان ما يبقاش بطيء) ──
     try:
+        # ⛔ ٢١ أكتوبر ٢٠٢٦ — المسار الصح حسب توثيق EGX Live:
+        #    /api/depth_40/{symbol}  (مش /depth/{sym})
         r = requests.get(
-            f"https://egx-live.p.rapidapi.com/depth/{sym}",
+            f"https://egx-live.p.rapidapi.com/api/depth_40/{sym}",
             headers={"x-rapidapi-key": key,
                      "x-rapidapi-host": "egx-live.p.rapidapi.com"},
-            params={"level": 15}, timeout=12)
+            timeout=12)
         if not r.ok:
             return jsonify({"ok": False, "error": "upstream",
                             "code": r.status_code, "used": used}), 502
         payload = r.json()
+        # ⛔ ٢١ أكتوبر ٢٠٢٦ — توحيد الشكل:
+        #    المصدر بيرجّع quantity والواجهة بتتوقّع qty
+        #    + بعض الـproviders بيرجّعوا body جوّه data
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if not isinstance(data, dict):
+            data = payload if isinstance(payload, dict) else {}
+        for _side in ("bids", "asks"):
+            for _lvl in (data.get(_side) or []):
+                if isinstance(_lvl, dict) and "qty" not in _lvl:
+                    _lvl["qty"] = _lvl.get("quantity", _lvl.get("volume", 0))
         with _OB_LOCK:
-            _OB_CACHE[sym] = {"at": now, "data": payload}
+            _OB_CACHE[sym] = {"at": now, "data": data}
         return jsonify({"ok": True, "cached": False,
                         "used": used, "remaining": OB_MAX_MONTH - used,
-                        "source": "egx-live", "data": payload})
+                        "source": "egx-live", "data": data})
     except Exception as e:
         _log_exc("upstream-502", e)
         return jsonify({"ok": False, "error": "تعذّر جلب البيانات من المصدر"}), 502
