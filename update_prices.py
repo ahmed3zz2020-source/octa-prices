@@ -8412,18 +8412,43 @@ def markets_api():
     """⛔⛔ داتا السوق مقسّمة — لما ٢٨٥ سهم في ٣٫٤ ميجا بيبقى ثقيل.
     ⛌ الحل: نرجّع كل سوق منفصل (egx فقط دلوقتي) عشان الصفحة
     ⛌ تحمل اللي بتستخدمه بس.
+
+    ⛔ ٢١ أكتوبر ٢٠٢٦ — تصحيح العقد (contract):
+       ⛌ الواجهة بتطلب ?market=egypt (مش egx) وبتتوقّع
+       ⛌   الشكل { "egypt": [ ...صفوف... ] } — وده نفس شكل
+       ⛌   الملف القديم data/data_markets.js (window.OCTA_MK).
+       ⛌ الشكل القديم {ok, market, codes, rows} مكانشش بيلاقي
+       ⛌   حاجة ⇒ الفلتر كان بيرجع فاضي.
+       ⛌ الحل: بنرجّع الشكل الصح + نقبل الأسماء البديلة
+       ⛌   (egx/egypt/Egypt) عشان مفيش لبس.
     """
-    market = (request.args.get("market") or "egx").lower()
-    if market == "egx":
+    market = (request.args.get("market") or "egypt").lower().strip()
+    # ⛌ الأسماء البديلة — الواجهة بتستخدم egypt والباك كان بيستخدم egx
+    alias = {"egx": "egypt", "egypt": "egypt", "egy": "egypt",
+             "us": "us", "usa": "us", "nasdaq": "us",
+             "saudi": "saudi", "sa": "saudi", "tadawul": "saudi",
+             "uae": "uae", "dfm": "uae"}
+    mk = alias.get(market)
+    if not mk:
+        return jsonify({"ok": False,
+                        "error": f"market {market} not supported",
+                        "supported": ["egypt", "us", "saudi", "uae"]}), 400
+
+    if mk == "egypt":
         rows = LIVE_DATA.get("egx30", [])
+        # ⛌ الشكل اللي الواجهة بتتوقّع: { "<market>": [صفوف] }
         return jsonify({
             "ok": True,
-            "market": "egx",
+            "market": mk,
+            mk: rows,
             "n": len(rows),
             "codes": [r.get("code") for r in rows if r.get("code")],
             "rows": rows,
         })
-    return jsonify({"ok": False, "error": f"market {market} not supported"}), 400
+
+    # ⛌ باقي الأسواق لسه مش متعلّمين بالـAPI — نرجّع فاضي
+    #    (مش بنخترع أرقام) — والواجهة هتستخدم fallback بتاعها.
+    return jsonify({"ok": True, "market": mk, mk: [], "n": 0, "rows": []})
 
 
 # ============ ROUTES: Gemini AI ============
