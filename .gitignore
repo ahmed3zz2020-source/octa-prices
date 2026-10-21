@@ -18,3 +18,7 @@ node_modules/
 _backup/
 OCTAD_TOKEN_SECRET
 _scratch/
+
+# ⛔ ملفات temporary من شاتات موازية — تترفع بالغلط
+merged.py
+st.json
