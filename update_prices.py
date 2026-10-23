@@ -11962,6 +11962,19 @@ try:
 except Exception as _gold_err:
     print("[gold] ⚠️ مش متركّب: %s" % _gold_err, flush=True)
 
+# ══════════════════════════════════════════════════════════════
+# 🛰️ Smart Money Radar — مسح تاريخ السوق (٢٣ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════
+# ⛔ لازم يتربط قبل app.run عشان المسارات تتسجّل.
+#    ⛌ fail-soft: لو الملف مش موجود أو فيه خطأ، السيرفر بيفضل شغال
+#       والرادار بس بيطلع «غير متاح» — أحسن من إن الموقع كله يقع.
+try:
+    import radar_api as _radar_mod
+    _radar_mod.register(app)
+    print("[radar] ✅ مساح الرادار متركّب", flush=True)
+except Exception as _radar_err:
+    print("[radar] ⚠️ مش متركّب: %s" % _radar_err, flush=True)
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting OCTA v3 on port {port}")
