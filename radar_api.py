@@ -209,7 +209,15 @@ def history_for(codes, n=320):
 #  🌐 تسجيل المسارات
 # ══════════════════════════════════════════════════════════════
 def register(app):
-    from flask import jsonify, request
+    from flask import jsonify, request, Response
+    import json as _json
+
+    def _json_utf8(payload):
+        """⛔ JSON بترميز UTF-8 مباشر (من غير تهريب يونيكود) —
+        الافتراضي (ensure_ascii=True) بيحوّل كل حرف عربي لـ ٦ بايت
+        (حرف عربي واحد بيبقى ٦ بايت) ⇒ الرد أكبر مرتين. الترويسة UTF-8 بتفكّها عادي."""
+        body = _json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        return Response(body, mimetype="application/json")
 
     def _ctx():
         """سياق السيرفر (من غير إجبار تسجيل دخول).
@@ -274,7 +282,7 @@ def register(app):
                         })
                 except Exception:
                     pass
-            return jsonify({
+            return _json_utf8({
                 "ok": True,
                 "n": len(out),
                 "stocks": out,
