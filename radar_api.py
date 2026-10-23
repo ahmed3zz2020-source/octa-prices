@@ -196,24 +196,33 @@ def history_for(codes, n=320):
 def register(app):
     from flask import jsonify, request
 
-    def _auth():
-        """⛔ المسارات محمية — زي باقي مسارات الداتا."""
+    def _ctx():
+        """سياق السيرفر (من غير إجبار تسجيل دخول).
+
+        📌 ⛔⛔ ليه المسارات **مش** محمية؟
+             · /api/candles (نفس البيانات بالظبط) مفتوح أصلاً.
+             · الكون (كود + اسم + قطاع) موجود في ملف مرجعي ثابت
+               بيتحمّل مع الموقع (assets/js/octa-radar-ref.js).
+           ⇒ فتح المسارات مش بيكشف حاجة جديدة، لكنه بيخلّي
+             الرادار يشتغل للزائر كمان.
+
+        🛡️ الحماية من الضغط على المصدر (مش من الاستغلال):
+             · ⛔ semaphore: ٤ اتصالات مفتوحة كحد أقصى
+             · ⛔ سقف ٦٠ كود في الطلب
+             · ⛔ كاش ٣٠ دقيقة
+             · ⛔ سقف المعدّل العام ١٢٠/دقيقة (الـbucket الافتراضي)
+        """
         try:
             import update_prices as U
+            return U
         except Exception:
             return None
-        try:
-            if not U.require_user():
-                return None
-        except Exception:
-            return None
-        return U
 
     @app.route("/api/radar/universe", methods=["GET"])
     def _radar_universe():
-        U = _auth()
+        U = _ctx()
         if U is None:
-            return jsonify({"ok": False, "error": "محتاج تسجيل دخول"}), 401
+            return jsonify({"ok": False, "error": "الخادم مش جاهز"}), 503
         try:
             rows = (U.LIVE_DATA.get("egx30") or [])
             egx = {c: (n, s) for c, n, s in getattr(U, "EGX", [])}
@@ -263,9 +272,9 @@ def register(app):
 
     @app.route("/api/radar/history", methods=["GET"])
     def _radar_history():
-        U = _auth()
+        U = _ctx()
         if U is None:
-            return jsonify({"ok": False, "error": "محتاج تسجيل دخول"}), 401
+            return jsonify({"ok": False, "error": "الخادم مش جاهز"}), 503
         try:
             # ⛔⛔ لازم نستخدم «list» مش «codes»:
             #   التنظيف العام (_sanitize_request) بياخد أي بارامتر اسمه

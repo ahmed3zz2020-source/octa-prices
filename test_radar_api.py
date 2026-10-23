@@ -95,8 +95,11 @@ for secret in ("API_KEY", "SECRET_KEY", "TOKEN=", "password"):
 
 # ── ⑥ المسارات محمية ──────────────────────────────────────────
 print("\n⑥ الحماية:")
-check("المسارات بتطلب تسجيل دخول", "require_user" in body)
-check("فيه 401 عند عدم الدخول", "محتاج تسجيل دخول" in body)
+# ⛔ المسارات مفتوحة بالتصميم — زي /api/candles بالظبط
+check("مفيش إجبار تسجيل دخول (زي /api/candles)", "require_user()" not in body)
+check("في semaphore (حماية المصدر)", "_SEM" in body)
+check("في سقف أكواد", "MAX_CODES" in body)
+check("في كاش", "CACHE_TTL" in body)
 
 # ── ⑦ النتيجة ─────────────────────────────────────────────────
 print("\n" + "═" * 62)
