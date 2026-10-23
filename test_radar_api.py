@@ -108,3 +108,8 @@ if FAIL:
     sys.exit(1)
 print("✅ كل اختبارات الرادار ناجحة")
 sys.exit(0)
+
+print("\n⑦ الشكل «بأعمدة» + قص الكاش:")
+check("الشكل أعمدة t/o/h/l/c/v", 'col = {"t": [], "o": [], "h": [], "l": [], "c": [], "v": []}' in body)
+check("الكاش بيقصّ حسب n", "len(c.get(\"t\") or []) > m" in body)
+check("مفيش صفوف قديمة (payload أخف)", '"o": round(float(c["open"]), 4)' not in body)

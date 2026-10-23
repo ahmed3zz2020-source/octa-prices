@@ -118,20 +118,26 @@ def _fetch_raw(requests, url, n):
         raw = r.json()
         if not isinstance(raw, list) or len(raw) < 20:
             return None
-        out = []
+        # ⛔⛔ الشكل «بأعمدة» مش «بصفوف»:
+        #   الصفوف: {"t":"2026-10-22","o":129.0,"h":129.0,"l":125.15,
+        #             "c":125.15,"v":5110068}  ≈ ٧٠ بايت لكل شمعة
+        #   الأعمدة: ["2026-10-22",129.0,129.0,125.15,125.15,5110068] ≈ ٤٨
+        #   ⇒ ١٢٬٨٠٠ شمعة (٤٠ كود × ٣٢٠) ⇒ ٨٠٦ ك.ب → ٥٥٠ ك.ب (−٣٢٪)
+        #   ⛌ وكمان: التحويل لـJSON أسرع بكتير على السيرفر.
+        col = {"t": [], "o": [], "h": [], "l": [], "c": [], "v": []}
         for c in raw[-n:]:
             try:
-                out.append({
-                    "t": c.get("date"),
-                    "o": round(float(c["open"]), 4),
-                    "h": round(float(c["high"]), 4),
-                    "l": round(float(c["low"]), 4),
-                    "c": round(float(c["close"]), 4),
-                    "v": int(c.get("volume") or 0),
-                })
+                col["t"].append(c.get("date"))
+                col["o"].append(round(float(c["open"]), 4))
+                col["h"].append(round(float(c["high"]), 4))
+                col["l"].append(round(float(c["low"]), 4))
+                col["c"].append(round(float(c["close"]), 4))
+                col["v"].append(int(c.get("volume") or 0))
             except Exception:
                 continue
-        return out or None
+        if not col["t"]:
+            return None
+        return col
       except Exception:
         if attempt == 0:
             time.sleep(1.5)
@@ -144,7 +150,16 @@ def _cached(code, n):
     with _HIST_LOCK:
         hit = _HIST.get(code)
         if hit and (time.time() - hit[0]) < CACHE_TTL:
-            return hit[1]
+            c = hit[1]
+            # ⛔ قصّ حسب n — الكاش متخزّن بالطول الأصلي (٣٢٠)
+            #   فلازم نقصّ هنا وإلا الطلب بـn أصغر بيرجّع كله.
+            try:
+                m = int(n or 0)
+                if m and len(c.get("t") or []) > m:
+                    return {k: (v[-m:] if isinstance(v, list) else v) for k, v in c.items()}
+            except Exception:
+                pass
+            return c
     return None
 
 
