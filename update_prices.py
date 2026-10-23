@@ -9247,13 +9247,24 @@ def engine_weights_api():
 
 @app.route("/api/dashboard")
 def dashboard_api():
-    """لوحة التحكم — كل النظام في رد واحد"""
+    """لوحة التحكم — كل النظام في رد واحد
+
+    ⛔⛔ ٢٣ أكتوبر ٢٠٢٦ — كان مفتوح للزائر المجهول.
+    ⛌ الـdashboard بيطلع: أفضل ١٠ أسهم · حالة كل خدمة · اختبار ضغط.
+    ⛌ ⛌ ده سر مهني كامل — لازم توكن صالح.
+    """
+    if not require_user():
+        return jsonify({"ok": False, "error": "محتاج تسجيل دخول",
+                        "_protected": True}), 401
     return jsonify(dashboard_data())
 
 
 @app.route("/api/audit/redundancy")
 def redundancy_api():
     """تقرير تكرار الواجهة — يساعد في إعادة التصميم"""
+    # ⛔ ٢٣ أكتوبر ٢٠٢٦ — تقرير داخلي (بنية المشروع) — مش للزائر
+    if not require_user():
+        return jsonify({"ok": False, "error": "محتاج تسجيل دخول"}), 401
     return jsonify(duplication_report())
 
 
