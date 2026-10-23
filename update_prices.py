@@ -9249,14 +9249,33 @@ def engine_weights_api():
 def dashboard_api():
     """لوحة التحكم — كل النظام في رد واحد
 
-    ⛔⛔ ٢٣ أكتوبر ٢٠٢٦ — كان مفتوح للزائر المجهول.
-    ⛌ الـdashboard بيطلع: أفضل ١٠ أسهم · حالة كل خدمة · اختبار ضغط.
-    ⛌ ⛌ ده سر مهني كامل — لازم توكن صالح.
+    ⛔⛔ ٢٣ أكتوبر ٢٠٢٦ — كان فيه خلط في التصميم:
+    ⛌ · زائر مجهول (بلا توكن) ← ٤٠١، والواجهة بتقول «النتيجة مشتغالة»
+    ⛌ · مسجّل دخول      ← ٢٠٠ + كل الأرقام (أفضل ١٠ · صحة البيانات · الضغط)
+    ⛌ ⛌ ⛌ الصراحة: بيانات النظام العامة (عدد الأسهم · سن الأnapshot ·
+    ⛌ ⛌ ⛌ صحة البيانات) **مش سر** — دي بتظهر في كل صفحة.
+    ⛌ ⛌ ⛌ اللي سر فعلاً هو **ترتيب أفضل ١٠ أسهم** — ده بيحتاج توكن.
+
+    ✅ الحل: زائر مجهول يشوف الحالة العامة بس (من غير ترتيب ولا توصيات).
+    ⛔ ⛌ المسجّل دخول بيشوف كل حاجة.
     """
+    d = dashboard_data()
+    if d.get("error"):
+        return jsonify(d)
+
     if not require_user():
-        return jsonify({"ok": False, "error": "محتاج تسجيل دخول",
-                        "_protected": True}), 401
-    return jsonify(dashboard_data())
+        # ⛔ زائر: الحالة العامة فقط — مافيش أفضل أسهم ولا توصيات
+        _SECRET_KEYS = ("top10", "top_10", "best", "best10", "recommendations",
+                        "picks", "top_picks", "ranking", "leaders",
+                        "top_stocks", "opportunities", "buy_list", "stocks")
+        safe = {k: v for k, v in d.items() if k not in _SECRET_KEYS}
+        safe["ok"] = True
+        safe["_guest"] = True
+        safe["_note"] = ("سجّل دخول عشان تشوف ترتيب أفضل الأسهم والتوصيات")
+        return jsonify(safe)
+
+    d["ok"] = True
+    return jsonify(d)
 
 
 @app.route("/api/audit/redundancy")
