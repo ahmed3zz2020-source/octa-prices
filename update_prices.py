@@ -12199,6 +12199,58 @@ def admin_logins():
     return jsonify({"ok": True, "users": out, "n": len(out)}), 200
 
 
+@app.route("/api/admin/set_device", methods=["POST"])
+def admin_set_device():
+    """🔗 ربط جهاز بحساب — محمي بتوكن الأدمن.
+
+    🎯_use case: مستخدم شكا من «البوابة بعد كل refresh» وتم
+    ⛔ ماوصلهوش كود الإيميل ⇒ نربط جهازه يدوياً مرة واحدة.
+
+    📌 ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ خط دفاع تاني مهم:
+    📌 ⛌ ⛌ ⛌ ⛌ ⛌ ربط الجهاز **بيطلب إيميل + كود** في الإنتاج
+    📌 ⛌ ⛌ ⛌ ⛌ ⛌ (challenge/verify ⇒ newpin). ده اللي خلّى
+    📌 ⛌ ⛌ ⛌ ⛌ ⛌ المستخدم يسجّل جهازه لوحده ⇒ يدخل عادي بعدها.
+    📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ **DEVICE_BOUND = True** وده الوضع الصح.
+    📌 ✅ الوضع اليدوي ده استثناء إداري — بيحتاج توكن الأدمن.
+    """
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                                       want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+    try:
+        body = request.get_json(silent=True) or {}
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    email = str(body.get("email") or "").strip().lower()[:120]
+    dev = str(body.get("device") or "").strip()
+    if not email or not dev:
+        return jsonify({"ok": False, "error": "لازم email و device"}), 400
+    if not (16 <= len(dev) <= 200):
+        return jsonify({"ok": False, "error": "الجهاز شكله غلط"}), 400
+
+    with USERS_LOCK:
+        users = _load_users() or {}
+        hit = None
+        for uid, u in users.items():
+            if isinstance(u, dict) and str(u.get("email") or "").lower() == email:
+                hit = (uid, u)
+                break
+        if not hit:
+            return jsonify({"ok": False, "error": "مفيش حساب بالإيميل ده"}), 404
+        uid, u = hit
+        _old_hash = str(u.get("bio_hash") or "")
+        u["bio_hash"] = _device_key_hash(dev)
+        u["bio_backfilled"] = int(time.time())
+        u["bio_manual"] = int(time.time())
+        _save_users(users)
+    return jsonify({"ok": True, "email": email, "uid": str(uid),
+                    "device_bound": True,
+                    "replaced_old": bool(_old_hash)}), 200
+
+
 @app.route("/api/admin/monthly", methods=["GET"])
 def admin_monthly():
     """📊 مين سجّل، إمتى، وإيه الحالة — أرقام فقط."""
