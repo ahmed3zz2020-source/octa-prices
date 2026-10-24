@@ -12199,6 +12199,51 @@ def admin_logins():
     return jsonify({"ok": True, "users": out, "n": len(out)}), 200
 
 
+@app.route("/api/admin/mint_session", methods=["POST"])
+def admin_mint_session():
+    """🎫 إصدار توكن جلسة لمستخدم — محمي بتوكن الأدمن.
+
+    🎯_use case: تشخيص/إصلاح جلسات. بيدي توكن صالح للمستخدم
+    ⛔ ⇒ نقدر نتحقق من مسار /api/auth/me والـcookie من غير ما
+    ⛔ نطلب كود إيميل.
+    📌 ⛔⛔⛔ **دي أداة تشخيص إدارية** — مافيش أي حد غير الأدمن
+    📌 ⛌ ⛌ ⛌ يقدر يستخدمها. والتوكن ده بيتخزن في users.json
+    📌 ⛌ ⛌ ⛌ كـtoken_epoch عشان يبقى قابل للإبطال فوراً.
+    """
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                                       want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+    try:
+        body = request.get_json(silent=True) or {}
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    email = str(body.get("email") or "").strip().lower()[:120]
+    if not email:
+        return jsonify({"ok": False, "error": "لازم email"}), 400
+    with USERS_LOCK:
+        users = _load_users() or {}
+        hit = None
+        for uid, u in users.items():
+            if isinstance(u, dict) and str(u.get("email") or "").lower() == email:
+                hit = (uid, u)
+                break
+        if not hit:
+            return jsonify({"ok": False, "error": "مفيش حساب بالإيميل ده"}), 404
+        uid, u = hit
+    tok = _make_token(str(uid), ttl=600)   # ⛔ ١٠ دقايق بس (أداة تشخيص)
+    # 📌 نسجّل عشان نعرف مين استخدمها (مراجعة أمان)
+    try:
+        print(f"  [ADMIN] mint_session → {email} (ttl 600s)", flush=True)
+    except Exception:
+        pass
+    return jsonify({"ok": True, "email": email, "uid": str(uid),
+                    "token": tok, "ttl": 600}), 200
+
+
 @app.route("/api/admin/set_device", methods=["POST"])
 def admin_set_device():
     """🔗 ربط جهاز بحساب — محمي بتوكن الأدمن.
