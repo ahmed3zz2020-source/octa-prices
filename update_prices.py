@@ -2039,7 +2039,14 @@ PIN_CHAL_FILE = DATA_DIR / "pinchal.json"
 PIN_CHAL_LOCK = threading.Lock()
 PIN_CHAL_TTL = 10 * 60              # ⛌ طلب المواصفات: ١٠ دقايق بالظبط
 PIN_CHAL_WRONG = 5                  # ⛌ ٥ غلط على الكود = الكود يموت
-PIN_CHAL_PER_DAY = 3                # ⛌ ٣ أكواد لكل إيميل في اليوم
+# ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ ٥ أكواد/إيميل/يوم (كان ٣)
+# 📌 السبب: ٣ كانت قليلة جداً — المستخدم بيجرّب كذا مرة (خطأ في
+# 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+# 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+# 📌 ⇒ بعد ٣ محاولات يتقفل ويفتكر «استنى بكرة» ⇒ تجربة سيئة.
+# 📌 ✅ ٥ = كفاية للتجربة الحقيقية + سقط حماية معقول.
+# 📌 ⛌ (الحماية الحقيقية: الكود بيموت ١٠ دقايق + ٥ غلط + ٥/٥دقايق IP)
+PIN_CHAL_PER_DAY = 5                # ⛔ ٥ أكواد لكل إيميل في اليوم
 PIN_CHAL_KEEP = 2 * 86400           # ننضّف السجلات بعد يومين
 PIN_UNLOCK_TTL = 10 * 60            # مهلة اختيار الباسورد الجديد
 # ⛌⛌ ٦ أرقام بظبط — [0-9] مش \d — زي الباسورد بالظبط.
@@ -2975,11 +2982,21 @@ def auth_pin_chal_send():
         # ⛌ الحد اليومي: ٣ أكواد لكل إيميل في اليوم.
         #    العدّاد بيتحسب لكل طلب بأي إيميل (مسجّل أو لأ)
         #    عشان الـ429 نفسه ما يبقاش دليل على وجود الحساب.
+        # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ retry_after = الوقت المتبقي لحد
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 📌 السبب: مافيش retry_after ⇒ الواجهة defaulted لـ900 ثانية
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ «استنى ١٥ دقيقة» — بس
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ الحقيقة «استنى بكرة»!
+        _day = int(time.time()) // 86400
+        _next_day = (_day + 1) * 86400
+        _retry = max(60, _next_day - int(time.time()))
         return jsonify({
             "ok": False,
             "error": f"⛔ طلبت {PIN_CHAL_PER_DAY} أكواد على الإيميل ده "
                      f"اليوم — استنى بكرة",
             "why": "daily_limit",
+            "retry_after": _retry,
+            "until_midnight": True,
         }), 429
 
     if _pin_by_email(email)[1]:
@@ -12197,6 +12214,46 @@ def admin_logins():
             })
     out.sort(key=lambda x: -(x.get("last_login") or 0))
     return jsonify({"ok": True, "users": out, "n": len(out)}), 200
+
+
+@app.route("/api/admin/reset_chal", methods=["POST"])
+def admin_reset_chal():
+    """♻️ تصفير عدّاد أكواد الإيميل — محمي بتوكن الأدمن.
+
+    🎯_use case: المستخدم طلب أكواد كتير ووصل للحد اليومي
+    ⛔ ⇒ «استنى بكرة» ⇒ ما يقدرش يدخل خالص.
+    ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    📌 ✅ الحل: تصفير العدّاد لإيميل واحد (أو كله).
+    📌 ⛔⛔⛔ ده **مش** بيكسر الحماية: الكود اللي اتبعت قبل كده
+    📌 ⛔⛔⛔ لسه صالح (١٠ دقايق) — إحنا بنلغي الحد اليومي بس.
+    """
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                                       want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+    try:
+        body = request.get_json(silent=True) or {}
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    email = str(body.get("email") or "").strip().lower()[:120]
+    with PIN_CHAL_LOCK:
+        d = _chal_load()
+        c = d.get("c") or {}
+        if email:
+            if email in c:
+                del c[email]
+                d["c"] = c
+                _chal_save(d)
+                return jsonify({"ok": True, "reset": email}), 200
+            return jsonify({"ok": True, "reset": email, "note": "مافيش عدّاد"}), 200
+        n = len(c)
+        d["c"] = {}
+        _chal_save(d)
+    return jsonify({"ok": True, "reset_all": n}), 200
 
 
 @app.route("/api/admin/mint_session", methods=["POST"])
