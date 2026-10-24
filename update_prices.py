@@ -1508,12 +1508,15 @@ def auth_register():
             #    دلوقتي: لازم الكود نفسه يطابق اللي متخزّن.
             if hmac.compare_digest(str(users[uid].get("khash") or ""), khash):
                 # نفس الكود = نفس المستخدم (تسجيل دخول تلقائي)
-                return jsonify({
+                _r = jsonify({
                     "ok": True, "token": _make_token(uid),
                     "user": {"id": uid, "name": users[uid]["name"],
                              "email": users[uid].get("email")},
                     "returning": True,
                 })
+                # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ كوكي HttpOnly (شوف _pin_json)
+                _set_auth_cookie(_r, uid)
+                return _r
             # ⛔ رسالة واحدة للحالتين — ما نقولش «الإيميل ده مسجل»
             return jsonify({
                 "error": "الكود مش صح — لو عندك حساب بالإيميل ده، "
@@ -1532,11 +1535,14 @@ def auth_register():
         }
         _save_users(users)
 
-    return jsonify({
+    _r = jsonify({
         "ok": True, "token": _make_token(uid),
         "user": {"id": uid, "name": name, "email": email or None},
         "emailSaved": bool(email),
     })
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ كوكي HttpOnly (شوف _pin_json)
+    _set_auth_cookie(_r, uid)
+    return _r
 
 
 
@@ -2278,7 +2284,27 @@ def _pin_json(fn):
     @_functools.wraps(fn)
     def _wrapped(*a, **k):
         try:
-            return fn(*a, **k)
+            rv = fn(*a, **k)
+            # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ الكوكي HttpOnly
+            # 📌 لو الرد فيه توكن ⇒ نضيف كوكي HttpOnly على الرد.
+            # 📌 ⛌ ⛌ ⛌ السبب: `_set_auth_cookie` كانت معرّفة بس
+            # 📌 ⛌ ⛌ ⛌ **مابتتنداش في أي مكان** ⇒ الكوكي مش
+            # 📌 ⛌ ⛌ ⛌ بيتحفظ ⇒ بعد أي refresh (لو الـlocalStorage
+            # 📌 ⛌ ⛌ ⛌ اتمسح) ⇒ التوكن ضاع ⇒ البوابة.
+            # 📌 ✅ الحل: نضيفه هنا مركزياً ⇒ كل مسارات المصادقة
+            # 📌 ✅ بتاخد كوكي من غير ما نعدّل ٨ مواضع.
+            try:
+                _resp = rv[0] if isinstance(rv, tuple) else rv
+                if hasattr(_resp, "get_json"):
+                    _bd = _resp.get_json(silent=True)
+                    if isinstance(_bd, dict) and _bd.get("token"):
+                        _uid = str((_bd.get("user") or {}).get("id")
+                                   or _bd.get("uid") or "")
+                        if _uid:
+                            _set_auth_cookie(_resp, _uid)
+            except Exception:
+                pass
+            return rv
         except Exception as e:
             _log_exc(fn.__name__, e)
             return jsonify({
@@ -4227,11 +4253,17 @@ def _auth_reset_verify():
     RESET_STORE[email] = rec
 
     # ⛔ التوكن القديم بيبطل — لازم يسجّل دخول تاني
-    return jsonify({
+    _r = jsonify({
         "ok": True,
         "msg": "اتغيرت كلمة السر — سجّل دخول تاني",
         "token": _make_token(uid),
     })
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ كوكي HttpOnly (شوف _pin_json)
+    try:
+        _set_auth_cookie(_r, str(uid))
+    except Exception:
+        pass
+    return _r
 
 
 
@@ -4407,8 +4439,16 @@ def auth_me():
     u = require_user()
     if not u:
         return jsonify({"error": "unauthorized"}), 401
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ التوكن بيرجع مع /api/auth/me
+    # 📌 السبب: الـlocalStorage ممكن يتمسح (المتصفح يمسح الكاش · تغيير
+    # 📌 ⛌ ⛌ ⛌ إعدادات · كوكيز ممحوكة) — والـcookie HttpOnly لسه
+    # 📌 ⛌ ⛌ ⛌ موجودة ⇒ الـsession سليمة بس الواجهة مش عارفة.
+    # 📌 ⛌ ⛌ ⛌ ⇒ كانت بتعمل logoutLocal() + البوابة رغم إن
+    # 📌 ⛌ ⛌ ⛌ المستخدم مسجّل فعلاً!
+    # 📌 ✅ الحل: نرجّع توكن جديد مع الـuser ⇒ الواجهة تحطه.
     return jsonify({
         "ok": True,
+        "token": _make_token(str(u.get("id") or "")),
         "user": {"id": u["id"], "name": u["name"]},
         "stats": {
             "portfolio": len(u.get("portfolio") or {}),
