@@ -2554,11 +2554,41 @@ def auth_pin_login():
     # ✅ صح — العدّاد بيتصفّر والتوقيت بيتسجل
     _pinlock_reset(keys)
     _pin_window_reset(keys)
+    # ⛌⛌ ٢٤ أكتوبر ٢٠٢٦ — نحسب «جهاز جديد» **قبل** أي تعديل
+    # ⛌ (عشان bio_hash لسه على حاله)
+    _was_new_dev = False
+    if dev_ok:
+        with USERS_LOCK:
+            _u0 = (_load_users() or {}).get(uid) or {}
+            _kh = str(_u0.get("bio_hash") or "")
+            _was_new_dev = (not _kh) or (not hmac.compare_digest(
+                _kh, _device_key_hash(dev)))
+
     with USERS_LOCK:
         users = _load_users()
         rec = users.get(uid)
         if rec is not None:
             rec["last_login"] = int(time.time())
+            # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ سجل الدخول
+            # 📌 سؤال أحمد: «هل ممكن أعرف مين دخل بالـPIN بس؟»
+            # 📌 ⛌ ⛌ ⛌ قبل كده مافيش غير last_login (آخر مرة بس).
+            # 📌 ⛌ ⛌ ⛌ دلوقتي: كل دخول بيتسجل (وقت + الجهاز + IP)
+            # 📌 ⛌ ⛌ ⛌ ⇒ نعرف مين دخل، إمتى، ومن جهاز تاني.
+            _lg = rec.setdefault("login_log", [])
+            if not isinstance(_lg, list):
+                _lg = []
+                rec["login_log"] = _lg
+            _lg.append({
+                "t": int(time.time()),
+                "via": "pin",              # ⛌ طريقة الدخول
+                "dev": (dev[:12] if dev else ""),   # ⛌ بصمة الجهاز (١٢ حرف)
+                "ip": ip[:64],             # ⛌ IP (نفسه اللي بيتعمل hash منه)
+                "newdev": _was_new_dev,
+            })
+            # ⛌ نحتفظ بآخر ٥٠ دخول بس (مش هنضخّم الملف)
+            if len(_lg) > 50:
+                rec["login_log"] = _lg[-50:]
+            rec["login_count"] = int(rec.get("login_count") or 0) + 1
             _save_users(users)
         else:
             rec = u
@@ -3034,6 +3064,22 @@ def auth_pin_chal_newpin():
                 _dev_rec = str((data.get("device") or "")).strip()
                 if _dev_rec and (16 <= len(_dev_rec) <= 200):
                     rec["bio_hash"] = _device_key_hash(_dev_rec)
+                # ⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ دخول بعد استرجاع بكود
+                rec["last_login"] = int(time.time())
+                rec["login_count"] = int(rec.get("login_count") or 0) + 1
+                _lg2 = rec.setdefault("login_log", [])
+                if not isinstance(_lg2, list):
+                    _lg2 = []
+                    rec["login_log"] = _lg2
+                _lg2.append({
+                    "t": int(time.time()),
+                    "via": "challenge",       # ⛌ استرجاع بكود إيميل
+                    "dev": (_dev_rec[:12] if _dev_rec else ""),
+                    "ip": _client_key()[:64],
+                    "newdev": True,          # ⛌ جهاز جديد (ده سبب الـchallenge)
+                })
+                if len(_lg2) > 50:
+                    rec["login_log"] = _lg2[-50:]
                 _save_users(users)
                 out = _pin_user_json(rec)
 
@@ -3618,6 +3664,22 @@ def auth_signup_newpin():
                 _dev_new = str((data.get("device") or "")).strip()
                 if _dev_new and (16 <= len(_dev_new) <= 200):
                     rec["bio_hash"] = _device_key_hash(_dev_new)
+                # ⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ أول دخول = تسجيل (تسجيل حساب جديد)
+                rec["last_login"] = int(time.time())
+                rec["login_count"] = int(rec.get("login_count") or 0) + 1
+                _lg = rec.setdefault("login_log", [])
+                if not isinstance(_lg, list):
+                    _lg = []
+                    rec["login_log"] = _lg
+                _lg.append({
+                    "t": int(time.time()),
+                    "via": "signup",          # ⛌ طريقة الدخول
+                    "dev": (_dev_new[:12] if _dev_new else ""),
+                    "ip": _client_key()[:64],
+                    "newdev": True,          # ⛌ أول مرة — جهاز جديد بطبيعة الحال
+                })
+                if len(_lg) > 50:
+                    rec["login_log"] = _lg[-50:]
                 _save_users(users)
                 out = _pin_user_json(rec)
                 em = str(rec.get("email") or "")
@@ -11879,6 +11941,11 @@ def admin_users_list():
             "name": u.get("name") or "",
             "email": u.get("email") or "",
             "hasPin": bool(u.get("pin") or u.get("key")),
+            # ⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ معلومات الدخول
+            "pin_set": bool(u.get("pin_hash")),
+            "login_count": int(u.get("login_count") or 0),
+            "last_login": u.get("last_login") or 0,
+            "login_log": (u.get("login_log") or [])[-8:],
             "created": u.get("created"),
             "watch": len(u.get("watch") or []),
             "keys": sorted([k for k in u.keys() if k not in ("pin", "key", "salt", "hash")]),
@@ -11888,18 +11955,30 @@ def admin_users_list():
 
 @app.route("/api/admin/user/<uid>", methods=["DELETE"])
 def admin_user_delete(uid):
-    """🗑️ حذف حساب واحد + كل بياناته. محمي بتوكن الأدمن."""
+    """🗑️ حذف حساب واحد + كل بياناته. محمي بتوكن الأدمن.
+
+    📌 ⛌⛌ ٢٤ أكتوبر ٢٠٢٦ — بقى يقبل الإيميل كمان مش الـuid بس
+    📌 (أحمد طلب «احذف» فكان لازم أجيب الإيميل من الجدول).
+    """
     want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
     got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
     if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
                                                        want.encode("utf-8", "replace")):
         return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
-    users = _load_users() or {}
     uid = str(uid)
+    # 📌 لو الـuid ده مش موجود ⇒ جرّب نشوفه إيميل
+    users = _load_users() or {}
+    if uid not in users:
+        _e = uid.strip().lower()
+        for _u, _rec in list(users.items()):
+            if isinstance(_rec, dict) and str(_rec.get("email") or "").lower() == _e:
+                uid = str(_u)
+                break
     if uid not in users:
         return jsonify({"ok": False, "error": "مفيش حساب بالـid ده"}), 404
     gone = users.pop(uid)
-    _save_users(users)
+    with USERS_LOCK:
+        _save_users(users)
     # ⛔ نمسح من ملف التتبع برضه — يحذف حسابه من كل إحصائيات
     try:
         tp = DATA_DIR / "track.json"
