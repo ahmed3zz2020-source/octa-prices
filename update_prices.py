@@ -12297,8 +12297,14 @@ def admin_mint_session():
         print(f"  [ADMIN] mint_session → {email} (ttl 600s)", flush=True)
     except Exception:
         pass
-    return jsonify({"ok": True, "email": email, "uid": str(uid),
-                    "token": tok, "ttl": 600}), 200
+    _r = jsonify({"ok": True, "email": email, "uid": str(uid),
+                    "token": tok, "ttl": 600})
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ الكوكي كمان (عشان نختبر المسار الكامل)
+    try:
+        _set_auth_cookie(_r, str(uid))
+    except Exception:
+        pass
+    return _r, 200
 
 
 @app.route("/api/admin/set_device", methods=["POST"])
