@@ -1043,10 +1043,25 @@ def _set_auth_cookie(resp, uid):
     try:
         tok = _make_token(uid)
         days = max(1, int(TOKEN_TTL // 86400))
+        # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ SameSite=None + Secure دايماً
+        # 📌 السبب: الكوكي HttpOnly بـSameSite=Lax **مش كان بيوصل**
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 📌 ⇒ /api/auth/me رجّع 401 ⇒ logoutLocal() + البوابة
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ «البوابة بعد كل refresh»
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 📌 ✅ الحل: SameSite=None + Secure=True (الموقع HTTPS دايماً).
+        # 📌 ✅ SameSite=None معناها «ابعته مع أي طلب» — مفيش استثناء.
+        # 📌 ✅ ولازم Secure (دايماً على HTTPS) — Chrome بيسيب
+        # 📌 ✅ SameSite=None لو Secure مش موجود.
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
         resp.set_cookie(
             "octa_token", tok,
-            max_age=TOKEN_TTL, httponly=True, samesite="Lax",
-            secure=bool(request.is_secure),
+            max_age=TOKEN_TTL, httponly=True, samesite="None",
+            secure=True,
             path="/",
         )
     except Exception:
