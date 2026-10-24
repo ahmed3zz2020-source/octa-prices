@@ -783,17 +783,25 @@ def rate_limit_guard():
 
     allowed, retry, bucket = _rate_check()
     if not allowed:
-        resp = jsonify({
+        # ⛔ ٢٤ أكتوبر ٢٠٢٦ — نفس bug الـimmutable (شوف فوق)
+        _b = {
             "error": "⛔ طلبات كتير في وقت قصير ⬇️ استنى شوية وحاول تاني",
             "bucket": bucket,
             "retry_after": retry,
             "hint": "استنى شوية وجرب تاني",
-        })
-        resp.status_code = 429
-        resp.headers["Retry-After"] = str(retry)
-        resp.headers["X-RateLimit-Limit"] = str(LIMITS[bucket][0][0])
-        resp.headers["X-RateLimit-Bucket"] = bucket
-        return resp
+        }
+        try:
+            return Response(jsonify(_b), status=429,
+                            headers={"Retry-After": str(retry)}), 429
+        except Exception:
+            resp = jsonify(_b)
+            try:
+                resp.headers["Retry-After"] = str(retry)
+                resp.headers["X-RateLimit-Limit"] = str(LIMITS[bucket][0][0])
+                resp.headers["X-RateLimit-Bucket"] = bucket
+            except Exception:
+                pass
+            return resp
     return None
 
 
@@ -2205,19 +2213,23 @@ def _pin_locked_resp(retry, what="الباسورد"):
     """رد القفل — 429 + retry_after بالثواني (في الرد وفي الهيدر)"""
     retry = max(1, int(retry or 0))
     mins = max(1, retry // 60)
-    resp = jsonify({
+    # ⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — bug حقيقي: jsonify بيرجّع Response
+    # immutable في Flask ⇒ resp.status_code = 429 بيرمي
+    # AttributeError (read-only). النتيجة: القفل بيرجّع 500
+    # بدل 429 ⇒ والواجهة ماتفهمش إنه قفل.
+    # ✅ الحل: نبني الـheaders في الـResponse نفسه.
+    body = {
         "ok": False,
         "error": f"⛔ {what} اتقفل مؤقتاً بعد محاولات غلط كتير — "
                  f"استنى {mins} دقيقة",
         "why": "locked",
         "retry_after": retry,
-    })
-    resp.status_code = 429
+    }
     try:
-        resp.headers["Retry-After"] = str(retry)
+        return Response(jsonify(body), status=429,
+                        headers={"Retry-After": str(retry)}), 429
     except Exception:
-        pass
-    return resp, 429
+        return jsonify(body), 429
 
 
 def _pin_user_json(u):
@@ -2444,10 +2456,62 @@ def auth_pin_login():
     if locked:
         return _pin_locked_resp(retry)
 
+    # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐ الثغرة الحرجة (Cross-Account Takeover)
+    # 📌 المشكلة (من أحمد): لو حد فتح الموقع من **إيميل تاني أو موبايل
+    # 📌 تاني** وكتب الـPIN بتاع حد تاني — فتح حسابه على طول!
+    # 📌 السبب: _pin_find_by_index(pin) بتدور بالرقم بس — مافيش
+    # 📌 ⛌ ⛌ أي ربط بالجهاز ولا بالإيميل ⇒ الـPIN = مفتاح عام.
+    # 📌 ⛌ ⛌ ⛌ ٤ أرقام = ١٠٬٠٠٠ احتمال ⇒ قفل القلوب ضعيف.
+    #
+    # ✅ الحل: الـPIN ما يفيش لوحده. لازم **الجهاز المسجّل**
+    #    على الحساب. جهاز جديد ⇒ لازم كود على الإيميل (challenge).
+    # ⛌ ⛌ ⛌ ده بيحقق هدف أحمد: «كل مستخدم جديد يعمل حساب
+    # ⛌ ⛌ ⛌ عشان كل الداتا تبقى عندنا» — ومفيش حد يدخل
+    # ⛌ ⛌ ⛌ بحساب حد تاني بإيميل مختلف.
+
+    dev = str((data.get("device") or "")).strip()
+    dev_ok = bool(dev) and (16 <= len(dev) <= 200)
+
     uid, u = _pin_find_by_index(pin)
     if u is None and _pin_index_stale():
         # ⛌ الفهرس مش مظبوط (pepper اتغيّر) — بحث بالهاش الحقيقي
         uid, u = _pin_find_by_scan(pin)
+
+    # ⛔⛔⛔ فحص ملكية الجهاز — ٢٤ أكتوبر ٢٠٢٦
+    # ⛌ الجهاز لازم يكون **مسجّل على الحساب ده** (bio_hash).
+    # ⛌ ⛌ ⛌ لو الجهاز مش معروف ⇒ 401 + need_code ⇒ الواجهة
+    # ⛌ ⛌ ⛌ تطلب كود على الإيميل ⇒ الحساب الجديد يعمل حساب.
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ مفاتيح مفيش device = مرفوض
+    # 📌Reason: لو/device مش مبعوت ⇒ يبقى عميل قديم (نسخة قديمة
+    # 📌 ⛌ ⛌ ⛌ من الواجهة) أو حد بيتلاعب بالطلب.
+    # 📌 ⛌ ⛌ ⛌ ⇒ مينفعش يقفل الدخول العملي.
+    if u is not None and not dev_ok:
+        _pin_timing_pad(pin)
+        _pin_window_fail(keys)
+        return jsonify({
+            "ok": False,
+            "error": "محتاج كود على الإيميل — جهازك مش معروف",
+            "why": "new_device",
+            "need_code": True,
+            "attempts_left": 0,
+            "next": "challenge/send",
+        }), 401
+
+    if u is not None and dev_ok:
+        want_dev = _device_key_hash(dev)
+        known_dev = str(u.get("bio_hash") or "")
+        if not known_dev or not hmac.compare_digest(known_dev, want_dev):
+            # ⛌⛌⛔ جهاز جديد — بنطلب كود على الإيميل (مش بندخل)
+            _pin_timing_pad(pin)
+            _pin_window_fail(keys)   # ⛌ تتحسب كمحاولة (نفس الباسورد)
+            return jsonify({
+                "ok": False,
+                "error": "دخول من جهاز جديد — هنبعتلك كود على الإيميل",
+                "why": "new_device",
+                "need_code": True,
+                "attempts_left": 0,
+                "next": "challenge/send",
+            }), 401
 
     if u is None or not _pin_verify(uid, u, pin):
         # ⛌ نفس المسار ونفس الرد في كل الأحوال
@@ -2963,6 +3027,13 @@ def auth_pin_chal_newpin():
                 rec["pin_changed"] = int(time.time())
                 rec["pin_recovered"] = int(time.time())
                 rec["pin_recoveries"] = int(rec.get("pin_recoveries") or 0) + 1
+                # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نربط الجهاز الجديد بالحساب.
+                # 📌 السبب: بعد الـchallenge (كود على الإيميل صح)،
+                # 📌 ⛌ ⛌ ⛌ المستخدم داخل من جهاز جديد ⇒ لازم الجهاز
+                # 📌 ⛌ ⛌ ⛌ ده يتسجّل، وإلا مش هيقدر يدخل تاني.
+                _dev_rec = str((data.get("device") or "")).strip()
+                if _dev_rec and (16 <= len(_dev_rec) <= 200):
+                    rec["bio_hash"] = _device_key_hash(_dev_rec)
                 _save_users(users)
                 out = _pin_user_json(rec)
 
@@ -3539,6 +3610,14 @@ def auth_signup_newpin():
                 rec["pin_set"] = int(time.time())
                 rec["pin_first_at"] = int(
                     rec.get("pin_first_at") or int(time.time()))
+                # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نربط الجهاز بالحساب الجديد.
+                # 📌Reason: بعد الفحص الجديد، الدخول بـPIN + device
+                # 📌 ⛌ ⛌ ⛌ مسموح بس لو الجهاز مسجّل على الحساب.
+                # 📌 ⛌ ⛌ ⛌ ⇒ لازم نسجّل الجهاز وقت إنشاء الحساب،
+                # 📌 ⛌ ⛌ ⛌ وإلا المستخدم الجديد مش هيقدر يدخل خالص.
+                _dev_new = str((data.get("device") or "")).strip()
+                if _dev_new and (16 <= len(_dev_new) <= 200):
+                    rec["bio_hash"] = _device_key_hash(_dev_new)
                 _save_users(users)
                 out = _pin_user_json(rec)
                 em = str(rec.get("email") or "")
