@@ -11994,6 +11994,43 @@ def admin_user_delete(uid):
                     "remaining": len(_load_users() or {})})
 
 
+@app.route("/api/admin/logins", methods=["GET"])
+def admin_logins():
+    """📜 سجل دخول كل المستخدمين — مين دخل، إمتى، من جهاز تاني.
+
+    🎯 سؤال أحمد: «لو حد دخل وهو غير مستخدم عادي بـ4 أرقام بتوع
+    الرقم السري العادي، هل ممكن أعرف؟»
+    📌 قبل كنده مافيش غير last_login (آخر مرة بس) ⇒ مافيش تاريخ.
+    📌 ⛌ ⛌ ⛌ دلوقتي login_log (آخر ٥٠ دخول لكل مستخدم):
+    📌 ⛌ ⛌ ⛌   t      = الوقت
+    📌 ⛌ ⛌ ⛌   via    = pin | signup | challenge
+    📌 ⛌ ⛌ ⛌   dev    = بصمة الجهاز (أول ١٢ حرف من الهاش)
+    📌 ⛌ ⛌ ⛌   ip     = العنوان
+    📌 ⛌ ⛌ ⛌   newdev = True ⇒ جهاز مش مسجّل (يعني اتطلب كود إيميل)
+    """
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                                       want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+    with USERS_LOCK:
+        users = _load_users() or {}
+        out = []
+        for uid, u in users.items():
+            if not isinstance(u, dict):
+                continue
+            out.append({
+                "uid": str(uid),
+                "name": u.get("name") or "",
+                "email": u.get("email") or "",
+                "login_count": int(u.get("login_count") or 0),
+                "last_login": u.get("last_login") or 0,
+                "logins": (u.get("login_log") or [])[-20:],
+            })
+    out.sort(key=lambda x: -(x.get("last_login") or 0))
+    return jsonify({"ok": True, "users": out, "n": len(out)}), 200
+
+
 @app.route("/api/admin/monthly", methods=["GET"])
 def admin_monthly():
     """📊 مين سجّل، إمتى، وإيه الحالة — أرقام فقط."""
