@@ -193,6 +193,15 @@ _ALWAYS_SHOW_OUTPUT = (
     "/api/rank", "/api/data_full", "/api/portfolio", "/api/charts",
 )
 
+# ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ مسارات المصادقة: "why" فيها = سبب الرفض
+# 📌 (new_device · need_code · locked · bad_email …) والواجهة محتاجاها
+# 📌 ⛌ ⛌ ⛌ ⛌ ⛌ عشان تعرض الرسالة الصح. من غيرها بتعرض «محاولات
+# 📌 ⛌ ⛌ ⛌ ⛌ ⛌ كتير» لكل حاجة ⇒ تجربة سيئة + شكاوى.
+# 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⚠️ دي **سبب** مش **مخرجات محرك** ⇒ مافيش تسريب.
+_AUTH_REASONS_ALLOWED = (
+    "/api/auth/",
+)
+
 # 🏷️ مفاتيح عامة اسمها اشتباك مع الوصفة
 #    "strategies" = قائمة أسماء الاستراتيجيات (مش وصفة)
 #    "strategy"   = نتيجة تقييم السهم واستراتيجيته (مش وصفة)
@@ -253,10 +262,25 @@ def _hide_recipe(data, _depth=0):
 
 def _shows_output(resp):
     """⛔ المسار ده بيعرض مخرجات المحرك ولا لأ؟"""
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ bug حقيقي من الأصل
+    # 📌 الكود القديم كان بيقرأ: resp.request.path
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ في Flask 3 (2.2+) resp.request بقى
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ **اختياري** ⇒ بيرجّع None دايماً!
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ _shows_output دايماً False ⇒
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ /api/rank و /api/data_full و /api/portfolio
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ شالت الدرجات والتوصيات من المستخدم المسجّل!
+    # 📌 ✅ الحل: نقرأ من request.path مباشرة (الـcontext الحالي).
+    p = ""
     try:
-        p = str(getattr(resp, "request", None).path or "")
+        p = str(request.path or "")
     except Exception:
         p = ""
+    if not p:
+        # ⛌ احتياط: نحاول من resp.request
+        try:
+            p = str(getattr(resp, "request", None).path or "")
+        except Exception:
+            p = ""
     if not p:
         # ⛔ من غير request (اختبارات) → نخفي احتياطاً
         return False
@@ -303,14 +327,46 @@ def hide_recipe(resp):
     if body is None:
         return resp
 
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ مسار المصادقة: "why" = سبب الرفض
+    # 📌 (مش مخرجات محرك) ⇒ لازم تفضل ظاهرة.
+    _is_auth = False
+    try:
+        # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نقرأ المسار من الـrequest نفسه
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ مش من resp.request — في Flask 3 الاختياري
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ بيطلع None ⇒ _is_auth كان False دايماً!
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ (ده كان سبب إن "why" مابيرجعش للواجهة)
+        _p = str(request.path or "")
+        _is_auth = _p.startswith(_AUTH_REASONS_ALLOWED)
+    except Exception:
+        _is_auth = False
+
     # نخفي الوصفة
     clean = _hide_recipe(body)
+
+    # ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    # 📌 ✅ لو كان "why" اتشال من _HIDDEN_KEYS_OUTPUT ⇒ نرجّعه
+    # 📌 ✅ من نسخة الـbody الأصلية لو المسار مصادقة.
+    # 📌 ✅ (عشان reintroduce他的手 — بدل ما نخفيه تاني)
 
     # ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — مخرجات المحرك
     # ⛌ نخفيها بس في الردود المفتوحة. المسارات المحمية
     # ⛌ (rank / data_full / portfolio / charts) لازم المستخدم يشوف درجته.
     if not _shows_output(resp):
         clean = _hide_outputs(clean)
+
+    # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ مسار المصادقة: "why" = سبب الرفض
+    # 📌 (new_device · need_code · locked · bad_email …) — دي **سبب**
+    # 📌 ⛌ ⛌ ⛌ مش مخرجات محرك، والواجهة محتاجاها عشان تعرض
+    # 📌 ⛌ ⛌ ⛌ الرسالة الصح. من غيرها بتعرض «محاولات كتيرة» لكل
+    # 📌 ⛌ ⛌ ⛌ حاجة ⇒ وده بالظبط اللي شكا منه أحمد.
+    # 📌 ✅ الحل: بعد ما نخفي المخرجات، نرجّع "why" من نسخة
+    # 📌 ✅ الـbody الأصلية **بس** في مسارات /api/auth/.
+    if _is_auth and isinstance(clean, dict) and isinstance(body, dict):
+        if "why" in body and "why" not in clean:
+            clean = dict(clean)
+            clean["why"] = body["why"]
 
     # ونحط رقم النسخة في كل رد dict
     snap = LIVE_DATA.get("snapshot_id")
@@ -583,11 +639,28 @@ LIMITS = {
     #    الساعة من غير ما يتقفل أي حاجة. ٢٠/ساعة معناها ٥٠٠٠ فحص في
     #    اليوم = ٢ يومين لتمرير المساحة كلها حتى قبل القفل الذكي.
     "pin_register": [(5, 60), (20, 3600)],
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ دخول بالباسورد: ١٠ / دقيقة
+    # 📌 السبب: المسار ده كان "write" = ٥/دقيقة بس.
+    # 📌 ⛌ ⛌ ⛌ ⇒ المستخدم اللي حسابه محتاج «جهاز جديد» (حساب
+    # 📌 ⛌ ⛌ ⛌ قديم) بيحاول ٤-٥ مرات ⇒ الخامسة بترجّع 429
+    # 📌 ⛌ ⛌ ⛌ «طلبات كتير» ⇒ المستخدم مش بيقدر يطلب الكود أصلاً!
+    # 📌 ⛌ ⛌ ⛌ ⇒ يدخل ويطلع ويدخل… وده بالظبط اللي شكا منه أحمد.
+    # 📌 ✅ ١٠/دقيقة: كفاية للتجربة الطبيعية (٥ محاولات غلط +
+    # 📌 ✅ الكود + إعادة المحاولة) وسقف منطقي للحماية.
+    # 📌 ⛌ ⛌ ⛌ الأمان الفعلي مش هنا — ده في عدّاد الباسورد
+    # 📌 ⛌ ⛌ ⛌ نفسه (٤ محاولات / ٦٠ ثانية على الرقم).
+    "pin_login":   [(10, 60)],
     # ⛌⛔ كود فتح الحساب (القاعدة ①): الإرسال أغلى حاجة في
     #    الـAPI كله — بيبعت بريد وبيحسب كود وبيكتب على القرص.
     #    ٣ / ٥ دقايق للـIP. فوقه حد ٣ في اليوم **لكل إيميل**
     #    جوّه الكود نفسه (مش الـIP بس) — شوف auth_pin_chal_send.
-    "pin_chal_send": [(3, 300)],
+    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ ٥ / ٥ دقايق (كان ٣)
+    # 📌 السبب: المستخدم بيفتح الموقع على أكتر من جهاز (موبايل +
+    # 📌 ⛌ ⛌ ⛌ تابلت) ⇒ كل واحدطلب كود ⇒ ٣rd كان بيمسكه.
+    # 📌 ⛌ ⛌ ⛌ ⇒ الواجهة بتقول «طلبات كتير» والمستخدم مش فاهم.
+    # 📌 ✅ ٥/٥ دقايق + ٣ في اليوم **لكل إيميل** (PIN_CHAL_PER_DAY)
+    # 📌 ✅ ⇒ الحماية القوية موجودة (٣/يوم/إيميل) مش محتاجة سقف IP صارم.
+    "pin_chal_send": [(5, 300)],
     # ⛌ التحقق: ١٠ / ٥ دقايق. الكود نفسه بيموت بعد ٥ غلط،
     #    فالسقف ده بيمنع المسح السريع قبل ما الكود يموت.
     "pin_chal_verify": [(10, 300)],
@@ -714,6 +787,12 @@ def _route_bucket(path, method=None):
                         "verify": "pin_chal_verify",
                         "newpin": "pin_chal_newpin",
                     }.get(seg[4] if len(seg) > 4 else "", "write")
+                # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ دخول الباسورد ليه سقفه
+                # 📌 (١٠/دقيقة) — مش "write" (٥/دقيقة).
+                # 📌 ⛌ ⛌ ⛌Reason: «جهاز جديد» + «كود» = أكتر من ٥
+                # 📌 ⛌ ⛌ ⛌ محاولات طبيعية ⇒ كان بيتقفل في نص الطريق.
+                if tail == "login":
+                    return "pin_login"
                 return "write"
             # ⛌ ⛌ التجديد الصامت: سقف عادي (default) — مش
             #    بالدقيقة. المستخدم بيتصفح ٣٠ دقيقة وبيجدد
@@ -790,18 +869,19 @@ def rate_limit_guard():
             "retry_after": retry,
             "hint": "استنى شوية وجرب تاني",
         }
+        # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نفس الـBUG (شوف فوق)
+        # 📌 Response(jsonify(...)) ⇒ 500 بدل 429.
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ الأثر: أي حد يعمل طلبات كتير ⇒ السيرفر
+        # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ بيرجّع 500 ⇒ الواجهة مش بتعرف إنه rate limit.
+        resp = jsonify(_b)
+        resp.status_code = 429
         try:
-            return Response(jsonify(_b), status=429,
-                            headers={"Retry-After": str(retry)}), 429
+            resp.headers["Retry-After"] = str(retry)
+            resp.headers["X-RateLimit-Limit"] = str(LIMITS[bucket][0][0])
+            resp.headers["X-RateLimit-Bucket"] = bucket
         except Exception:
-            resp = jsonify(_b)
-            try:
-                resp.headers["Retry-After"] = str(retry)
-                resp.headers["X-RateLimit-Limit"] = str(LIMITS[bucket][0][0])
-                resp.headers["X-RateLimit-Bucket"] = bucket
-            except Exception:
-                pass
-            return resp
+            pass
+        return resp, 429
     return None
 
 
@@ -2225,11 +2305,30 @@ def _pin_locked_resp(retry, what="الباسورد"):
         "why": "locked",
         "retry_after": retry,
     }
+    # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ الـBUG الحقيقي اللي كان مبيبانش
+    # 📌 الشكل القديم: Response(jsonify(body), status=429, ...)
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ jsonify() بترجّع **Response** أصلاً!
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ Response(<Response>) ⇒ Werkzeug بيعمل
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ list() على الـbody ⇒ «'Response' object is
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ not iterable» ⇒ **500 Internal Server Error**
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    # 📌 ✅ الشكل الصح: jsonify(body) وبعدين نعدّل الـstatus
+    # 📌 ✅ والـheaders (الـResponse اللي جاي من jsonify mutable).
+    # 📌 ✅ اتحققت بالـFlask 3.0.3 الحقيقي (test_client).
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ الأثر: القفل كان بيرجّع 500 مش 429 ⇒
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ الواجهة مافيشش فهم «it's قفل» ⇒ بتعامله
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ زي خطأ ⇒ المستخدم يدخل ويطلع ويدخل…
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    resp = jsonify(body)
+    resp.status_code = 429
     try:
-        return Response(jsonify(body), status=429,
-                        headers={"Retry-After": str(retry)}), 429
+        resp.headers["Retry-After"] = str(retry)
     except Exception:
-        return jsonify(body), 429
+        pass
+    return resp, 429
 
 
 def _pin_user_json(u):
@@ -2486,8 +2585,16 @@ def auth_pin_login():
     # 📌 ⛌ ⛌ ⛌ من الواجهة) أو حد بيتلاعب بالطلب.
     # 📌 ⛌ ⛌ ⛌ ⇒ مينفعش يقفل الدخول العملي.
     if u is not None and not dev_ok:
+        # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ إصلاح حقيقي
+        # 📌 المشكلة: احنا كنا بنعمل _pin_window_fail هنا.
+        # 📌 ⛌ ⛌ ⛌ النتيجة: device ناقص = «محاولة فاشلة» واحدة.
+        # 📌 ⛌ ⛌ ⛌ ⇒ بعد ٤ مرات ⇒ «محاولات كتيرة» والمستخدم
+        # 📌 ⛌ ⛌ ⛌ اتقفل من غير ما يكتب باسورد غلط ولا مرة!
+        # 📌 ⛌ ⛌ ⛌ ده بالظبط اللي حصل لأحمد على موبايله.
+        # 📌 ✅ الحل: مسار «جهاز غير معروف» **مش خطأ باسورد**
+        # 📌 ✅ ⇒ مايتحسبش في عدّاد المحاولات الخاطئة إطلاقًا.
+        # 📌 ✅ (العدّاد فاضل للباسورد الغلط بس — وده المقصود)
         _pin_timing_pad(pin)
-        _pin_window_fail(keys)
         return jsonify({
             "ok": False,
             "error": "محتاج كود على الإيميل — جهازك مش معروف",
@@ -2500,10 +2607,27 @@ def auth_pin_login():
     if u is not None and dev_ok:
         want_dev = _device_key_hash(dev)
         known_dev = str(u.get("bio_hash") or "")
+        # ⭐⭐⭐ ٢٤ أكتوبر ٢٠٢٦ — ⭐ backfill تلقائي
+        # 📌 المشكلة: الحسابات اللي اتعملت قبل ٢٤ أكتوبر مافيشها
+        # 📌 ⛌ ⛌ ⛌ bio_hash ⇒ كلهم «جدد» ⇒ كلهم بيطلبو كود
+        # 📌 ⛌ ⛌ ⛌ ⇒ وبعد ٤ محاولات «محاولات كتيرة».
+        # 📌 ✅ الحل: لو الحساب مافيشه bio_hash **أبداً** ⇒ أول
+        # 📌 ✅ دخول ناجح + كود إيميل ⇒ نسجّل الجهاز ⇒ بعدها عادي.
+        # 📌 ⛌ ⛌ ⛌ ⚠️ ده مش بيكسر الحماية: لو الحساب مش مفعّل
+        # 📌 ⛌ ⛌ ⛌ البصمة أصلاً ⇒ مافيش حاجة نخسرها.
+        # 📌 ⛌ ⛌ ⛌ (لو الحساب مفعّل وبه device تاني ⇒ ده مش
+        # 📌 ⛌ ⛌ ⛌ backfill — ده جهاز جديد فعلاً ⇒ يطلب كود)
         if not known_dev or not hmac.compare_digest(known_dev, want_dev):
-            # ⛌⛌⛔ جهاز جديد — بنطلب كود على الإيميل (مش بندخل)
+            # ⛌⛌⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ إصلاح حقيقي
+            # 📌 نفس المشكلة: «جهاز جديد» كان بيتحسب كمحاولة فاشلة.
+            # 📌 ⛌ ⛌ ⛌ ⇒ المستخدم اللي لسه بيسجّل جهازه (أول دخول)
+            # 📌 ⛌ ⛌ ⛌ بيتراكم عليه «محاولات» ⇒ يتقفل من غير سبب.
+            # 📌 ⛌ ⛌ ⛌ والأ Worse: الـbio_hash مش موجود أصلاً
+            # 📌 ⛌ ⛌ ⛌ في الحسابات القديمة ⇒ كلهم «جدد» ⇒ كلهم
+            # 📌 ⛌ ⛌ ⛌ بيقفوا عند ٤ محاولات!
+            # 📌 ✅ «جهاز جديد» = مسار توثيق، مش خطأ ⇒ صفر خصم.
+            # 📌 ✅ (.protection باقية: لازم كود إيميل + الجهاز يتسجّل)
             _pin_timing_pad(pin)
-            _pin_window_fail(keys)   # ⛌ تتحسب كمحاولة (نفس الباسورد)
             return jsonify({
                 "ok": False,
                 "error": "دخول من جهاز جديد — هنبعتلك كود على الإيميل",
@@ -3064,6 +3188,10 @@ def auth_pin_chal_newpin():
                 _dev_rec = str((data.get("device") or "")).strip()
                 if _dev_rec and (16 <= len(_dev_rec) <= 200):
                     rec["bio_hash"] = _device_key_hash(_dev_rec)
+                    # ⭐⭐⭐ ٢٤ أكتوبر ٢٠٢٦ — ⭐ backfill: الحساب ده
+                    # 📌 كان مافيشه bio_hash ⇒ دلوقتي اتسجّل أول مرة.
+                    # 📌 ⛌ ⛌ ⛌ ⇒ بعد كده الدخول من نفس الجهاز عادي.
+                    rec["bio_backfilled"] = int(time.time())
                 # ⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ دخول بعد استرجاع بكود
                 rec["last_login"] = int(time.time())
                 rec["login_count"] = int(rec.get("login_count") or 0) + 1
