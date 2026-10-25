@@ -4839,6 +4839,12 @@ def _trust_device(u, dev_hash):
     if not isinstance(lst, list):
         lst = []
     lst = [str(x or "") for x in lst if x]
+    # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — ⭐ البصمة القديمة (bio_hash) لازم
+    # ⛔⛔⛔ تتحفظ في القائمة الأول — من غير كده.binding الجديد
+    # ⛔⛌⛌⛌ بيمسح الجهاز القديم وبيرجّعنا لمشكلة «جهاز جديد».
+    _old_dev = str(u.get("bio_hash") or "")
+    if _old_dev and _old_dev != dev_hash and _old_dev not in lst:
+        lst.append(_old_dev)
     lst = [x for x in lst if x != dev_hash]
     lst.append(dev_hash)
     if len(lst) > MAX_TRUSTED_DEVICES:
