@@ -7846,9 +7846,11 @@ def bt_benchmark():
             {"period": "3 شهور", "market": round(market_3m, 2), "top20": round(our_3m, 2), "alpha": alpha_3m},
             {"period": "سنة",  "market": round(market_y, 2), "top20": round(our_y, 2), "alpha": alpha_y},
         ],
-        "interpretation": ("أفضل من السوق ✅" if alpha_y > 3 else
-                           "أداءنا ≈ السوق — ماشي" if alpha_y > -3 else
-                           "أقل من السوق ❌"),
+        # ⭐⭐⭐ ٢٥ أكتوبر ٢٠٢٦ — تفسير صادق: المقارنة بـ**متوسط
+        # ⛔⛔⛔ البورصة** (مش المؤشر) + الشارة محسوبة على **سنة** بس.
+        "interpretation": ("أفضل من متوسط البورصة ✅ (على سنة)" if alpha_y > 3 else
+                           "أداءنا ≈ متوسط البورصة — ماشي (على سنة)" if alpha_y > -3 else
+                           "أقل من متوسط البورصة ❌ (على سنة)"),
     }
 
 
