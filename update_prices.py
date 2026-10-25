@@ -462,7 +462,25 @@ def protect_admin_routes():
     #    فحص المالك.
     if ADMIN_KEY:
         sent = (request.headers.get("X-Admin-Key") or "").strip()
-        if not hmac.compare_digest(sent, ADMIN_KEY):
+        # ══════════════════════════════════════════════════════
+        # 🔴 ٢٥ أكتوبر ٢٠٢٦ — ⭐ compare_digest على str مش bytes
+        # ────────────────────────────────────────────────────
+        # 📌 المشكلة: `hmac.compare_digest(sent, ADMIN_KEY)` ⬇️
+        # 📌 ⛔⛔⛔ الـstr على str ⬇️ و Python بيرمي **TypeError**
+        # 📌 ⛔⛔⛔   لو أي واحد فيهم فيه حرف **غير ASCII** ⬇️
+        # 📌 ⛔⛔⛔   (مثال: X-Admin-Key: أبج بالعربي).
+        # 📌 ⛔⛔⛔ ⇒ TypeError: comparing strings with non-ASCII
+        # 📌 ⛔⛔⛔   characters is not supported
+        # 📌 ⛔⛔⛔ ⇒ الـerrorhandler العام بيلقطها ⇒ 500 + stack trace
+        # 📌 ⛔⛔⛔   في لوج السيرفر (بدل 403 نظيف).
+        # 📌 📌 التصنيف: **مش تجاوز** (fail-closed) ⇒ بس خطأ + ضوضاء.
+        # 📌 ✅ الحل: نشفّر الاتنين لـbytes (نفس أسلوب كل مسارات
+        # 📌    الأدمن التانية — دي اللي كلها بتستخدم .encode).
+        # 📌 📌 وملاحظة: الـ.utf-8 مع "replace" بتجنّب UnicodeEncodeError
+        # 📌 📌 لو الـheader فيه بايت غريب.
+        if not hmac.compare_digest(
+                sent.encode("utf-8", "replace"),
+                ADMIN_KEY.encode("utf-8", "replace")):
             return jsonify({
                 "ok": False,
                 "error": "المسار ده للأدمن بس",
@@ -760,6 +778,19 @@ LIMITS = {
     # ⬇️ فمحتاجش حد الـwrite (٥/دقيقة) ⬇️ ⬛ المستخدم بيضغط
     # ⬇️ بصمتين ورا بعض ⬇️ ⬛ ف بيتقفل ⬇️ ⬛ وبيتوه.
     "pin_bio": [(20, 60)],
+    # ══════════════════════════════════════════════════════
+    # 🔴 ٢٥ أكتوبر ٢٠٢٦ — ⭐⭐⭐ حد لمحاولات الأدمن
+    # ────────────────────────────────────────────────────
+    # 📌 المشكلة: كل مسارات `/api/admin/*` كانت بتقع في bucket
+    # 📌 ⛔⛔⛔ "default" = ١٢٠ طلب/دقيقة ⬇️
+    # 📌 ⛔⛔⛔ ⇒ محدش عنده حد على **محاولات تخمين التوكن الإداري**.
+    # 📌 ⛔⛔⛔ ⇒ ١٢٠ محاولة/دقيقة = ١٧٢٨٠/يوم. لو التوكن قصير
+    # 📌 ⛔⛔⛔   أو ضعيف ⇒ ده مسح كامل للأمان.
+    # 📌 📌 ملاحظة: الـtoken نفسه متغيّر بيئة (مش قصير) ⇒ الاحتمال
+    # 📌 📌 ضعيف. بس defense-in-depth: نحدّ المحاولات برضه.
+    # 📌 ✅ ١٠ / ٥ دقايق لكل IP ⇒ كافي للأدمن المالك (مافيش حد
+    # 📌    بيطلب ١٠٠ طلب إدمن في ٥ دقايق) وبيقفل التخمين.
+    "admin": [(10, 300)],
 }
 
 # تخزين: {ip: {bucket: deque(timestamps)}}
@@ -885,6 +916,35 @@ def _route_bucket(path, method=None):
             if tail == "verify" or sub == "verify":
                 return "otp_verify"
             return "otp_send"
+        # ══════════════════════════════════════════════════════
+        # 🔴 ٢٥ أكتوبر ٢٠٢٦ — ⭐⭐⭐ مسارات الأدمن: حد تخمين
+        # ────────────────────────────────────────────────────
+        # 📌 كل مسارات `/api/admin/*` محميّة بـX-OCTA-Admin ⬇️
+        # 📌 ⛔⛔⛔ ⇒ بس مافيش حد على **محاولات تخمين التوكن** ⬇️
+        # 📌 ⛔⛔⛔ ⇒ ١٢٠/دقيقة (bucket default) = ١٧٢٨٠ محاولة/يوم.
+        # 📌 ✅ الحل: bucket "admin" = ١٠ / ٥ دقايق ⇒ ٢٨٨٠/يوم أقصى
+        # 📌    وبيقفل التخمين السريع. كافي للأدمن المالك.
+        # 📌 ⚠️ لازم يبقى **قبل** شرط name in ROUTES_WRITE ⬇️
+        # 📌    (/admin/alerts مش write أصلاً — بس نخليها موحّدة).
+        if name == "admin":
+            return "admin"
+        # ⛔⛔⛔ مسارات تانية محميّة بتوكن الأدمن (مش /api/admin/*)
+        # 📌 ⛔⛔⛔ ⇒ /api/calibration (POST) · /api/tg-test · /api/tg-status
+        # 📌 ⛔⛔⛔ ⇒ /api/alerts/test
+        # 📌 ✅ نفس السقف — اتساق + حماية.
+        if name in ("tg-test", "tg-status"):
+            return "admin"
+        if name == "alerts" and len(seg) > 2 and seg[2] == "test":
+            return "admin"
+        # ⛔⛔⛔ /api/calibration: القراءة (GET) عامة ⬇️ بس **الكتابة**
+        # 📌 ⛔⛔⛔ (POST) بتعدّل أوزان المحرك ⇒ توكن الأدمن بس.
+        # 📌 ✅ ⇒ POST ياخد سقف الأدمن، GET يرجع default (عادي).
+        # 📌 📌 ملاحظة: "calibration" كان في ROUTES_WRITE ⇒ GET كان
+        # 📌 📌 ٥/دقيقة (ضيق على قراءة عامة). دلوقتي GET = default.
+        if name == "calibration":
+            if str(method or "").upper() in ("POST", "PUT", "PATCH", "DELETE"):
+                return "admin"
+            return "default"
         if name in ROUTES_WRITE:
             return "write"
         if name in ROUTES_EXPENSIVE:
@@ -948,7 +1008,7 @@ def rate_limit_guard():
             "hint": "استنى شوية وجرب تاني",
         }
         # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نفس الـBUG (شوف فوق)
-        # 📌 Response(jsonify(...)) ⇒ 500 بدل 429.
+        # 📌 Response(jsonify(body)) ⇒ 500 بدل 429.
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ الأثر: أي حد يعمل طلبات كتير ⇒ السيرفر
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ بيرجّع 500 ⇒ الواجهة مش بتعرف إنه rate limit.
         resp = jsonify(_b)
@@ -2503,7 +2563,7 @@ def _pin_locked_resp(retry, what="الباسورد"):
         "retry_after": retry,
     }
     # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ الـBUG الحقيقي اللي كان مبيبانش
-    # 📌 الشكل القديم: Response(jsonify(body), status=429, ...)
+    # 📌 الشكل القديم: Response(jsonify(body), status=429)
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ jsonify() بترجّع **Response** أصلاً!
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ Response(<Response>) ⇒ Werkzeug بيعمل
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ list() على الـbody ⇒ «'Response' object is
@@ -3010,6 +3070,23 @@ def auth_pin_change():
                 rec["pin_idx"] = idx
                 rec["pin_idx_id"] = _PIN_PEPPER_ID
                 rec["pin_changed"] = int(time.time())
+                # ══════════════════════════════════════════════════════
+                # 🔴 ٢٥ أكتوبر ٢٠٢٦ — ⭐⭐⭐ إبطال الجلسات القديمة
+                # ────────────────────────────────────────────────────
+                # 📌 المشكلة: تغيير الباسورد كان **بيغيّر المفتاح
+                # 📌 ⛔⛔⛔ بس ما كانش بيبطل التوكنات القديمة** ⬇️
+                # 📌 ⛔⛔⛔ ⇒ لو توكن اتسرّب (XSS · قارئ ملفات · كوكي
+                # 📌 ⛔⛔⛔   على جهاز مشترك) ⇒ المستخدم يغيّر الباسورد
+                # 📌 ⛔⛔⛔   ⇒ وال-session المسروقة **فاضل شغّال ٣٠ يوم**.
+                # 📌 ⛔⛔⛔ ⇒ ده بيلغي معنى تغيير الباسورد خالص.
+                # 📌 ✅ الحل: `token_epoch` bump (نفس آلية challenge/newpin
+                # 📌    و signup/newpin و logout) ⇒ كل التوكنات القديمة
+                # 📌    تموت **في نفس اللحظة** اللي فيها الـpayload
+                # 📌    ⇒ `_token_parts` بيرفضها (السطر ١٢١٦).
+                # 📌 ⛌⛌⛌ ملاحظة: التوكن اللي بيستخدمه الطلب ده (اللي
+                # 📌 ⛌⛌⛌ عمل التغيير) كمان هيموت ⇒ الواجهة لازم
+                # 📌 ⛌⛌⛌ تعمل logoutLocal() + login تاني. ده المقصود.
+                rec["token_epoch"] = int(time.time()) * 1000
                 _save_users(users)
                 out = _pin_user_json(rec)
 
@@ -3047,11 +3124,27 @@ def auth_pin_change():
     _pinlock_reset(keys + k_ip + k_pin_old)
     print(f"  🔢 اتغيّر الباسورد: {uid}")
 
-    # ⛔ التوكن مش بيتغيّر (مربوط بالـuid) — المستخدم يفضل داخل
+    # ══════════════════════════════════════════════════════
+    # 🔴 ٢٥ أكتوبر ٢٠٢٦ — ⭐ الرد يقول الحقيقة دلوقتي
+    # ────────────────────────────────────────────────────
+    # 📌 قبل: «التوكن مش بيتغيّر (مربوط بالـuid) — المستخدم يفضل
+    # 📌 ⛔⛔⛔ داخل» ⬇️ وده بقى **غلط** بعد إبطال الجلسات.
+    # 📌 ⛔⛔⛔ ⇒ الواجهة كانت هتفضل فاكرة إنها داخل وتمرر بـ401
+    # 📌 ⛔⛔⛔   من الـAPI ⇒ تجربتها مكسورة.
+    # 📌 ✅ الحل: نرجّع توكن **جديد** (بعد الـepoch bump) + بنقول
+    # 📌    للواجهة صراحةً «الجلسات القديمة اتقفلت».
+    # 📌 📌 ملاحظة: التوكن الجديد لازم يتعمل بعد الـbump عشان
+    # 📌 📌 ياخد الـepoch الجديد في الـpayload.
+    _new_tok = _make_token(uid)
     return jsonify({
         "ok": True,
         "msg": "الباسورد اتغيّر — من دلوقتي ادخل بالباسورد الجديد",
         "user": out,
+        # ⛔⛔⛔ التوكن الجديد (بعد إبطال الجلسات القديمة)
+        "token": _new_tok,
+        "expires_in": TOKEN_TTL,
+        # ⛔⛔⛔ flag صريح — الواجهة تعرف متعملش silent-renew
+        "sessions_revoked": True,
     }), 200
 
 
