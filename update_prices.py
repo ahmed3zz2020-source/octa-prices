@@ -2803,7 +2803,8 @@ def auth_pin_login():
 
     if u is not None and dev_ok:
         want_dev = _device_key_hash(dev)
-        known_dev = str(u.get("bio_hash") or "")
+        # ⭐ ٢٥ أكتوبر ٢٠٢٦ — أجهزة متعددة: أي جهاز موثوق مقبول
+        known_dev = _trusted_devs(u)
         # ⭐⭐⭐ ٢٤ أكتوبر ٢٠٢٦ — ⭐ backfill تلقائي
         # 📌 المشكلة: الحسابات اللي اتعملت قبل ٢٤ أكتوبر مافيشها
         # 📌 ⛌ ⛌ ⛌ bio_hash ⇒ كلهم «جدد» ⇒ كلهم بيطلبو كود
@@ -2814,7 +2815,7 @@ def auth_pin_login():
         # 📌 ⛌ ⛌ ⛌ البصمة أصلاً ⇒ مافيش حاجة نخسرها.
         # 📌 ⛌ ⛌ ⛌ (لو الحساب مفعّل وبه device تاني ⇒ ده مش
         # 📌 ⛌ ⛌ ⛌ backfill — ده جهاز جديد فعلاً ⇒ يطلب كود)
-        if not known_dev or not hmac.compare_digest(known_dev, want_dev):
+        if (not known_dev) or not any(hmac.compare_digest(k, want_dev) for k in known_dev):
             # ⛌⛌⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ إصلاح حقيقي
             # 📌 نفس المشكلة: «جهاز جديد» كان بيتحسب كمحاولة فاشلة.
             # 📌 ⛌ ⛌ ⛌ ⇒ المستخدم اللي لسه بيسجّل جهازه (أول دخول)
@@ -2825,6 +2826,11 @@ def auth_pin_login():
             # 📌 ✅ «جهاز جديد» = مسار توثيق، مش خطأ ⇒ صفر خصم.
             # 📌 ✅ (.protection باقية: لازم كود إيميل + الجهاز يتسجّل)
             _pin_timing_pad(pin)
+            # ⭐ ٢٥ أكتوبر ٢٠٢٦ — سجّل الجهاز المعني (للموافقة اليدوية)
+            try:
+                _record_pending_device(uid, want_dev, str(dev)[:12])
+            except Exception:
+                pass
             return jsonify({
                 "ok": False,
                 "error": "دخول من جهاز جديد — هنبعتلك كود على الإيميل",
@@ -2881,9 +2887,9 @@ def auth_pin_login():
     if dev_ok:
         with USERS_LOCK:
             _u0 = (_load_users() or {}).get(uid) or {}
-            _kh = str(_u0.get("bio_hash") or "")
-            _was_new_dev = (not _kh) or (not hmac.compare_digest(
-                _kh, _device_key_hash(dev)))
+            _khs = _trusted_devs(_u0)
+            _was_new_dev = (not _khs) or (not any(hmac.compare_digest(
+                k, _device_key_hash(dev)) for k in _khs))
 
     with USERS_LOCK:
         users = _load_users()
@@ -3434,7 +3440,7 @@ def auth_pin_chal_newpin():
                 # 📌 ⛌ ⛌ ⛌ ده يتسجّل، وإلا مش هيقدر يدخل تاني.
                 _dev_rec = str((data.get("device") or "")).strip()
                 if _dev_rec and (16 <= len(_dev_rec) <= 200):
-                    rec["bio_hash"] = _device_key_hash(_dev_rec)
+                    _trust_device(rec, _device_key_hash(_dev_rec))
                     # ⭐⭐⭐ ٢٤ أكتوبر ٢٠٢٦ — ⭐ backfill: الحساب ده
                     # 📌 كان مافيشه bio_hash ⇒ دلوقتي اتسجّل أول مرة.
                     # 📌 ⛌ ⛌ ⛌ ⇒ بعد كده الدخول من نفس الجهاز عادي.
@@ -4042,7 +4048,7 @@ def auth_signup_newpin():
                 # 📌 ⛌ ⛌ ⛌ وإلا المستخدم الجديد مش هيقدر يدخل خالص.
                 _dev_new = str((data.get("device") or "")).strip()
                 if _dev_new and (16 <= len(_dev_new) <= 200):
-                    rec["bio_hash"] = _device_key_hash(_dev_new)
+                    _trust_device(rec, _device_key_hash(_dev_new))
                 # ⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ أول دخول = تسجيل (تسجيل حساب جديد)
                 rec["last_login"] = int(time.time())
                 rec["login_count"] = int(rec.get("login_count") or 0) + 1
@@ -4796,6 +4802,83 @@ def _device_key_hash(dev: str):
     return hashlib.sha256((str(dev) + _SECRET).encode()).hexdigest()
 
 
+# ══════════════════════════════════════════════════════════════
+# 🔐 ٢٥ أكتوبر ٢٠٢٦ — ⭐⭐⭐ أجهزة متعددة للحساب (مش جهاز واحد)
+# ──────────────────────────────────────────────────────────────
+# 📌 المشكلة: الحساب كان بيخزّن **بصمة جهاز واحد** (bio_hash) ⇒
+# 📌 ⛌⛌⛌ أول ما تفتح من دومين/جهاز تاني (مثال: المعاينة workers.dev
+# 📌 ⛌⛌⛌ عن الموقع octashares.com) ⇒ «دخول من جهاز جديد» ⇒ كود
+# 📌 ⛌⛌⛌ إيميل **كل مرة** — وبعد ما تأكّد الجهاز الجديد ← البصمة
+# 📌 ⛌⛌⛌ القديمة بتتضيع ⇒ المنطق ده بيدور على نفسه.
+# 📌 ✅ الحل: قائمة بصمات موثوقة (bio_hashes) — كل جهاز بيتسجّل
+# 📌    بيتضاف للقائمة، والقديم (bio_hash) بيفضل كأول عنصر (توافق).
+MAX_TRUSTED_DEVICES = 6
+
+
+def _trusted_devs(u):
+    """بصمات الأجهزة الموثوقة للحساب (قديم + قائمة)."""
+    out = []
+    if isinstance(u, dict):
+        old = str(u.get("bio_hash") or "")
+        if old:
+            out.append(old)
+        lst = u.get("bio_hashes")
+        if isinstance(lst, list):
+            for x in lst:
+                x = str(x or "")
+                if x and x not in out:
+                    out.append(x)
+    return out
+
+
+def _trust_device(u, dev_hash):
+    """يضيف بصمة جهاز للقائمة — من غير ما يمسح الأجهزة القديمة."""
+    if not isinstance(u, dict) or not dev_hash:
+        return
+    lst = u.get("bio_hashes")
+    if not isinstance(lst, list):
+        lst = []
+    lst = [str(x or "") for x in lst if x]
+    lst = [x for x in lst if x != dev_hash]
+    lst.append(dev_hash)
+    if len(lst) > MAX_TRUSTED_DEVICES:
+        lst = lst[-MAX_TRUSTED_DEVICES:]
+    u["bio_hashes"] = lst
+    u["bio_hash"] = dev_hash          # القديم = آخر جهاز (للتوافق)
+    u["bio_at"] = int(time.time())
+
+
+def _untrust_device(u, dev_hash):
+    """يشيل بصمة جهاز واحدة بس (تسجيل خروج من الجهاز ده)."""
+    if not isinstance(u, dict):
+        return
+    if dev_hash and str(u.get("bio_hash") or "") == dev_hash:
+        u["bio_hash"] = ""
+    lst = u.get("bio_hashes")
+    if isinstance(lst, list) and dev_hash:
+        u["bio_hashes"] = [str(x or "") for x in lst if x and str(x) != dev_hash]
+
+
+def _record_pending_device(uid, dev_hash, prefix):
+    """يسجّل جهاز حاول دخوله (بالأسورد الصح) ولسه مش موثّق."""
+    try:
+        with USERS_LOCK:
+            users = _load_users() or {}
+            rec = users.get(uid)
+            if not isinstance(rec, dict):
+                return
+            lst = rec.get("pending_devs")
+            if not isinstance(lst, list):
+                lst = []
+            lst = [x for x in lst if isinstance(x, dict) and str(x.get("h") or "") != dev_hash]
+            lst.append({"h": dev_hash, "p": str(prefix or "")[:12],
+                        "t": int(time.time()), "ip": str(_client_key() or "")[:64]})
+            rec["pending_devs"] = lst[-5:]
+            _save_users(users)
+    except Exception:
+        pass
+
+
 @app.route("/api/auth/bio", methods=["POST"])
 @_pin_json
 def auth_bio():
@@ -4819,7 +4902,12 @@ def auth_bio():
     uid = str(u.get("id") or "")
     # ⛌ ⬇️ off ⬇️ يلغي ⬇️ on ⬇️ يفعّل
     if str(body.get("off") or "") in ("1", "true", "yes"):
-        _patch_user(uid, bio_hash="")
+        # ⭐ ٢٥ أكتوبر ٢٠٢٦ — يشيل بصمة الجهاز ده بس (مش كل الأجهزة)
+        with USERS_LOCK:
+            users = _load_users() or {}
+            if uid in users:
+                _untrust_device(users[uid], _device_key_hash(dev))
+                _save_users(users)
         return jsonify({"ok": True, "bio": False}), 200
 
     with USERS_LOCK:
@@ -4834,8 +4922,7 @@ def auth_bio():
         # ⬇️ مش البصمة ⬇️ البصمة ⬇️ راحة ⬇️ وخلاص.
         # ⛌ فبنسمح ⬇️ بإعادة التعيين ⬇️ من أي جهاز ⬇️ طالما
         # ⬇️ внутри ⬇️ ⬇️ وبيبقى كل تغيير ⬇️ متسجّل ⬇️ بإيميل.
-        users[uid]["bio_hash"] = _device_key_hash(dev)
-        users[uid]["bio_at"] = int(time.time())
+        _trust_device(users[uid], _device_key_hash(dev))
         _save_users(users)
     return jsonify({"ok": True, "bio": True}), 200
 
@@ -12405,6 +12492,8 @@ def admin_users_list():
             "hasPin": bool(u.get("pin") or u.get("key")),
             # ⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ معلومات الدخول
             "pin_set": bool(u.get("pin_hash")),
+            # ⭐ ٢٥ أكتوبر ٢٠٢٦ — عدد الأجهزة الموثوقة (أجهزة متعددة)
+            "devices": len(_trusted_devs(u)),
             "login_count": int(u.get("login_count") or 0),
             "last_login": u.get("last_login") or 0,
             "login_log": (u.get("login_log") or [])[-8:],
@@ -12627,7 +12716,7 @@ def admin_set_device():
             return jsonify({"ok": False, "error": "مفيش حساب بالإيميل ده"}), 404
         uid, u = hit
         _old_hash = str(u.get("bio_hash") or "")
-        u["bio_hash"] = _device_key_hash(dev)
+        _trust_device(u, _device_key_hash(dev))
         u["bio_backfilled"] = int(time.time())
         u["bio_manual"] = int(time.time())
         _save_users(users)
@@ -12635,6 +12724,68 @@ def admin_set_device():
                     "device_bound": True,
                     "replaced_old": bool(_old_hash)}), 200
 
+
+@app.route("/api/admin/trust_device", methods=["POST"])
+def admin_trust_device():
+    """✅ اعتماد جهاز مستخدم — محمي بتوكن الأدمن.
+
+    🎯_use case: المستخدم دخل بالأسورد الصح من جهاز/دومين جديد
+    ⛔ (مثال: المعاينة workers.dev) ⇒ الباك طلب كود إيميل.
+    ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+    📌 body: { email, prefix? }
+    📌 ⛌ prefix = أول 12 حرف من مفتاح الجهاز (من سجل الدخول) — لو
+    📌 ⛌ اتحدد ⇒ بنعتمد الجهاز المطابق بس بالظبط.
+    📌 ⚠️ مفيش اعتماد أوتوماتيك — الأدمن هو اللي بيقرّر.
+    """
+    want = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    if not want or not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                                       want.encode("utf-8", "replace")):
+        return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+    try:
+        body = request.get_json(silent=True) or {}
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    email = str(body.get("email") or "").strip().lower()[:120]
+    prefix = str(body.get("prefix") or "").strip()[:12]
+    if not email:
+        return jsonify({"ok": False, "error": "لازم email"}), 400
+    with USERS_LOCK:
+        users = _load_users() or {}
+        rec = None
+        for uid, u in users.items():
+            if isinstance(u, dict) and str(u.get("email") or "").lower() == email:
+                rec = u
+                break
+        if rec is None:
+            return jsonify({"ok": False, "error": "مفيش حساب بالإيميل ده"}), 404
+        pending = rec.get("pending_devs")
+        if not isinstance(pending, list):
+            pending = []
+        chosen = None
+        for x in pending:
+            if not isinstance(x, dict):
+                continue
+            if prefix and str(x.get("p") or "") != prefix:
+                continue
+            chosen = x
+        if chosen is None:
+            return jsonify({
+                "ok": False,
+                "error": "مفيش جهاز مستني بالمواصفات دي",
+                "pending": [{"p": x.get("p"), "t": x.get("t"), "ip": x.get("ip")}
+                            for x in pending if isinstance(x, dict)],
+            }), 404
+        _trust_device(rec, str(chosen.get("h") or ""))
+        rec["pending_devs"] = [x for x in pending if x is not chosen]
+        _save_users(users)
+        return jsonify({
+            "ok": True,
+            "trusted_prefix": str(chosen.get("p") or "")[:12],
+            "devices": len(_trusted_devs(rec)),
+        })
 
 @app.route("/api/admin/monthly", methods=["GET"])
 def admin_monthly():
