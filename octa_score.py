@@ -533,10 +533,22 @@ def _compose_score(axes, liq=None, reasons=None, conf=None):
             "liq_pen": liq_pen, "conf_pen": conf_pen}
 
 
-def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
+def final_score(item, tech=None, fund=None, liq=None, sector_stats=None,
+                news=None, portfolio=None, sentiment=None, conf=None):
     """
     النتيجة النهائية = مرجّحة ثم مُعدّلة بالمخاطرة والثقة والمحفظة.
     المبدأ: ما نبغاش متوسط بسيط — الأرقام لازم تعكس الواقع.
+
+    ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — تدقيق الأوزان (نور-الكوانت)
+    ⛌ كان فيه محورين **ثابتين** جوّه الدالة:
+    ⛌     axes["news"]      = 45
+    ⛌     axes["portfolio"] = 70
+    ⛌ يعني ١٤٪ من الوزن النهائي مافيش فيه أي فرق بين أي سهم والتاني.
+    ⛌ ⛌ ⛌ الإصلاح: بقى ليهم بارامتر — و لو المحور مش متاح ⇒ None
+    ⛌ (مفقود) مش رقم مخترع. و None بيتشال من الوزن في _compose_score.
+    ⛌ ⛌ ⛌ كمان: `conf` بقى بارامتر — قبل كده كان بيتحسب جوه
+    ⛌ _compose_score بس الكانفProduction بيناديها من غير conf ⇒
+    ⛌ خصم الثقة كان ضايع بالكامل في المسار الحقيقي.
     """
     if not item: return None
 
@@ -577,15 +589,31 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     axes["liquidity"] = round(max(0.0, min(100.0, v))) if v is not None else None
     if v is None: missing.append("السيولة")
 
-    # 4) الأخبار — لسه مفيش مصدر
-    axes["news"] = 45
+    # 4) الأخبار — من محرك الأخبار الحقيقي (مش ثابت)
+    #    ⛔ ٢٥ أكتوبر ٢٠٢٦: كان axes["news"] = 45 ثابت.
+    #       ٥٪ من الوزن مافيش فيها أي تمييز بين السهم والتاني.
+    #       دلوقتي: لو news_engine شغال ⇒ الدرجة الحقيقية.
+    #       لو مافيش ⇒ None (مفقود) ⇒ بيتشال من الوزن ويتوزّع على الباقي.
+    v = _n(news["score"], None) if news else None
+    axes["news"] = round(max(0.0, min(100.0, v))) if v is not None else None
+    if v is None: missing.append("الأخبار")
 
-    # 5) المعنويات — من أداء الشهر (بحد أقصى 25% تأثير)
-    p1m = _n(item.get("perf_1m"), None)
-    s = 50.0
-    if p1m is not None:
-        s += max(-25, min(25, p1m / 2))
-    axes["sentiment"] = round(max(0, min(100, s)))
+    # 5) المعنويات — من محرك sentiment_engine الحقيقي
+    #    ⛔ ٢٥ أكتوبر ٢٠٢٦: كان فيه معادلتين مختلفتين:
+    #       هنا (perf_1m / 2) وفي sentiment_engine (سهم ٤٠٪ + سوق ٣٠٪ + قطاع ٣٠٪).
+    #       والمسار الإنتاجي كان يعمل باتش بعد الحساب ⇒ الدرجة والقرار
+    #       مبنيّين على أرقام مختلفة. دلوقتي: نمرّر النتيجة الحقيقية.
+    #    ملاحظة: وزن المعنويات ٤٪ — التقييد بييجي من الوزن نفسه
+    #       (مش من SENTIMENT_CAP اللي كان موصوف كقاعدة ومش مطبّق).
+    v = _n(sentiment["score"], None) if sentiment else None
+    if v is None:
+        # fallback: أداء الشهر لوحده (بدون سوق ولا قطاع)
+        p1m = _n(item.get("perf_1m"), None)
+        s = 50.0
+        if p1m is not None:
+            s += max(-25, min(25, p1m / 2))
+        v = s
+    axes["sentiment"] = round(max(0, min(100, v)))
 
     # 6) المخاطرة — أكبر محور (24%)
     #    بيتحسب من 5 مؤشرات: بيتا · نسبة الدين · التقلب · أكبر هبوط · العائد/المخاطرة
@@ -650,8 +678,16 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         axes["risk"] = round(max(0, min(100, num / den)))
         risk_n = len(parts)   # كم مؤشر دخل فعلاً — للتقارير
 
-    # 7) ملاءمة المحفظة — مبدئياً حسب تنوع القطاع (Phase 8 هيكمّل)
-    axes["portfolio"] = 70
+    # 7) ملاءمة المحفظة — من محرك portfolio_fit الحقيقي (مش ثابت)
+    #    ⛔ ٢٥ أكتوبر ٢٠٢٦: كان axes["portfolio"] = 70 ثابت.
+    #       ٩٪ من الوزن مافيش فيها أي تمييز بين السهم والتاني.
+    #       ملاحظة: portfolio_fit بيرجّع ٧٠ لما المحفظة فاضية
+    #       (وهي فاضية دايماً حالياً — PORTFOLIO مش متعبّى).
+    #       ⇒ المحور فاضي فا��ل (مش مفقود) — وده صادق: مافيش محفظة
+    #         ⇒ مافيش تضارب تركز. لو اتعبّت المحفظة، الدرجة هتتغيّر.
+    v = _n(portfolio["score"], None) if portfolio else None
+    axes["portfolio"] = round(max(0.0, min(100.0, v))) if v is not None else None
+    if v is None: missing.append("المحفظة")
 
     # ═══ المحصلة المرجّحة ═══
     # ⚠️ لو محور ناقص، ما بنحسبوش بإيده — بنحسب على المتاح بس
@@ -672,10 +708,19 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
 
     # ═══ المحصلة — كلها في الدالة الواحدة ═══
     # الثقة بتدخل جوه الدالة كمان عشان متبقاش زيادة برّه
-    try:
-        conf = float(item.get("data_confidence") or 60)
-    except (TypeError, ValueError):
-        conf = 60.0
+    # ⛔ ٢٥ أكتوبر ٢٠٢٦: بقى ليها بارامتر `conf` مستقل.
+    #    قبل كده كانت بتقرأ من item بس — والمسار الإنتاجي كان
+    #    بينادي _compose_score تاني بلا conf ⇒ خصم الثقة ضايع.
+    if conf is None:
+        try:
+            conf = float(item.get("data_confidence") or 60)
+        except (TypeError, ValueError):
+            conf = 60.0
+    else:
+        try:
+            conf = float(conf)
+        except (TypeError, ValueError):
+            conf = 60.0
     adj = _compose_score(axes, liq, reasons, conf)
     final = adj["final"]
 
@@ -742,6 +787,9 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         "confidence": overall_conf,
         "axes": axes,
         "weights": AXIS_WEIGHTS,
+        # ⛔ ٢٥ أكتوبر ٢٠٢٦: بقى فيه محاور ممكن تكون مفقودة فعلاً
+        #    (أخبار/محفظة/مخاطرة) ⇒ لازم الواجهة تعرف إيه الناقص.
+        "missing_axes": missing,
         "adjustments": {
             "أساسي مرجّح": round(adj["base"], 1),
             "خصم المخاطرة": round(-adj["risk_pen"], 1),

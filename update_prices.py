@@ -6688,10 +6688,13 @@ def portfolio_fit(item, portfolio=None):
 # PHASE 7: محرك المخاطر المتقدم — 9 أنواع مخاطر + مقاييس
 # ════════════════════════════════════════════════════════════
 
-def risk_engine(item, sector_stats=None):
+def risk_engine(item, sector_stats=None, news=None):
     """
     ⚠️ المبدأ: النتيجة العالية = مخاطرة أقل ( inversed )
     لأن أهم حاجة للمستخدم يعرف: هل الخطر مقبول؟
+
+    ⛔ ٢٥ أكتوبر ٢٠٢٦: بقى ياخد `news` — لأن مخاطر الأحداث
+    (r_ev) كانت ثابتة ٥ لكل سهم. دلوقتي مبنية على الأحداث المعلنة.
     """
     def _f(v, d=None):
         try: return float(v) if v is not None else d
@@ -6774,9 +6777,31 @@ def risk_engine(item, sector_stats=None):
         elif pe > 25: r_val += 4
         elif pe < 0:  r_val += 8; risks.append(("الخسارة", "P/E سالب — الشركة بتخسر", 8))
 
-    # ═══ 7) مخاطر الأحداث (5 وزن) — مفيش مصدر أخبار لسه ═══
-    r_ev = 5
-    notes.append("⚠️ مخاطر الأحداث غير مقيّمة — لا يوجد مصدر أخبار")
+    # ═══ 7) مخاطر الأحداث (حتى 10 وزن) — من محرك الأخبار الحقيقي ═══
+    # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — تدقيق الأوزان (نور-الكوانت)
+    # ⛌ الكود القديم: r_ev = 5 ثابت — يعني **كل** سهم في البورصة
+    # ⛌ خسر ٥ نقاط أمان، حتى لو عنده حدث حرج معلن.
+    # ⛌ ⛌ ⛌ دلوقتي: ر_ev مبني على news_engine:
+    # ⛌   حدث حرج  ⇒ 10 (أقصى خطر أحداث)
+    # ⛌   أحداث عادية ⇒ 5
+    # ⛌   مافيش أحداث ⇒ 0 (مش ٥ — مافيش سبب نخسر نقاط على فراغ)
+    r_ev = 0
+    if news:
+        try:
+            _evs = news.get("events") or []
+            _crit = any((e.get("materiality") == "critical") for e in _evs)
+            if _crit:
+                r_ev = 10
+                risks.append(("الأحداث", "حدث حرج معلن — مخاطرة أحداث مرتفعة", 10))
+            elif news.get("has_news"):
+                r_ev = 5
+                notes.append(f"مخاطر أحداث: {news.get('events_count', 0)} حدث معلن (مفيش حرج)")
+            else:
+                notes.append("لا توجد أحداث معلنة — مخاطر الأحداث غير مقيّمة")
+        except Exception:
+            r_ev = 0
+    else:
+        notes.append("مفيش مصدر أخبار — مخاطر الأحداث غير مقيّمة")
 
     # ═══ النتيجة: كلما قلّت = أمان أكتر ═══
     total_risk = min(100, r_vol + r_mkt + r_fin + r_liq + r_trend + r_val + r_ev)
@@ -6970,6 +6995,13 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
     axes = (final or {}).get("axes", {})
 
     # ═══ 1) جدول المساهمة ═══
+    # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — تدقيق الأوزان (نور-الكوانت)
+    # ⛌ الكود القديم: v = _f(axes.get(k), 50) — يعني المحور الناقص
+    # ⛌ كان بياخد ٥٠ وبيحسب مساهمة كاملة! والمجموع ما كانش بيطابق
+    # ⛌ الدرجة النهائية (لأن final_score بتطبّع على المتاح).
+    # ⛌ ⛌⛔ الحل: المحور الناقص = None + تطبيع على المتاح.
+    # ⛌ ⛌⛔ كمان: خصم المخاطرة كان بيحسب (100 - 60) * 0.18 لمّا
+    # ⛌ المحور ناقص — رقم مخترع. دلوقتي: صفر لو مش متاح.
     contributions = []
     names = {
         "technical": "التحليل الفني",
@@ -6980,24 +7012,42 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
         "risk": "أمان المخاطرة",
         "portfolio": "ملاءمة المحفظة",
     }
+    _avail = {k: W[k] for k in W if axes.get(k) is not None}
+    _wsum = sum(_avail.values())
     for k, w in W.items():
-        v = _f(axes.get(k), 50)
-        contrib = round(v * w, 1)
+        v = axes.get(k)
+        if v is None:
+            contributions.append({
+                "axis": k,
+                "name": names[k],
+                "score": None,
+                "axis_weight": round(w * 100, 1),
+                "contribution": None,
+                "missing": True,
+                "note": "المحور ناقص — اتحسب على المحاور المتاحة بس",
+            })
+            continue
+        # ⛔ الوزن الفعلي بعد التطبيع على المحاور المتاحة
+        eff_w = (_avail[k] / _wsum) if _wsum > 0 else 0
+        contrib = round(v * eff_w, 1)
         contributions.append({
             "axis": k,
             "name": names[k],
             "score": round(v, 1),
             "axis_weight": round(w * 100, 1),
+            "eff_weight": round(eff_w * 100, 1),
             "contribution": contrib,
+            "missing": False,
         })
-    contributions.sort(key=lambda x: -x["contribution"])
+    contributions.sort(key=lambda x: -(_f(x.get("contribution"), -1)))
 
     # ═══ 2) التعديلات (الخصومات) ═══
-    base = round(sum(c["contribution"] for c in contributions), 1)
+    base = round(sum(c["contribution"] for c in contributions if c["contribution"] is not None), 1)
     final_v = _f((final or {}).get("final_score"), base)
 
     adjustments = []
-    risk_pen = round((100 - _f(axes.get("risk"), 60)) * 0.18, 1)
+    _rk = axes.get("risk")
+    risk_pen = round((100 - _rk) * 0.18, 1) if _rk is not None else 0.0
     if risk_pen > 0.5:
         adjustments.append({
             "type": "خصم المخاطرة",
@@ -7057,12 +7107,22 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
             what_changes.append("لو القوة النسبية عدّت 50 فوق — الزخم يتحسّن والنتيجة ترتفع ٥-١٠ نقاط")
         elif rsi > 70:
             what_changes.append("لو القوة النسبية نزلت تحت 70 — خطر التشبع ينقص والنتيجة تتحسن")
-    if _f(axes.get("risk"), 60) < 60:
+    # ⛔ ٢٥ أكتوبر ٢٠٢٦: المحور الناقص لازم يبقى None — مش ٦٠ مخترعة
+    _rk_v = axes.get("risk")
+    if _rk_v is not None and _rk_v < 60:
         what_changes.append("لو Beta نزل تحت 1.0 أو التقلّب قلّ — الخصم يقل والنتيجة ترتفع")
     if liq and liq.get("score", 0) < 50:
         what_changes.append("لو حجم التداول زاد — خصم السيولة يروح والنتيجة تتحسّن")
     if dc < 60:
         what_changes.append("لو البيانات المالية اتحدّثت — خصم ضعف البيانات يروح")
+
+    # ═══ 5ب) المحاور الناقصة — المستخدم لازم يعرف الرقم اتحسب على إيه ═══
+    # ⛔ ٢٥ أكتوبر ٢٠٢٦: بقى فيه محاور ممكن تكون None فعلاً
+    #    (أخبار/محفظة/مخاطرة) ⇒ لازم نقوله.
+    _missing_axes = (final or {}).get("missing_axes") or []
+    for _ma in _missing_axes:
+        what_changes.append(
+            "محور «{}» ناقص — الدرجة اتحسبت على المحاور المتاحة بس".format(_ma))
 
     # ═══ 6) إيه اللي يفسد الفكرة ═══
     invalidation = []
@@ -7324,24 +7384,38 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     st = STRATEGIES.get(strategy) or STRATEGIES["balanced"]
     axes = {}
 
-    # نفس المحاور — إعادة استخدام
-    axes["technical"] = _f(tech["score"]) if tech else 50.0
-    axes["fundamental"] = _f(fund["score"]) if fund else 50.0
-    axes["liquidity"] = _f(liq["score"]) if liq else 50.0
-    axes["news"] = _f(item.get("news_score"), 45.0)
-    axes["sentiment"] = _f(sent["score"]) if sent else 50.0
+    # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — تدقيق الأوزان (نور-الكوانت)
+    # ⛌ الكود القديم كان بيخترع ٥٠ لكل محور ناقص:
+    # ⛌     axes["technical"] = _f(tech["score"]) if tech else 50.0
+    # ⛌ ده **بيخالف المبدأ المعلن** في final_score:
+    # ⛌ «لو السهم مالوش بيانات في محور، ما بنحطّش له رقم وسط (زي ٥٠).
+    # ⛌  الرقم ده بيكذب على المستخدم.»
+    # ⛌ ⛌⛔ وكمان المحصلة كانت بتجمع بأوزان الاستراتيجية (١٠٠٪ دايماً)
+    # ⛌ من غير تطبيع ⇒ المحور الناقص كان بياخد ٥٠ مجاناً.
+    # ⛌ ⛌⛔ الحل: None للمفقود + تطبيع على المتاح (زي final_score بالظبط).
+    axes["technical"] = _f(tech["score"]) if tech else None
+    axes["fundamental"] = _f(fund["score"]) if fund else None
+    axes["liquidity"] = _f(liq["score"]) if liq else None
+    axes["news"] = _f(item.get("news_score"))
+    axes["sentiment"] = _f(sent["score"]) if sent else None
     _all = item.get("all_axes") or {}
     if not isinstance(_all, dict):
         _all = {}
-    axes["risk"] = _f(_all.get("risk"), 60.0)
-    axes["portfolio"] = _f(pfit["score"]) if pfit else 70.0
+    axes["risk"] = _f(_all.get("risk"))
+    axes["portfolio"] = _f(pfit["score"]) if pfit else None
 
-    # المحصلة بأوزان الاستراتيجية
+    # المحصلة بأوزان الاستراتيجية — ⛔ تطبيع على المحاور المتاحة
     w = st["weights"]
-    base = sum(axes[k] * w[k] for k in w)
+    _avail = {k: w[k] for k in w if axes.get(k) is not None}
+    _wsum = sum(_avail.values())
+    if _wsum <= 0:
+        return None
+    base = sum(axes[k] * (_avail[k] / _wsum) for k in _avail)
 
     # خصم المخاطرة بمعامل الاستراتيجية
-    risk_pen = (100 - axes["risk"]) * 0.18 * st["risk_penalty_mult"]
+    _risk_v = axes.get("risk")
+    risk_pen = ((100 - _risk_v) * 0.18 * st["risk_penalty_mult"]
+                if _risk_v is not None else 0.0)
     adj = base - risk_pen
 
     # ═══ الفلاتر الخاصة بالاستراتيجية ═══
@@ -7351,8 +7425,8 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     filters_passed = True
     filter_notes = []
 
-    liq_v = axes["liquidity"]
-    if liq_v < st.get("min_liquidity", 0):
+    liq_v = axes.get("liquidity")
+    if liq_v is not None and liq_v < st.get("min_liquidity", 0):
         adj -= (st["min_liquidity"] - liq_v) * 0.5
         filter_notes.append(f"السيولة {liq_v:.0f} أقل من الحد المطلوب")
         filters_passed = False
@@ -7375,7 +7449,8 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     # ═══ سقف إجمالي الخصومات: 22 نقطة كحد أقصى ═══
     # ⚠️ سقف إجمالي الخصومات: 22 نقطة كحد أقصى (نفس قاعدة final_score)
     liq_pen = min(6.0, (100 - axes["liquidity"]) * 0.10) if (
-        liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً")) else 0.0
+        liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً")
+        and axes.get("liquidity") is not None) else 0.0
     adj -= liq_pen
     total_penalty = risk_pen + liq_pen
     if total_penalty > 22:
@@ -7386,7 +7461,8 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     final = round(max(0, min(100, adj)), 1)
 
     # القرار بنفس المنطق
-    if axes["risk"] < 35:         decision = "إشارة سلبية"
+    # ⛔ risk ممكن يكون None (مفقود) — ما نقارنش بيها
+    if _risk_v is not None and _risk_v < 35:  decision = "إشارة سلبية"
     elif final >= 78 and filters_passed:  decision = "إشارة إيجابية"
     elif final >= 65:             decision = "إشارة إيجابية"
     elif final >= 52:             decision = "إشارة محايدة"
@@ -7399,7 +7475,7 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         "timeframe": st["timeframe"],
         "focus": st["focus"],
         "score": final,
-        "axes": {k: round(v, 1) for k, v in axes.items()},
+        "axes": {k: (round(v, 1) if v is not None else None) for k, v in axes.items()},
         "weights": w,
         "base": round(base, 1),
         "risk_penalty": round(-risk_pen, 1),
@@ -7842,8 +7918,10 @@ def stress_test(all_stocks, scenario="bear", top_n=20):
             t = tech_score(it)
             f = fundamental_score(it, SECTOR_STATS)
             li = liquidity_score(it)
-            rk = risk_engine(it, SECTOR_STATS)
-            fin = final_score(it, t, f, li, SECTOR_STATS)
+            nw_s = news_engine(it, it.get("sector"))
+            rk = risk_engine(it, SECTOR_STATS, news=nw_s)
+            fin = final_score(it, t, f, li, SECTOR_STATS,
+                              news=nw_s, conf=it.get("data_confidence"))
             it["stressed_score"] = fin["final_score"]
             it["stressed_risk"] = rk["safety_score"] if rk else None
             it["stressed_decision"] = fin["decision"]
@@ -8767,26 +8845,26 @@ def update_loop():
                         item["opportunity_score"] = opp["score"]
                         item["opportunity_stage"] = opp["stage"]
                     # ═══ Phase 7: المخاطر المتقدمة ═══
-                    rk = risk_engine(item, SECTOR_STATS)
+                    # ⛔ nw (الأخبار) جاية قبل السطر ده — نمرّرها
+                    #    عشان مخاطر الأحداث (r_ev) تبقى مبنية على أرقام.
+                    rk = risk_engine(item, SECTOR_STATS, news=nw)
                     if rk:
                         item["safety_score"] = rk["safety_score"]
                         item["risk_score_detailed"] = rk["risk_score"]
                     # ═══ Phase 9: النتيجة النهائية (بعد كل المحاور) ═══
-                    fin = final_score(item, t, f, li, SECTOR_STATS)
+                    # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — تدقيق الأوزان (نور-الكوانت)
+                    # ⛌ الكود القديم كان بينادي final_score من غير news/portfolio
+                    # ⛌ ⇒ جوّه الدالة كان فيه axes["news"]=45 و axes["portfolio"]=70
+                    # ⛌ (ثابتان — ١٤٪ من الوزن بلا أي تمييز بين السهم والتاني)
+                    # ⛌ وبعدين يعمل باتش للمحاور الناقصة — بس **بعد** ما القرار
+                    # ⛌ اتحسب ⇒ الدرجة المعروضة والقرار مبنيّين على أرقام مختلفة.
+                    # ⛌ ⛌ ⛌ الحل: نمرّر كل المحاور من الأول.
+                    # ⛌ ⛌ ⛌ وكمان: conf بقى بارامتر — _compose_score كان
+                    # ⛌ بينادى من غير conf ⇒ خصم الثقة كان ضايع بالكامل.
+                    fin = final_score(item, t, f, li, SECTOR_STATS,
+                                     news=nw, portfolio=pfit, sentiment=se,
+                                     conf=item.get("data_confidence"))
                     if fin:
-                        # ندمج المعنويات + المحفظة + الأخبار
-                        if se: fin["axes"]["sentiment"] = se["score"]
-                        if pfit: fin["axes"]["portfolio"] = pfit["score"]
-                        if nw: fin["axes"]["news"] = nw["score"]
-                        # إعادة حساب المحصلة — بنفس الدالة المستخدمة في
-                        # final_score بالظبط. الكود القديم كان بيعيد الحساب
-                        # بإيده: من غير تطبيع، ومن غير أسقف الخصم، ومن غير
-                        # خصم الثقة — فكان الرقم المبلّغ مختلف عن الموصوف.
-                        ax = fin["axes"]
-                        _lq = liquidity_score(item) if liq_score else None
-                        _a2 = _compose_score(ax, _lq)
-                        if _a2["final"] is not None:
-                            fin["final_score"] = _a2["final"]
                         item["final_score"] = fin["final_score"]
                         item["confidence"] = fin["confidence"]
                         item["decision"] = fin["decision"]
@@ -9307,6 +9385,7 @@ def intelligence(code):
     item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
     if not item:
         return jsonify({"error": f"السهم {code} غير موجود"}), 404
+    nw = news_engine(item, item.get("sector"))
     return jsonify({
         "code": code, "name": item.get("name"), "sector": item.get("sector"),
         "price": item.get("price"), "change": item.get("change"),
@@ -9318,8 +9397,8 @@ def intelligence(code):
         "technical": tech_score(item),
         "fundamental": fundamental_score(item, SECTOR_STATS),
         "liquidity": liquidity_score(item),
-        "risk_engine": risk_engine(item, SECTOR_STATS),
-        "news_engine": news_engine(item, item.get("sector")),
+        "risk_engine": risk_engine(item, SECTOR_STATS, news=nw),
+        "news_engine": nw,
         "portfolio_fit_detail": portfolio_fit(item, PORTFOLIO),
         "data_confidence": item.get("data_confidence"),
         "data_ts": item.get("ts"),
@@ -9499,7 +9578,8 @@ def risk_api(code):
     item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
     if not item:
         return jsonify({"error": f"السهم {code} غير موجود"}), 404
-    rk = risk_engine(item, SECTOR_STATS)
+    nw = news_engine(item, item.get("sector"))
+    rk = risk_engine(item, SECTOR_STATS, news=nw)
     return jsonify({
         "code": code, "name": item.get("name"), "sector": item.get("sector"),
         "risk": rk,
@@ -9535,11 +9615,13 @@ def explain_api(code):
     n = news_engine(item, item.get("sector"))
     s = sentiment_engine(item, st)
     p = portfolio_fit(item, PORTFOLIO)
-    r = risk_engine(item, SECTOR_STATS)
-    fin = final_score(item, t, f, l, SECTOR_STATS)
-    if s: fin["axes"]["sentiment"] = s["score"]
-    if p: fin["axes"]["portfolio"] = p["score"]
-    if n: fin["axes"]["news"] = n["score"]
+    # ⛔ ٢٥ أكتوبر ٢٠٢٦: نمرّر المحاور من الأول — قبل كده كان
+    #    بيتحسب final_score وبعدين يتعمل باتش ⇒ القرار مبني على
+    #    أرقام مختلفة عن الدرجة المعروضة.
+    r = risk_engine(item, SECTOR_STATS, news=n)
+    fin = final_score(item, t, f, l, SECTOR_STATS,
+                      news=n, portfolio=p, sentiment=s,
+                      conf=item.get("data_confidence"))
     ex = explain_score(item, t, f, l, n, s, r, p, fin)
     return jsonify({
         "code": code, "name": item.get("name"), "sector": item.get("sector"),
@@ -9775,10 +9857,13 @@ def engine_weights_api():
         return jsonify({"ok": False, "error": "محمي"}), 401
 
     # نسخة معروضة للمستخدم: نسب مئوية جاهزة
-    pct = {
-        "technical": 18, "fundamental": 22, "liquidity": 18,
-        "news": 5, "sentiment": 4, "risk": 24, "portfolio": 9,
-    }
+    # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — تدقيق الأوزان (نور-الكوانت)
+    # ⛌ الكود القديم: pct مكتوبة بيزه.
+    # ⛌ ⛌⛔ المشكلة: apply_calibration بتعدّل AXIS_WEIGHTS في الذاكرة
+    # ⛌ ⇒ بعد أي معايرة، المحرك بيحسب بأوزان جديدة والواجهة بتعرض
+    # ⛌ القديمة ⇒ **اللي المستخدم شايفه ≠ اللي المحرك حسب بيه**.
+    # ⛌ ⛌⛔ الحل: نشتقّها من AXIS_WEIGHTS — المصدر الوحيد للحقيقة.
+    pct = {k: int(round(v * 100)) for k, v in AXIS_WEIGHTS.items()}
     # نسخة المستخدم (كارت القرار) — مختلفة عن محرك EGX
     user_pct = {
         "technical": 15, "fundamental": 20, "valuation": 15, "liquidity": 10,
@@ -9789,8 +9874,13 @@ def engine_weights_api():
         "news": 5, "sentiment": 4, "risk": 24, "portfolio": 9,
     }
     us_scan_pct = {
+        # ⛔ ٢٥ أكتوبر ٢٠٢٦: المجموع كان ٨٠٪ (١٥+٢٠+١٥+١٠+١٠+١٠) مش ١٠٠٪
+        #    ⇒ ٢٠٪ من وزن «الفحص الأمريكي» مفقودة.
+        #    زوّدنا news ١٠٪ + portfolio ١٠٪ ⇒ بقت ١٠٠٪ ومطابقة لمجموعة
+        #    «المستخدم» (us) اللي نفس التركيب. نفس القيم اتصلّحت في
+        #    assets/js/octa-settings.js (octa repo).
         "technical": 15, "fundamental": 20, "valuation": 15, "liquidity": 10,
-        "sentiment": 10, "risk": 10,
+        "news": 10, "sentiment": 10, "risk": 10, "portfolio": 10,
     }
     intel_pct = {
         "technical": 20, "fundamental": 25, "liquidity": 10, "news": 7,
