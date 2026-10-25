@@ -191,6 +191,12 @@ _HIDDEN_KEYS_OUTPUT = (
 # ⛌ الاختبار: grep -A8 'route("/X' | grep require_user
 _ALWAYS_SHOW_OUTPUT = (
     "/api/rank", "/api/data_full", "/api/portfolio", "/api/charts",
+    # ⭐⭐⭐ ٢٥ أكتوبر ٢٠٢٦ — ⭐ dashboard + intelligence للمسجّل
+    # 📌 السبب: المخرجات دي كانت بتتشال من الردود ⇒ عمود «القرار»
+    # 📌 ⛌⛌ فاضي في اللوحة، و«النتيجة النهائية» «—» في صفحة السهم.
+    # 📌 ⚠️ آمن: المسارات دي **محمية بـrequire_user** (الزائر بياخد
+    # 📌 ⛌ نسخة مخفّفة من اللوحة من غير أي توصيات).
+    "/api/dashboard", "/api/intelligence",
 )
 
 # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ مسارات المصادقة: "why" فيها = سبب الرفض
@@ -9398,6 +9404,11 @@ def diagnostic():
 @app.route("/api/intelligence/<code>")
 def intelligence(code):
     """التحليل الكامل المدمج — بدون ذكاء اصطناعي، فوري"""
+    # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — ⭐ قفل المسار (كان مفتوح للزائر!)
+    # 📌 المسار ده بيرجّع تفصيل المحاور لكل سهم — يعني «وصفة المحرك»
+    # 📌 ⛌⛌⛌ للعموم ⇒ لازم تسجيل دخول (زي /api/data_full و /api/rank).
+    if not require_user():
+        return jsonify({"error": "محتاج تسجيل دخول", "ok": False}), 401
     code = code.upper().strip()
     item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
     if not item:
@@ -9922,7 +9933,10 @@ def dashboard_api():
         # ⛔ زائر: الحالة العامة فقط — مافيش أفضل أسهم ولا توصيات
         _SECRET_KEYS = ("top10", "top_10", "best", "best10", "recommendations",
                         "picks", "top_picks", "ranking", "leaders",
-                        "top_stocks", "opportunities", "buy_list", "stocks")
+                        "top_stocks", "opportunities", "buy_list", "stocks",
+                        # ⭐ ٢٥ أكتوبر ٢٠٢٦ — bottom10 كان فايض من القائمة
+                        # ⇒ الزائر كان بيشوف «أسوأ ١٠» بدرجاتهم.
+                        "bottom10", "worst10", "worst_10")
         safe = {k: v for k, v in d.items() if k not in _SECRET_KEYS}
         safe["ok"] = True
         safe["_guest"] = True
