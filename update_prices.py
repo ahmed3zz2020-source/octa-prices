@@ -8243,8 +8243,14 @@ def dashboard_data():
                                  "opportunity": _f(s.get("opportunity_score")),
                                  "price": s.get("price"),
                                  "final_score": _f(s.get("final_score"))} for s in early],
+        # ⭐ ٢٥ أكتوبر ٢٠٢٦ — ننزّل اسم المصدر مع الأرقام
+        # 📌 السبب: الأرقام بقت على مؤشر EGX30 ⇒ لازم الواجهة تعرف
+        # 📌 ⛌⛌ الاسم (وإلا هتكتب «متوسط» والنص أرقام المؤشر).
         "benchmark": {"interpretation": bm.get("interpretation"), "periods": alpha,
-                      "caveat": bm.get("caveat")},
+                      "caveat": bm.get("caveat"),
+                      "market_label": bm.get("market_label"),
+                      "market_source": bm.get("market_source"),
+                      "method": bm.get("method")},
         "backtest": {
             "snapshots_taken": bt_snapshots,
             "stats": bt_stats,
