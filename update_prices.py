@@ -7826,9 +7826,28 @@ def bt_benchmark():
     all_perf_3m = [_f(s.get("perf_3m")) for s in st if _f(s.get("perf_3m")) is not None]
     all_perf_y = [_f(s.get("perf_y")) for s in st if _f(s.get("perf_y")) is not None]
 
-    market_1m = sum(all_perf_1m) / len(all_perf_1m) if all_perf_1m else 0
-    market_3m = sum(all_perf_3m) / len(all_perf_3m) if all_perf_3m else 0
-    market_y = sum(all_perf_y) / len(all_perf_y) if all_perf_y else 0
+    avg_1m = sum(all_perf_1m) / len(all_perf_1m) if all_perf_1m else 0
+    avg_3m = sum(all_perf_3m) / len(all_perf_3m) if all_perf_3m else 0
+    avg_y = sum(all_perf_y) / len(all_perf_y) if all_perf_y else 0
+
+    # ⭐⭐⭐ ٢٥ أكتوبر ٢٠٢٦ — ⭐⭐⭐ المرجع = مؤشر EGX30 نفسه
+    # 📌 السبب: «متوسط كل الأسهم» مش المرجع اللي المستثمرين بيقيسوا بيه.
+    # 📌 ✅ الحل: عوائد المؤشر نفسه (شهر · 3 شهور · سنة) من TradingView.
+    # 📌 ⛔ Fallback: لو المصدر رجعش العوائد ⇒ نستخدم متوسط الأسهم (ماشي)
+    # 📌    والتسمية بتتغيّر مع المصدر عشان ما حدش يتقارنagainst تسمية غلط.
+    _tk = LIVE_DATA.get("ticker") or []
+    _idx = next((t for t in _tk if t.get("id") == "tk-egx"), None)
+    _i1 = _f((_idx or {}).get("perf_1m"))
+    _i3 = _f((_idx or {}).get("perf_3m"))
+    _iy = _f((_idx or {}).get("perf_y"))
+    if _i1 is not None and _i3 is not None and _iy is not None:
+        market_1m, market_3m, market_y = _i1, _i3, _iy
+        market_source = "egx30"
+        market_label = "مؤشر البورصة (EGX30)"
+    else:
+        market_1m, market_3m, market_y = avg_1m, avg_3m, avg_y
+        market_source = "avg"
+        market_label = "متوسط أسهم البورصة"
 
     # متوسط أداء أسهم الترتيب Top 20
     top = sorted([s for s in st if s.get("final_score") is not None], key=lambda x: -x["final_score"])[:20]
@@ -7845,7 +7864,9 @@ def bt_benchmark():
     alpha_y = round(our_y - market_y, 2)
 
     return {
-        "method": "متوسط أداء أفضل ٢٠ سهم (حسب نتيجتنا) مقابل متوسط كل الأسهم",
+        "method": "متوسط أداء أفضل ٢٠ سهم (حسب نتيجتنا) مقابل " + market_label,
+        "market_source": market_source,
+        "market_label": market_label,
         "caveat": "⚠️ ده ليس backtest — ده مقارنة حالية. الـ backtest الحقيقي بيبدأ من اللقطات اليومية.",
         "periods": [
             {"period": "شهر",  "market": round(market_1m, 2), "top20": round(our_1m, 2), "alpha": alpha_1m},
@@ -7854,9 +7875,9 @@ def bt_benchmark():
         ],
         # ⭐⭐⭐ ٢٥ أكتوبر ٢٠٢٦ — تفسير صادق: المقارنة بـ**متوسط
         # ⛔⛔⛔ البورصة** (مش المؤشر) + الشارة محسوبة على **سنة** بس.
-        "interpretation": ("أفضل من متوسط البورصة ✅ (على سنة)" if alpha_y > 3 else
-                           "أداءنا ≈ متوسط البورصة — ماشي (على سنة)" if alpha_y > -3 else
-                           "أقل من متوسط البورصة ❌ (على سنة)"),
+        "interpretation": (("أفضل من " + market_label + " ✅ (على سنة)") if alpha_y > 3 else
+                           ("أداءنا ≈ " + market_label + " — ماشي (على سنة)") if alpha_y > -3 else
+                           ("أقل من " + market_label + " ❌ (على سنة)")),
     }
 
 
@@ -8758,20 +8779,33 @@ def update_loop():
                                "trend": "flat", "unit": ""})
                     continue
                 try:
+                    # ⭐⭐⭐ ٢٥ أكتوبر ٢٠٢٦ — ⭐ عوائد المؤشر نفسه (شهر/3 شهور/سنة)
+                    # 📌 السبب: كنا بنقارن بـ«متوسط كل الأسهم» — والمرجع الصح
+                    # 📌 ⛌⛌⛌ للمستثمر هو **مؤشر EGX30 نفسه** (ده اللي بيتقاس بيه).
+                    # 📌 ✅ الحل: نطلب أعمدة العوائد من TradingView مع السعر.
                     rr = requests.post(
                         "https://scanner.tradingview.com/global/scan",
                         json={"symbols": {"tickers": [tvsym], "query": {"types": []}},
-                              "columns": ["close", "change"]},
+                              "columns": ["close", "change", "Perf.1M", "Perf.3M", "Perf.Y"]},
                         headers=TV_HEADERS, timeout=12
                     )
-                    dd = rr.json().get("data", [{}])[0].get("d", [None, None])
-                    price = round(float(dd[0]), 2) if dd[0] else 0.0
-                    chg = round(float(dd[1]), 2) if dd[1] else 0.0
+                    dd = rr.json().get("data", [{}])[0].get("d", [])
+                    def _pv(i):
+                        try:
+                            v = dd[i] if len(dd) > i else None
+                            return round(float(v), 2) if v is not None else None
+                        except (TypeError, ValueError):
+                            return None
+                    price = _pv(0) or 0.0
+                    chg = _pv(1) or 0.0
+                    idx_p1m, idx_p3m, idx_py = _pv(2), _pv(3), _pv(4)
                 except Exception:
                     price, chg = 0.0, 0.0
                 tk.append({"id": tid, "label": label, "value": price, "change": chg,
                            "trend": "up" if chg >= 0 else "down",
-                           "unit": "EGP" if "EGP" in tid else ""})
+                           "unit": "EGP" if "EGP" in tid else "",
+                           # ⭐ عوائد المؤشر بنفسها (شهر · 3 شهور · سنة) — مرجع المقارنة
+                           "perf_1m": idx_p1m, "perf_3m": idx_p3m, "perf_y": idx_py})
                 time.sleep(0.15)
 
             # 2.4) الذهب ٢٤ بالجنيه المصري = الذهب العالمي × سعر الدولار
