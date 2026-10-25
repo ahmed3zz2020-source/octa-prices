@@ -948,7 +948,7 @@ def rate_limit_guard():
             "hint": "استنى شوية وجرب تاني",
         }
         # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نفس الـBUG (شوف فوق)
-        # 📌 Response(jsonify(...)) ⇒ 500 بدل 429.
+        # 📌 Response(jsonify(body)) ⇒ 500 بدل 429.
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ الأثر: أي حد يعمل طلبات كتير ⇒ السيرفر
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ بيرجّع 500 ⇒ الواجهة مش بتعرف إنه rate limit.
         resp = jsonify(_b)
@@ -2503,7 +2503,7 @@ def _pin_locked_resp(retry, what="الباسورد"):
         "retry_after": retry,
     }
     # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ الـBUG الحقيقي اللي كان مبيبانش
-    # 📌 الشكل القديم: Response(jsonify(body), status=429, ...)
+    # 📌 الشكل القديم: Response(jsonify(body), status=429)
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ jsonify() بترجّع **Response** أصلاً!
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ Response(<Response>) ⇒ Werkzeug بيعمل
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ list() على الـbody ⇒ «'Response' object is
