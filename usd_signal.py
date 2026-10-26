@@ -304,11 +304,53 @@ def _fred(series_id, label=""):
 # ══════════════════════════════════════════════════════════════════════
 #  ⑤ التقويم الاقتصادي — ForexFactory الأسبوعي + مواعيد البنك المركزي
 # ══════════════════════════════════════════════════════════════════════
-def _calendar():
+def _calendar_tv():
+    """التقويم الاقتصادي من TradingView — مصدر شغال (ForexFactory بيرد 429 أحياناً)."""
+    def _go():
+        now = datetime.now(UTC)
+        frm = (now - timedelta(days=1)).strftime("%Y-%m-%dT%H:00:00.000Z")
+        to = (now + timedelta(days=7)).strftime("%Y-%m-%dT%H:00:00.000Z")
+        url = ("https://economic-calendar.tradingview.com/events"
+               "?from=%s&to=%s&countries=US,EG" % (frm, to))
+        txt = _http_get(url, timeout=15, headers={
+            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                           "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
+            "Origin": "https://www.tradingview.com",
+            "Referer": "https://www.tradingview.com/",
+        })
+        rows = (json.loads(txt) or {}).get("result") or []
+        out = []
+        for e in rows:
+            ctry = e.get("country")
+            if ctry not in ("US", "EG"):
+                continue
+            dt = e.get("date")
+            title = e.get("title") or e.get("indicator") or ""
+            if not title or not dt:
+                continue
+            imp = e.get("importance")
+            imp_ar = {0: "Low", 1: "Medium", 2: "High", 3: "High"}.get(imp, "Low")
+            out.append({
+                "country": "USD" if ctry == "US" else "EGY",
+                "t": dt,
+                "title": title,
+                "impact": imp_ar,
+                "forecast": ("" if e.get("forecast") is None else str(e.get("forecast"))),
+                "previous": ("" if e.get("previous") is None else str(e.get("previous"))),
+                "actual": ("" if e.get("actual") is None else str(e.get("actual"))),
+                "source": e.get("source") or "TradingView",
+                "source_url": e.get("source_url") or "https://www.tradingview.com/economic-calendar/",
+            })
+        return out or None
+    return _cached("calendar_tv", 1800, _go)
+
+
+def _calendar_ff():
+    """ForexFactory — مصدر احتياطي (أحياناً بيرد 429)."""
     def _go():
         out = []
         try:
-            txt = _http_get("https://nfs.faireconomy.media/ff_calendar_thisweek.json", timeout=20)
+            txt = _http_get("https://nfs.faireconomy.media/ff_calendar_thisweek.json", timeout=15)
             now = datetime.now(UTC)
             for e in (json.loads(txt) or []):
                 ctry = e.get("country")
@@ -323,12 +365,39 @@ def _calendar():
                 out.append({"country": ctry, "t": dt.strftime("%Y-%m-%dT%H:%M:%SZ"),
                             "title": e.get("title", ""), "impact": e.get("impact", "Low"),
                             "forecast": e.get("forecast", ""), "previous": e.get("previous", ""),
-                            "source": "ForexFactory", "source_url": "https://www.forexfactory.com/calendar"})
+                            "source": "ForexFactory",
+                            "source_url": "https://www.forexfactory.com/calendar"})
         except Exception:
-            pass
+            return None
         out.sort(key=lambda z: z["t"])
         return out or None
-    return _cached("calendar", 1800, _go)
+    return _cached("calendar_ff", 1800, _go)
+
+
+def _calendar():
+    """التقويم: مصدر TradingView الأساسي + ForexFactory احتياطي.
+
+    📌 فلترة: الأحداث من لحظة دلوقتي (مع مهلة ساعتين للأخبار المعلنة) + ٧ أيام.
+    📌 الترتيب: بالتاريخ، والأهم داخل نفس اليوم فوق (FOMC/التضخم قبل غيرهم).
+    """
+    ev = _calendar_tv() or _calendar_ff() or []
+    now = datetime.now(UTC)
+    out = []
+    for e in ev:
+        t = e.get("t") or ""
+        try:
+            dt = datetime.fromisoformat(t.replace("Z", "+00:00"))
+        except Exception:
+            continue
+        if dt < now - timedelta(hours=2) or dt > now + timedelta(days=7):
+            continue
+        e["t"] = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        e["_imp"] = {"High": 3, "Medium": 2, "Low": 1}.get(e.get("impact"), 0)
+        out.append(e)
+    out.sort(key=lambda z: (z.get("t") or "", -z.get("_imp", 0)))
+    for e in out:
+        e.pop("_imp", None)
+    return out
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -1604,7 +1673,7 @@ def register(app, require_user=None):
     def usd_calendar():
         try:
             return jsonify({"ok": True, "events": _calendar() or [],
-                            "source": "ForexFactory (الأسبوع الحالي)"})
+                            "source": "TradingView (التقويم الاقتصادي) + ForexFactory"})
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:160]}), 500
 
