@@ -3,22 +3,22 @@
  "source": "البورصة المصرية (EGX) — beta.egx.com.eg/api/bff/egx",
  "source_note": "لقطة رسمية: قيمة المؤشر، الأوزان، ومكونات كل مؤشر + حالة السوق.",
  "market_status": {
-  "status": "Open",
-  "status_Ar": "مفتوح",
-  "statusDate": "2026-10-26T13:14:57"
+  "status": "Closed",
+  "status_Ar": "مغلق",
+  "statusDate": "2026-10-26T17:06:11"
  },
  "indices": {
   "EGX30": {
    "egx_code": "CASE30",
    "live": {
-    "change": -1273.09,
-    "changePer": -2.5857759876996447,
+    "change": -817.41,
+    "changePer": -1.660243305740809,
     "high": 49656.82,
-    "indexClose": 47961.26,
+    "indexClose": 48416.94,
     "indexDay": "2026-10-26T00:00:00",
     "indexOpen": 49234.35,
-    "low": 47961.26,
-    "ytdPercent": 14.6604
+    "low": 47938.25,
+    "ytdPercent": 15.7498
    },
    "constituents": [],
    "weights": [
@@ -244,14 +244,14 @@
   "EGX70": {
    "egx_code": "EGX70_EWI",
    "live": {
-    "change": -354.2,
-    "changePer": -2.317662393408469,
+    "change": 34.48,
+    "changePer": 0.2256154695785545,
     "high": 15598.14,
-    "indexClose": 14928.44,
+    "indexClose": 15317.12,
     "indexDay": "2026-10-26T00:00:00",
     "indexOpen": 15282.64,
-    "low": 14869.32,
-    "ytdPercent": 13.7376
+    "low": 14811.17,
+    "ytdPercent": 16.6989
    },
    "constituents": [
     {
@@ -3130,14 +3130,14 @@
   "EGX100": {
    "egx_code": "EGX100_EWI",
    "live": {
-    "change": -489.32,
-    "changePer": -2.3229571227081736,
+    "change": -49.66,
+    "changePer": -0.2357517589996074,
     "high": 21415.18,
-    "indexClose": 20575.21,
+    "indexClose": 21014.87,
     "indexDay": "2026-10-26T00:00:00",
     "indexOpen": 21064.53,
-    "low": 20524.94,
-    "ytdPercent": 18.0727
+    "low": 20460.19,
+    "ytdPercent": 20.5957
    },
    "constituents": [
     {
@@ -7287,14 +7287,14 @@
   "EGX33": {
    "egx_code": "EGX_SHARIAH",
    "live": {
-    "change": -138.64,
-    "changePer": -2.423047615052816,
+    "change": -80.21,
+    "changePer": -1.4018511915997287,
     "high": 5802.75,
-    "indexClose": 5583.08,
+    "indexClose": 5641.51,
     "indexDay": "2026-10-26T00:00:00",
     "indexOpen": 5721.72,
-    "low": 5582.32,
-    "ytdPercent": 21.4302
+    "low": 5575.89,
+    "ytdPercent": 22.701
    },
    "constituents": [
     {
