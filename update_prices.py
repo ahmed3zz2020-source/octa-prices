@@ -6070,7 +6070,9 @@ TICKER = [
    ("tk-egx","EGX30","EGX:EGX30"),
    ("tk-egx70","EGX70","EGX:EGX70EWI"),
    ("tk-egx100","EGX100","EGX:EGX100EWI"),
-   ("tk-egx33","EGX33","EGX:SHARIAH"),
+   # ⭐ الاسم الرسمي: مؤشر الشريعة (EGX 33 Shariah) — مش مؤشر "EGX 33"
+   #   (كان مكتوب "EGX33" ⇒ بيخلّي المستخدم فاكر إنه مؤشر تاني).
+   ("tk-egx33","EGX 33 Shariah","EGX:SHARIAH"),
    ("tk-usd","دولار/جنيه","FX_IDC:USDEGP"),
    ("tk-gold","Gold/USD","OANDA:XAUUSD"),
    ("tk-gold24","ذهب٢٤/ج.م","__GOLD24__"),   # محسوب: ذهب × دولار
@@ -8158,14 +8160,23 @@ def dashboard_data():
         xs = [_f(s.get(key)) for s in st if s.get(key) is not None]
         return round(sum(xs) / len(xs), 1) if xs else None
 
+    def avg_axis(axis):
+        """متوسط محور فعلي من all_axes (نفس الأرقام اللي بتتوزن في النتيجة)."""
+        xs = [_f((s.get("all_axes") or {}).get(axis)) for s in st
+              if (s.get("all_axes") or {}).get(axis) is not None]
+        return round(sum(xs) / len(xs), 1) if xs else None
+
+    # ⛔ ٢٦ أكتوبر ٢٠٢٦ — «المحفظة» مش محور في النتيجة anymore (وزنه 0
+    #   ورقمه الثابت 70 كان بيظهر في الكارت كأنه محور حقيقي).
+    #   و«أمان المخاطرة» بقى متوسط **محور المخاطرة نفسه** (نفس الرقم اللي
+    #   بيوزن 27% في النتيجة) بدل safety_score (رقم تاني).
     axis_avg = {
         "technical":   avg("technical_score"),
         "fundamental": avg("fund_score"),
         "liquidity":   avg("liquidity_score"),
         "news":        avg("news_score"),
         "sentiment":   avg("sentiment_score"),
-        "portfolio":   avg("portfolio_fit"),
-        "safety":      avg("safety_score"),
+        "safety":      avg_axis("risk"),
         "final":       avg("final_score"),
     }
 
@@ -8836,15 +8847,15 @@ def update_loop():
                     it["trend"] = "up" if it["change"] >= 0 else "down"
                     it["unit"] = "ج.م/جم"
 
-            # 2.5) EGX33 — لو رجّع 0 نحسبه كمتوسط EGX30/EGX70 (تقريبي)
+            # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — شيلنا الاختراق: كان لو المؤشر رجع 0
+            #   بنحسبله «متوسط EGX30 و EGX70» ونعرضه كأنه رقم المؤشر!
+            #   ⛔ رقم مخترع في كارت المؤشرات = منع صراحة.
+            #   ✅ دلوقتي: لو مفيش رقم ⇒ نعرض «غير متاح» وخلاص.
             for it in tk:
                 if it["id"] == "tk-egx33" and (not it.get("value") or it["value"] == 0):
-                    egx30 = next((t for t in tk if t["id"] == "tk-egx"), None)
-                    egx70 = next((t for t in tk if t["id"] == "tk-egx70"), None)
-                    if egx30 and egx70:
-                        it["value"] = round((egx30["value"] + egx70["value"]) / 2, 2)
-                        it["change"] = round((egx30["change"] + egx70["change"]) / 2, 2)
-                        it["_approx"] = True
+                    it["value"] = None
+                    it["change"] = None
+                    it["_unavailable"] = True
 
             # 3) top movers
             sorted_by_change = sorted(
