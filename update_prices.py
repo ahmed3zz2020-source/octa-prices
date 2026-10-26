@@ -197,6 +197,9 @@ _ALWAYS_SHOW_OUTPUT = (
     # 📌 ⚠️ آمن: المسارات دي **محمية بـrequire_user** (الزائر بياخد
     # 📌 ⛌ نسخة مخفّفة من اللوحة من غير أي توصيات).
     "/api/dashboard", "/api/intelligence",
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ ذكاء المؤشرات
+    # 📌 محمية بـrequire_user ⇒ آمنة تبان للمستخدم المسجّل.
+    "/api/indices",
     # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ مؤشر الشريعة
     # 📌 السبب: عمود «القرار» كان بيتشال من رد /api/shariah ⇒ «—»
     # 📌 المسار محمي بـrequire_user ⇒ آمن إنه يبان للمستخدم المسجّل.
@@ -10016,6 +10019,501 @@ def calibration_api():
         "note": "لتعديل الأوزان: POST إلى /api/calibration مع weights و reason",
     })
 
+
+
+
+# ════════════════════════════════════════════════════════════════════════════
+#  🕌 ذكاء المؤشرات — بيانات وتحليل مؤشرات البورصة المصرية
+#  ٢٦ أكتوبر ٢٠٢٦
+# ════════════════════════════════════════════════════════════════════════════
+# 📌 الأرقام كلها من مصادر حقيقية:
+#   · التاريخ اليومي  → data/index_history.json (TradingView websocket)
+#   · الأوزان والمكونات واللقطة الحية → data/index_official.json (البورصة المصرية)
+#   · المنهجية والتعليم → data/index_config.json (صفحات البورصة الرسمية)
+# ⛔ ممنوع أي رقم مخترع — لو المصدر ناقص، الحقل بيبقى null والباك بيقول «غير متاح».
+# ════════════════════════════════════════════════════════════════════════════
+
+_IDX_HIST = {}          # {id: {rows, from, to, count}}
+_IDX_CONF = {}          # {id: {...}}
+_IDX_OFF = {}           # {market_status, indices:{id:{live, constituents, weights}}}
+_IDX_LOADED = False
+_IDX_TICKER = {         # خرائط مساعدة للربط
+    "EGX30": "tk-egx", "EGX70": "tk-egx70", "EGX100": "tk-egx100", "EGX33": "tk-egx33",
+}
+
+# الفترات المتاحة — المفتاح: عدد أيام تقريبي (None = كل المتاح)
+_IDX_PERIODS = [
+    ("1M", 31, "شهر"),
+    ("3M", 92, "٣ شهور"),
+    ("6M", 183, "٦ شهور"),
+    ("YTD", None, "من بداية السنة"),
+    ("1Y", 366, "سنة"),
+    ("3Y", 1096, "٣ سنين"),
+    ("5Y", 1827, "٥ سنين"),
+    ("10Y", 3653, "١٠ سنين"),
+    ("MAX", None, "الكل المتاح"),
+]
+
+# عتبات التحليل (قابلة للضبط من data/index_config.json)
+_IDX_THRESHOLDS = {
+    "major_drawdown": -20.0,
+    "correction": -10.0,
+    "min_phase_days": 20,
+    "rsi_overbought": 70,
+    "rsi_oversold": 30,
+    "high_volatility": 25.0,
+}
+
+
+def _idx_load():
+    """تحميل ملفات المؤشرات (مرة واحدة) — مع fallback آمن."""
+    global _IDX_LOADED, _IDX_HIST, _IDX_CONF, _IDX_OFF
+    if _IDX_LOADED:
+        return
+    base = Path(__file__).parent
+    try:
+        p = base / "data" / "index_history.json"
+        if p.exists():
+            d = json.loads(p.read_text(encoding="utf-8"))
+            for k, v in (d.get("indices") or {}).items():
+                _IDX_HIST[k] = v
+    except Exception as e:
+        print(f"[indices] history load failed: {str(e)[:90]}")
+    try:
+        p = base / "data" / "index_config.json"
+        if p.exists():
+            d = json.loads(p.read_text(encoding="utf-8"))
+            _IDX_CONF = d.get("indices") or {}
+    except Exception as e:
+        print(f"[indices] config load failed: {str(e)[:90]}")
+    try:
+        p = base / "data" / "index_official.json"
+        if p.exists():
+            _IDX_OFF = json.loads(p.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[indices] official load failed: {str(e)[:90]}")
+    try:
+        p = base / "data" / "events_egx.json"
+        if p.exists():
+            _IDX_OFF["events"] = json.loads(p.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"[indices] events load failed: {str(e)[:90]}")
+    _IDX_LOADED = True
+
+
+def _idx_series(idx_id):
+    """السلسلة اليومية: [[ts, close], ...] — أو [] لو مفيش."""
+    _idx_load()
+    v = _IDX_HIST.get(idx_id) or {}
+    rows = v.get("rows") or []
+    out = []
+    for r in rows:
+        try:
+            out.append([int(r[0]), float(r[1])])
+        except (TypeError, ValueError, IndexError):
+            continue
+    return out
+
+
+def _idx_live_from_ticker(idx_id):
+    """السعر الحيّ من الـticker (TradingView) — للمقارنة مع الرسمي."""
+    try:
+        tid = _IDX_TICKER.get(idx_id)
+        if not tid:
+            return None
+        for t in (LIVE_DATA.get("ticker") or []):
+            if t.get("id") == tid:
+                return {"value": t.get("value"), "change": t.get("change"),
+                        "perf_1m": t.get("perf_1m"), "perf_y": t.get("perf_y")}
+    except Exception:
+        pass
+    return None
+
+
+def _idx_downsample(series, max_points=1400):
+    """تصغير السلسلة للعرض — مع الحفاظ على القمم والقيعان."""
+    n = len(series)
+    if n <= max_points:
+        return series
+    step = n / float(max_points)
+    out = []
+    for i in range(max_points):
+        a = int(i * step)
+        b = int((i + 1) * step)
+        if b <= a:
+            b = a + 1
+        chunk = series[a:b]
+        if not chunk:
+            continue
+        # نحتفظ بآخر نقطة في كل شريحة (الترتيب الزمني يبقى صحيح)
+        out.append(chunk[-1])
+    if series and (not out or out[-1] is not series[-1]):
+        out.append(series[-1])
+    return out
+
+
+def _idx_period_bounds(series, key):
+    """حدود الفترة المختارة بالثواني."""
+    if not series:
+        return None, None
+    last = series[-1][0]
+    if key == "MAX":
+        return series[0][0], last
+    if key == "YTD":
+        y = datetime.utcfromtimestamp(last).year
+        start = None
+        for t, _v in series:
+            if datetime.utcfromtimestamp(t).year == y:
+                start = t
+                break
+        return (start if start is not None else series[0][0]), last
+    for k, days, _lbl in _IDX_PERIODS:
+        if k == key:
+            return last - days * 86400, last
+    return series[0][0], last
+
+
+def _idx_period_key(key):
+    for k, days, lbl in _IDX_PERIODS:
+        if k == key:
+            return lbl
+    return key
+
+
+def _idx_events_for(idx_id, series, frm, to):
+    """الأحداث الموثّقة داخل الفترة."""
+    _idx_load()
+    evs = (_IDX_OFF.get("events") or [])
+    out = []
+    for e in evs:
+        if e.get("index") and e["index"] not in (idx_id, "ALL"):
+            continue
+        try:
+            s = int(e.get("start_ts") or 0)
+            en = int(e.get("end_ts") or s)
+        except (TypeError, ValueError):
+            continue
+        if to is not None and s > to:
+            continue
+        if frm is not None and en < frm:
+            continue
+        # قياس الأثر الفعلي من السلسلة
+        impact = None
+        try:
+            sidx = next((i for i, (t, _v) in enumerate(series) if t >= s), None)
+            eidx = None
+            for i in range(len(series) - 1, -1, -1):
+                if series[i][0] <= en:
+                    eidx = i
+                    break
+            if sidx is not None and eidx is not None and eidx > sidx:
+                v0, v1 = series[sidx][1], series[eidx][1]
+                impact = round((v1 / v0 - 1.0) * 100.0, 2) if v0 else None
+        except Exception:
+            impact = None
+        item = dict(e)
+        item["impact_pct"] = impact
+        out.append(item)
+    out.sort(key=lambda x: x.get("start_ts") or 0)
+    return out
+
+
+def _idx_constituents(idx_id):
+    """مكونات المؤشر: من البورصة الرسمية + نتيجة OCTA لكل سهم."""
+    _idx_load()
+    off = (_IDX_OFF.get("indices") or {}).get(idx_id) or {}
+    weights = {w.get("reuters", "").replace(".CA", ""): w
+               for w in (off.get("weights") or []) if w.get("reuters")}
+    cons = off.get("constituents") or []
+    if not cons and (off.get("weights") or []):
+        # EGX30: اللقطة فيها الأوزان بس ⇒ نبني المكوّنات منها
+        cons = [{"reuters": w.get("reuters"), "name": w.get("name"),
+                 "namE_A": w.get("nameA"), "isin": w.get("isin"),
+                 "weight": w.get("weight")} for w in off.get("weights") or []]
+    # خريطة النتائج الحية
+    live = {s.get("code"): s for s in (LIVE_DATA.get("egx30") or [])}
+    out = []
+    for c in cons:
+        code = (c.get("reuters") or "").replace(".CA", "").strip()
+        if not code:
+            continue
+        w = weights.get(code)
+        st = live.get(code) or {}
+        out.append({
+            "code": code,
+            "name_ar": c.get("namE_A") or c.get("nameA") or code,
+            "name_en": c.get("name") or "",
+            "sector": c.get("sectoR_A") or c.get("sector") or "",
+            "isin": c.get("isin") or "",
+            "weight": (w or {}).get("weight"),
+            "price": st.get("price") if st.get("price") is not None else c.get("lasT_CP"),
+            "change": st.get("change") if st.get("change") is not None else c.get("chgPer"),
+            "pe": c.get("pe"),
+            "yield": c.get("yeild"),
+            "mcap": c.get("markeT_CAP"),
+            "volatility": c.get("volatility"),
+            "score": st.get("final_score"),
+            "decision": st.get("decision"),
+            "in_octa": bool(st),
+        })
+    out.sort(key=lambda x: (-(x.get("weight") or 0), x.get("code") or ""))
+    return out
+
+
+@app.route("/api/indices")
+def indices_api():
+    """📊 قائمة مؤشرات البورصة المصرية — لقطة + تغطية البيانات.
+
+    📌 كل الأرقام من مصادر حقيقية:
+       · القيمة الحالية → البورصة المصرية الرسمية (لقطة) + TradingView للمقارنة
+       · حالة السوق → البورصة المصرية
+       · التغطية التاريخية → ملف index_history.json
+    ⛔ لو المصدر مش موجود → null (مش رقم مخترع).
+    """
+    _idx_load()
+    out = []
+    for ix_id in ("EGX30", "EGX70", "EGX100", "EGX33"):
+        conf = _IDX_CONF.get(ix_id) or {}
+        hist = _IDX_HIST.get(ix_id) or {}
+        off = ((_IDX_OFF.get("indices") or {}).get(ix_id) or {})
+        live = off.get("live") or {}
+        tk = _idx_live_from_ticker(ix_id) or {}
+        out.append({
+            "id": ix_id,
+            "name_ar": conf.get("name_ar"),
+            "name_en": conf.get("name_en"),
+            "short_ar": conf.get("short_ar"),
+            "accent": conf.get("accent"),
+            "tv_symbol": conf.get("tv_symbol"),
+            "official": conf.get("official") or {},
+            "live_official": {
+                "value": live.get("indexClose"),
+                "change": live.get("change"),
+                "change_pct": live.get("changePer"),
+                "high": live.get("high"),
+                "low": live.get("low"),
+                "open": live.get("indexOpen"),
+                "ytd_pct": live.get("ytdPercent"),
+                "day": live.get("indexDay"),
+            },
+            "live_now": tk,   # TradingView — للمقارنة
+            "coverage": {
+                "from": hist.get("from"),
+                "to": hist.get("to"),
+                "count": hist.get("count"),
+                "official_inception": conf.get("official", {}).get("inception_date"),
+            },
+            "constituents_count": len(off.get("constituents") or []) or conf.get("official", {}).get("constituents_count"),
+        })
+    ms = _IDX_OFF.get("market_status") or {}
+    return jsonify({
+        "ok": True,
+        "count": len(out),
+        "indices": out,
+        "market_status": {
+            "status": ms.get("status"),
+            "status_ar": ms.get("status_Ar"),
+            "as_of": ms.get("statusDate"),
+        },
+        "source": "البورصة المصرية (EGX) + TradingView",
+        "data_version": _IDX_HIST.get("EGX30", {}).get("version") or _IDX_OFF.get("version"),
+    })
+
+
+@app.route("/api/indices/<ix_id>/analysis")
+@_require_user
+def index_analysis_api(ix_id):
+    """🧮 تحليل كامل لمؤشر — تاريخ + إحصائيات + مراحل + حالة السوق + مكونات.
+
+    🔒 محمي (فيه نتائج OCTA لكل مكون).
+    📌 ?period=1Y  (1M|3M|6M|YTD|1Y|3Y|5Y|10Y|MAX) — أو ?from=&to= timestamps
+    """
+    ix_id = (ix_id or "").upper()
+    _idx_load()
+    if ix_id not in _IDX_CONF:
+        return jsonify({"ok": False, "error": "مفيش مؤشر بالاسم ده"}), 404
+
+    series = _idx_series(ix_id)
+    if not series:
+        return jsonify({
+            "ok": False, "index": ix_id,
+            "error": "البيانات التاريخية غير متاحة حاليًا.",
+            "coverage": None,
+        }), 200
+
+    conf = _IDX_CONF.get(ix_id) or {}
+    hist = _IDX_HIST.get(ix_id) or {}
+    off = ((_IDX_OFF.get("indices") or {}).get(ix_id) or {})
+    th = _IDX_THRESHOLDS
+
+    # ── الفترة ──
+    period = (request.args.get("period") or "MAX").upper()
+    frm, to = _idx_period_bounds(series, period)
+    try:
+        qf = request.args.get("from")
+        qt = request.args.get("to")
+        if qf and qt:
+            frm, to = int(qf), int(qt)
+            period = "CUSTOM"
+    except (TypeError, ValueError):
+        pass
+    sub = [[t, v] for t, v in series if (frm is None or t >= frm) and (to is None or t <= to)]
+    if len(sub) < 2:
+        sub = list(series[-min(len(series), 60):])
+
+    # ── الإحصائيات والحسابات ──
+    import index_engine as IE
+    stats = IE.period_stats(sub)
+    _all_ph = IE.detect_phases(sub, major=th["major_drawdown"], correction=th["correction"],
+                               min_days=th["min_phase_days"])
+    # ⛔ نرتّبهم بالأهمية وناخد أقواهم — عشان القصة مقروءة مش مجرد ضوضاء
+    _sig = sorted(_all_ph, key=lambda p: -abs(p.get("return_pct") or 0))
+    phases = sorted(_sig[:16], key=lambda p: p.get("start") or 0)
+    regime = IE.market_regime(sub)
+    dd_series = IE.drawdown_series(sub)
+    norm = IE.normalize(sub)
+    qual = IE.validate_series(series)
+
+    # ── اللقطة الرسمية + الحالة ──
+    live = off.get("live") or {}
+    ms = _IDX_OFF.get("market_status") or {}
+    tk = _idx_live_from_ticker(ix_id) or {}
+
+    # ── التغطية: هل السلسلة كاملة من تاريخ الأساس الرسمي؟ ──
+    off_inception = (conf.get("official") or {}).get("inception_date")
+    coverage = {
+        "from": hist.get("from"), "to": hist.get("to"),
+        "count": hist.get("count"),
+        "official_inception": off_inception,
+        "complete": False,
+        "note": "",
+    }
+    try:
+        if off_inception and hist.get("from"):
+            d1 = datetime.strptime(hist["from"], "%Y-%m-%d").date()
+            d2 = datetime.strptime(off_inception, "%Y-%m-%d").date()
+            gap = (d2 - d1).days
+            coverage["complete"] = gap <= 45
+            if gap <= 45:
+                coverage["note"] = "التغطية كاملة من تاريخ الأساس الرسمي."
+            else:
+                coverage["note"] = ("السلسلة المتاحة تبدأ %s، أي بعد تاريخ الأساس الرسمي (%s) بـ%d يوم — "
+                                    "يعني فيه جزء من تاريخ المؤشر مش متاح لنا." %
+                                    (hist.get("from"), off_inception, gap))
+    except Exception:
+        coverage["note"] = ""
+
+    return jsonify({
+        "ok": True,
+        "index": {
+            "id": ix_id,
+            "name_ar": conf.get("name_ar"),
+            "name_en": conf.get("name_en"),
+            "short_ar": conf.get("short_ar"),
+            "accent": conf.get("accent"),
+            "tv_symbol": conf.get("tv_symbol"),
+            "official": conf.get("official") or {},
+            "education": conf.get("education") or {},
+            "personality_hints": conf.get("personality_hints") or [],
+        },
+        "live": {
+            "official": {
+                "value": live.get("indexClose"),
+                "change": live.get("change"),
+                "change_pct": live.get("changePer"),
+                "high": live.get("high"),
+                "low": live.get("low"),
+                "open": live.get("indexOpen"),
+                "ytd_pct": live.get("ytdPercent"),
+                "day": live.get("indexDay"),
+            },
+            "now": tk,
+            "snapshot_date": (_IDX_OFF.get("version")),
+        },
+        "market_status": {
+            "status": ms.get("status"),
+            "status_ar": ms.get("status_Ar"),
+            "as_of": ms.get("statusDate"),
+        },
+        "coverage": coverage,
+        "data_quality": qual,
+        "period": {
+            "key": period,
+            "label": _idx_period_key(period) if period != "CUSTOM" else "فترة مخصصة",
+            "from": sub[0][0] if sub else None,
+            "to": sub[-1][0] if sub else None,
+            "observations": len(sub),
+        },
+        "stats": stats,
+        "phases": phases,
+        "regime": regime,
+        "series": {
+            "values": _idx_downsample(sub, 1400),
+            "normalized": _idx_downsample(norm, 1400),
+            "drawdown": _idx_downsample(dd_series, 1400),
+        },
+        "events": _idx_events_for(ix_id, series, frm, to),
+        "constituents": _idx_constituents(ix_id),
+        "thresholds": th,
+        "source": {
+            "history": "TradingView websocket — إغلاقات يومية",
+            "official": "البورصة المصرية (EGX)",
+            "methodology": "صفحات البورصة الرسمية",
+        },
+    })
+
+
+@app.route("/api/indices/compare")
+@_require_user
+def indices_compare_api():
+    """⚖️ مقارنة بين مؤشرات — كله�� مطبّعة على 100 في بداية الفترة.
+
+    📌 ?ids=EGX30,EGX70&period=1Y
+    """
+    _idx_load()
+    import index_engine as IE
+    ids = (request.args.get("ids") or "EGX30,EGX70").upper().split(",")
+    ids = [i.strip() for i in ids if i.strip() in _IDX_CONF][:4]
+    if len(ids) < 2:
+        return jsonify({"ok": False, "error": "اختر مؤشرين على الأقل"}), 400
+    period = (request.args.get("period") or "1Y").upper()
+    out = []
+    for ix_id in ids:
+        series = _idx_series(ix_id)
+        if not series:
+            continue
+        frm, to = _idx_period_bounds(series, period)
+        sub = [[t, v] for t, v in series if (frm is None or t >= frm) and (to is None or t <= to)]
+        if len(sub) < 2:
+            continue
+        conf = _IDX_CONF.get(ix_id) or {}
+        norm = IE.normalize(sub)
+        st = IE.period_stats(sub)
+        out.append({
+            "id": ix_id,
+            "name_ar": conf.get("name_ar"),
+            "name_en": conf.get("name_en"),
+            "accent": conf.get("accent"),
+            "return_pct": st.get("return_pct"),
+            "max_drawdown": (st.get("max_drawdown") or {}).get("pct"),
+            "volatility": (st.get("volatility") or {}).get("latest"),
+            "recovery_days": (st.get("recovery") or {}).get("days_to_recover"),
+            "high": st.get("high"), "low": st.get("low"),
+            "from": sub[0][0], "to": sub[-1][0],
+            "normalized": _idx_downsample(norm, 1200),
+        })
+    if not out:
+        return jsonify({"ok": False, "error": "البيانات التاريخية غير متاحة"}), 200
+    best = max(out, key=lambda x: (x.get("return_pct") if x.get("return_pct") is not None else -1e9))
+    worst_dd = min(out, key=lambda x: (x.get("max_drawdown") if x.get("max_drawdown") is not None else 0))
+    return jsonify({
+        "ok": True, "period": period, "period_label": _idx_period_key(period),
+        "indices": out,
+        "summary": {
+            "best_return": best["id"] if best else None,
+            "worst_drawdown": worst_dd["id"] if worst_dd else None,
+        },
+    })
 
 
 @app.route("/api/shariah")
