@@ -8937,11 +8937,27 @@ def update_loop():
             #   بنحسبله «متوسط EGX30 و EGX70» ونعرضه كأنه رقم المؤشر!
             #   ⛔ رقم مخترع في كارت المؤشرات = منع صراحة.
             #   ✅ دلوقتي: لو مفيش رقم ⇒ نعرض «غير متاح» وخلاص.
+            #   📌 ٢٦ أكتوبر (مساءً): الـwebsocket بتاع TradingView اتقفل مؤقتاً
+            #      ⇒ بدل «غير متاح» بنستخدم آخر إغلاق رسمي من البورصة (لقطة اليوم)
+            #      + علَم واضح إنها إغلاق رسمي مش لحظي (مفيش أي رقم مخترع).
             for it in tk:
                 if it["id"] == "tk-egx33" and (not it.get("value") or it["value"] == 0):
-                    it["value"] = None
-                    it["change"] = None
-                    it["_unavailable"] = True
+                    _off = None
+                    try:
+                        _idx_load()
+                        _off = ((_IDX_OFF.get("indices") or {}).get("EGX33") or {}).get("live") or {}
+                    except Exception:
+                        _off = None
+                    if _off.get("indexClose"):
+                        it["value"] = round(float(_off["indexClose"]), 2)
+                        it["change"] = round(float(_off.get("changePer") or 0), 2)
+                        it["_official_close"] = True
+                        it["_official_date"] = str(_off.get("day") or "")[:10]
+                        it["_unavailable"] = False
+                    else:
+                        it["value"] = None
+                        it["change"] = None
+                        it["_unavailable"] = True
 
             # 3) top movers
             sorted_by_change = sorted(
