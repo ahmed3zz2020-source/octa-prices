@@ -176,13 +176,20 @@ def _resample(bars, rule):
             key = dt.strftime("%Y-%m-%d")
         buckets.setdefault(key, []).append(b)
     out = []
-    for key in sorted(buckets, key=lambda k: str(k)):
-        g = buckets[key]
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — كان الترتيب str(k) (ترتيب معجمي على النص)
+    # 📌 ⇒ الأسابيع/الشهور بتطلع مرتبة غلط: 12 قبل 5، و10 قبل 2
+    # 📌 ⇒ الشارت بيرسم قفزات وخطوط متقاطعة + الدعم/المقاومة بتطلع فاسدة.
+    # ✅ الحل: نرتب على المفتاح نفسه (tuple) + ترتيب نهائي بالزمن.
+    def _ksort(k):
+        return (0, k) if isinstance(k, tuple) else (1, k)
+    for key in sorted(buckets, key=_ksort):
+        g = sorted(buckets[key], key=lambda z: z["t"])
         out.append({
             "t": g[0]["t"],
             "o": g[0]["o"], "h": max(x["h"] for x in g), "l": min(x["l"] for x in g),
             "c": g[-1]["c"], "v": sum((x.get("v") or 0) for x in g),
         })
+    out.sort(key=lambda z: z["t"])
     return out
 
 
@@ -1642,7 +1649,7 @@ def register(app, require_user=None):
                 "from": _ts_day(bars[0]["t"]), "to": _ts_day(bars[-1]["t"]),
                 "bars": len(bars),
                 "series": [{"t": b["t"], "o": b["o"], "h": b["h"], "l": b["l"],
-                            "c": b["c"]} for b in bars[-1400:]],
+                            "c": b["c"], "v": b.get("v")} for b in bars[-1400:]],
                 "indicators": ind, "trend": tr, "sr": sr,
                 "source": "TradingView (ICE)",
             })
