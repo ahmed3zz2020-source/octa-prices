@@ -743,14 +743,19 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     # ═══ القرار ═══
     # ⚠️ قاعدة: "بيع" لازم يكون بسبب واضح من الأرقام
     #    لو البيانات ناقصة → القرار "غير كافي" مش "بيع"
-    fund_data_ok = (axes.get("fundamental") or 0) >= 40
-    tech_data_ok = (axes.get("technical") or 0) >= 30
+    # ⛔⛔⛔ إصلاح ٢٦ أكتوبر ٢٠٢٦ — خلط بين «مفيش بيانات» و«بيانات ضعيفة»
+    #   كان الشرط (الأساسي ≥ 40) ⇒ أي سهم بياناته **موجودة بس ضعيفة**
+    #   كان بيطلع «بيانات غير كافية» ⇒ و196 من 284 سهم قالوا كده!
+    #   ⇒ دلوقتي: «غير كافية» = البيانات **ناقصة** بس.
+    #   والبيانات الضعيفة بتأثر في الدرجة (وزن 24%) وفي القرار نفسه.
+    fund_missing = axes.get("fundamental") is None
+    tech_missing = axes.get("technical") is None
     risk_v = axes.get("risk")
 
     if risk_v is not None and risk_v < 35:
         decision = "إشارة سلبية"
         decision_why = "مخاطرة عالية جداً"
-    elif not fund_data_ok or not tech_data_ok:
+    elif fund_missing or tech_missing:
         decision = "بيانات غير كافية"
         decision_why = "البيانات ناقصة — لا يمكن الحكم على السهم بثقة"
     elif final >= 78 and (axes.get("technical") or 0) >= 50 and (axes.get("fundamental") or 0) >= 60:
