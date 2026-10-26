@@ -1673,6 +1673,8 @@ def register(app, require_user=None):
     def usd_calendar():
         try:
             return jsonify({"ok": True, "events": _calendar() or [],
+                            "calendar_source": (sorted({e.get("source") or "غير معروف"
+                                                        for e in (_calendar() or [])}) or ["غير متاح"]),
                             "source": "TradingView (التقويم الاقتصادي) + ForexFactory"})
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:160]}), 500
