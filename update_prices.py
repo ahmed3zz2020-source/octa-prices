@@ -8951,8 +8951,9 @@ def update_loop():
                     if _off.get("indexClose"):
                         it["value"] = round(float(_off["indexClose"]), 2)
                         it["change"] = round(float(_off.get("changePer") or 0), 2)
+                        it["trend"] = "up" if it["change"] >= 0 else "down"
                         it["_official_close"] = True
-                        it["_official_date"] = str(_off.get("day") or "")[:10]
+                        it["_official_date"] = str(_off.get("indexDay") or _off.get("day") or "")[:10]
                         it["_unavailable"] = False
                     else:
                         it["value"] = None
