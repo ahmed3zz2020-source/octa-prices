@@ -10183,7 +10183,10 @@ def _idx_period_key(key):
 def _idx_events_for(idx_id, series, frm, to):
     """الأحداث الموثّقة داخل الفترة."""
     _idx_load()
-    evs = (_IDX_OFF.get("events") or [])
+    _ev = _IDX_OFF.get("events") or []
+    evs = _ev.get("events") if isinstance(_ev, dict) else _ev
+    if not isinstance(evs, list):
+        evs = []
     out = []
     for e in evs:
         if e.get("index") and e["index"] not in (idx_id, "ALL"):
@@ -10243,7 +10246,7 @@ def _idx_constituents(idx_id):
             "code": code,
             "name_ar": c.get("namE_A") or c.get("nameA") or code,
             "name_en": c.get("name") or "",
-            "sector": c.get("sectoR_A") or c.get("sector") or "",
+            "sector": (c.get("sectoR_A") or c.get("sector") or "") or (st.get("sector") or ""),
             "isin": c.get("isin") or "",
             "weight": (w or {}).get("weight"),
             "price": st.get("price") if st.get("price") is not None else c.get("lasT_CP"),
