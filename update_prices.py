@@ -10387,6 +10387,22 @@ def index_analysis_api(ix_id):
     if len(sub) < 2:
         sub = list(series[-min(len(series), 60):])
 
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ آخر نقطة في السلسلة لازم تكون نفس الرقم الظاهر فوق
+    # 📌 السبب: السلسلة 历史 من TradingView (قيمة لحظية قديمة) واللقطة الرسمية أحدث
+    #        ⇒ كان الرسم بيقول 48,533 والكارت بيقول 47,961 (رقمان مختلفين لنفس اليوم).
+    # 📌 ✅ الحل: نحدّث آخر نقطة (لو بتومض لنفس اليوم) بالقيمة الرسمية الحالية.
+    try:
+        _lv = off.get("live") or {}
+        _cur = _lv.get("indexClose")
+        if _cur and sub:
+            _last_t, _last_v = sub[-1]
+            _lt_day = datetime.utcfromtimestamp(_last_t).strftime("%Y-%m-%d")
+            _now_day = str(_lv.get("indexDay") or "")[:10]
+            if _now_day and _lt_day == _now_day:
+                sub[-1] = [_last_t, float(_cur)]
+    except Exception:
+        pass
+
     # ── الإحصائيات والحسابات ──
     import index_engine as IE
     stats = IE.period_stats(sub)
