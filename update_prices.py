@@ -216,6 +216,72 @@ _AUTH_REASONS_ALLOWED = (
 _TOP_ALLOWED_KEYS = ("strategies", "strategy")
 
 
+
+# ════════════════════════════════════════════════════════════════
+# ⓪ مؤشر الشريعة (EGX 33 Shariah) — جلب مباشر + مكونات رسمية
+# ════════════════════════════════════════════════════════════════
+# 📌 المشكلة: مؤشر الشريعة **مش موجود** في الـscanner بتاع TradingView
+#   (الـscanner بيرجّع 6 مؤشرات EGX بس) ⇒ فكان الكارت بيعرض فاضي
+#   (قبلها كنا بنخترعله متوسط EGX30/EGX70!).
+# 📌 الحل: جلبه من TradingView WebSocket (raw socket — من غير مكتبات).
+# 📌 والمكونات: من موقع البورصة المصرية الرسمي (ملف ثابت + سكربت تحديث).
+_SHARIAH_FILE = Path(__file__).parent / "data" / "egx33_shariah.json"
+_SHARIAH = {"at": 0, "d": None, "ttl": 600}
+_SHARIAH_CONST = {"at": 0, "d": None, "ttl": 86400}
+
+
+def _shariah_constituents():
+    """مكونات مؤشر الشريعة — من ملف البورصة الرسمي (يتبعت مع الكود)."""
+    now = _dt.now(_tz.utc).timestamp()
+    if _SHARIAH_CONST["d"] is not None and now - _SHARIAH_CONST["at"] < _SHARIAH_CONST["ttl"]:
+        return _SHARIAH_CONST["d"]
+    try:
+        p = _SHARIAH_FILE
+        if not p.exists():
+            p = Path("data/egx33_shariah.json")
+        data = json.loads(p.read_text(encoding="utf-8"))
+        _SHARIAH_CONST.update(at=now, d=data)
+        return data
+    except Exception as e:
+        print(f"[shariah] مكونات: {e}")
+        return _SHARIAH_CONST.get("d")
+
+
+def _shariah_quote():
+    """سعر مؤشر الشريعة + أداؤه — من TradingView WebSocket.
+    ⛔ مفيش تكرار: لو الفشل ⇒ مفيش رقم (مش رقم مخترع)."""
+    now = _dt.now(_tz.utc).timestamp()
+    if _SHARIAH["d"] is not None and now - _SHARIAH["at"] < _SHARIAH["ttl"]:
+        return _SHARIAH["d"]
+    out = None
+    try:
+        import importlib
+        if str(Path(__file__).parent) not in sys.path:
+            sys.path.insert(0, str(Path(__file__).parent))
+        tws = importlib.import_module("tv_ws")
+        bars = tws.fetch_series("EGX:SHARIAH", 260)
+        if bars and len(bars) >= 2:
+            closes = [b["c"] for b in bars if b.get("c")]
+            last = closes[-1]
+            prev = closes[-2]
+            def _ret(days):
+                if len(closes) > days:
+                    return round((last / closes[-1 - days] - 1) * 100, 2)
+                return None
+            out = {
+                "value": round(last, 2),
+                "change": round((last / prev - 1) * 100, 2),
+                "perf_1m": _ret(21), "perf_3m": _ret(63),
+                "perf_y": _ret(252),
+                "history": [[b["t"], b["c"]] for b in bars[-260:]],
+            }
+    except Exception as e:
+        print(f"[shariah] quote: {str(e)[:80]}")
+    if out:
+        _SHARIAH.update(at=now, d=out)
+    return out or _SHARIAH.get("d")
+
+
 def _make_snapshot_id(ts_iso):
     """
     🆔 رقم النسخة.
@@ -8827,6 +8893,13 @@ def update_loop():
                     idx_p1m, idx_p3m, idx_py = _pv(2), _pv(3), _pv(4)
                 except Exception:
                     price, chg = 0.0, 0.0
+                if tid == "tk-egx33":
+                    # ⭐ مؤشر الشريعة مش في الـscanner ⇒ جلبه من الـwebsocket
+                    _sq = _shariah_quote()
+                    if _sq:
+                        price = _sq["value"]
+                        chg = _sq["change"]
+                        idx_p1m, idx_p3m, idx_py = _sq.get("perf_1m"), _sq.get("perf_3m"), _sq.get("perf_y")
                 tk.append({"id": tid, "label": label, "value": price, "change": chg,
                            "trend": "up" if chg >= 0 else "down",
                            "unit": "EGP" if "EGP" in tid else "",
@@ -9931,6 +10004,54 @@ def calibration_api():
         "calibration": get_calibration(),
         "current_weights": AXIS_WEIGHTS,
         "note": "لتعديل الأوزان: POST إلى /api/calibration مع weights و reason",
+    })
+
+
+
+@app.route("/api/shariah")
+def shariah_api():
+    """
+    🕌 مكونات مؤشر الشريعة (EGX 33 Shariah) + نتيجة OCTA لكل سهم.
+    📌 المكونات من موقع البورصة المصرية الرسمي (ملف في الريبو + سكربت تحديث).
+    📌 السعر والأداء من TradingView (المؤشر مش موجود في الـscanner ⇒ websocket).
+    🔒 محمي بتوكن (فيه نتائج OCTA).
+    """
+    if not require_user():
+        return jsonify({"ok": False, "error": "محمي"}), 401
+    comp = _shariah_constituents() or {}
+    q = _shariah_quote() or {}
+    st = {s.get("code"): s for s in LIVE_DATA.get("egx30", [])}
+    rows = []
+    for sec in comp.get("securities", []):
+        c = sec.get("code")
+        s = st.get(c) or {}
+        rows.append({
+            "code": c,
+            "name": s.get("name") or c,
+            "sector": s.get("sector"),
+            "price": s.get("price"),
+            "change": s.get("change"),
+            "score": s.get("final_score"),
+            "decision": s.get("decision"),
+            "safety": s.get("safety_score"),
+            "isin": sec.get("isin"),
+            "name_en": sec.get("name_en"),
+            "in_data": bool(s),
+        })
+    rows.sort(key=lambda r: (-(r.get("score") or -1), r.get("code") or ""))
+    return jsonify({
+        "ok": True,
+        "index": {
+            "name": comp.get("index"), "name_ar": comp.get("index_ar"),
+            "source": comp.get("source"), "source_note": comp.get("source_note"),
+            "reviewed": comp.get("reviewed"), "launched": comp.get("launched"),
+            "base_value": comp.get("base_value"), "base_date": comp.get("base_date"),
+            "max_weight_pct": comp.get("max_weight_pct"),
+            "companies": len({r["code"] for r in rows if r["code"] in ("FAIT", "FAITA")} | {r["code"] for r in rows}) - 1,
+        },
+        "quote": {"value": q.get("value"), "change": q.get("change"),
+                  "perf_1m": q.get("perf_1m"), "perf_y": q.get("perf_y")},
+        "rows": rows, "count": len(rows),
     })
 
 
