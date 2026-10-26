@@ -28,12 +28,13 @@
    "end": "2009-03-31",
    "start_ts": 1191196800,
    "end_ts": 1238457600,
-   "description_ar": "أزمة المالية العالمية ضربت بورصات العالم كلها. مؤشر EGX30 سجّل أكبر انخفاض سنوي في تاريخه: −56.43% سنة 2008، و−37.21% سنة 2000 سبقها.",
+   "description_ar": "أزمة المالية العالمية ضربت بورصات العالم كلها، ومنها البورصة المصرية. الأثر بالأرقام هنا محسوب من بيانات كل مؤشر على حدة.",
    "source_name": "ويكيبيديا — المؤشر البورصة المصرية (EGX30)",
    "source_url": "https://ar.wikipedia.org/wiki/%D8%A5%D9%8A_%D8%AC%D9%8A_%D8%A5%D9%83%D8%B3_30",
    "source_date": "2026-10-26",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "jan25-revolution",
@@ -44,12 +45,13 @@
    "end": "2011-03-23",
    "start_ts": 1295913600,
    "end_ts": 1300838400,
-   "description_ar": "مع بداية ثورة 25 يناير نزل المؤشر 6.25% في أول جلسة، وهبط 16% خلال الأسبوع، والبورصة اتقفلت في 27 يناير. وبقت مقفولة قرابة شهرين في رقم قياسي عالمي.",
+   "description_ar": "مع بداية ثورة 25 يناير نزل السوق 6.25% في أول جلسة، وهبط 16% خلال الأسبوع، والبورصة اتقفلت في 27 يناير. وبقت مقفولة قرابة شهرين في رقم قياسي عالمي.",
    "source_name": "ويكيبيديا — Egyptian Exchange",
    "source_url": "https://en.wikipedia.org/wiki/Egyptian_Exchange",
    "source_date": "2026-10-26",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "reopen-2011",
@@ -60,12 +62,13 @@
    "end": "2011-05-31",
    "start_ts": 1300838400,
    "end_ts": 1306800000,
-   "description_ar": "البورصة اتفتحت 22 مارس وفقدت 10% في دقايق، فقفلت تاني، واتفتحت كامل 27 مارس. التعافي بدأ 9 مايو مع وصول مساعدات دولية، والمؤشر خسر 49.28% في السنة كلها.",
+   "description_ar": "البورصة اتفتحت 22 مارس وفقدت 10% في دقايق، فقفلت تاني، واتفتحت كامل 27 مارس. والتعافي بدأ 9 مايو مع وصول مساعدات دولية.",
    "source_name": "MEED — Egypt market rallies after disastrous beginning to 2011",
    "source_url": "https://www.meed.com/egypt-market-rallies-after-disastrous-beginning-to-2011/",
    "source_date": "2011-06-01",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "rally-2014",
@@ -76,12 +79,13 @@
    "end": "2014-12-31",
    "start_ts": 1388534400,
    "end_ts": 1419984000,
-   "description_ar": "المؤشر رجع لأعلى مستوى له من 2011، وبلغ 7196 نقطة في 14 يناير 2014 ووصل قرب 8200 في فبراير. السنة كاملة +31.61%.",
+   "description_ar": "رجع السوق لأعلى مستوى له من 2011، وبلغت مؤشرات البورصة المصرية مستويات قياسية جديدة في يناير وفبراير 2014.",
    "source_name": "الأهرام — مصر بورصة تنهي على أعلى مستوى منذ ثورة 2011",
    "source_url": "https://english.ahram.org.eg/NewsContent/3/12/91573/Business/Economy/Egypts-bourse-ends-on-highest-level-since--Revolut.aspx",
    "source_date": "2014-01-14",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "drop-2016",
@@ -92,12 +96,13 @@
    "end": "2016-12-31",
    "start_ts": 1451606400,
    "end_ts": 1483142400,
-   "description_ar": "المؤشر نزل 20.58% في 2015 وبعدها تعرض لموجة هبوط في 2016 مع أجواء عدم الاستقرار في المدن المصرية.وانخفض ثم تعافي قوي في 2017.",
+   "description_ar": "نزل السوق 20.58% في 2015، وبعدها اتعرض لموجة هبوط في 2016 مع أجواء عدم استقرار في المدن المصرية، ثم تعافى بقوة في 2017.",
    "source_name": "مجلة جامعة البعث — تحليل منحنى عوائد مؤشر EGX30",
    "source_url": "https://journal.homs-univ.edu.sy/index.php/Economy/article/download/1785/1695/5260",
    "source_date": "2018-01-01",
    "confidence": "medium",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "recover-2017",
@@ -108,12 +113,13 @@
    "end": "2017-12-31",
    "start_ts": 1483228800,
    "end_ts": 1514678400,
-   "description_ar": "بعد موجة الهبوط السابقة رجع المؤشر +21.66% في 2017.",
+   "description_ar": "بعد موجة الهبوط السابقة رجع السوق +21.66% في 2017.",
    "source_name": "ويكيبيديا — المؤشر البورصة المصرية (EGX30)",
    "source_url": "https://ar.wikipedia.org/wiki/%D8%A5%D9%8A_%D8%AC%D9%8A_%D8%A5%D9%83%D8%B3_30",
    "source_date": "2026-10-26",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "correction-2018",
@@ -124,12 +130,13 @@
    "end": "2018-12-31",
    "start_ts": 1514764800,
    "end_ts": 1546214400,
-   "description_ar": "المؤشر اتصحح −13.2% في 2018 بعد موجة الصعود.",
+   "description_ar": "اتصحح السوق −13.2% في 2018 بعد موجة الصعود.",
    "source_name": "الغرفة الأمريكية في مصر — The Stock Market (المصدر: البورصة المصرية)",
    "source_url": "https://www.amcham.org.eg/publications/industry-sight/issue/49/the-stock-market",
    "source_date": "2021-01-01",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "covid-2020",
@@ -140,12 +147,13 @@
    "end": "2020-12-31",
    "start_ts": 1577836800,
    "end_ts": 1609372800,
-   "description_ar": "جائحة كورونا ضربت البورصة المصرية من ضمن أكل المتضررين عالمياً: البورصة فقدت 55.4 مليار جنيه من القيمة السوقية، والمؤشر نزل 22.3% في 2020. و2020 كان أعلى سنة في عدد إيقافات التداول في تاريخ السوق الحديث.",
+   "description_ar": "جائحة كورونا ضربت البورصة المصرية ضمن أشد المتضررين عالمياً: البورصة فقدت 55.4 مليار جنيه من القيمة السوقية، والمؤشر نزل 22.3% في 2020. و2020 كان أعلى سنة في عدد إيقافات التداول في تاريخ السوق الحديث.",
    "source_name": "الغرفة الأمريكية في مصر — The Stock Market (المصدر: البورصة المصرية)",
    "source_url": "https://www.amcham.org.eg/publications/industry-sight/issue/49/the-stock-market",
    "source_date": "2021-01-01",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "halt-2021-03",
@@ -161,7 +169,8 @@
    "source_url": "https://www.alwafd.news/5987808",
    "source_date": "2021-04-01",
    "confidence": "medium",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "fx-2022",
@@ -172,12 +181,13 @@
    "end": "2022-12-31",
    "start_ts": 1640995200,
    "end_ts": 1672444800,
-   "description_ar": "ضغط deflation والدولار وسعر الصرف على السوق في 2022، رغم إن السنة ختمت على +22.17%.",
+   "description_ar": "ضغط تعافي الأسعار وسعر الصرف على السوق في 2022، رغم إن السنة ختمت على +22.17%.",
    "source_name": "ويكيبيديا — المؤشر البورصة المصرية (EGX30)",
    "source_url": "https://ar.wikipedia.org/wiki/%D8%A5%D9%8A_%D8%AC%D9%8A_%D8%A5%D9%83%D8%B3_30",
    "source_date": "2026-10-26",
    "confidence": "medium",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "rally-2023",
@@ -188,12 +198,13 @@
    "end": "2023-12-31",
    "start_ts": 1672531200,
    "end_ts": 1703980800,
-   "description_ar": "سنة 2023 كانت من أقوى سنوات المؤشر: +70.10%.",
+   "description_ar": "كانت سنة 2023 من أقوى سنوات السوق: +70.10%.",
    "source_name": "ويكيبيديا — المؤشر البورصة المصرية (EGX30)",
    "source_url": "https://ar.wikipedia.org/wiki/%D8%A5%D9%8A_%D8%AC%D9%8A_%D8%A5%D9%83%D8%B3_30",
    "source_date": "2026-10-26",
    "confidence": "high",
-   "index": "EGX30"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   },
   {
    "id": "shariah-launch-2024",
@@ -241,7 +252,8 @@
    "source_url": "https://www.cairo24.com/2517872",
    "source_date": "2026-10-25",
    "confidence": "high",
-   "index": "ALL"
+   "index": "ALL",
+   "applies_to": "كل مؤشرات البورصة المصرية"
   }
  ]
 }

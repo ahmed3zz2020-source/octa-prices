@@ -10203,7 +10203,14 @@ def _idx_events_for(idx_id, series, frm, to):
         # قياس الأثر الفعلي من السلسلة
         impact = None
         try:
-            sidx = next((i for i, (t, _v) in enumerate(series) if t >= s), None)
+            # ⛔⛔⛔ لو الحدث بدأ قبل أول نقطة بيانات متاحة للمؤشر ده
+            # ⇒ القياس هيبقى غلط (هنقيس من أول نقطة مش من تاريخ الحدث)
+            # ⇒ بنصبه «غير قابل للقياس» بدل ما نخترع رقم.
+            first_ts = series[0][0] if series else None
+            if first_ts is not None and s < first_ts:
+                sidx = None
+            else:
+                sidx = next((i for i, (t, _v) in enumerate(series) if t >= s), None)
             eidx = None
             for i in range(len(series) - 1, -1, -1):
                 if series[i][0] <= en:
