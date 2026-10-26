@@ -9938,11 +9938,9 @@ def engine_weights_api():
     if not require_user():
         return jsonify({"ok": False, "error": "محمي"}), 401
 
-    # نسخة معروضة للمستخدم: نسب مئوية جاهزة
-    pct = {
-        "technical": 18, "fundamental": 22, "liquidity": 18,
-        "news": 5, "sentiment": 4, "risk": 24, "portfolio": 9,
-    }
+    # ⛔ ٢٦ أكتوبر ٢٠٢٦ — كانت نسخة مكتوبة بيايد هنا ⇒ بتتأخر عن
+    #   AXIS_WEIGHTS وبتعرض أوزان قديمة للمستخدم. بقت متولّدة منه.
+    pct = {k: round(v * 100, 1) for k, v in AXIS_WEIGHTS.items()}
     # نسخة المستخدم (كارت القرار) — مختلفة عن محرك EGX
     user_pct = {
         "technical": 15, "fundamental": 20, "valuation": 15, "liquidity": 10,
