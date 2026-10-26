@@ -260,7 +260,7 @@ def _world_bank(indicator, years="2018:2026"):
     def _go():
         url = ("https://api.worldbank.org/v2/country/EGY/indicator/%s"
                "?format=json&per_page=40&date=%s" % (indicator, years))
-        j = json.loads(_http_get(url, timeout=25))
+        j = json.loads(_http_get(url, timeout=12))
         if not isinstance(j, list) or len(j) < 2 or not j[1]:
             return None
         out = []
@@ -278,8 +278,12 @@ def _world_bank(indicator, years="2018:2026"):
 def _fred(series_id, label=""):
     """FRED — CSV من غير مفتاح (المصدر الرسمي الأمريكي)."""
     def _go():
-        url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s" % series_id
-        txt = _http_retry(url, tries=2, timeout=25)
+        # ⛔⛔⛔ الـCSV كامل كان 100KB+ وبيرجع في ~60 ثانية
+        # 📌 الحل: نحصر المدى في ٣ سنين (kos够了 للحالات والاتجاه) + تايم آوت 12 ثانية
+        _from = (datetime.now(UTC) - timedelta(days=365 * 3)).strftime("%Y-%m-%d")
+        url = ("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s&cosd=%s"
+               % (series_id, _from))
+        txt = _http_retry(url, tries=1, timeout=12)
         rows = []
         for line in txt.strip().splitlines()[1:]:
             parts = line.split(",")
@@ -783,28 +787,145 @@ def _direction(cur, prev):
     return "up" if cur > prev else "down"
 
 
-def _macro_factors():
-    """كل العوامل — لو مش متاح ⇒ «غير متاح» + سبب (مفيش تخمين)."""
+def _fetch_parallel(jobs):
+    """ينفّذ الدوال بالتوازي — الأبطأ واحد هو الزمن الكلي."""
+    import concurrent.futures as cf
     out = []
+    with cf.ThreadPoolExecutor(max_workers=8) as ex:
+        futs = []
+        for fn in jobs:
+            futs.append((fn, ex.submit(fn)))
+        for fn, f in futs:
+            try:
+                out.append(f.result())
+            except Exception:
+                out.append(None)
+    return out
+
+
+def _treasury_yields():
+    """عوائد السندات الأمريكية — من موقع وزارة الخزانة الرسمي (CSV).
+
+    📌 FRED ممكن يتقفل مؤقتاً ⇒ المصدر الرسمي الأول هو الخزانة نفسها.
+    """
+    def _go():
+        year = datetime.now(UTC).year
+        url = ("https://home.treasury.gov/resource-center/data-chart-center/"
+               "interest-rates/daily-treasury-rates.csv/%d/all"
+               "?type=daily_treasury_yield_curve&field_tdr_date_value=%d&page&_format=csv"
+               % (year, year))
+        txt = _http_retry(url, tries=1, timeout=15)
+        rows = txt.strip().splitlines()
+        if len(rows) < 2:
+            return None
+        hdr = [h.strip().strip('"') for h in rows[0].split(",")]
+        out = []
+        for line in rows[1:]:
+            cells = [c.strip().strip('"') for c in line.split(",")]
+            if len(cells) < len(hdr):
+                continue
+            rec = dict(zip(hdr, cells))
+            d = rec.get("Date", "")
+            try:
+                mm, dd, yy = d.split("/")
+                iso = "%s-%s-%s" % (yy, mm.zfill(2), dd.zfill(2))
+            except Exception:
+                continue
+            y10 = _f(rec.get("10 Yr"))
+            y2 = _f(rec.get("2 Yr"))
+            if y10 is None and y2 is None:
+                continue
+            out.append({"date": iso, "y10": y10, "y2": y2})
+        if not out:
+            return None
+        # ⛔⛔⛔ المصدر بيرجّع الأحدث أولاً ⇒ ترتيب تصاعدي قبل أي حساب
+        out.sort(key=lambda z: z["date"])
+        return {"source": "US Treasury (وزارة الخزانة الأمريكية)",
+                "source_url": "https://home.treasury.gov/resource-center/data-chart-center/"
+                              "interest-rates/TextView?type=daily_treasury_yield_curve",
+                "points": out}
+    return _cached("treasury", 21600, _go)
+
+
+def _bls_cpi():
+    """تضخم أسعار المستهلك الأمريكي — من مكتب إحصاءات العمل الأمريكي (BLS) الرسمي."""
+    def _go():
+        year = datetime.now(UTC).year
+        url = ("https://api.bls.gov/publicAPI/v1/timeseries/data/CUSR0000SA0"
+               "?startyear=%d&endyear=%d" % (year - 2, year))
+        txt = _http_get(url, timeout=15,
+                        headers={"Content-Type": "application/json",
+                                 "User-Agent": "Mozilla/5.0"})
+        j = json.loads(txt)
+        rows = ((j.get("Results") or {}).get("series") or [{}])[0].get("data") or []
+        out = []
+        for r in rows:
+            v = _f(r.get("value"))
+            if v is None:
+                continue
+            _p = str(r.get("period", ""))
+            _mm = _p[1:] if _p.startswith("M") else _p
+            out.append({"date": "%s-%s" % (r.get("year"), _mm.zfill(2)), "value": v})
+        if not out:
+            return None
+        # ⛔⛔⛔ المصدر بيرجّع الأحدث أولاً ⇒ ترتيب تصاعدي قبل أي حساب
+        out.sort(key=lambda z: z["date"])
+        return {"source": "US Bureau of Labor Statistics (BLS)",
+                "source_url": "https://api.bls.gov/publicAPI/v1/timeseries/data/CUSR0000SA0",
+                "points": out}
+    return _cached("bls", 21600, _go)
+
+
+def _macro_factors():
+    """كل العوامل — لو مش متاح ⇒ «غير متاح» + سبب (مفيش تخمين).
+
+    📌 المصادر الخارجية بتتجاب بالتوازي (threads) ⇒ زمن الانتظار = أطول单一的
+       (كان 269 ثانية بالتسلسل!).
+    """
     now = _cairo_now().strftime("%Y-%m-%d")
 
-    # ① DXY (العالم)
-    q = _tv_quote("TVC:DXY")
+    # ── ① جلب كل المصادر بالتوازي ──────────────────────────────
+    def _j_dxy():
+        return _tv_quote("TVC:DXY")
+
+    def _j_fed():
+        return _fred("DFEDTARU", "Federal Funds Target Rate")
+
+    def _j_treasury():
+        return _treasury_yields()
+
+    def _j_cpi():
+        return _bls_cpi()
+
+    def _j_vix():
+        return _tv_quote("TVC:VIX")
+
+    def _j_wb():
+        return _world_bank("FP.CPI.TOTL.ZG")
+
+    names = ["dxy", "fed", "trs", "cpi", "vix", "wb"]
+    got = _fetch_parallel([_j_dxy, _j_fed, _j_treasury, _j_cpi, _j_vix, _j_wb])
+    R = dict(zip(names, got))
+
+    out = []
+
+    # ── ② DXY (العالم) ─────────────────────────────────────────
+    q = R.get("dxy")
     if q and q.get("value") is not None:
-        d = _direction(q["value"], (q["value"] / (1 + (q.get("change_pct") or 0) / 100.0))
-                        if q.get("change_pct") is not None else None)
+        prev = (q["value"] / (1 + (q.get("change_pct") or 0) / 100.0)
+                if q.get("change_pct") is not None else None)
+        d = _direction(q["value"], prev)
         out.append(_f_factor(
             "dxy", "مؤشر قوة الدولار (DXY)", "global", q["value"], "نقطة",
             "TradingView (ICE)", "https://www.tradingview.com/symbols/TVC-DXY/",
-            now, previous=round(q["value"] / (1 + (q.get("change_pct") or 0) / 100.0), 4)
-            if q.get("change_pct") is not None else None,
+            now, previous=round(prev, 4) if prev is not None else None,
             direction=d, relation="positive" if d == "up" else ("negative" if d == "down" else "mixed"),
-            why="الدولارSaleفي سلة من ٦ عملات رئيسية — صعوده يعني ضغط على العملات اللي مش بتدخل السلة.",
+            why="الدولار بيتقاس في سلة من ٦ عملات رئيسية — صعوده ضغط على العملات اللي بره السلة.",
             interpretation="قوة الدولار العالمية %s — وده بيضغط على الجنيه بس مش بيحدده." %
                           ("قوية" if d == "up" else ("ضعيفة" if d == "down" else "ثابتة"))))
 
-    # ② فائدة أمريكا
-    fed = _fred("DFEDTARU", "Federal Funds Target Rate")
+    # ── ③ الفائدة الأمريكية ────────────────────────────────────
+    fed = R.get("fed")
     if fed and fed["points"]:
         last = fed["points"][-1]
         prev = fed["points"][-2] if len(fed["points"]) > 1 else None
@@ -814,63 +935,63 @@ def _macro_factors():
             previous=prev["value"] if prev else None,
             direction=_direction(last["value"], prev["value"] if prev else None),
             relation="mixed",
-            why="فائدة أعلى = دولار أقوى في نظر、美、美الدولار بيجذب السيولة. بس السوق بيتوقع قبل القرار.",
+            why="فائدة أعلى = دولار أقوى في نظر السوق. بس التوقعات بتتحرك قبل القرار.",
             interpretation="الفائدة الآن %.2f%% — التوقعات بتتحرك قبل القرار أكتر من القرار نفسه." % last["value"]))
 
-    # ③ عوائد السندات
-    us10 = _fred("DGS10", "10-Year Treasury Constant Maturity")
-    us02 = _fred("DGS2", "2-Year Treasury Constant Maturity")
-    for key, fd, nm in (("us10y", us10, "عائد السندات الأمريكية ١٠ سنين"),
-                        ("us02y", us02, "عائد السندات الأمريكية سنتين")):
-        if fd and fd["points"]:
-            last = fd["points"][-1]
-            prev = fd["points"][-2] if len(fd["points"]) > 1 else None
+    # ── ④ عوائد السندات ────────────────────────────────────────
+    trs = R.get("trs")
+    if trs and trs["points"]:
+        for key, fld, nm in (("us10y", "y10", "عائد السندات الأمريكية ١٠ سنين"),
+                             ("us02y", "y2", "عائد السندات الأمريكية سنتين")):
+            pts = [p for p in trs["points"] if p.get(fld) is not None]
+            if not pts:
+                continue
+            last = pts[-1]
+            prev = pts[-2] if len(pts) > 1 else None
             out.append(_f_factor(
-                key, nm, "global", last["value"], "%", "US Treasury (FRED)",
-                fd["source_url"], last["date"],
-                previous=prev["value"] if prev else None,
-                direction=_direction(last["value"], prev["value"] if prev else None),
+                key, nm, "global", last[fld], "%", trs["source"],
+                trs["source_url"], last["date"],
+                previous=prev[fld] if prev else None,
+                direction=_direction(last[fld], prev[fld] if prev else None),
                 relation="mixed",
-                why="العوائد العالية بتجذب سيولة للدولار — بس эффekt مش مباشر على الجنيه.",
-                interpretation="العائد %.2f%%" % last["value"]))
+                why="العوائد العالية بتجذب سيولة للدولار — بس الأثر مش مباشر على الجنيه.",
+                interpretation="العائد %.2f%%" % last[fld]))
 
-    # ④ التضخم الأمريكي
-    cpi = _fred("CPIAUCSL", "US CPI")
+    # ── ⑤ التضخم الأمريكي ──────────────────────────────────────
+    cpi = R.get("cpi")
     if cpi and cpi["points"] and len(cpi["points"]) > 13:
         pts = cpi["points"]
-        last = pts[-1]
         yoy = ((pts[-1]["value"] / pts[-13]["value"]) - 1.0) * 100.0
+        prev_yoy = (((pts[-2]["value"] / pts[-14]["value"]) - 1.0) * 100.0) if len(pts) > 14 else None
         out.append(_f_factor(
             "us_cpi", "تضخم أسعار المستهلك الأمريكية", "global", round(yoy, 2), "%",
-            "US Bureau of Labor Statistics (FRED)", cpi["source_url"], last["date"],
-            previous=round(((pts[-2]["value"] / pts[-14]["value"]) - 1.0) * 100.0, 2)
-            if len(pts) > 14 else None,
-            direction=_direction(yoy, ((pts[-2]["value"] / pts[-14]["value"]) - 1.0) * 100.0
-                            if len(pts) > 14 else None),
+            cpi["source"], cpi["source_url"], pts[-1]["date"],
+            previous=round(prev_yoy, 2) if prev_yoy is not None else None,
+            direction=_direction(yoy, prev_yoy),
             relation="mixed",
             why="التضخم بيحدد اتجاه الفائدة — والتضخم العالي في أمريكا بيقوّي طلب الدولار.",
-            interpretation="التضخم %.1f%% سنوياً (شهري/شهري −1 على ١٢ شهر)" % yoy))
+            interpretation="التضخم %.1f%% سنوياً (نسبة ١٢ شهر)" % yoy))
 
-    # ⑤ التضخم المصري (البنك الدولي — مصدر رسمي دولي)
-    wb = _world_bank("FP.CPI.TOTL.ZG")
+    # ── ⑥ التضخم المصري (البنك الدولي) ──────────────────────────
+    wb = R.get("wb")
     if wb and wb["points"]:
         last = wb["points"][-1]
         prev = wb["points"][-2] if len(wb["points"]) > 1 else None
         out.append(_f_factor(
-            "eg_cpi", "التضخم المصري", "egypt", last["value"], "%", wb["source"],
+            "eg_cpi", "التضخم المصري (السنوي)", "egypt", last["value"], "%", wb["source"],
             wb["source_url"], last["year"],
             previous=prev["value"] if prev else None,
             direction=_direction(last["value"], prev["value"] if prev else None),
             relation="negative",
-            why="تضخم أعلى من美联储 = ضغط على الجنيه.expectations ورفع الفائدة.",
-            interpretation="التضخم %.1f%% — وبيحدّد اتجاه الفائدة المصرية." % last["value"]))
+            why="تضخم أعلى من أمريكا = ضغط على الجنيه وتوقعات رفع الفائدة.",
+            interpretation="التضخم %.1f%% سنوياً (سنة كاملة من البنك الدولي)." % last["value"]))
 
-    # ⑥ الفائدة المصرية + الاحتياطي + الميزان (من الملف الرسمي)
+    # ── ⑦ الماكرو المصري الرسمي (من ملف JSON مُخزَّن) ─────────────
     eg = _egypt_macro()
     if eg:
         for key, nm, unit, why, rel in (
                 ("policy_rate", "فائدة البنك المركزي (إيداع ليلي)", "%",
-                 "فائدة أعلى = جذب سيولة للدولار بس بتكالفة Growth domestically.", "mixed"),
+                 "فائدة أعلى = جذب سيولة للدولار بس بتكلفة على النمو.", "mixed"),
                 ("lending_rate", "فائدة الإقراض الليلي", "%",
                  "سعر الإقراض بيوضح تكلفة التمويل domestically.", "mixed"),
                 ("inflation_headline", "التضخم المصري (شهري/سنوي)", "%",
@@ -878,19 +999,19 @@ def _macro_factors():
                 ("inflation_core", "التضخم الأساسي المصري", "%",
                  "الرقم الرسمي من البنك المركزي المصري.", "negative"),
                 ("inflation_target", "هدف التضخم", "%",
-                 "الهدف الرسمي للبنك المركزي — الفجوة بينه وبين التضخم بتهم.", "negative"),
+                 "الهدف الرسمي للبنك المركزي — الفجوة بينه وبين التضخم بتمثّل الضغط.", "negative"),
                 ("reserves", "احتياطي النقد الأجنبي", "مليون دولار",
                  "احتياطي أعلى = قدرة أكبر على سدّ طلب.Workaround dollar.", "positive"),
                 ("current_account", "الحساب الجاري", "مليون دولار",
                  "عجز الحساب الجاري = طلب على الدولار.", "negative"),
                 ("trade_balance", "الميزان التجاري", "مليون دولار",
-                 "الميزان التجاري سلبي = فاتورة استيراد أعلى من الصادرات = طلب دولار.", "negative")):
+                 "الميزان التجاري السلعي = فاتورة دولار أكبر.", "negative")):
             item = (eg.get("factors") or {}).get(key)
             if not item or item.get("value") is None:
                 out.append(_f_factor(key, nm, "egypt", None, unit, "البنك المركزي المصري",
                                      "https://www.cbe.org.eg/en/economic-research/statistics",
                                      None, status="missing",
-                                     note=item.get("note") if item else "البيانات غير متاحة"))
+                                     note=(item or {}).get("note") or "البيانات غير متاحة"))
                 continue
             out.append(_f_factor(key, nm, "egypt", item.get("value"), unit,
                                  item.get("source", "البنك المركزي المصري"),
@@ -900,34 +1021,30 @@ def _macro_factors():
                                  interpretation=item.get("interpretation", ""),
                                  status=item.get("status", "ok"), note=item.get("note", "")))
 
-    # ⑦ macrophage الطلب والعرض
-    out.append(_f_factor(
-        "remittances", "تحويلات المصريين بالخارج", "flow", None, "مليون دولار",
-        "البنك المركزي المصري", "https://www.cbe.org.eg/en/economic-research/statistics",
-        None, status="missing",
-        note="الرقم محتاج نسخة رسمية مؤرخة — مش هيتعرض من غيرها."))
-    out.append(_f_factor(
-        "suez", "إيرادات قناة السويس", "flow", None, "مليون دولار",
-        "هيئة قناة السويس", "https://www.suezcanal.gov.eg/", None, status="missing",
-        note="الرقم محتاج نسخة رسمية مؤرخة — مش هيتعرض من غيرها."))
+    # ── ⑧ عوامل الطلب والعرض (أرقامها محتاجة إصدارات رسمية مؤرخة) ──
+    for key, nm, src in (("remittances", "تحويلات المصريين بالخارج", "البنك المركزي المصري"),
+                         ("suez", "إيرادات قناة السويس", "هيئة قناة السويس")):
+        out.append(_f_factor(key, nm, "flow", None, "مليون دولار", src,
+                             "https://www.cbe.org.eg/en/economic-research/statistics",
+                             None, status="missing",
+                             note="الرقم محتاج نسخة رسمية مؤرخة — مش هيتعرض من غيرها."))
 
-    # ⑧ المخاطر العالمية
-    vix = _fred("VIXCLS", "CBOE Volatility Index")
-    if vix and vix["points"]:
-        last = vix["points"][-1]
-        prev = vix["points"][-2] if len(vix["points"]) > 1 else None
+    # ── ⑨ المخاطر العالمية ──────────────────────────────────────
+    vix = R.get("vix")
+    if vix and vix.get("value") is not None:
+        prev = (vix["value"] / (1 + (vix.get("change_pct") or 0) / 100.0)
+                if vix.get("change_pct") is not None else None)
         out.append(_f_factor(
-            "vix", "مؤشر الخوف العالمي (VIX)", "risk", last["value"], "نقطة",
-            "CBOE (FRED)", vix["source_url"], last["date"],
-            previous=prev["value"] if prev else None,
-            direction=_direction(last["value"], prev["value"] if prev else None),
+            "vix", "مؤشر الخوف العالمي (VIX)", "risk", vix["value"], "نقطة",
+            "TradingView (CBOE)", "https://www.tradingview.com/symbols/TVC-VIX/",
+            now, previous=round(prev, 4) if prev is not None else None,
+            direction=_direction(vix["value"], prev),
             relation="positive",
             why="الخوف العالي بيشدّ السيولة للدولار كملاذ آمن.",
-            interpretation="VIX عند %.2f — %s." % (last["value"],
-                                                    "خوف مرتفع" if last["value"] > 25 else
-                                                    ("خوف متوسط" if last["value"] > 18 else "خوف منخفض"))))
+            interpretation="VIX عند %.2f — %s." % (vix["value"],
+                                                    "خوف مرتفع" if vix["value"] > 25 else
+                                                    ("خوف متوسط" if vix["value"] > 18 else "خوف منخفض"))))
     return out
-
 
 # ══════════════════════════════════════════════════════════════════════
 #  ⑪ المقارنة المعيارية (DXY مقابل USD/EGP) + التقارب/التباعد
@@ -1528,6 +1645,22 @@ def register(app):
                             "data": payload})
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:160]}), 500
+
+    # ⛔⛔⛔ تسخين الكاش في الخلفية — عشان أول ما المستخدم يفتح الكارت
+    #    ما يستناش ١٤ ثانية على تحميل الماكرو.
+    def _warm():
+        try:
+            _tv_bars("FX_IDC:USDEGP", "1D", 2600)
+            _tv_bars("TVC:DXY", "1D", 2600)
+            _macro_factors()
+            print("[usd] ✅ الكاش اتسخّن", flush=True)
+        except Exception as e:
+            print("[usd] ⚠️ التسخين: %s" % str(e)[:70], flush=True)
+
+    try:
+        threading.Thread(target=_warm, daemon=True).start()
+    except Exception:
+        pass
 
     print("[usd] ✅ محرك ذكاء الدولار متركّب", flush=True)
 
