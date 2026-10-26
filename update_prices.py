@@ -10402,7 +10402,9 @@ def index_analysis_api(ix_id):
         if off_inception and hist.get("from"):
             d1 = datetime.strptime(hist["from"], "%Y-%m-%d").date()
             d2 = datetime.strptime(off_inception, "%Y-%m-%d").date()
-            gap = (d2 - d1).days
+            # ⛔⛔⛔ كان (d2 - d1) ⇒ السالب بيمرّ على «gap <= 45» ⇒ كنا بنقول
+            # «التغطية كاملة» لمؤشر السلسلة بتبدأ بعد تاريخ الأساس بـ 9 سنين!
+            gap = (d1 - d2).days
             coverage["complete"] = gap <= 45
             if gap <= 45:
                 coverage["note"] = "التغطية كاملة من تاريخ الأساس الرسمي."
