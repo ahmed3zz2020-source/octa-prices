@@ -641,7 +641,7 @@ def _pivots(bars, left=3, right=3):
     return out
 
 
-def _cluster(pivots, price, tol_pct, lookback_bars, bars):
+def _cluster(pivots, price, tol_pct, lookback_bars, bars, atr=None):
     """تكتير النقاط القريبة ⇒ منطقة + عدد التفاعلات + آخر اختبار."""
     if not pivots:
         return []
@@ -649,10 +649,16 @@ def _cluster(pivots, price, tol_pct, lookback_bars, bars):
     if not recent:
         return []
     groups = []
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ التكتير بيتم بالـATR (مش نسبة ثابتة)
+    # 📌 السبب: نسبة ثابتة معناها منطقة ضيقة جداً على اليومي وعريضة على الشهري.
+    # 📌 المعيار في المحترفين: عرض المنطقة = 0.25 × ATR ⇒ متناسبة مع التذبذب.
+    atr_tol = (atr * 0.25) if atr else 0.0
     for p in sorted(recent, key=lambda z: z["p"]):
         placed = False
         for g in groups:
-            if abs(p["p"] - g["center"]) / max(g["center"], 1e-9) * 100.0 <= tol_pct:
+            dist_abs = abs(p["p"] - g["center"])
+            dist_pct = dist_abs / max(g["center"], 1e-9) * 100.0
+            if dist_pct <= tol_pct and dist_abs <= max(atr_tol, 1e-9):
                 g["members"].append(p)
                 g["center"] = sum(m["p"] for m in g["members"]) / len(g["members"])
                 placed = True
@@ -668,8 +674,13 @@ def _cluster(pivots, price, tol_pct, lookback_bars, bars):
         # التفاعلات = عدد الم-members (كل لمسة = رد فعل)
         touches = len(g["members"])
         dist = (price - g["center"]) / max(g["center"], 1e-9) * 100.0
+        half = (atr * 0.25) if atr else 0.0
+        band_lo = min(lo, g["center"] - half)
+        band_hi = max(hi, g["center"] + half)
         out.append({
             "lower": round(lo, 6), "upper": round(hi, 6), "center": round(g["center"], 6),
+            "band_lower": round(band_lo, 6), "band_upper": round(band_hi, 6),
+            "band_half_atr": round(half, 6),
             "touches": touches, "last_test": _iso(last_t), "last_ts": last_t,
             "last_test_day": _ts_day(last_t),
             "spread_pct": round(spread, 3),
@@ -682,7 +693,7 @@ def _cluster(pivots, price, tol_pct, lookback_bars, bars):
     return out
 
 
-def _sr_zones(bars, price=None, tol_pct=0.35, lookback=400):
+def _sr_zones(bars, price=None, tol_pct=0.15, lookback=400):
     """مناطق الدعم والمقاومة — Strength شفافة (مش نسبة ثقة عشوائية).
 
     📌 القوة = (عدد التفاعلات × وزن الحداثة) — والنتيجة رقم ترتيبي (0..100)
@@ -694,7 +705,11 @@ def _sr_zones(bars, price=None, tol_pct=0.35, lookback=400):
     if price is None:
         price = win[-1]["c"]
     piv = _pivots(win)
-    zones = _cluster(piv, price, tol_pct, None, win)
+    # ⛔⛔⛔ عرض المنطقة والـtolerance بالـATR (متناسب مع كل أصل وكل إطار زمني)
+    atr_val = _atr(win, 14) or 0.0
+    if atr_val:
+        atr_val = atr_val * 100.0 / max(price, 1e-9)    # ATR كنسبة مئوية
+    zones = _cluster(piv, price, tol_pct, None, win, atr=atr_val)
     # تأكيد الكسر: منطقةResistance انكسرت ⇒ تتحول لدعم (والعكس) — بقاعدة تأكيد
     for z in zones:
         # ⛔⛔⛔ الدور الحالي بيتبع مكان المنطقة من السعر الحالي
@@ -730,16 +745,49 @@ def _sr_zones(bars, price=None, tol_pct=0.35, lookback=400):
         raw = (z["touches"] ** 0.7) * recency * 10.0
         z["strength"] = int(min(100, round(raw)))
         z["strength_note"] = ("%d لمسة سعرية · آخر اختبار %s" % (z["touches"], z["last_test_day"]))
+    # 📌 المسافة بمضاعفات التذبذب (ATR) — الرقم ده بيتقارن في أي أصل
+    atr_abs = (_atr(win, 14) or 0.0)
+    for z in zones:
+        z["distance_atr"] = (round(abs(price - z["center"]) / atr_abs, 2)
+                              if atr_abs else None)
+        z["strength_tier"] = ("قوية" if z["strength"] >= 60 else
+                              ("متوسطة" if z["strength"] >= 30 else "ضعيفة"))
     # 📌 الترتيب بالأقرب من السعر الحالي (المهم أكتر من الأرقام الكبيرة)
     supports = sorted([z for z in zones if z["kind"] == "support"],
-                      key=lambda z: abs(z["distance_pct"]))[:4]
+                      key=lambda z: abs(z["distance_pct"]))[:3]
     resists = sorted([z for z in zones if z["kind"] == "resistance"],
-                     key=lambda z: abs(z["distance_pct"]))[:4]
+                     key=lambda z: abs(z["distance_pct"]))[:3]
+    # ⭐ أقوى منطقة واحدة بس بتتعلّم (زي ما المحترفين بيعملوا)
+    strongest = None
+    for z in supports + resists:
+        if strongest is None or z["strength"] > strongest["strength"]:
+            strongest = z
+    if strongest:
+        strongest["is_strongest"] = True
+    # 📌 السعر داخل منطقة؟
+    at_price = None
+    for z in supports + resists:
+        if z["band_lower"] <= price <= z["band_upper"]:
+            at_price = z
+            break
     return {
         "supports": supports, "resistances": resists,
         "price": round(price, 6),
-        "method": ("قمم/قيعان الكسور (fractal 3 شموع) + تكتير النقاط ضمن "
-                   "±%.2f%% + ترتيب بالعدد × الحداثة (نصف العمر ≈ ٤ شهور)" % tol_pct),
+        "atr14": round(atr_abs, 6) if atr_abs else None,
+        "at_price": ({"kind": at_price["kind"], "center": at_price["center"],
+                      "lower": at_price["band_lower"], "upper": at_price["band_upper"],
+                      "touches": at_price["touches"]} if at_price else None),
+        "nearest_above": ({"center": resists[0]["center"], "distance_pct": resists[0]["distance_pct"],
+                           "distance_atr": resists[0]["distance_atr"], "touches": resists[0]["touches"]}
+                          if resists else None),
+        "nearest_below": ({"center": supports[0]["center"], "distance_pct": supports[0]["distance_pct"],
+                           "distance_atr": supports[0]["distance_atr"], "touches": supports[0]["touches"]}
+                          if supports else None),
+        "strongest": ({"kind": strongest["kind"], "center": strongest["center"],
+                       "touches": strongest["touches"], "strength": strongest["strength"],
+                       "distance_atr": strongest["distance_atr"]} if strongest else None),
+        "method": ("قمم/قيعان الكسور (3 شموع) + تكتير النقاط ضمن حد = 0.25×ATR "
+                   "+ ترتيب بالعدد × الحداثة (نصف العمر ≈ ٤ شهور) + إظهار أقرب ٣ من كل جهة"),
         "note": ("المنطقة نطاق مش سعر مضمون — والقوة رقم ترتيبي مش نسبة ثقة."),
         "lookback_bars": len(win),
     }
