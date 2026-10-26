@@ -482,11 +482,15 @@ def build_sector_stats(all_stocks):
         # وسائط تاريخ المخاطرة — لأن «تقلب 60%» رقم مطلق،
         # وقطاع واحد ممكن يكون كله متقلب. المقارنة النسبية هي الصح.
         vols = [v for v in (_f(x.get("vol1y")) for x in st) if v is not None and v > 0]
+        # ⭐ التقلب من الـscanner (Volatility.D) — متاح لكل سهم
+        #   (التاريخ السنوي vol1y مش موجود في اللوب الرئيسي).
+        volsc = [v for v in (_f(x.get("volatility")) for x in st) if v is not None and v > 0]
         mdds = [v for v in (_f(x.get("mdd1y")) for x in st) if v is not None and v > 0]
         shps = [v for v in (_f(x.get("sharpe3y")) for x in st) if v is not None]
         stats[sec] = {
             "count": len(st), "with_pe": len(pes),
             "median_vol1y": round(med(vols), 2) if vols else None,
+            "median_volatility": round(med(volsc), 3) if volsc else None,
             "median_mdd1y": round(med(mdds), 2) if mdds else None,
             "median_sharpe3y": round(med(shps), 2) if shps else None,
             "n_risk_hist": len(vols),
@@ -648,7 +652,17 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
             return max(0.0, min(100.0, 100.0 - (ratio - 0.6) * 100.0))
         return max(0.0, min(100.0, 50.0 + (ratio - 1.0) * 100.0))
 
-    a = _rel(vol1y, ss.get("median_vol1y"), True)
+    # ⛔⛔⛔ إصلاح ٢٦ أكتوبر ٢٠٢٦ — المحور كان بيقرأ `vol1y` بس، وده
+    #   مش موجود في اللوب الرئيسي (بينتج من تاريخ الشموع) ⇒ محور
+    #   المخاطرة كان بيتحسب من البيتا والدين بس ⇒ ١٢١ سهم (٤٢٪) بلا
+    #   محور أصلاً (لأن ما عندهمش دين) ⇒ و٣٧٪ من الوزن ناقص.
+    # ✅ الحل: لو التاريخ مش موجود ⇒ نستخدم تقلب الـscanner (Volatility.D)
+    #   ومقارنته بوسيط القطاع — نفس المنطق بالظبط.
+    _vol_v, _vol_med = vol1y, ss.get("median_vol1y")
+    if _vol_v is None:
+        _vol_v = _n(item.get("volatility"), None)
+        _vol_med = ss.get("median_volatility")
+    a = _rel(_vol_v, _vol_med, True)
     if a is not None: parts["vol"] = a
     a = _rel(mdd1y, ss.get("median_mdd1y"), True)
     if a is not None: parts["drawdown"] = a
