@@ -10409,7 +10409,7 @@ def index_analysis_api(ix_id):
             if gap <= 45:
                 coverage["note"] = "التغطية كاملة من تاريخ الأساس الرسمي."
             else:
-                coverage["note"] = ("السلسلة المتاحة تبدأ %s، أي بعد تاريخ الأساس الرسمي (%s) بـ%d يوم — "
+                coverage["note"] = ("السلسلة المتاحة تبدأ %s، أي بعد تاريخ الأساس الرسمي (%s) بـ %d يوم — "
                                     "يعني فيه جزء من تاريخ المؤشر مش متاح لنا." %
                                     (hist.get("from"), off_inception, gap))
     except Exception:
