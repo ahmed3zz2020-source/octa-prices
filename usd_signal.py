@@ -1718,7 +1718,7 @@ def register(app, require_user=None):
                 want = int(request.args.get("bars") or default_bars)
             except Exception:
                 want = default_bars
-            want = max(40, min(1400, want))
+            want = max(20, min(1400, want))
             full = _fx_series(key, tf, 2600 if tf == "1D" else 1200)
             if not full:
                 return jsonify({"ok": False,
