@@ -120,7 +120,7 @@ def _iso(ts):
 #  ② الشموع — TradingView websocket (بعد إصلاح الـtimeout)
 # ══════════════════════════════════════════════════════════════════════
 #  ⛔⛔⛔ tv_ws.py كان بيقع في timeout وبيضيّع كل النقط (اتصلّح 26 أكتوبر)
-#     ⇒ الطلب بقى 0.7 ثانية بدل 20، و回头 7061 نقطة من 1997.
+#     ⇒ الطلب بقى 0.7 ثانية بدل 20، و 7061 نقطة من 1997.
 _FX_SYMBOLS = {
     "USDEGP": {"tv": "FX_IDC:USDEGP", "name_ar": "الدولار الأمريكي مقابل الجنيه المصري",
                "name_en": "USD/EGP", "unit": "جنيه لكل دولار", "invert": False},
@@ -286,7 +286,7 @@ def _fred(series_id, label=""):
     """FRED — CSV من غير مفتاح (المصدر الرسمي الأمريكي)."""
     def _go():
         # ⛔⛔⛔ الـCSV كامل كان 100KB+ وبيرجع في ~60 ثانية
-        # 📌 الحل: نحصر المدى في ٣ سنين (kos够了 للحالات والاتجاه) + تايم آوت 12 ثانية
+        # 📌 الحل: نحصر المدى في ٣ سنين (kos للحالات والاتجاه) + تايم آوت 12 ثانية
         _from = (datetime.now(UTC) - timedelta(days=365 * 3)).strftime("%Y-%m-%d")
         url = ("https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s&cosd=%s"
                % (series_id, _from))
@@ -731,6 +731,11 @@ def _sr_zones(bars, price=None, tol_pct=0.15, lookback=400):
                                 else ("مقاومة" if z["kind"] == "resistance" else "دعم")))
     # القوة
     max_t = win[-1]["t"]
+    # 📌 المسافة بين الشموع بالأيام ⇒ منها نصف العمر (يتناسب مع الإطار)
+    _gaps = sorted(abs(win[i]["t"] - win[i - 1]["t"]) / 86400.0
+                   for i in range(1, len(win)))
+    _gap = _gaps[len(_gaps) // 2] if _gaps else 1.0
+    _hl_days = max(60.0, _gap * 120.0)
     for z in zones:
         age_bars = None
         for b in win:
@@ -740,23 +745,44 @@ def _sr_zones(bars, price=None, tol_pct=0.15, lookback=400):
         recency = 1.0
         if age_bars is not None and max_t:
             age_days = (max_t - z["last_ts"]) / 86400.0
-            recency = math.exp(-age_days / 180.0)     # نصف العمر ≈ 4 شهور
+            # ⛔⛔⛔ نصف العمر لازم يتناسب مع الإطار الزمني:
+            # 📌 180 يوم على اليومي · ~840 على الأسبوعي · ~3600 على الشهري
+            # 📌 (بالإطار الثابت، كل مستوى شهري كان بيبقى «منسي» بعد شهرين)
+            recency = math.exp(-age_days / _hl_days)
         z["age_days"] = round((max_t - z["last_ts"]) / 86400.0, 1) if max_t else None
-        raw = (z["touches"] ** 0.7) * recency * 10.0
-        z["strength"] = int(min(100, round(raw)))
-        z["strength_note"] = ("%d لمسة سعرية · آخر اختبار %s" % (z["touches"], z["last_test_day"]))
+        z["_raw"] = (z["touches"] ** 0.7) * recency
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ معايرة القوة
+    # 📌 المشكلة: القوة كانت = لمسات × حداثة × 10 ⇒ الرقم قليل دايماً
+    # 📌 (ولنفس اللمسة الرقم مختلف بين اليومي والشهري) ⇒ كل حاجة «ضعيفة».
+    # ✅ الحل: القوة = ترتيب داخل نفس الإطار الزمني (الأقوى = 100)
+    # 📌 + عدد اللمسات بيتعرض لوحده (الرقم المطلق) والطبقة بتتحسب من الترتيب.
     # 📌 المسافة بمضاعفات التذبذب (ATR) — الرقم ده بيتقارن في أي أصل
     atr_abs = (_atr(win, 14) or 0.0)
     for z in zones:
         z["distance_atr"] = (round(abs(price - z["center"]) / atr_abs, 2)
                               if atr_abs else None)
-        z["strength_tier"] = ("قوية" if z["strength"] >= 60 else
-                              ("متوسطة" if z["strength"] >= 30 else "ضعيفة"))
     # 📌 الترتيب بالأقرب من السعر الحالي (المهم أكتر من الأرقام الكبيرة)
     supports = sorted([z for z in zones if z["kind"] == "support"],
                       key=lambda z: abs(z["distance_pct"]))[:3]
     resists = sorted([z for z in zones if z["kind"] == "resistance"],
                      key=lambda z: abs(z["distance_pct"]))[:3]
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ معايرة القوة
+    # 📌 المشكلة: القوة كانت = لمسات × حداثة × 10 ⇒ الرقم قليل دايماً،
+    # 📌 وكمان المقارنة كانت مع كل المناطق القديمة ⇒ المنطقة القريبة بتطلع ضعيفة.
+    # ✅ الحل: القوة = ترتيب بين المناطق المعروضة (الأقوى = 100)
+    # 📌 والطبقة (قوية/متوسطة/ضعيفة) = مطلقة: عدد اللمسات + الحداثة.
+    shown = supports + resists
+    _ranked = sorted(shown, key=lambda z: -z.get("_raw", 0.0))
+    _ladder = [100, 78, 60, 45, 35, 28]
+    for i, z in enumerate(_ranked):
+        z["strength"] = _ladder[i] if i < len(_ladder) else 25
+        z["recency_pct"] = int(round(100 * min(1.0, z["_raw"] / max(1e-9, z["touches"] ** 0.7))))
+        z["strength_note"] = ("%d لمسة سعرية · آخر اختبار %s" % (z["touches"], z["last_test_day"]))
+        z["strength_tier"] = ("قوية" if (z["touches"] >= 3 or (z["touches"] >= 2 and z["recency_pct"] >= 55))
+                              else ("متوسطة" if z["touches"] >= 2 else "ضعيفة"))
+        z.pop("_raw", None)
+    for z in zones:
+        z.pop("_raw", None)
     # ⭐ أقوى منطقة واحدة بس بتتعلّم (زي ما المحترفين بيعملوا)
     strongest = None
     for z in supports + resists:
@@ -787,7 +813,8 @@ def _sr_zones(bars, price=None, tol_pct=0.15, lookback=400):
                        "touches": strongest["touches"], "strength": strongest["strength"],
                        "distance_atr": strongest["distance_atr"]} if strongest else None),
         "method": ("قمم/قيعان الكسور (3 شموع) + تكتير النقاط ضمن حد = 0.25×ATR "
-                   "+ ترتيب بالعدد × الحداثة (نصف العمر ≈ ٤ شهور) + إظهار أقرب ٣ من كل جهة"),
+                   "+ ترتيب بالعدد × الحداثة (نصف العمر ≈ ٤ شهور) + إظهار أقرب ٣ من كل جهة "
+                   "+ القوة = ترتيب داخل نفس الإطار (الأقوى = 100)"),
         "note": ("المنطقة نطاق مش سعر مضمون — والقوة رقم ترتيبي مش نسبة ثقة."),
         "lookback_bars": len(win),
     }
@@ -1003,7 +1030,7 @@ def _bls_cpi():
 def _macro_factors():
     """كل العوامل — لو مش متاح ⇒ «غير متاح» + سبب (مفيش تخمين).
 
-    📌 المصادر الخارجية بتتجاب بالتوازي (threads) ⇒ زمن الانتظار = أطول单一的
+    📌 المصادر الخارجية بتتجاب بالتوازي (threads) ⇒ زمن الانتظار = أطول
        (كان 269 ثانية بالتسلسل!).
     """
     now = _cairo_now().strftime("%Y-%m-%d")
@@ -1326,7 +1353,7 @@ def _scenarios(mtf_usd, mtf_dxy, cmp_, factors):
         ev_up.append("احتياطي النقد الأجنبي %s مليون دولار — قدرة على سدّ الطلب." % f"{res['value']:,.0f}")
     rate = fmap.get("policy_rate")
     if rate and rate.get("value") is not None:
-        ev_up.append("فائدة مصر %s%% — عائد الجنيه محلي أعلى من فائدة文章来源."
+        ev_up.append("فائدة مصر %s%% — عائد الجنيه محلي أعلى من فائدة."
                      % f"{rate['value']:,.2f}")
     fed = fmap.get("fed_rate")
     if fed and rate and fed.get("value") is not None and rate.get("value") is not None:
@@ -1558,7 +1585,7 @@ def _gemini_explain(payload, question="why"):
         "(٤) اذكر حدود التحليل (تاريخي مش تنبؤ). (٥) ممنوع أي توصية شراء/بيع. "
         "(٦) اذكر المصدر والتاريخ اللي جاي مع الرقم. (٧) فصّل بين Correlation و Causation. "
         "(٨) لو فيه عوامل متعارضة وضّح التعارض. (٩) من غير مقدمات طويلة — ابدأ بالرد. "
-        "(١٠) لا تذكر اسم أي أداة ذكاء اصطناعي ولا说你 ذكاء اصطناعي."
+        "(١٠) لا تذكر اسم أي أداة ذكاء اصطناعي ولا ذكاء اصطناعي."
     )
     user_prompt = "السؤال: %s\n\nالبيانات المؤكدة:\n%s" % (
         q, _json.dumps(payload, ensure_ascii=False)[:14000])
@@ -1717,7 +1744,7 @@ def register(app, require_user=None):
                             "categories_ar": {
                                 "global": "عوامل الدولار العالمي",
                                 "egypt": "عوامل الاقتصاد المصري",
-                                "flow": "عرض、求 الطلب على الدولار",
+                                "flow": "عرض、 الطلب على الدولار",
                                 "risk": "المخاطر العالمية"},
                             "sources": _sources()})
         except Exception as e:
