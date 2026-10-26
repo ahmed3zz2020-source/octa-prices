@@ -8907,7 +8907,10 @@ def update_loop():
                     chg = _pv(1) or 0.0
                     idx_p1m, idx_p3m, idx_py = _pv(2), _pv(3), _pv(4)
                 except Exception:
+                    # ⛔⛔⛔ كانت ناقصة: الـidx_* مااتعرّفتش ⇒ UnboundLocalError كان
+                    # بيقع لما الـscanner يفشل وبيكسر تحديث كل المؤشرات.
                     price, chg = 0.0, 0.0
+                    idx_p1m, idx_p3m, idx_py = None, None, None
                 if tid == "tk-egx33":
                     # ⭐ مؤشر الشريعة مش في الـscanner ⇒ جلبه من الـwebsocket
                     _sq = _shariah_quote()
@@ -10495,6 +10498,34 @@ def index_analysis_api(ix_id):
             period = "CUSTOM"
     except (TypeError, ValueError):
         pass
+    # ── اللقطة الرسمية + الحالة ──
+    live = off.get("live") or {}
+    ms = _idx_market_status()
+    tk = _idx_live_from_ticker(ix_id) or {}
+
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ قيمة واحدة في كل مكان
+    # 📌 كان الكارت بياخد القيمة اللحظية من الـscanner (كل 45 ثانية)
+    #    والمودال بياخد لقطة البورصة (قديمة) ⇒ رقمان مختلفين لنفس اللحظة.
+    # 📌 ✅ الحل: نختار القيمة الحية مرة واحدة ونستخدمها في الكارت والرسم والمودال.
+    _live_value = None
+    _live_change = None
+    _live_src = "official"
+    _live_asof = str(live.get("indexDay") or "")[:10]
+    if tk.get("value") is not None:
+        _live_value = tk.get("value")
+        _live_change = tk.get("change")
+        _live_src = "live"
+        _live_asof = None
+    elif live.get("indexClose") is not None:
+        _live_value = live.get("indexClose")
+        _live_change = live.get("changePer")
+        _live_src = "official"
+    live = dict(live)
+    live["indexClose"] = _live_value if _live_value is not None else live.get("indexClose")
+    if _live_change is not None:
+        live["changePer"] = _live_change
+    live["_src"] = _live_src
+    live["_asof"] = _live_asof
     sub = [[t, v] for t, v in series if (frm is None or t >= frm) and (to is None or t <= to)]
     if len(sub) < 2:
         sub = list(series[-min(len(series), 60):])
@@ -10528,34 +10559,7 @@ def index_analysis_api(ix_id):
     norm = IE.normalize(sub)
     qual = IE.validate_series(series)
 
-    # ── اللقطة الرسمية + الحالة ──
-    live = off.get("live") or {}
-    ms = _idx_market_status()
-    tk = _idx_live_from_ticker(ix_id) or {}
 
-    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ قيمة واحدة في كل مكان
-    # 📌 كان الكارت بياخد القيمة اللحظية من الـscanner (كل 45 ثانية)
-    #    والمودال بياخد لقطة البورصة (قديمة) ⇒ رقمان مختلفين لنفس اللحظة.
-    # 📌 ✅ الحل: نختار القيمة الحية مرة واحدة ونستخدمها في الكارت والرسم والمودال.
-    _live_value = None
-    _live_change = None
-    _live_src = "official"
-    _live_asof = str(live.get("indexDay") or "")[:10]
-    if tk.get("value") is not None:
-        _live_value = tk.get("value")
-        _live_change = tk.get("change")
-        _live_src = "live"
-        _live_asof = None
-    elif live.get("indexClose") is not None:
-        _live_value = live.get("indexClose")
-        _live_change = live.get("changePer")
-        _live_src = "official"
-    live = dict(live)
-    live["indexClose"] = _live_value if _live_value is not None else live.get("indexClose")
-    if _live_change is not None:
-        live["changePer"] = _live_change
-    live["_src"] = _live_src
-    live["_asof"] = _live_asof
 
     # ── التغطية: هل السلسلة كاملة من تاريخ الأساس الرسمي؟ ──
     off_inception = (conf.get("official") or {}).get("inception_date")
