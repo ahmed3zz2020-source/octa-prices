@@ -86,7 +86,8 @@ def parse_frames(raw):
 
 def fetch(symbol, count=5):
     host = "data.tradingview.com"
-    path = "/socket.io/websocket?from=chart%2F" + symbol.replace(":", "%3A").replace("/", "%2F") + "%2F&date=2026_10_26-00_00"
+    _now = time.strftime("%Y_%m_%d-00_00", time.gmtime())
+    path = "/socket.io/websocket?from=chart%2F" + symbol.replace(":", "%3A").replace("/", "%2F") + "%2F&date=" + _now
     s, buf = ws_connect(host, path, {
         "Origin": "https://www.tradingview.com",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
@@ -100,18 +101,36 @@ def fetch(symbol, count=5):
     send("create_series", [cs, "s1", "s1", "symbol_1", "1D", count, ""])
     bars = []
     t0 = time.time()
-    while time.time() - t0 < 20:
-        data, buf = ws_recv(s, buf, timeout=8)
+    done = False
+    while time.time() - t0 < 25 and not done:
+        try:
+            data, buf = ws_recv(s, buf, timeout=8)
+        except Exception:
+            # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — كان الـread بيرمي timeout وبيضيع كل النقط
+            # 📌 السبب: الحلقة كانت بتفضل تقرأ لحد ما يجي TimeoutError
+            # 📌 ✅ الحل: نخرج من الحلقة لما TradingView يقول «السلسلة خلصت» + نمسك المتاح
+            break
         for m in parse_frames(data):
             if m.get("m") == "timescale_update":
                 p = m.get("p") or []
                 for node in (p[1] or {}).values():
                     for b in (node.get("s") or []):
                         v = b.get("v")
-                        if isinstance(v, list):
-                            bars.append({"t": v[0], "o": v[1], "h": v[2], "l": v[3], "c": v[4], "v": v[5]})
-    s.close()
-    return bars
+                        if isinstance(v, list) and len(v) >= 5:
+                            bars.append({"t": v[0], "o": v[1], "h": v[2], "l": v[3], "c": v[4],
+                                         "v": v[5] if len(v) > 5 else None})
+            elif m.get("m") == "series_completed":
+                # 📌 السلسلة خلصت ⇒ مش ننتظر timeout (كان بيضيّع ٢٠ ثانية كل طلب)
+                done = True
+    try:
+        s.close()
+    except Exception:
+        pass
+    # إزالة التكرار (نفس الشمعة ممكن تتبعت أكتر من مرة)
+    seen = {}
+    for b in bars:
+        seen[b["t"]] = b
+    return [seen[k] for k in sorted(seen)]
 
 
 fetch_series = fetch  # alias واضح للباك
