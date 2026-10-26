@@ -1711,12 +1711,21 @@ def register(app, require_user=None):
             sym = (request.args.get("symbol") or "USDEGP").upper()
             tf = (request.args.get("tf") or "1D").upper()
             key = {"USDEGP": "FX_IDC:USDEGP", "DXY": "TVC:DXY"}.get(sym, "FX_IDC:USDEGP")
-            bars = _fx_series(key, tf, 2600 if tf == "1D" else 1200)
-            if not bars:
+            # ⭐ نافذة العرض: الأصلح إننا نحسب الدعم/المقاومة على نفس الجزء
+            #    اللي المستخدم شايفه (مش كل التاريخ) — زي المحترفين بالظبط.
+            default_bars = {"1D": 260, "1W": 156, "1M": 60}.get(tf, 260)
+            try:
+                want = int(request.args.get("bars") or default_bars)
+            except Exception:
+                want = default_bars
+            want = max(40, min(1400, want))
+            full = _fx_series(key, tf, 2600 if tf == "1D" else 1200)
+            if not full:
                 return jsonify({"ok": False,
                                 "error": "مفيش شموع متاحة للمصدر دلوقتي"}), 200
-            ind = _indicators(bars)
-            tr = _trend_from(ind, bars)
+            ind = _indicators(full)          # 📌 المؤشرات على التاريخ الكامل
+            tr = _trend_from(ind, full)
+            bars = full[-want:]              # 📌 العرض + الدعم/المقاومة على نفس النافذة
             sr = _sr_zones(bars)
             return jsonify({
                 "ok": True, "symbol": sym, "tf": tf,
@@ -1725,6 +1734,7 @@ def register(app, require_user=None):
                 "bars": len(bars),
                 "series": [{"t": b["t"], "o": b["o"], "h": b["h"], "l": b["l"],
                             "c": b["c"], "v": b.get("v")} for b in bars[-1400:]],
+                "window_bars": len(bars), "full_bars": len(full),
                 "indicators": ind, "trend": tr, "sr": sr,
                 "source": "TradingView (ICE)",
             })
