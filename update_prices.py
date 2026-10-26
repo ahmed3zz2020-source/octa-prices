@@ -8566,7 +8566,9 @@ def refresh_interval():
         return 45           # ⏱️ ٤٥ ثانية أثناء التداول بدل دقيقتين
     if phase == "pre":
         return 600          # 10 دقايق قبل الفتح
-    return 3600             # ساعة بعد الإغلاق / الويك إند
+    # 📌 ١٥ دقيقة بعد الإغلاق (مش ساعة) ⇒ إغلاق اليوم يوصل الموقع أسرع
+    #    + تحديث تاريخ المؤشرات بيحصل خلال ربع ساعة من القفل.
+    return 900
 
 
 # ═══════════ PHASE 1: الأعمدة المتاحة من المصدر ═══════════
@@ -9136,6 +9138,10 @@ def update_loop():
                 print(f"  🥇 أعلى: {live_sorted[0][0]} {live_sorted[0][1]['change']:+.2f}%")
         except Exception as e:
             print(f"❌ Loop error: {e}")
+        try:
+            _maybe_refresh_index_history()
+        except Exception:
+            pass
         time.sleep(refresh_interval())
 
 
@@ -10091,6 +10097,78 @@ _IDX_THRESHOLDS = {
 }
 
 
+_IDX_HIST_REFRESH_DAY = None
+
+
+def _maybe_refresh_index_history():
+    """⏰ تحديث تاريخ المؤشرات مرة في اليوم بعد قفل السوق.
+
+    📌 ليه؟ عشان الـAPI يطلع فيه إغلاق اليوم الجديد من غير ما حد يزور الموقع.
+    📌 المصدر: TradingView websocket (نفس مصدر السلسلة الحالية).
+    ⛔ لو المصدر مش متاح (TradingView مقفل) ⇒ نسيب الملف زي ما هو (مفيش بيانات مخترعة).
+    📌 الكتابة ذرّية (ملف مؤقت + rename) عشان الملف ما يتخربش لو حصل خطأ.
+    """
+    global _IDX_HIST_REFRESH_DAY
+    try:
+        now = cairo_now()
+        today = now.strftime("%Y-%m-%d")
+        if _IDX_HIST_REFRESH_DAY == today:
+            return
+        if market_phase() not in ("closed", "weekend"):
+            return
+        _IDX_HIST_REFRESH_DAY = today
+        base = Path(__file__).parent
+        hp = base / "data" / "index_history.json"
+        if not hp.exists():
+            return
+        hist = json.loads(hp.read_text(encoding="utf-8"))
+        inds = hist.get("indices") or {}
+        if not inds:
+            return
+        import importlib
+        if str(base) not in sys.path:
+            sys.path.insert(0, str(base))
+        tws = importlib.import_module("tv_ws")
+        changed = False
+        for ix_id, sym in (("EGX30", "EGX:EGX30"), ("EGX70", "EGX:EGX70EWI"),
+                           ("EGX100", "EGX:EGX100EWI"), ("EGX33", "EGX:SHARIAH")):
+            row = inds.get(ix_id)
+            if not row:
+                continue
+            try:
+                bars = tws.fetch_series(sym, 120)
+            except Exception as e:
+                print(f"[idxhist] {ix_id} fetch failed: {str(e)[:70]}")
+                continue
+            if not bars or len(bars) < 2:
+                continue
+            old = {int(t): float(v) for t, v in (row.get("series") or [])}
+            for b in bars:
+                t = int(b.get("t") or 0)
+                c = b.get("c")
+                if t and c is not None:
+                    old[t] = float(c)
+            pts = sorted(old.items())
+            if not pts:
+                continue
+            row["series"] = [[int(t), round(float(v), 4)] for t, v in pts]
+            row["from"] = time.strftime("%Y-%m-%d", time.gmtime(pts[0][0]))
+            row["to"] = time.strftime("%Y-%m-%d", time.gmtime(pts[-1][0]))
+            row["count"] = len(pts)
+            row["refreshed_at"] = datetime.utcnow().isoformat() + "Z"
+            _IDX_HIST[ix_id] = row
+            changed = True
+            print(f"[idxhist] {ix_id}: {row['count']} نقطة → {row['to']}")
+        if changed:
+            hist["version"] = today
+            tmp = hp.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(hist, ensure_ascii=False), encoding="utf-8")
+            os.replace(str(tmp), str(hp))
+            print(f"[idxhist] history updated → {today}")
+    except Exception as e:
+        print(f"[idxhist] refresh failed: {str(e)[:90]}")
+
+
 def _idx_load():
     """تحميل ملفات المؤشرات (مرة واحدة) — مع fallback آمن."""
     global _IDX_LOADED, _IDX_HIST, _IDX_CONF, _IDX_OFF
@@ -10455,6 +10533,30 @@ def index_analysis_api(ix_id):
     ms = _idx_market_status()
     tk = _idx_live_from_ticker(ix_id) or {}
 
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ قيمة واحدة في كل مكان
+    # 📌 كان الكارت بياخد القيمة اللحظية من الـscanner (كل 45 ثانية)
+    #    والمودال بياخد لقطة البورصة (قديمة) ⇒ رقمان مختلفين لنفس اللحظة.
+    # 📌 ✅ الحل: نختار القيمة الحية مرة واحدة ونستخدمها في الكارت والرسم والمودال.
+    _live_value = None
+    _live_change = None
+    _live_src = "official"
+    _live_asof = str(live.get("indexDay") or "")[:10]
+    if tk.get("value") is not None:
+        _live_value = tk.get("value")
+        _live_change = tk.get("change")
+        _live_src = "live"
+        _live_asof = None
+    elif live.get("indexClose") is not None:
+        _live_value = live.get("indexClose")
+        _live_change = live.get("changePer")
+        _live_src = "official"
+    live = dict(live)
+    live["indexClose"] = _live_value if _live_value is not None else live.get("indexClose")
+    if _live_change is not None:
+        live["changePer"] = _live_change
+    live["_src"] = _live_src
+    live["_asof"] = _live_asof
+
     # ── التغطية: هل السلسلة كاملة من تاريخ الأساس الرسمي؟ ──
     off_inception = (conf.get("official") or {}).get("inception_date")
     coverage = {
@@ -10503,6 +10605,8 @@ def index_analysis_api(ix_id):
                 "low": live.get("low"),
                 "open": live.get("indexOpen"),
                 "ytd_pct": live.get("ytdPercent"),
+                "src": live.get("_src"),
+                "asof": live.get("_asof"),
                 "day": live.get("indexDay"),
             },
             "now": tk,
