@@ -8954,6 +8954,15 @@ def update_loop():
                         it["trend"] = "up" if it["change"] >= 0 else "down"
                         it["_official_close"] = True
                         it["_official_date"] = str(_off.get("indexDay") or _off.get("day") or "")[:10]
+                        # 📌 «إغلاق رسمي» بس لو اللقطة اتاخدت بعد قفل السوق
+                        #    (لو اتاخدت أثناء الجلسة ⇒ دي لقطة لا أكثر)
+                        try:
+                            _dd = datetime.strptime(it["_official_date"], "%Y-%m-%d").date()
+                            _ph = market_phase()
+                            it["_official_final"] = (_ph in ("closed", "weekend")) or (
+                                _dd < cairo_now().date())
+                        except Exception:
+                            it["_official_final"] = False
                         it["_unavailable"] = False
                     else:
                         it["value"] = None
@@ -10287,6 +10296,30 @@ def _idx_constituents(idx_id):
     return out
 
 
+def _idx_market_status():
+    """حالة السوق الحقيقية دلوقتي — مش من لقطة قديمة.
+
+    ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — Ahmed: «السوق مفتوح» مكتوب والتamente السوق مقفول.
+    📌 السبب: كنا بنقرا حالة السوق من لقطة البورصة (اتعملت 13:14 وقت ما كان مفتوح)
+       ⇒ فضلت «مفتوح» للأبد.
+    📌 ✅ الحل: نحسبها من الوقت الحالي بالقاهرة (نفس دالة market_phase بتاعة الأسهم).
+    """
+    snap = (_IDX_OFF.get("market_status") or {})
+    phase = "open"
+    try:
+        phase = market_phase()
+    except Exception:
+        phase = (snap.get("status") or "open").lower()
+    ar = {"open": "مفتوح", "closed": "مغلق", "pre": "قبل الفتح", "weekend": "إجازة"}.get(phase, "مفتوح")
+    return {
+        "status": phase,
+        "status_ar": ar,
+        "as_of": cairo_now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "snapshot_status": snap.get("status"),
+        "snapshot_as_of": snap.get("statusDate"),
+    }
+
+
 @app.route("/api/indices")
 def indices_api():
     """📊 قائمة مؤشرات البورصة المصرية — لقطة + تغطية البيانات.
@@ -10332,15 +10365,15 @@ def indices_api():
             },
             "constituents_count": len(off.get("constituents") or []) or conf.get("official", {}).get("constituents_count"),
         })
-    ms = _IDX_OFF.get("market_status") or {}
+    ms = _idx_market_status()
     return jsonify({
         "ok": True,
         "count": len(out),
         "indices": out,
         "market_status": {
             "status": ms.get("status"),
-            "status_ar": ms.get("status_Ar"),
-            "as_of": ms.get("statusDate"),
+            "status_ar": ms.get("status_ar"),
+            "as_of": ms.get("as_of"),
         },
         "source": "البورصة المصرية (EGX) + TradingView",
         "data_version": _IDX_HIST.get("EGX30", {}).get("version") or _IDX_OFF.get("version"),
@@ -10419,7 +10452,7 @@ def index_analysis_api(ix_id):
 
     # ── اللقطة الرسمية + الحالة ──
     live = off.get("live") or {}
-    ms = _IDX_OFF.get("market_status") or {}
+    ms = _idx_market_status()
     tk = _idx_live_from_ticker(ix_id) or {}
 
     # ── التغطية: هل السلسلة كاملة من تاريخ الأساس الرسمي؟ ──
@@ -10477,8 +10510,8 @@ def index_analysis_api(ix_id):
         },
         "market_status": {
             "status": ms.get("status"),
-            "status_ar": ms.get("status_Ar"),
-            "as_of": ms.get("statusDate"),
+            "status_ar": ms.get("status_ar"),
+            "as_of": ms.get("as_of"),
         },
         "coverage": coverage,
         "data_quality": qual,
