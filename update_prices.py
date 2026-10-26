@@ -204,6 +204,11 @@ _ALWAYS_SHOW_OUTPUT = (
     # 📌 السبب: عمود «القرار» كان بيتشال من رد /api/shariah ⇒ «—»
     # 📌 المسار محمي بـrequire_user ⇒ آمن إنه يبان للمستخدم المسجّل.
     "/api/shariah",
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ ذكاء الدولار
+    # 📌 البيانات كلها عامة (البنك المركزي + TradingView + الخزانة + BLS)
+    # 📌 ⇒ متاحة للزائر زي «ذكاء المؤشرات» — بس لو اتضاف حقل «قرار»
+    # 📌 ⛌ ⛌ ⛌ لازم يفضل ظاهر (القائمة دي بتمنع شيله بالاسم).
+    "/api/usd",
 )
 
 # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ مسارات المصادقة: "why" فيها = سبب الرفض
@@ -13851,7 +13856,10 @@ except Exception as _gold_err:
 # ══════════════════════════════════════════════════════════════════════
 try:
     import usd_signal as _usd_mod
-    _usd_mod.register(app)
+    # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — ⭐ مسار «OCTA بيشرحلك» فيه نداء ذكاء اصطناعي
+    # 📌 فبيبقى محمي بـrequire_user (زي باقي مسارات الـAI) + حد معدّل.
+    _usd_mod.register(app, require_user=require_user)
+    print("[usd] ✅ محرك ذكاء الدولار متركّب", flush=True)
 except Exception as _usd_err:
     print("[usd] ⚠️ مش متركّب: %s" % _usd_err, flush=True)
 

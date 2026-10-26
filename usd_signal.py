@@ -518,7 +518,7 @@ def _indicators(bars):
     closes = [b["c"] for b in bars]
     rsi = _rsi(closes, 14)
     macd, macd_sig, macd_hist = _macd(closes)
-    bb_u, bb_m, bb_l = _bollinger(closes)
+    bb_l, bb_m, bb_u = _bollinger(closes)   # ⛔ الترتيب: أدنى، وسط، أعلى
     atr = _atr(bars, 14)
     ema20 = _ema_series(closes, 20)
     ema50 = _ema_series(closes, 50)
@@ -732,7 +732,7 @@ def _multi_tf(symbol):
     for tf, key in (("1D", "daily"), ("1W", "weekly"), ("1M", "monthly")):
         bars = _fx_series(symbol, tf, 2600 if tf == "1D" else 1200)
         if not bars:
-            out[key] = {"available": False, "reason": "المصدر لمprovides بيانات لهذه الفترة"}
+            out[key] = {"available": False, "reason": "المصدر لم يوفّر بيانات لهذه الفترة"}
             continue
         ind = _indicators(bars)
         tr = _trend_from(ind, bars)
@@ -993,7 +993,7 @@ def _macro_factors():
                 ("policy_rate", "فائدة البنك المركزي (إيداع ليلي)", "%",
                  "فائدة أعلى = جذب سيولة للدولار بس بتكلفة على النمو.", "mixed"),
                 ("lending_rate", "فائدة الإقراض الليلي", "%",
-                 "سعر الإقراض بيوضح تكلفة التمويل domestically.", "mixed"),
+                 "سعر الإقراض بيوضح تكلفة التمويل محلياً.", "mixed"),
                 ("inflation_headline", "التضخم المصري (شهري/سنوي)", "%",
                  "الرقم الرسمي من البنك المركزي المصري.", "negative"),
                 ("inflation_core", "التضخم الأساسي المصري", "%",
@@ -1001,7 +1001,7 @@ def _macro_factors():
                 ("inflation_target", "هدف التضخم", "%",
                  "الهدف الرسمي للبنك المركزي — الفجوة بينه وبين التضخم بتمثّل الضغط.", "negative"),
                 ("reserves", "احتياطي النقد الأجنبي", "مليون دولار",
-                 "احتياطي أعلى = قدرة أكبر على سدّ طلب.Workaround dollar.", "positive"),
+                 "احتياطي أعلى = قدرة أكبر على سدّ طلب الدولار.", "positive"),
                 ("current_account", "الحساب الجاري", "مليون دولار",
                  "عجز الحساب الجاري = طلب على الدولار.", "negative"),
                 ("trade_balance", "الميزان التجاري", "مليون دولار",
@@ -1129,7 +1129,7 @@ def _compare(period="1Y"):
         "diff": round(diff, 2), "relation": rel,
         "correlation": corr,
         "correlation_note": ("الارتباط بيقول إن الحركتين بتمشوا مع بعض — "
-                             "وم Biosciences بيقولش إن واحدة سبب التانية."),
+                             "وم الارتباط بيقولش إن واحدة سبب التانية."),
         "available_periods": [p[0] for p in PERIODS
                               if len(_slice_period(dxy, p[0])) > 5
                               and len(_slice_period(usd, p[0])) > 5],
@@ -1169,14 +1169,14 @@ def _scenarios(mtf_usd, mtf_dxy, cmp_, factors):
     # ② الكثافة (breaks)
     if cmp_ and cmp_.get("ok"):
         if cmp_["relation"] == "same_direction" and cmp_["dxy"]["ret"] > 0:
-            ev_up.append("الدولار العالمي (DXY)٪ اتنين طالعين في نفس الفترة (%.2f%% و %.2f%%)."
+            ev_up.append("الدولار العالمي (DXY) والدولار المصري اتنين طالعين في نفس الفترة (%.2f%% و %.2f%%)."
                          % (cmp_["dxy"]["ret"], cmp_["usdegp"]["ret"]))
         elif cmp_["relation"] == "diverged" and cmp_["usdegp"]["ret"] > 0:
             ev_up.append("الجنيه ضعف (%.2f%%) والدولار العالمي %s — الحركة المحلية مش نسخة من العالمية."
                          % (cmp_["usdegp"]["ret"],
                             "نزل" if cmp_["dxy"]["ret"] < 0 else "طلع"))
         if cmp_["relation"] == "same_direction" and cmp_["dxy"]["ret"] < 0:
-            ev_dn.append("الدولار العالمي (DXY)٪ اتنين نزلوا في نفس الفترة.")
+            ev_dn.append("الدولار العالمي (DXY) والدولار المصري اتنين نزلوا في نفس الفترة.")
         elif cmp_["relation"] == "diverged" and cmp_["usdegp"]["ret"] < 0:
             ev_dn.append("الجنيه قوى (%.2f%%) والدولار العالمي طلع — عوامل محلية هي اللي فرقت."
                          % abs(cmp_["usdegp"]["ret"]))
@@ -1202,7 +1202,7 @@ def _scenarios(mtf_usd, mtf_dxy, cmp_, factors):
         ev_up.append("احتياطي النقد الأجنبي %s مليون دولار — قدرة على سدّ الطلب." % f"{res['value']:,.0f}")
     rate = fmap.get("policy_rate")
     if rate and rate.get("value") is not None:
-        ev_up.append("فائدة مصر %s%% — عائد الجنيه محلي أعلى منannyotropic."
+        ev_up.append("فائدة مصر %s%% — عائد الجنيه محلي أعلى من فائدة文章来源."
                      % f"{rate['value']:,.2f}")
     fed = fmap.get("fed_rate")
     if fed and rate and fed.get("value") is not None and rate.get("value") is not None:
@@ -1210,7 +1210,7 @@ def _scenarios(mtf_usd, mtf_dxy, cmp_, factors):
             ev_dn.append("فائدة أمريكا (%s%%) أعلى من مصر (%s%%) — الفارق بيضغط على الجنيه."
                          % (f"{fed['value']:,.2f}", f"{rate['value']:,.2f}"))
         elif rate["value"] > fed["value"]:
-            ev_up.append("فائدة مصر (%s%%) أعلى من أمريكا (%s%%) — فارق عوائد crappy for the pound."
+            ev_up.append("فائدة مصر (%s%%) أعلى من أمريكا (%s%%) — فارق العوائد بيجذب سيولة للدولار."
                          % (f"{rate['value']:,.2f}", f"{fed['value']:,.2f}"))
     vix = fmap.get("vix")
     if vix and vix.get("direction") == "up" and (vix.get("value") or 0) > 20:
@@ -1228,13 +1228,13 @@ def _scenarios(mtf_usd, mtf_dxy, cmp_, factors):
 
     sc_up = {
         "id": "bullish", "title_ar": "سيناريو صاعد للدولار",
-        "condition": "استمرار قوة الدولار العالمي + ضغط على.side الطلب الداخلي + اختراق فني مؤكد.",
+        "condition": "استمرار قوة الدولار العالمي + ضغط على الطلب الداخلي + اختراق فني مؤكد.",
         "evidence": ev_up, "strength": _scenario_strength(ev_up),
         "technical": ("مقاومة فوق قرب %.4f — اختراقها وتثبيته فوقها هو التأكيد الفني."
                       % res_z if res_z else "مفيش مقاومة محسوبة فوق السعر."),
         "invalidation": ("كسر الدعم %.4f بإغلاق يومي تحتو + ضعف مؤشر الدولار العالمي."
                          % sup if sup else "كسر أقرب دعم محسوب + تحوّل DXY للهبوط."),
-        "risk": "التحليل تاريخي — مش ضمان. والدولار عند %s نقطة قد يكون اتextend فعلاً." % last,
+        "risk": "التحليل تاريخي — مش ضمان. والدولار عند %s نقطة — الحركة السابقة ممكن تكون اتغيرت." % last,
     }
     sc_dn = {
         "id": "bearish", "title_ar": "سيناريو هابط للدولار",
@@ -1259,7 +1259,7 @@ def _scenarios(mtf_usd, mtf_dxy, cmp_, factors):
         "technical": ("النطاق المحسوب: %.4f — %.4f." % (rng["low"], rng["high"]) if rng
                       else "النطاق غير محسوب."),
         "invalidation": "كسر واضح لأي حد من النطاق بإغلاق يومي.",
-        "risk": "النطاق بيتقفل بسرعة لو حصل خبرLocal.",
+        "risk": "النطاق بيتقفل بسرعة لو حصل خبر محلي.",
     }
     if mtf_usd.get("agreement") == "conflict":
         sc_rng["evidence"].append("الأطر الزمنية متعارضة (يومي/أسبوعي/شهري).")
@@ -1350,11 +1350,12 @@ def _verdict(mtf_usd, mtf_dxy, cmp_, factors, scen):
         "evidence": sc[lead]["evidence"][:5],
         "invalidation": inval,
         "risks": risks or ["مفيش مخاطر مرصودة من البيانات المتاحة."],
-        "monitor": ([("مقاومة قريبة: %.4f" % ((mtf_usd.get("daily") or {}).get("resistance") or {}).get("upper"))
-                     if (mtf_usd.get("daily") or {}).get("resistance") else None,
-                    ("دعم قريب: %.4f" % ((mtf_usd.get("daily") or {}).get("support") or {}).get("lower"))
-                     if (mtf_usd.get("daily") or {}).get("support") else None,
-                    "الأحداث القادمة في التقويم الاقتصادي"]),
+        "monitor": [m for m in (
+            ("مقاومة قريبة: %.4f" % ((mtf_usd.get("daily") or {}).get("resistance") or {}).get("upper"))
+            if (mtf_usd.get("daily") or {}).get("resistance") else None,
+            ("دعم قريب: %.4f" % ((mtf_usd.get("daily") or {}).get("support") or {}).get("lower"))
+            if (mtf_usd.get("daily") or {}).get("support") else None,
+            "الأحداث القادمة في التقويم الاقتصادي") if m],
         "quality": q,
         "method": scen["method"],
         "generated_at": _cairo_now().strftime("%Y-%m-%d %H:%M"),
@@ -1365,7 +1366,7 @@ def _verdict(mtf_usd, mtf_dxy, cmp_, factors, scen):
 #  ⑭ «OCTA بيشرحلك» — تفسير بالبيانات المؤكدة فقط
 # ══════════════════════════════════════════════════════════════════════
 def _explain_payload(mtf_usd, mtf_dxy, cmp_, factors, scen, verdict_):
-    """الـstructured data اللي بتتبعت للمفسّر — كل رقم وراه مصدره."""
+    """بيانات JSON المؤكدة اللي بتتبعت للمفسّر — كل رقم وراه مصدره."""
     return {
         "now": _cairo_now().strftime("%Y-%m-%d %H:%M %Z"),
         "usdegp": {
@@ -1480,7 +1481,7 @@ def _explain_cached(payload, question):
 # ══════════════════════════════════════════════════════════════════════
 #  ⑯ المسارات (API)
 # ══════════════════════════════════════════════════════════════════════
-def register(app):
+def register(app, require_user=None):
     from flask import jsonify, request
 
     def _bundle(period="1Y"):
@@ -1633,6 +1634,10 @@ def register(app):
     @app.route("/api/usd/explain")
     def usd_explain():
         try:
+            # ⛔⛔⛔ فيه نداء ذكاء اصطناعي ⇒ لازم المستخدم يكون داخل
+            if require_user is not None and not require_user():
+                return jsonify({"ok": False, "available": False,
+                                "error": "لازم تسجّل دخول عشان تاخد الشرح"}), 401
             q = (request.args.get("q") or "why").lower()
             period = (request.args.get("period") or "1Y").upper()
             mtf_usd, mtf_dxy, cmp_, factors, scen, verdict_ = _bundle(period)
