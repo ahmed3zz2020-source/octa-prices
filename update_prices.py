@@ -1,4 +1,4 @@
-import json, time, requests, os, threading
+import json, time, requests, os, sys, threading
 import os as _os  # alias للمعاملات (EGX_RISK_FREE) — واحد يكفي، وده أوضح
 import div_actions
 from flask import Flask, jsonify, request, Response
@@ -232,7 +232,7 @@ _SHARIAH_CONST = {"at": 0, "d": None, "ttl": 86400}
 
 def _shariah_constituents():
     """مكونات مؤشر الشريعة — من ملف البورصة الرسمي (يتبعت مع الكود)."""
-    now = _dt.now(_tz.utc).timestamp()
+    now = datetime.utcnow().timestamp()
     if _SHARIAH_CONST["d"] is not None and now - _SHARIAH_CONST["at"] < _SHARIAH_CONST["ttl"]:
         return _SHARIAH_CONST["d"]
     try:
@@ -250,7 +250,7 @@ def _shariah_constituents():
 def _shariah_quote():
     """سعر مؤشر الشريعة + أداؤه — من TradingView WebSocket.
     ⛔ مفيش تكرار: لو الفشل ⇒ مفيش رقم (مش رقم مخترع)."""
-    now = _dt.now(_tz.utc).timestamp()
+    now = datetime.utcnow().timestamp()
     if _SHARIAH["d"] is not None and now - _SHARIAH["at"] < _SHARIAH["ttl"]:
         return _SHARIAH["d"]
     out = None
