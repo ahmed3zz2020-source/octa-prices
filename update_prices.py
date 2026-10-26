@@ -5356,7 +5356,7 @@ EGX = [
     ("GTHE","جلوبال تيلكوم","تكنولوجيا"),
     ("GTWL","جولدن تكس للأصواف","صناعة"),
     ("HBCO","هيبكو","مواد أساسية"),
-    ("HDBK","بنك الإسكندرية","بنوك"),
+    ("HDBK","بنك التعمير والإسكان","بنوك"),
     ("HELI","مصر الجديدة للإسكان","عقارات"),
     ("HRHO","مجموعة أي إف جي القابضة","خدمات مالية"),
     ("IBCT","انترناشيونال بزنيس كوربوريشن","سلع استهلاكية"),
@@ -8926,7 +8926,9 @@ def update_loop():
                     if fin:
                         # ندمج المعنويات + المحفظة + الأخبار
                         if se: fin["axes"]["sentiment"] = se["score"]
-                        if pfit: fin["axes"]["portfolio"] = pfit["score"]
+                        # ⛔ ٢٦ أكتوبر ٢٠٢٦ — ما بنpatchش المحور بمبلغ ثابت:
+                        #   المحفظة كانت 70 لكل السهم (رقم وهمي) ⇒ اتشال
+                        #   من النتيجة نهائياً (وزنه 0 دلوقتي).
                         if nw: fin["axes"]["news"] = nw["score"]
                         # إعادة حساب المحصلة — بنفس الدالة المستخدمة في
                         # final_score بالظبط. الكود القديم كان بيعيد الحساب
@@ -8934,7 +8936,14 @@ def update_loop():
                         # خصم الثقة — فكان الرقم المبلّغ مختلف عن الموصوف.
                         ax = fin["axes"]
                         _lq = liquidity_score(item) if liq_score else None
-                        _a2 = _compose_score(ax, _lq)
+                        # ⛔ ٢٦ أكتوبر ٢٠٢٦ — كان الـrecompose من غير تمرير
+                        #   الثقة ⇒ خصم الثقة كان بيموت في الرقم النهائي
+                        #   (الكود يقول إنه بالظبط زي final_score ⇒ خطأ).
+                        try:
+                            _cf = float(item.get("data_confidence") or 60)
+                        except (TypeError, ValueError):
+                            _cf = 60.0
+                        _a2 = _compose_score(ax, _lq, None, _cf)
                         if _a2["final"] is not None:
                             fin["final_score"] = _a2["final"]
                         item["final_score"] = fin["final_score"]
@@ -10342,33 +10351,60 @@ def _risk_metrics(hist):
     return out
 
 
-_RISK = {"at": 0, "d": {}, "ttl": 86400, "codes": ""}
+# ⛔⛔⛔ إصلاح ٢٦ أكتوبر ٢٠٢٦ — كاش المخاطرة بقى **لكل كود** على حدة
+# 📌 المشكلة: الكاش كان للصف كله (٢٤ ساعة) ⇒ أي كود فشل في الجولة
+# 📌   (timeout / 429 من startamarkets) كان بيفضل ناقص **يوم كامل** ⇒
+# 📌   ١٢١ سهم من ٢٨٤ (٤٢٪) بلا محور مخاطرة — وهو أكبر محور (٢٤٪
+# 📌   من الوزن) ⇒ نص النتيجة كانوا بيتبني على ٤ محاور بس.
+# 📌 الإصلاح: كاش لكل كود + إعادة محاولة للفاشل بعد ١٠ دقايق
+# 📌   + ٣ محاولات بدل ٢ + تايم-أوت أطول + ٣ عمّال بدل ٥ (أقل ضغط).
+_RISK = {"at": 0, "d": {}, "ttl": 86400, "codes": "", "try": {}}
+_RISK_TTL = 6 * 3600        # نحدّث مؤشرات الكود كل ٦ ساعات
+_RISK_RETRY = 600           # نعيد محاولة الكود الفاشل كل ١٠ دقايق
 
 
 def _risk_all(codes):
-    """مخاطرة لكل الأكواد — يتجدد مرة في اليوم (تقيل: ~5000 شمعة لكل سهم)."""
-    key = len(codes)
+    """مخاطرة لكل الأكواد — كاش لكل كود (الناجح يفضل، والفاشل بيتحاول تاني)."""
     now = _dt.now(_tz.utc).timestamp()
-    if _RISK["d"] and now - _RISK["at"] < _RISK["ttl"] and _RISK["codes"] == key:
-        return _RISK["d"]
-    out, done = {}, [0]
+    store = dict(_RISK.get("d") or {})       # {code: (ts, metrics)}
+    last_try = dict(_RISK.get("try") or {})  # {code: ts آخر محاولة}
+    todo = []
+    for c in codes:
+        rec = store.get(c)
+        if rec:
+            age = now - rec[0]
+            if age < _RISK_TTL:
+                continue                    # لسه طازة
+        t = last_try.get(c) or 0
+        if now - t < _RISK_RETRY:
+            continue                        # جربناه شوية ⇒ نستنى
+        todo.append(c)
+    if not todo:
+        return {c: m for c, (ts, m) in store.items()}
+
+    done = [0]
 
     def one(c):
-        h = _jget(STARTA_HIST + c, timeout=30, tries=2)
+        last_try[c] = _dt.now(_tz.utc).timestamp()
+        h = _jget(STARTA_HIST + c, timeout=45, tries=3)
         done[0] += 1
         if done[0] % 40 == 0:
-            print(f"[risk] {done[0]}/{len(codes)}", flush=True)
+            print(f"[risk] {done[0]}/{len(todo)}", flush=True)
         return c, (_risk_metrics(h) if isinstance(h, list) and h else {})
+
     try:
-        with _TP(max_workers=5) as ex:
-            for c, m in ex.map(one, codes):
+        with _TP(max_workers=3) as ex:
+            for c, m in ex.map(one, todo):
                 if m:
-                    out[c] = m
+                    store[c] = (now, m)
     except Exception as e:
         print(f"[risk] thread fail: {e}")
-    if out:
-        _RISK.update(at=now, d=out, ttl=86400, codes=key)
-        print(f"[risk] {len(out)} cached")
+    _RISK["at"] = now
+    _RISK["d"] = store
+    _RISK["codes"] = len(codes)
+    _RISK["try"] = last_try
+    out = {c: m for c, (ts, m) in store.items()}
+    print(f"[risk] كاش {len(out)}/{len(codes)} | جولة {len(todo)}", flush=True)
     return out
 
 
