@@ -1,0 +1,113 @@
+{
+ "fetched_at": "2026-10-26T15:49:30.514Z",
+ "factors": {
+  "policy_rate": {
+   "value": 19,
+   "previous": null,
+   "direction": "unknown",
+   "published": "12 Feb 2026",
+   "source": "البنك المركزي المصري",
+   "source_url": "https://www.cbe.org.eg/en/economic-research/statistics/overnight-deposit-and-lending-rate",
+   "interpretation": "فائدة الإيداع الليلي — بتحدد تكلفةFunding domestically.",
+   "status": "ok"
+  },
+  "lending_rate": {
+   "value": 20,
+   "previous": null,
+   "direction": "unknown",
+   "published": "12 Feb 2026",
+   "source": "البنك المركزي المصري",
+   "source_url": "https://www.cbe.org.eg/en/economic-research/statistics/overnight-deposit-and-lending-rate",
+   "interpretation": "سعر الإقراض الليلي — تكلفة التمويل domestically.",
+   "status": "ok"
+  },
+  "discount_rate": {
+   "value": null,
+   "published": null,
+   "source": "البنك المركزي المصري",
+   "source_url": "https://www.cbe.org.eg/en/economic-research/statistics/discount-rates",
+   "interpretation": "سعر الخصم.",
+   "status": "missing"
+  },
+  "inflation_headline": {
+   "value": 13.9,
+   "published": "11 Oct 2026",
+   "source": "البنك المركزي المصري (من بيانات CAPMAS)",
+   "source_url": "https://www.cbe.org.eg/en/economic-research/statistics/inflation-rates",
+   "interpretation": "التضخم الأساسي (شهري/سنوي) — الأرقام الرسمية.",
+   "status": "ok"
+  },
+  "inflation_core": {
+   "value": 14.1,
+   "published": "11 Oct 2026",
+   "source": "البنك المركزي المصري (من بيانات CAPMAS)",
+   "source_url": "https://www.cbe.org.eg/en/economic-research/statistics/inflation-rates",
+   "interpretation": "التضخم الأساسي (شهري/سنوي) — الأرقام الرسمية.",
+   "status": "ok"
+  },
+  "inflation_target": {
+   "value": 7,
+   "published": "2026-07-01",
+   "source": "البنك المركزي المصري — هدف التضخم 2026",
+   "source_url": "https://www.cbe.org.eg/en/monetary-policy/inflation",
+   "interpretation": "الهدف: 7% ± 2 نقطة مئوية في متوسط 2026.",
+   "status": "ok"
+  },
+  "reserves": {
+   "value": 57348.2,
+   "previous": null,
+   "direction": "unknown",
+   "published": "2026-09-30",
+   "source": "البنك المركزي المصري — بيان احتياطي النقد الأجنبي",
+   "source_url": "https://www.cbe.org.eg/en/news-publications/news/2026/10/07/06/03/net-international-reserves-at-the-end-of-september-2026",
+   "interpretation": "احتياطي النقد الأجنبي (بيانات أولية).",
+   "status": "ok"
+  },
+  "current_account": {
+   "value": -22500,
+   "previous": null,
+   "direction": "unknown",
+   "published": "2026-06-30",
+   "source": "البنك المركزي المصري — بيان أداء ميزان المدفوعات السنة المالية 2025/2026",
+   "source_url": "https://www.cbe.org.eg/en/news-publications/news/2026/10/12/10/18/bop-press-release",
+   "interpretation": "الحساب الجاري — عجزه طلب على الدولار.",
+   "status": "ok"
+  },
+  "trade_balance": {
+   "value": -64800,
+   "previous": null,
+   "direction": "unknown",
+   "published": "2026-06-30",
+   "source": "البنك المركزي المصري — بيان أداء ميزان المدفوعات السنة المالية 2025/2026",
+   "source_url": "https://www.cbe.org.eg/en/news-publications/news/2026/10/12/10/18/bop-press-release",
+   "interpretation": "الميزان التجاري السلعي — كل شهر سلبي = فاتورة دولار أكبر.",
+   "status": "ok"
+  }
+ },
+ "extra": {
+  "bop": {
+   "current_account": -22500,
+   "trade_balance": -64800,
+   "total_balance": 2800,
+   "capital_account": 23200,
+   "fdi": 18000,
+   "portfolio": 4200,
+   "services": 16700,
+   "remittances": 47300,
+   "unit": "مليون دولار",
+   "published": "2026-06-30",
+   "release_date": "2026-10-12",
+   "source": "البنك المركزي المصري — بيان أداء ميزان المدفوعات السنة المالية 2025/2026",
+   "source_url": "https://www.cbe.org.eg/en/news-publications/news/2026/10/12/10/18/bop-press-release",
+   "note": "أرقام السنة المالية المنتهية في 30 يونيو 2026."
+  },
+  "fx": {
+   "buy": 56.2267,
+   "sell": 56.3267,
+   "last_updated": "26 Oct 2026",
+   "source": "البنك المركزي المصري — Average Market Rate",
+   "source_url": "https://www.cbe.org.eg/en/economic-research/statistics/exchange-rates",
+   "type": "official_reference"
+  }
+ }
+}
