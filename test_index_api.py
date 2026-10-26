@@ -29,11 +29,14 @@ def call(path, query=None, ix_id=None):
         r = rule.handler(ix_id)
     else:
         r = app.dispatch(path, "GET", query=query)
-    body = r.body
+    # ⛔ الـstub بيرجّع tuple (body, status) في حالة 404 ⇒ نطبّع
+    status, body = getattr(r, "status_code", 200), getattr(r, "body", r)
+    if isinstance(r, tuple):
+        body = r[0]; status = r[1] if len(r) > 1 else status
     if isinstance(body, (bytes, str)):
         try: body = json.loads(body)
         except Exception: pass
-    return r.status_code, body
+    return status, body
 
 fails = []
 def check(cond, msg):
