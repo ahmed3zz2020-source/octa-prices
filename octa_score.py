@@ -637,10 +637,25 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     a = _rel(shp, ss.get("median_sharpe3y"), False)
     if a is not None: parts["sharpe"] = a
 
+    # ⛔⛔⛔ إصلاح ٢٦ أكتوبر ٢٠٢٦ — محور المخاطرة كان بيتحسب من مؤشر واحد
+    #   (البيتا بس) ⇒ النتيجة ٠ أو ١٠٠ بالظبط (٠/١ ز二元ية).
+    #   ⇒ مثال حي: LUTS (بيتا سالب) ⇒ «أمان ١٠٠» وهو نزل ٣٤٪ في ٩
+    #   جلسات وتذبذبه اليومي ٢٥٪! ⇒ رقم بيوهم إنه آمن.
+    #   ⛔ الإصلاح: لازم **مؤشران على الأقل** يبقى المحور متاح.
+    #   لو أقل ⇒ المحور مش متاح (None) ⇒ final_score بيستبعده
+    #   وبيعيد توزيع الوزن على المحاور التانية (مفيش رقم وهمي).
+    MIN_RISK_PARTS = 2
     if not parts:
         # ⛔ مافيش أي مؤشر مخاطرة — ما بنخمنش رقم
         axes["risk"] = None
         missing.append("المخاطرة")
+    elif len(parts) < MIN_RISK_PARTS:
+        axes["risk"] = None
+        missing.append("المخاطرة (بيانات ناقصة)")
+        reasons.append(
+            "مؤشرات المخاطرة المتاحة " + str(len(parts)) +
+            " بس ⇒ المحور استُبعد من النتيجة بدل ما يطلع ٠ أو ١٠٠"
+        )
     else:
         # الأوزان النسبية — البيتا والدين أساس ثابت، التاريخ مكمل
         RW = {"beta": 0.22, "debt": 0.18, "vol": 0.26,
