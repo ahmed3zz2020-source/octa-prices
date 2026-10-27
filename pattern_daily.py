@@ -221,16 +221,23 @@ def save_shortlist(payload):
 
 
 def load_shortlist(max_age_hours=None):
-    """بيقرأ القائمة المحفوظة (للقارئ السريع)."""
+    """بيقرأ القائمة المحفوظة.
+
+    ⛔ لو قديمة ⇒ بنرجّعها **مع** stale=True (مش None) — عشان الواجهة
+       ما تفضلش فاضية، والبناء الجديد يgetting يتم في الخلفية.
+    """
     try:
         if not SHORTLIST_FILE.exists():
             return None
+        stale = False
         if max_age_hours:
             age = (time.time() - SHORTLIST_FILE.stat().st_mtime) / 3600.0
-            if age > float(max_age_hours):
-                return None
+            stale = age > float(max_age_hours)
         with open(SHORTLIST_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+        if isinstance(data, dict):
+            data["stale"] = stale
+        return data
     except Exception:
         return None
 
@@ -292,6 +299,34 @@ def digest_text(items, limit=12):
 #  المسجّل (API) + المهمة اليومية
 # ══════════════════════════════════════════════════════════════════════
 
+_REBUILDING = {"on": False}
+
+
+def _rebuild_in_background(live_data_getter=None):
+    """يعيد بناء القائمة في الخلفية (مرة واحدة في نفس الوقت)."""
+    if _REBUILDING["on"]:
+        return False
+
+    def _run():
+        _REBUILDING["on"] = True
+        try:
+            live = live_data_getter() if live_data_getter else None
+            payload = build_shortlist(live_data=live)
+            save_shortlist(payload)
+            _log("✅ تحديث الخلفية: %d نمط" % payload.get("count", 0))
+        except Exception as e:
+            _log("⚠️ فشل التحديث في الخلفية: %s" % e)
+        finally:
+            _REBUILDING["on"] = False
+
+    try:
+        threading.Thread(target=_run, daemon=True).start()
+        return True
+    except Exception:
+        _REBUILDING["on"] = False
+        return False
+
+
 def register(app, require_user=None, send=None, live_data_getter=None,
              plan_checker=None, plan_setter=None):
     """بيسجّل المسارات + يشغّل المهمة اليومية (fail-soft)."""
@@ -332,17 +367,25 @@ def register(app, require_user=None, send=None, live_data_getter=None,
         if _plan_of(u) != "pro":
             return _locked_response(u)
         payload = load_shortlist(max_age_hours=12)
+        stale = bool(payload and payload.get("stale"))
         if payload is None:
+            # ⛔ مفيش كاش خالص ⇒ نبنيه دلوقتي (أول طلب بعد النشر)
             try:
                 live = live_data_getter() if live_data_getter else None
                 payload = build_shortlist(live_data=live)
                 save_shortlist(payload)
+                stale = False
             except Exception as e:
-                return jsonify({"ok": False, "error": "تعذّر بناء المسح: %s" % e}), 503
+                return jsonify({"ok": False,
+                                "error": "تعذّر بناء المسح: %s" % e}), 503
+        elif stale:
+            # ⛔ الكاش قديم ⇒ نبني نسخة جديدة في **الخلفية** ونرجّع القديم
+            _rebuild_in_background(live_data_getter)
         return jsonify({"ok": True, "items": payload.get("items") or [],
                         "asof": payload.get("asof"),
                         "generated_at": payload.get("generated_at"),
                         "summary": payload.get("summary"),
+                        "stale": stale,
                         "filters": payload.get("filters")})
 
     @app.route("/api/setups/meta", methods=["GET"])
