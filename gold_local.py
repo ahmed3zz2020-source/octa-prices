@@ -246,3 +246,102 @@ if __name__ == "__main__":
             print(f"   {k}K: شراء {v.get('buy')} / بيع {v.get('sell')} {v.get('currency')}")
         print("   грамات:", gram_prices(d))
         print("   الطزاجة:", freshness(d))
+
+
+# ════════════════════════════════════════════════════════════════
+# 🔎 مصدر تاني للمرصود — goldbullioneg (صاغة تانية) للمقارنة
+# ════════════════════════════════════════════════════════════════
+# 📌 ليش مهم: البرومبت بيقول «Cross-check local quotations when possible».
+#    مصدرين مستقلين بيقولوا الفرق = نطاق أسعار الصاغة (مش رقم واحد).
+# ⛔ ملاحظة: عمود السعر الأول = **بيع** · التاني (td-arrow) = **شراء**
+#    (اتأكدنا من صف الدولار: 56.35 بيع / 56.25 شراء).
+BULLION_URL = "https://goldbullioneg.com/"
+
+
+def _parse_bullion(html):
+    if not html or "data-val" not in html:
+        return None
+    out = {"source": "goldbullioneg — صاغة مصرية (مرجع سوق)",
+           "source_url": BULLION_URL,
+           "source_type": "commercial_market_reference",
+           "karats": {}, "rows": []}
+    # كل سطر: <td> اسم </td> <td class="num" data-val="بيع"> </td> <td class="num td-arrow" data-val="شراء"> </td>
+    for m in re.finditer(r'<tr>(.*?)</tr>', html, re.S):
+        row = m.group(1)
+        nums = re.findall(r'<td[^>]*class="num[^"]*"[^>]*data-val="([0-9.,]+)"', row)
+        if len(nums) < 2:
+            continue
+        label = re.sub(r"<[^>]+>", " ", row.split("</td>")[0])
+        label = re.sub(r"\s+", " ", label).strip()
+        sell = _num(nums[0])
+        buy = _num(nums[1])
+        if sell is None or buy is None:
+            continue
+        km = re.search(r"(?:عيار|جرام عيار)\s*(\d+)", label)
+        dm = re.search(r"(\d+)\s*ج\b", label)
+        if km:
+            out["karats"][km.group(1)] = {"buy": buy, "sell": sell, "currency": "ج.م"}
+        elif "الدولار" in label:
+            out["usd_egp"] = {"buy": buy, "sell": sell}
+        elif "أونصة" in label:
+            out["ounce_usd"] = {"buy": buy, "sell": sell}
+        else:
+            out["rows"].append({"label": label[:40], "buy": buy, "sell": sell})
+    if not out["karats"]:
+        return None
+    tm = re.search(r"آخر تحديث[^0-9]{0,20}([0-9]{1,2}:[0-9]{2})", html)
+    if tm:
+        out["updated_text"] = tm.group(1)
+    out["fetched_at"] = datetime.datetime.utcnow().isoformat() + "Z"
+    return out
+
+
+def get_second():
+    """المصدر التاني — لو فشل ⇒ None (مش أرقام مخترعة)."""
+    try:
+        html = _http_get(BULLION_URL, timeout=20)
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:100]}
+    d = _parse_bullion(html)
+    if not d:
+        return {"ok": False, "error": "الصفحة رجعت من غير أسعار مفهومة"}
+    d["ok"] = True
+    return d
+
+
+def cross_check():
+    """
+    ⛔ مقارنة بين مصدرين: لو المصدرين موجودين ⇒ بنحسب المدى.
+    ⛔ لو واحد ناقص ⇒ بنرجّع الموجود بس (ومفيش استنتاج).
+    """
+    a = get()
+    b = get_second()
+    out = {"sources": [], "cross_check": None}
+    if a and a.get("ok"):
+        out["sources"].append({
+            "name": a.get("source"), "url": a.get("source_url"),
+            "updated": a.get("updated_text"), "gram_24": a.get("gram_24_reference"),
+            "karats": a.get("karats"), "freshness": freshness(a),
+        })
+    if b and b.get("ok"):
+        out["sources"].append({
+            "name": b.get("source"), "url": b.get("source_url"),
+            "updated": b.get("updated_text"),
+            "gram_24": (b.get("karats") or {}).get("24", {}).get("sell"),
+            "karats": b.get("karats"), "usd_egp": b.get("usd_egp"),
+            "ounce_usd": b.get("ounce_usd"),
+        })
+    g = [s.get("gram_24") for s in out["sources"] if s.get("gram_24")]
+    if len(g) >= 2:
+        out["cross_check"] = {
+            "gram_24_values": g,
+            "spread_egp": round(max(g) - min(g), 2),
+            "spread_pct": round((max(g) / min(g) - 1) * 100, 3),
+            "note": ("الفرق بين سعر عيار ٢٤ عند الصاغتين — ده نطاق أسعار السوق "
+                     "المحلي، مش خطأ في مصدر."),
+        }
+    else:
+        out["cross_check"] = None
+        out["cross_check_note"] = ("مصدر واحد بس متاح دلوقتي ⇒ مفيش مقارنة. "
+                                   "مفيش استنتاج من مصدر واحد.")
+    return out

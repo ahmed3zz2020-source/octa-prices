@@ -11079,6 +11079,8 @@ def gold_local_api():
             "ounce_usd": d.get("ounce_usd"),
             "karats": d.get("karats"),
             "grams": gl.gram_prices(d),
+            # ⛔ مقارنة بين صاغتين (المصدر يطلب cross-check)
+            "cross_check": gl.cross_check(),
         })
     except Exception as e:
         _log_exc("gold-local", e)
