@@ -138,8 +138,12 @@ def list_drawings(uid, code=None, scope="mine", limit=100):
     return out[:int(limit or 100)]
 
 
-def register(app, require_user=None):
-    """بيسجّل مسارات الاستوديو (fail-soft)."""
+def register(app, require_user=None, plan_checker=None):
+    """بيسجّل مسارات الاستوديو (fail-soft).
+
+    ⛔ الاستوديو **مدفوع** (قرار أحمد ٢٨ أكتوبر ٢٠٢٦) ⇒ نفس بوابة
+       الباقة بتاعة «نماذجي» (plan=pro).
+    """
     from flask import jsonify, request
 
     def _guard():
@@ -150,11 +154,29 @@ def register(app, require_user=None):
         except Exception:
             return None
 
+    def _plan_of(user):
+        if not user:
+            return "free"
+        try:
+            if plan_checker:
+                p = plan_checker(user)
+                if p:
+                    return str(p)
+        except Exception:
+            pass
+        return str(user.get("plan") or "free")
+
+    def _locked():
+        return jsonify({"ok": False, "locked": True, "plan": _plan_of(None),
+                        "error": "باقة «نماذجي» مدفوعة — الاستوديو جزء منها"}), 403
+
     @app.route("/api/studio/list", methods=["GET"])
     def studio_list():
         u = _guard()
         if require_user is not None and not u:
             return jsonify({"ok": False, "error": "لازم تسجّل دخول"}), 401
+        if _plan_of(u) != "pro":
+            return _locked()
         scope = str(request.args.get("scope") or "mine")
         code = request.args.get("code")
         try:
@@ -169,6 +191,8 @@ def register(app, require_user=None):
         u = _guard()
         if require_user is not None and not u:
             return jsonify({"ok": False, "error": "لازم تسجّل دخول"}), 401
+        if _plan_of(u) != "pro":
+            return _locked()
         body = request.get_json(silent=True) or {}
         rec, err = save_drawing(u.get("id") if u else None, body)
         if not rec:
@@ -180,6 +204,8 @@ def register(app, require_user=None):
         u = _guard()
         if require_user is not None and not u:
             return jsonify({"ok": False, "error": "لازم تسجّل دخول"}), 401
+        if _plan_of(u) != "pro":
+            return _locked()
         body = request.get_json(silent=True) or {}
         ok, err = delete_drawing(u.get("id") if u else None,
                                   str(body.get("id") or ""))

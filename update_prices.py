@@ -14185,7 +14185,16 @@ except Exception as _pattern_err:
 try:
     import pattern_studio as _studio_mod
 
-    _studio_mod.register(app, require_user=require_user)
+    def _studio_plan(user):
+        if not user:
+            return "free"
+        try:
+            return str(user.get("plan") or "free")
+        except Exception:
+            return "free"
+
+    _studio_mod.register(app, require_user=require_user,
+                         plan_checker=_studio_plan)
     print("[studio] ✅ الاستوديو متركّب", flush=True)
 except Exception as _studio_err:
     print("[studio] ⚠️ مش متركّب: %s" % _studio_err, flush=True)

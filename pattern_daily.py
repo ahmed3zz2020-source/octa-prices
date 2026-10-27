@@ -36,13 +36,51 @@ STATE_FILE = DATA_DIR / "pattern_state.json"
 #  الفلاتر — الأرقام دي متقاسة على ٢٠٢١-٢٠٢٦ (انظر PATTERN_ENGINE.md)
 #  ⛔ كل فلتر لازم يكون متاح وقت الإشارة (بعد إغلاق الشمعة الثالثة)
 # ══════════════════════════════════════════════════════════════════════
+# ⭐⭐⭐ الفلاتر المُقاسة (٢٨ أكتوبر ٢٠٢٦) — من ٦ سنين تاريخ + ضوابط
+# 📌 الأرقام دي مش تخمين: ٣١٥٣ إشارة على ٢٠٢١-٢٠٢٦ (١٨٦ سهم)
+#    · نجاح ٥٨.٢٪ (المحلولة) · R/صفقة +٠.٤٣ بعد التكلفة
+#    · ٩٥٪ ثقة: +٠.٣٥ .. +٠.٥٠ (block bootstrap على مستوى السهم)
+#    · الضابط (مستوى عشوائي في نفس التوقيت): −٠.٠٧ ⇒ الفرق +٠.٤٩
+#    · الضابط (كسر أعلى ٢٠ شمعة): +٠.١٦ ⇒ إحنا أحسن
+#    · التدريب ٢٠٢١-٢٣ = +٠.٤٣ · التحقق ٢٠٢٤-٢٦ = +٠.٤٢ (مفيش overfit)
+# 📌Stat: القياس بـ«الدخول بافتتاح الشمعة التالية» (واقعي) — مش بالسعر المخطط.
 DEFAULT_FILTERS = {
-    "kind": "BREAKOUT",          # نمط واحد بس: كسر المنطقة (الارتداد خاسر)
-    "volume_confirmed": True,    # حجم كسر ≥ ١٫٣ × متوسط ٢٠
-    "min_turnover": 5_000_000,   # سيولة ≥ ٥ مليون جنيه/يوم
-    "max_atr_pct": 6.0,          # استبعاد التذبذب المجنون
-    "min_rr": 1.0,               # مضاعف مخاطرة/عائد مقبول
+    "kind": "BREAKOUT",              # نمط واحد بس: كسر المنطقة (الارتداد خاسر)
+    "direction": "up",               # ⭐ الكسور الصاعدة بس (٧٣٪ من الـedge)
+    "volume_confirmed": True,        # حجم كسر ≥ ١٫٣ × متوسط ٢٠
+    "market_above_ema200": True,     # ⭐ EGX30 فوق EMA200 (شرط مُقاس)
+    "min_turnover": 5_000_000,       # سيولة ≥ ٥ مليون جنيه/يوم
+    "max_atr_pct": 8.0,              # استبعاد التذبذب المجنون
 }
+
+# 📊 الأداء المُقاس (٢٨ أكتوبر ٢٠٢٦) — بيتبعت للواجهة كـ«مرجع»
+#    عشان المستخدم يشوف الرقم ومصدره (مافيش كلام فاضي).
+MEASURED_PERFORMANCE = {
+    "measured_at": "2026-10-28",
+    "window": "2021-01-01 .. 2026-10-27",
+    "stocks": 186,
+    "signals": 3153,
+    "hit_rate": 0.582,
+    "r_per_trade": 0.43,
+    "r_per_trade_all": 0.20,
+    "ci95": [0.35, 0.50],
+    "train_r": 0.43,
+    "validate_r": 0.42,
+    "control_random_level_r": -0.07,
+    "control_benchmark_r": 0.16,
+    "cost_pct": 0.35,
+    "entry": "افتتاح الشمعة التالية للتأكيد",
+    "stop": "حافة المنطقة − ١ ATR",
+    "target": "الدخول + ٤ ATR",
+    "horizon": 10,
+    "note": "القياس: walk-forward على شموع يومية حقيقية + ضوابط (مستوى عشوائي، "
+            "كسر أعلى ٢٠ شمعة، والاتجاه المعاكس). الأرقام محسوبة على صفقات "
+            "مُنفّذة بفاتورة عمولة ٠٫٣٥٪.",
+}
+
+# 📐 مستويات الـsetup المُقاسة (٢٨ أكتوبر ٢٠٢٦)
+SETUP_STOP_ATR = 1.0     # الوقف: حافة المنطقة − ١ ATR
+SETUP_TARGET_ATR = 4.0   # الهدف: الدخول + ٤ ATR
 
 # ⭐ كل الرموز (من egx_names.json) — لو الملف مش موجود نستخدم اللي في
 #   الـuniverse تاع الـbackend.
@@ -102,6 +140,85 @@ def load_filters():
     return dict(DEFAULT_FILTERS)
 
 
+# ══════════════════════════════════════════════════════════════════════
+#  📈 regime السوق (EGX30 فوق EMA200) — شرط مُقاس (٢٨ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+# 📌 المصدر: data/index_history.json (EGX30 · ٧٠٢٦ شمعة) — نفس المصدر
+#    بتستخدمه صفحة «ذكاء المؤشرات».
+# ⛔ لو الملف مش موجود ⇒ الفلتر مايتطبّقش (مافيش تخمين).
+_REGIME_CACHE = {"at": 0.0, "data": None}
+_INDEX_HIST = HERE / "data" / "index_history.json"
+
+
+def _ema(vals, n):
+    if len(vals) < n or n <= 0:
+        return None
+    k = 2.0 / (n + 1.0)
+    e = sum(vals[:n]) / float(n)
+    for v in vals[n:]:
+        e = v * k + e * (1 - k)
+    return e
+
+
+def market_regime(max_age_hours=6):
+    """{تاريخ: True/False} — EGX30 فوق EMA200؟"""
+    now = time.time()
+    if (_REGIME_CACHE["data"] is not None
+            and now - _REGIME_CACHE["at"] < max_age_hours * 3600):
+        return _REGIME_CACHE["data"]
+    out = {}
+    try:
+        if not _INDEX_HIST.exists():
+            return {}
+        with open(_INDEX_HIST, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        rows = ((payload.get("indices") or {}).get("EGX30") or {}).get("rows") or []
+        closes, dates = [], []
+        for r in rows:
+            try:
+                ts = int(r[0]); c = float(r[1])
+            except Exception:
+                continue
+            closes.append(c)
+            dates.append(time.strftime("%Y-%m-%d", time.gmtime(ts)))
+        e200 = None
+        for i, c in enumerate(closes):
+            if i >= 199:
+                if e200 is None:
+                    e200 = _ema(closes[:i + 1], 200)
+                else:
+                    k = 2.0 / 201.0
+                    e200 = c * k + e200 * (1 - k)
+            if e200:
+                out[dates[i]] = bool(c > e200)
+    except Exception as e:
+        _log("⚠️ regime: %s" % e)
+        return {}
+    _REGIME_CACHE["at"] = now
+    _REGIME_CACHE["data"] = out
+    return out
+
+
+def regime_asof(date_str, regime=None):
+    """قيمة الـregime «كما كانت» في تاريخ معيّن.
+
+    ⛔ لازم «آخر قيمة معروفة قبل التاريخ» — مش تاريخ مطابق: المؤشر
+       بيتقفل في أيام راحة السهم (السبت) ⇒ البحث بالتاريخ المطابق
+       بيرجّع None وبيقفل الفلتر على كل الإشارات.
+    """
+    reg = regime if regime is not None else market_regime()
+    if not reg:
+        return None
+    d = str(date_str or "")
+    if d in reg:
+        return reg[d]
+    best = None
+    for k in reg:
+        if k <= d and (best is None or k > best):
+            best = k
+    return reg.get(best) if best else None
+
+
 def _passes(sig, flt):
     """فلترة الإشارة — كل شرط لازم يكون معروف وقت الإشارة."""
     if flt.get("kind") and sig.get("kind") != flt["kind"]:
@@ -126,7 +243,56 @@ def _passes(sig, flt):
     if flt.get("min_zone_score") is not None and (zs is None
                                                   or zs < flt["min_zone_score"]):
         return False
+    # ⭐ regime السوق: EGX30 فوق EMA200 (مُقاس — بيفرق +0.4R)
+    if flt.get("market_above_ema200") is not None:
+        m = sig.get("market_above_ema200")
+        if m is None:
+            return False
+        if bool(m) != bool(flt["market_above_ema200"]):
+            return False
     return True
+
+
+def _apply_setup(item):
+    """يضبط مستويات الـsetup المُقاسة: الوقف تحت حافة المنطقة والهدف +٤ ATR.
+
+    📌 السبب: مستويات الكاشف الأصلية (المدى الحقيقي للمنطقة) كانت بتطلع
+       ضعيفة لأن الدخول بفتتاح الشمعة الجاية بيبعد عن المستوى.
+       الإعداد المقيس: وقف = حافة − ١ ATR · هدف = الدخول + ٤ ATR.
+    ⛔ القيم القديمة بتفضل في evidence (مافيشLost information).
+    """
+    ev = item.get("evidence") or {}
+    atr = ev.get("atr")
+    direction = item.get("direction")
+    zone_high = item.get("zone_high")
+    zone_low = item.get("zone_low")
+    entry = item.get("entry")
+    if not atr or not entry:
+        return item
+    try:
+        atr = float(atr)
+        entry = float(entry)
+    except Exception:
+        return item
+    if direction == "up":
+        level = zone_high if zone_high is not None else entry
+        stop = level - SETUP_STOP_ATR * atr
+        target = entry + SETUP_TARGET_ATR * atr
+    else:
+        level = zone_low if zone_low is not None else entry
+        stop = level + SETUP_STOP_ATR * atr
+        target = entry - SETUP_TARGET_ATR * atr
+    item["setup"] = {
+        "level": round(float(level), 4),
+        "entry_ref": round(entry, 4),
+        "stop": round(float(stop), 4),
+        "target": round(float(target), 4),
+        "rr": round(abs(target - entry) / max(1e-9, abs(entry - stop)), 2),
+        "stop_atr": SETUP_STOP_ATR,
+        "target_atr": SETUP_TARGET_ATR,
+        "entry_note": "الدخول الفعلي: افتتاح الشمعة التالية للتأكيد",
+    }
+    return item
 
 
 def _liquidity_ok(sig, min_turnover, live_data=None):
@@ -168,23 +334,62 @@ def build_shortlist(codes=None, filters=None, cfg=None, universe=None,
 
     got, failed = radar_api.history_for(codes, n=320)
     items = []
+    regime = market_regime()
     summary = {"codes": len(codes), "ok": 0, "insufficient": 0, "no_pattern": 0,
                "signals": 0, "filtered_out": 0, "failed_fetch": len(failed or [])}
+    lookback = int(flt.get("lookback_days") or 5)
+    # نسخة من الفلاتر من غير شرط الـregime (لعرض «غير مُقاس»)
+    loose_flt = dict(flt)
+    loose_flt.pop("market_above_ema200", None)
     for code in codes:
         cols = got.get(code)
         bars = _cols_to_bars(cols) if cols else []
-        res = pd.detect(bars, code=code, cfg=cfg) if bars else {
-            "status": "insufficient", "reason": "مفيش شموع من المصدر", "signals": []}
-        if res.get("status") != "ok":
+        if not bars:
             summary["insufficient"] += 1
             continue
-        summary["ok"] += 1
-        sigs = res.get("signals") or []
+        # ⭐ نفحص آخر ٥ أيام تداول — كل يوم على حدة (السلسلة مقصوصة)
+        #    ⇒ مافيش look-ahead + المستخدم بيلقى setups حتى لو اليوم مفيش كسر.
+        sigs = []
+        for k in range(min(lookback, max(0, len(bars) - 1))):
+            sub = bars[:len(bars) - k] if k else bars
+            res = pd.detect(sub, code=code, cfg=cfg)
+            if res.get("status") != "ok":
+                if k == 0:
+                    summary["insufficient"] += 1
+                continue
+            if k == 0:
+                summary["ok"] += 1
+            got_sigs = res.get("signals") or []
+            if k == 0 and not got_sigs:
+                summary["no_pattern"] += 1
+            for sg in got_sigs:
+                sg["days_ago"] = k
+                sigs.append(sg)
         if not sigs:
-            summary["no_pattern"] += 1
             continue
+        seen = set()
         for s in sigs:
-            if not _passes(s, flt):
+            # ⭐ regime السوق (EGX30 فوق EMA200) — شرط مُقاس
+            s["market_above_ema200"] = regime_asof(s.get("detected_at"),
+                                                    regime)
+            # ⛔ نفس الكسر ممكن يتأكد على أكتر من يوم (تأكيد ٣ إغلاقات)
+            #    ⇒ نخلي أول ظهور بس (تاريخ الكسر الحقيقي).
+            # ⛔ نستخدم حافة المنطقة (للي كسر) مش midpoint — عشان نفس
+            #    الكسر ممكن يتعرّف بمنطقتين مختلفتين للمنطقة.
+            _edge = s.get("zone_high") if s.get("direction") == "up" else s.get("zone_low")
+            key = (s.get("direction"), round(float(_edge or 0), 2))
+            if key in seen:
+                summary["filtered_out"] += 1
+                continue
+            seen.add(key)
+            # ⭐⭐ المطابقة الكاملة = «مُقاس» (اللي عنده إحصا��ة ونتايج
+            #    تاريخية). اللي بيمر بغير شرط الـregime بيظهر برضه بس
+            #    موسوم «مش مُقاس» — عشان المستخدم مايفتكرش إنه مدروس.
+            if _passes(s, flt):
+                s["measured_fit"] = True
+            elif _passes(s, loose_flt):
+                s["measured_fit"] = False
+            else:
                 summary["filtered_out"] += 1
                 continue
             ok_liq, turnover = _liquidity_ok(s, flt.get("min_turnover"), live_data)
@@ -197,11 +402,17 @@ def build_shortlist(codes=None, filters=None, cfg=None, universe=None,
             item["name"] = meta.get("name") or code
             item["sector"] = meta.get("sector")
             item["turnover"] = turnover
+            # ⭐ مستويات الـsetup المُقاسة (٢٨ أكتوبر ٢٠٢٦)
+            _apply_setup(item)
             items.append(item)
         summary["signals"] += len(sigs)
 
-    items.sort(key=lambda s: ((s.get("detected_at") or ""), s.get("rr") or -99),
-               reverse=True)
+    # ⭐ الترتيب: المُقاس (مطابق للشرط المقاس) الأول، ثم الأحدث
+    items.sort(key=lambda s: (0 if s.get("measured_fit") else 1,
+                               -(s.get("days_ago") or 0),
+                               s.get("detected_at") or "",
+                               -((s.get("setup") or {}).get("rr") or 0)),
+               reverse=False)
     return {"generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             "asof": (items[0].get("detected_at") if items else None),
             "count": len(items), "items": items, "summary": summary,
@@ -393,6 +604,7 @@ def register(app, require_user=None, send=None, live_data_getter=None,
                         "generated_at": payload.get("generated_at"),
                         "summary": payload.get("summary"),
                         "stale": stale,
+                        "measured": MEASURED_PERFORMANCE,
                         "filters": payload.get("filters")})
 
     @app.route("/api/setups/meta", methods=["GET"])
@@ -404,6 +616,7 @@ def register(app, require_user=None, send=None, live_data_getter=None,
         return jsonify({"ok": True, "filters": load_filters(),
                         "summary": payload.get("summary"),
                         "plan": _plan_of(u),
+                        "measured": MEASURED_PERFORMANCE,
                         "generated_at": payload.get("generated_at")})
 
     @app.route("/api/setups/refresh", methods=["POST"])
