@@ -254,26 +254,34 @@ def _state_save(d):
         pass
 
 
+def _p(v):
+    """تنسيق السعر في نص الإنذار (رقمان عشريان)."""
+    try:
+        return ("%.2f" % float(v))
+    except Exception:
+        return "—"
+
+
 def digest_text(items, limit=12):
     """نص الملخص العربي للإنذار."""
     if not items:
-        return "🌙 <b>لا توجد إشارات اليوم</b>\n\nمفيش كسر منطقة عدّى الفلاتر."
-    lines = [f"🛰️ <b>أنماط OCTA — كسر منطقة</b>",
-             f"{items[0].get('detected_at') or ''} · {len(items)} نمط",
+        return ("🌙 <b>لا توجد إشارات اليوم</b>\n\n"
+                "مفيش كسر منطقة عدّى الفلاتر.\n"
+                "⚠️ محتوى تعليمي — القرار قرارك.")
+    lines = ["🛰️ <b>نماذجي — كسر منطقة</b>",
+             "%s · %d نمط" % (items[0].get("detected_at") or "", len(items)),
              "━" * 20]
     for s in items[:limit]:
-        direction = "صاعد" if s.get("direction") == "up" else "هابط"
-        lines.append(
-            "<b>%s</b> (%s) — %s" % (s.get("code"), s.get("name") or "",
-                                     direction))
-        lines.append("   دخول %s · وقف %s · هدف %s · R:R %s"
-                     % (s.get("entry"), s.get("stop"), s.get("target"),
-                        s.get("rr")))
-        ev = s.get("evidence") or {}
-        lines.append("   %s · %s"
-                     % (s.get("why") or "",
-                        ("حجم مؤكد" if s.get("volume_confirmed")
-                         else "بدون تأكيد حجم")))
+        direction = "صاعد ▲" if s.get("direction") == "up" else "هابط ▼"
+        lines.append("<b>%s</b> %s — %s"
+                     % (s.get("code"), s.get("name") or "", direction))
+        lines.append("   دخول %s · وقف %s · هدف %s · ع/م %s"
+                     % (_p(s.get("entry")), _p(s.get("stop")),
+                        _p(s.get("target")), s.get("rr")))
+        why = (s.get("why") or "").strip()
+        if len(why) > 150:
+            why = why[:150] + "…"
+        lines.append("   %s%s" % (why, " · حجم مؤكد" if s.get("volume_confirmed") else ""))
     if len(items) > limit:
         lines.append("... وفي %d نمط تاني في التطبيق." % (len(items) - limit))
     lines.append("⚠️ محتوى تعليمي — القرار قرارك.")

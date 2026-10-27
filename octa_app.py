@@ -470,5 +470,16 @@ try:
 except Exception as _pattern_err:
     print("[pattern] ⚠️ مش متركّب: %s" % _pattern_err, flush=True)
 
+# ══════════════════════════════════════════════════════════════════════
+#  🎨 الاستوديو — رسومات المستخدم (٢٨ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+try:
+    import pattern_studio as _studio_mod
+
+    _studio_mod.register(app, require_user=U.require_user)
+    print("[studio] ✅ الاستوديو متركّب", flush=True)
+except Exception as _studio_err:
+    print("[studio] ⚠️ مش متركّب: %s" % _studio_err, flush=True)
+
 
 print("[octa] ✅ ready", flush=True)
