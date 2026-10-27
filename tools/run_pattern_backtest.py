@@ -114,6 +114,11 @@ def main(argv=None):
         families[fam] = m
     universe_out = dict(merged["universe"])
     universe_out["codes_total"] = len(codes)
+    # ⭐ الـmerge بيرجّع العدّادات بس ⇒ horizon/warmup/start_date من الـCLI
+    universe_out["horizon"] = args.horizon
+    universe_out["step"] = args.step
+    universe_out["warmup"] = args.warmup
+    universe_out["start_date"] = args.start
     universe_out["codes_skipped"] = len(codes) - universe_out["codes"]
     result = {"families": families, "universe": universe_out,
               "notes": merged["notes"],

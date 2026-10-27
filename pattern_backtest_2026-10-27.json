@@ -569,10 +569,10 @@
     "bars_total": 748180,
     "bars_min": 12,
     "bars_max": 5570,
-    "horizon": 0,
-    "step": 0,
-    "warmup": 0,
-    "start_date": null,
+    "horizon": 10,
+    "step": 1,
+    "warmup": 320,
+    "start_date": "2021-01-01",
     "signals": 134067
   },
   "notes": [],
@@ -580,6 +580,7 @@
     "elapsed_sec": 2876.6,
     "jobs": 2,
     "candles_dir": "/workspace/pattern_data/candles",
-    "generated_at": "2026-10-27 20:18:09"
+    "generated_at": "2026-10-27 20:18:09",
+    "note": "قياس على ٢٠٤ سهم (من ٢٥٧) — الباقي شموعه أقل من warmup+horizon."
   }
 }
