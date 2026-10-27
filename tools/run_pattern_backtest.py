@@ -140,7 +140,8 @@ def main(argv=None):
         print("   نسبة النجاح: %s" % ("%.1f%%" % (hr * 100) if hr is not None else "—"))
         print("   متوسط R المحقق: %s"
               % ("%.2f" % m["avg_r"] if m["avg_r"] is not None else "—"))
-        for dim in ("by_direction", "by_confirmed", "by_volume_confirmed"):
+        for dim in ("by_direction", "by_confirmed", "by_volume_confirmed",
+                    "by_fillable"):
             parts = []
             for k, v in sorted(m["breakdown"][dim].items()):
                 if not v["signals"]:
@@ -152,6 +153,17 @@ def main(argv=None):
                                 ("%.2f" % v["avg_r"]) if v["avg_r"] is not None else "—"))
             if parts:
                 print("   %s → %s" % (dim, " | ".join(parts)))
+        years = []
+        for k, v in sorted(m["breakdown"]["by_year"].items()):
+            if not v["signals"]:
+                continue
+            h = v["hit_rate"]
+            years.append("%s: %s (نجاح %s · R %s)"
+                         % (k, v["signals"],
+                            ("%.0f%%" % (h * 100)) if h is not None else "—",
+                            ("%.2f" % v["avg_r"]) if v["avg_r"] is not None else "—"))
+        if years:
+            print("   حسب السنة → %s" % " | ".join(years))
 
     if args.out:
         with open(args.out, "w", encoding="utf-8") as f:
