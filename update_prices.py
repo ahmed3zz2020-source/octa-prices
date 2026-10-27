@@ -14142,6 +14142,44 @@ try:
 except Exception as _radar_err:
     print("[radar] ⚠️ مش متركّب: %s" % _radar_err, flush=True)
 
+
+# ══════════════════════════════════════════════════════════════════════
+# 🚀 محرك الأنماط («نماذجي») — مسح يومي + /api/setups (٢٨ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ لازم يتربط هنا (مش في octa_app) — لأن الـProcfile بيشغّل
+#    update_prices:app وده نقطة الدخول الفعلية في الإنتاج.
+# ⛔ fail-soft: لو الملف مش موجود أو فيه خطأ، السيرفر بيفضل شغال.
+try:
+    import pattern_daily as _pattern_mod
+
+    def _pattern_live_egx():
+        try:
+            return LIVE_DATA.get("egx30") or []
+        except Exception:
+            return []
+
+    def _pattern_plan_setter(uid, plan):
+        return _patch_user(str(uid), plan=str(plan))
+
+    _pattern_mod.register(app, require_user=require_user, send=send,
+                          live_data_getter=_pattern_live_egx,
+                          plan_setter=_pattern_plan_setter)
+    print("[pattern] ✅ محرك الأنماط متركّب", flush=True)
+except Exception as _pattern_err:
+    print("[pattern] ⚠️ مش متركّب: %s" % _pattern_err, flush=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🎨 الاستوديو — رسومات المستخدم (٢٨ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+try:
+    import pattern_studio as _studio_mod
+
+    _studio_mod.register(app, require_user=require_user)
+    print("[studio] ✅ الاستوديو متركّب", flush=True)
+except Exception as _studio_err:
+    print("[studio] ⚠️ مش متركّب: %s" % _studio_err, flush=True)
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     print(f"Starting OCTA v3 on port {port}")
