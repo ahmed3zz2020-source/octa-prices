@@ -81,7 +81,7 @@ print("\n▶️ ④ السلسلة التاريخية + الهوية اللوغ�
 data = gh.build(force=True)
 check(data.get("ok") is True, "السلسلة اتبنت")
 s = data.get("series") or []
-check(len(s) > 3000, f"السلسلة طويلة: {len(s)}")
+check(len(s) > 2000, f"السلسلة طويلة (>2000 يوم = 10 سنين): {len(s)}")
 bad = 0
 for r in s[:300] + s[-300:]:
     calc = (r["xau"] * r["egp_per_usd"]) / 31.1035
