@@ -237,11 +237,13 @@ def attribute(d):
         "gold_share_pct": round(sh_x, 1) if sh_x is not None else None,
         "currency_share_pct": round(sh_f, 1) if sh_f is not None else None,
         "driver": driver,
-        "text": ("الجرام %s %.0f ج.م (%.1f%%): %s contributing %+.0f ج.م، "
-                 "والذهب العالمي %+.0f ج.م."
+        # ⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — النص: مفيش كلمة إنجليزية + **المساهمتين
+        #    الاتنين** (كان مساهمة الدولار بتختفي + «الذهب العالمي» متكررة)
+        "text": ("الجرام %s %.0f ج.م (%.1f%%): الذهب العالمي %+.0f ج.م، "
+                 "والدولار %+.0f ج.م — والمحرك الأقوى: %s (%+.0f ج.م)."
                  % ("ارتفع" if total >= 0 else "انخفض", abs(total),
                     (g1 / g0 - 1.0) * 100.0 if g0 else 0.0,
-                    driver, dpts, gold_pts)),
+                    gold_pts, fx_pts, driver, dpts)),
         "caveat": ("ده إسهام حسابي على أساس لوغاريتم العوائد — مش إثبات إن العامل "
                    "ده سبّب الحركة. والنسب = قوة المساهمة (٠..١٠٠) مش نسبة من التغير."),
     }

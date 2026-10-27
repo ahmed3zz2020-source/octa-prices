@@ -290,10 +290,24 @@ def _freshness(obs_date, now=None, daily=True):
     """⛔ الطزاجة من تاريخ **الرصد** (مش وقت السحب)."""
     if not obs_date:
         return {"status": "unknown", "age_days": None}
-    try:
-        d = datetime.date.fromisoformat(str(obs_date)[:10])
-    except Exception:
-        return {"status": "unknown", "age_days": None}
+    # ⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — صيغ متعددة (نور-الكوانت): تواريخ البنك المركزي
+    #    المصري مش ISO ("26 Oct 2026" · "12 Feb 2026") ⇒ الطزاجة unknown
+    d = None
+    _raw = str(obs_date).strip()
+    # ⛔⛔ القصّ [:10] كان بيقطع السنة من «26 Oct 2026» ⇒ «26 Oct 202» ⇒ فشل!
+    #    ⇒ ISO بيقصّ ١٠ حروف، والباقي بياخد النص كامل.
+    for _f, _v in (("%Y-%m-%d", _raw[:10]), ("%d %b %Y", _raw), ("%d %B %Y", _raw),
+                   ("%Y/%m/%d", _raw), ("%d/%m/%Y", _raw)):
+        try:
+            d = datetime.datetime.strptime(_v, _f).date()
+            break
+        except Exception:
+            continue
+    if d is None:
+        try:
+            d = datetime.date.fromisoformat(_raw[:10])
+        except Exception:
+            return {"status": "unknown", "age_days": None}
     n = now or datetime.date.today()
     age = (n - d).days
     if age <= (2 if daily else 45):

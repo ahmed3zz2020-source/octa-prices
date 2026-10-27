@@ -130,6 +130,13 @@ for r in rows:
           "%s سنة: نافذة الحقيقي معروفة" % r["years"])
     check(rl.get("inflation_pct") is not None,
           "%s سنة: فيه تضخم" % r["years"])
+    # ⛔⛔ نافذة الحقيقي لازم تكون على نفس نافذة التضخم المتعلنة
+    _last_cpi = (sv.get("inflation_last_year") or "") + "-12-31"
+    check(rl.get("window_to") and _last_cpi and rl["window_to"] <= _last_cpi,
+          "%s سنة: نافذة الحقيقي بتقفل مع آخر سنة تضخم (%s ≤ %s)"
+          % (r["years"], rl.get("window_to"), _last_cpi))
+    check(rl.get("nominal_pct") is not None and rl.get("window_from"),
+          "%s سنة: العائد الاسمي للنافذة نفسها موجود" % r["years"])
     check(rl["real_pct"] <= rl["nominal_pct"] + 0.01,
           "%s سنة: الحقيقي (%.1f%%) ≤ الاسمي (%.1f%%) — لأن التضخم موجب"
           % (r["years"], rl["real_pct"], rl["nominal_pct"]))
@@ -169,6 +176,24 @@ try:
     att = ((d2.get("attribution") or {}).get("decompose") or {})
     check(att.get("to", "") <= cut, "الفترة بتتقفل عند as_of (%s ≤ %s)"
           % (att.get("to"), cut))
+    # ⛔⛔ as_of لازم يقصّ **كل** المخرجات (مش التفكيك بس) — نور-الكوانت
+    cur = d2.get("current") or {}
+    check(cur.get("date", "") <= cut, "السعر الحالي قبل as_of (%s)" % cur.get("date"))
+    for sc in (d2.get("scenarios") or []):
+        for t in (sc.get("targets") or []):
+            if t.get("level") is None:
+                continue
+        ev = json.dumps(sc, ensure_ascii=False)
+        import re as _re
+        _dates = _re.findall(r"20\d\d-\d\d-\d\d", ev)
+        _bad = [x for x in _dates if x > cut]
+        check(not _bad, "سيناريو %s: مفيش تاريخ بعد as_of (%s)"
+              % (sc.get("key"), _bad[:2]))
+    for r2 in ((d2.get("savings") or {}).get("rows") or []):
+        check(r2.get("to", "") <= cut, "صف الادخار %s سنة قبل as_of" % r2.get("years"))
+        rl2 = r2.get("real") or {}
+        if rl2.get("window_to"):
+            check(rl2["window_to"] <= cut, "نافذة الحقيقي قبل as_of")
 except Exception as e:
     check(False, "as_of: %s" % str(e)[:80])
 
@@ -180,6 +205,24 @@ joined = " ".join(sm)
 check(any(ch.isdigit() for ch in joined), "الخلاصة فيها أرقام")
 for kw in ("الدولار", "الادخار"):
     check(kw in joined, "الخلاصة بتغطي «%s»" % kw)
+
+# ═════════════ ⑧٫ب الإسناد: مفيش إنجليزي + المساهمتين الاتنين ═════════════
+section("⑧٫ب نص الإسناد")
+try:
+    import gold_premium as _gp
+    for _d in (30, 365, 1095):
+        _dec = _gp.decompose(
+            __import__("gold_history").build()["series"], days=_d)
+        _at = _gp.attribute(_dec)
+        if not _at:
+            continue
+        _txt = _at.get("text") or ""
+        check("contributing" not in _txt.lower(),
+              "%s يوم: مفيش كلمة إنجليزية في نص الإسناد" % _d)
+        check(("الذهب" in _txt) and ("الدولار" in _txt),
+              "%s يوم: المساهمتين الاتنين موجودين" % _d)
+except Exception as e:
+    check(False, "فحص نص الإسناد: %s" % str(e)[:70])
 
 # ═════════════ ⑨ محرك العملة (آلي مش توقّع) ═════════════
 section("⑨ محرك العملة")

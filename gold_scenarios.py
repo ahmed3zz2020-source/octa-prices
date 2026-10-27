@@ -426,12 +426,17 @@ def _savings(series, cpi):
                                  ("سلسلة التضخم المتاحة تبدأ %s ⇒ ما ينفعش نقيس "
                                   "العائد الحقيقي على نافذة تبدأ %s"
                                   % (years[0], y0)))
-                if base and end and r_start["gram"]:
+                # ⛔⛔ البسط لازم يكون على **نفس نافذة التضخم** (لحد آخر سنة
+                #    تضخم) مش لآخر السلسلة — غير كده ٣٠٠ يوم بتتقسم على صفر
+                #    تضخم والرقم الحقيقي بيطلع أعلى بـ~١٠٪ (نور-الكوانت).
+                _ge = [r for r in s if r["d"] <= (y_last + "-12-31")]
+                g_end = _ge[-1] if _ge else None
+                if base and end and r_start["gram"] and g_end and g_end["gram"]:
                     infl = (end / base - 1.0) * 100.0
                     cpi_used = "%s → %s" % (y0, y_last)
                     win_from = r_start["d"]
-                    win_to = y_last + "-12-31"
-                    nom_m = _pct(r_start["gram"], last["gram"])
+                    win_to = g_end["d"]          # ⛔ تاريخ فعلي مش 31 ديسمبر
+                    nom_m = _pct(r_start["gram"], g_end["gram"])
                     yrs_m = (datetime.date.fromisoformat(win_to) -
                              datetime.date.fromisoformat(r_start["d"])).days / 365.25
         real_ret = None
@@ -446,14 +451,21 @@ def _savings(series, cpi):
             g_buy = 100000.0 / r0["gram"]
             now_val = g_buy * last["gram"]
             real_val = None
-            if infl is not None and nom_m is not None:
-                real_val = now_val / (1.0 + infl / 100.0)
+            real_date = None
+            if infl is not None and nom_m is not None and win_to:
+                # ⛔ القيمة الحقيقية على **نفس نافذة التضخم** (مش لآخر السلسلة)
+                _ge2 = [r for r in s if r["d"] <= win_to]
+                if _ge2:
+                    real_date = _ge2[-1]["d"]
+                    real_val = (g_buy * _ge2[-1]["gram"]) / (1.0 + infl / 100.0)
             ex = {"amount_egp": 100000.0,
                   "grams_bought": _r(g_buy, 2),
                   "value_now_egp": _r(now_val, 0),
                   "value_now_real_egp": _r(real_val, 0),
-                  "note": ("«القيمة الحقيقية» = القيمة الاسمية ÷ تراكم التضخم "
-                           "المصري في نفس الفترة.")}
+                  "value_now_real_date": real_date,
+                  "note": ("«القيمة الحقيقية» = القيمة الاسمية عند نهاية نافذة "
+                           "التضخم (%s) ÷ تراكم التضخم المصري في نفس الفترة."
+                           % (real_date or "—"))}
         out.append({
             "years": round(yrs_real, 1),
             "from": r0["d"], "to": last["d"],
@@ -511,11 +523,14 @@ def _summary(an, fx_an, attribution, savings, macro, local, cur, cur_fx):
         r10 = next((r for r in savings["rows"] if r["years"] >= 9), None)
         if r10:
             _rl = r10.get("real") or {}
-            lines.append("الادخار: على %s سنة — اسمي ×%s، وحقيقي بعد التضخم %s. "
-                         "الفرق ده هو اللي بيفوت على أي كلام عن «الذهب كاستثمار»."
-                         % (r10["years"], r10.get("times"),
+            lines.append("الادخار: اسمي ×%s على %s سنة (لحتى %s) — والحقيقي بعد "
+                         "التضخم %s على %s سنة (نافذة التضخم %s). النافذتين مختلفين: "
+                         "آخر سنة تضخم متاحة %s."
+                         % (r10.get("times"), r10.get("years"), r10.get("to"),
                             ("×%s" % _rl.get("real_times")) if _rl.get("real_times")
-                            else "غير متاح"))
+                            else "غير متاح",
+                            _rl.get("years"), _rl.get("inflation_window"),
+                            savings.get("inflation_last_year")))
     if local and local.get("gram_24_reference"):
         lines.append("السعر المرصود دلوقتي: %s ج.م — والسلسلة النظرية %s ج.م، "
                      "والفرق ده هامش التاجر (السعر المصري محسوب من الذهب العالمي "
@@ -553,6 +568,15 @@ def build(as_of=None):
     except Exception as e:
         return {"ok": False, "error": "تعذّر تحميل السلسلة: " + str(e)[:90]}
 
+    # ⛔⛔ as_of لازم يقصّ السلسلة **كلها** (مش decompose بس) ⇒ مفيش look-ahead
+    #    (نور-الكوانت: كان التحليل الفني + الادخار + السعر الحالي بيشتغلوا
+    #     على بيانات بعد as_of).
+    if as_of:
+        _cut = str(as_of)[:10]
+        series = [r for r in series if str(r.get("d"))[:10] <= _cut]
+        if len(series) < 60:
+            return {"ok": False,
+                    "error": "السلسلة قبل as_of قصيرة جداً للسيناريوهات"}
     if len(series) < 60:
         return {"ok": False, "error": "السلسلة قصيرة جداً للسيناريوهات"}
 
