@@ -11007,10 +11007,11 @@ def gold_history_api():
             return jsonify({"ok": True, "stats": st,
                             "count": data.get("count"), "from": data.get("from"),
                             "to": data.get("to"), "sources": data.get("sources"),
-                            "method": data.get("method")})
+                            "method": data.get("method"), "gaps": data.get("gaps")})
         return jsonify({"ok": True, "count": data.get("count"),
                         "from": data.get("from"), "to": data.get("to"),
                         "sources": data.get("sources"), "method": data.get("method"),
+                        "gaps": data.get("gaps"),
                         "stats": st, "series": data.get("series", [])})
     except Exception as e:
         _log_exc("gold-history", e)

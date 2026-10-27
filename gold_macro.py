@@ -516,8 +516,13 @@ def build(force=False):
                                ("unrate", "UNRATE", "%")):
             r = R.get("fred:" + sid) or {}
             st = _series_stats(r.get("points"), unit)
+            # ⛔⛔ سبب واضح لو المصدر رجع فاضي (مش error فاضي!)
+            _err = r.get("error")
+            if not st and not _err:
+                _err = ("مصدر FRED مقفول في هذه البيئة (GOLD_FRED=1 بيفتحه) — "
+                        "والبديل BLS." if not _use_fred else "المصدر رجّع فاضي")
             add(key, st, r.get("source"), r.get("source_url"), unit,
-                {"error": r.get("error")})
+                {"error": _err})
 
         # ── BLS كبديل للسلاسل اللي FRED رجّعها فاضية ──
         _need = [k for k in ("cpi_us", "unrate", "payrolls")
@@ -540,6 +545,10 @@ def build(force=False):
                         add(k, st, rb.get("source"), rb.get("source_url"), unit,
                             {"error": None,
                              "note": "من مصدر بديل (BLS) لأن FRED لم يستجب."})
+                    else:
+                        # ⛔ سبب واضح: BLS فاشل (سقف يومي/شبكة)
+                        add(k, None, rb.get("source"), rb.get("source_url"), unit,
+                            {"error": rb.get("error") or "البديل (BLS) رجّع فاضي"})
 
         # ── البنك الدولي (مصر) ──
         for key, ind, unit in (("cpi_eg", "FP.CPI.TOTL", "مؤشر (2010=100)"),
