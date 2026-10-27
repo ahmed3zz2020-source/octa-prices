@@ -60,8 +60,23 @@ check(data.get("ok") is True, "السلسلة اتبنت بنجاح")
 s = data.get("series") or []
 check(len(s) > 1500, f"السلسلة طويلة (>1500 يوم) — {len(s)}")
 check(data.get("from", "") <= "2016-10-27", "بتبدأ من يوم تعويم الجنيه (٢٠١٦-١٠-٢٦) أو قبله")
-check(data.get("sources", {}).get("fx", {}).get("id") in ("yahoo_egpx", "tradingview_egpusd"),
-      "مصدر الصرف موسوم: " + str(data.get("sources", {}).get("fx", {}).get("id")))
+# ⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — مصدر الصرف بقى USDEGP (الرسمي).
+# 📌 السبب: EGPUSD = سعر السوق الموازي (+2.4٪) ⇒ كان بيعمل خطأ ٢.٤٪
+#    في آخر نقطة. USDEGP = الرسمي = نفس tk-usd في الـscanner.
+_fx = (data.get("sources", {}).get("fx") or {})
+check(_fx.get("id") in ("tradingview_usdegp", "yahoo_egpx"),
+      "مصدر الصرف موسوم: " + str(_fx.get("id")))
+check(_fx.get("id") != "tradingview_egpusd",
+      "⛔ مش السوق الموازي (EGPUSD) — ده الرسمي")
+# ⛔ التحقق الحسابي: جرام = ذهب × جنيه/دولار ÷ 31.1035 (على أول وآخر صف)
+for _r in (s[0], s[-1]):
+    _calc = round(_r["xau"] * _r["egp_per_usd"] / 31.1035, 4)
+    check(abs(_calc - _r["gram"]) <= 1e-6,
+          "الجرام = ذهب × رسمي ÷ 31.1035 (%s) ⇒ %.4f" % (_r["d"], _calc))
+    check(_r["egp_per_usd"] > 1,
+          "جنيه/دولار > 1 (%s ⇒ %.2f)" % (_r["d"], _r["egp_per_usd"]))
+    check(abs(_r["usd_per_egp"] * _r["egp_per_usd"] - 1.0) < 1e-6,
+          "usd_per_egp هو المقلوب فعلاً (%s)" % _r["d"])
 check(data.get("to", "") >= (datetime.datetime.utcnow() - datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
       "بتوصل لآخر几天")
 check(bool(data.get("sources", {}).get("gold")), "مصدر الذهب موثّق")
