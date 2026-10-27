@@ -141,10 +141,13 @@ check("/api/setups/meta" in _app.routes, "مسار /api/setups/meta متسجّل
 check("/api/setups/refresh" in _app.routes, "مسار /api/setups/refresh متسجّل")
 _res, _status = _call(_app.routes["/api/setups"])
 check(_status == 401, "الزائر ⇒ 401 (مش 200)")
-cur["u"] = {"id": "u1"}
+cur["u"] = {"id": "u1", "plan": "free"}
 _res2, _status2 = _call(_app.routes["/api/setups"])
-check(_status2 in (200, 503),
-      "المتسجّل ⇒ 200 أو 503 (حسب وجود الكاش) — Got %d" % _status2)
+check(_status2 == 403, "باقة مقفولة (free) ⇒ 403 — Got %d" % _status2)
+cur["u"] = {"id": "u1", "plan": "pro"}
+_res3, _status3 = _call(_app.routes["/api/setups"])
+check(_status3 in (200, 503),
+      "باقة pro ⇒ 200 أو 503 (حسب وجود الكاش) — Got %d" % _status3)
 
 print("\n" + ("✅ كل الاختبارات عدّت" if not fails else "❌ فشل: %d" % len(fails)))
 for f_ in fails:
