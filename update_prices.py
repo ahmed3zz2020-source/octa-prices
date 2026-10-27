@@ -10974,6 +10974,213 @@ def gold_candles_api():
         return jsonify({"ok": False, "error": "تعذّر جلب الشموع"}), 502
 
 
+# ════════════════════════════════════════════════════════════════
+# 🧮 تاريخ الذهب الطويل — «لو ادخرت من سنة كنا، كام بقى؟»
+# ════════════════════════════════════════════════════════════════
+# 📌 gold_history.py: سلسلة يومية لسعر الجرام بالجنيه المصري
+#    (XAUUSD ÷ EGPUSD ÷ 31.1035) من 2009-12-06 لحد النهارده.
+# ⛔ السعر **مرجعي محسوب** مش سعر محلات الصياغة (فيه هامش) — والواجهة
+#    لازم تقول كده.
+# ⛔ محمي؟ السلسلة دي **بيانات عامة** (أسعار تاريخية) — مش فيها
+#    توصيات ولا درجات ولا بيانات مستخدمين ⇒ مش محمية (زي /api/gold).
+#    بس خلينا نراجعها مع كريم-الأمن قبل ما نعتمد.
+@app.route("/api/gold/history")
+def gold_history_api():
+    """
+    GET ?full=1 ⇒ السلسلة كاملة · ?stats=1 ⇒ ملخص فقط
+    📌 الشكل: {ok, count, from, to, series:[{d,xau,egp,ounce_egp,gram}], stats:{...}}
+    """
+    try:
+        import importlib
+        gh = importlib.import_module("gold_history")
+        importlib.reload(gh) if os.environ.get("GOLD_HISTORY_RELOAD") else None
+        data = gh.build()
+        if not data or not data.get("ok"):
+            return jsonify({"ok": False,
+                            "error": (data or {}).get("error", "تعذّر بناء السلسلة")}), 502
+        st = gh.stats(data)
+        want_full = str(request.args.get("full", "")).lower() in ("1", "true", "yes")
+        want_stats = str(request.args.get("stats", "")).lower() in ("1", "true", "yes")
+        if want_stats and not want_full:
+            return jsonify({"ok": True, "stats": st,
+                            "count": data.get("count"), "from": data.get("from"),
+                            "to": data.get("to"), "sources": data.get("sources"),
+                            "method": data.get("method")})
+        return jsonify({"ok": True, "count": data.get("count"),
+                        "from": data.get("from"), "to": data.get("to"),
+                        "sources": data.get("sources"), "method": data.get("method"),
+                        "stats": st, "series": data.get("series", [])})
+    except Exception as e:
+        _log_exc("gold-history", e)
+        return jsonify({"ok": False, "error": "تعذّر تحميل تاريخ الذهب"}), 502
+
+
+@app.route("/api/gold/gram")
+def gold_gram_api():
+    """سعر الجرام في تاريخ محدد (أقرب يوم تداول سابق) — للإدخار."""
+    try:
+        d = (request.args.get("date") or "").strip()
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", d):
+            return jsonify({"ok": False, "error": "التاريخ لازم يكون YYYY-MM-DD"}), 400
+        import importlib
+        gh = importlib.import_module("gold_history")
+        data = gh.build()
+        if not data or not data.get("ok"):
+            return jsonify({"ok": False, "error": "السلسلة غير متاحة"}), 502
+        row = gh.value_on(d, data)
+        if not row:
+            return jsonify({"ok": False, "error": "مفيش سعر قبل التاريخ ده"}), 404
+        return jsonify({"ok": True, "requested": d, "date": row["d"],
+                        "gram": row["gram"], "ounce_egp": row["ounce_egp"],
+                        "xau_usd": row["xau"], "egp_per_usd": row["egp_per_usd"],
+                        "usd_per_egp": row["usd_per_egp"],
+                        "method": data.get("method")})
+    except Exception as e:
+        _log_exc("gold-gram", e)
+        return jsonify({"ok": False, "error": "تعذّر جلب السعر"}), 502
+
+
+# ════════════════════════════════════════════════════════════════
+# 🏷️ السعر المحلي المرصود — iSagha (مرجع سوق مصري تجاري)
+# ════════════════════════════════════════════════════════════════
+# 📌 ده **مش** السعر المحسوب (ذهب × دولار) — ده السعر اللي بيظهر
+#    في السوق المصرية، وفيه سعر شراء وسعر بيع.
+# ⛔ مصدر تجاري مش جهة حكومية — لازم الواجهة تقول كده.
+# ⛔ لو المصدر واقع ⇒ نرجّع ok=false + سبب (مش بنخفي ونقول "مفيش").
+@app.route("/api/gold/local")
+def gold_local_api():
+    try:
+        import importlib
+        gl = importlib.import_module("gold_local")
+        d = gl.get()
+        if not d or not d.get("ok"):
+            return jsonify({"ok": False,
+                            "error": (d or {}).get("error", "السعر المحلي غير متاح"),
+                            "hint": "الواجهة لازم تعرض السعر المحسوب موسوم إنه نظري."}), 503
+        return jsonify({
+            "ok": True,
+            "source": d.get("source"),
+            "source_url": d.get("source_url"),
+            "source_type": d.get("source_type"),
+            "license_note": d.get("license_note"),
+            "updated_iso": d.get("updated_iso"),
+            "updated_text": d.get("updated_text"),
+            "freshness": gl.freshness(d),
+            "gram_24_reference": d.get("gram_24_reference"),
+            "gram_24_source": d.get("gram_24_source", "headline_card"),
+            "growth_pct": d.get("growth_pct"),
+            "growth_period": d.get("growth_period"),
+            "ounce_usd": d.get("ounce_usd"),
+            "karats": d.get("karats"),
+            "grams": gl.gram_prices(d),
+        })
+    except Exception as e:
+        _log_exc("gold-local", e)
+        return jsonify({"ok": False, "error": "تعذّر جلب السعر المحلي"}), 502
+
+
+# ════════════════════════════════════════════════════════════════
+# 📐 العلاوة المحلية + تفكيك الحركة (ذهب ولا دولار؟)
+# ════════════════════════════════════════════════════════════════
+# 📌 المرصود (iSagha) − النظري (XAU × دولار ÷ 31.1035) = علاوة/خصم
+# 📌 والتفكيك بـlog returns: log(نظري) = log(ذهب) + log(جنيه/دولار)
+@app.route("/api/gold/attribution")
+def gold_attribution_api():
+    try:
+        days = int(request.args.get("days", "365"))
+        days = max(7, min(days, 4000))
+        import importlib
+        gh = importlib.import_module("gold_history")
+        gp = importlib.import_module("gold_premium")
+        gl = importlib.import_module("gold_local")
+        data = gh.build()
+        if not data or not data.get("ok"):
+            return jsonify({"ok": False, "error": "السلسلة غير متاحة"}), 502
+        dec = gp.decompose(data.get("series"), days=days)
+        if not dec.get("ok"):
+            return jsonify({"ok": False, "error": dec.get("error")}), 404
+
+        out = {"ok": True, "decomposition": dec,
+               "attribution": gp.attribute(dec)}
+
+        # ── العلاوة المحلية دلوقتي (لو السعر المرصود متاح) ──
+        # ⛔⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — لازم **نفس** سعر الدولار المستخدم في
+        #    كارت الذهب (tk-usd من الـscanner = سعر البنك المركزي) —
+        #    وإلا الـpremium بيبقى −٢٪ وهمية بسبب اختلاف المصدر بس.
+        #    السلسلة التاريخية (TV) بتستخدم مصدر تاني للدولار ⇒ بنعرض
+        #    النظري بالتسعين ونقول الفرق بصراحة.
+        loc = gl.get()
+        tk = {t["id"]: t for t in LIVE_DATA.get("ticker", [])}
+        gk, uk = tk.get("tk-gold"), tk.get("tk-usd")
+        fx_src = None
+        xau_val = gk.get("value") if gk else None
+        egp_val = uk.get("value") if uk else None
+        if xau_val and egp_val:
+            fx_src = {"usd_egp": round(egp_val, 4), "xau_usd": round(xau_val, 4),
+                      "source": "الـscanner (سعر البنك المركزي) — نفس سعر كارت الذهب"}
+        else:
+            # ⛔ fallback: بيانات البنك المركزي المحفوظة (data/egypt_macro.json)
+            try:
+                import os as _os
+                _p = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                                   "data", "egypt_macro.json")
+                with open(_p, "r", encoding="utf-8") as _f:
+                    _eg = json.load(_f)
+                _fx = ((_eg.get("extra") or {}).get("fx") or {})
+                _sell = _fx.get("sell") or _fx.get("buy")
+                _last = data["series"][-1]
+                if _sell and _last.get("xau"):
+                    egp_val = float(_sell)
+                    xau_val = float(_last["xau"])
+                    fx_src = {"usd_egp": round(egp_val, 4), "xau_usd": round(xau_val, 4),
+                              "source": "البنك المركزي المصري (ملف البيانات المحفوظ)",
+                              "source_date": _fx.get("last_updated")}
+            except Exception:
+                pass
+        if loc and loc.get("ok") and xau_val and egp_val:
+            obs = loc.get("gram_24_reference")
+            theo_card = gp.theoretical_gram(xau_val, egp_val)
+            pr = gp.premium(obs, theo_card)
+            last = data["series"][-1]
+            theo_tv = gp.theoretical_gram(last["xau"], last["egp_per_usd"])
+            if pr:
+                pr["implied_usd_per_egp"] = gp.implied_usd_egp(obs, xau_val)
+                pr["fx_used"] = fx_src
+                pr["theoretical_tv_fx"] = round(theo_tv, 2)
+                pr["theoretical_tv_fx_note"] = (
+                    "لو استخدمنا سعر الدولار من TradingView (%.2f جنيه/دولار بدل %.2f) "
+                    "النظري بيكون %.0f ج.م — والفرق ده فرق **مصدر** مش فرق سوق."
+                    % (last["egp_per_usd"], egp_val, theo_tv))
+                pr["observed_source"] = loc.get("source")
+                pr["observed_updated"] = loc.get("updated_iso")
+                pr["observed_freshness"] = gl.freshness(loc)
+                pr["xau_usd_used"] = xau_val
+            out["premium"] = pr
+            out["local"] = {
+                "gram_24_reference": obs,
+                "updated_iso": loc.get("updated_iso"),
+                "freshness": gl.freshness(loc),
+                "source": loc.get("source"),
+                "xau_usd": xau_val, "usd_egp": egp_val,
+            }
+        else:
+            out["premium"] = None
+            out["premium_note"] = ("السعر المحلي المرصود غير متاح دلوقتي ⇒ "
+                                   "مفيش علاوة محسوبة (مش صفر).")
+
+        out["method"] = {
+            "theoretical": "gram = (XAU_USD × EGP_per_USD) ÷ 31.1035 (أونصة تروي)",
+            "premium": "المرصود ÷ النظري − 1",
+            "decomposition": "log(نظري) = log(ذهب) + log(جنيه/دولار) — بالضبط",
+            "caveat": ("إسهام حسابي — مش إثبات سببية. والعلاوة المحلية ممكن "
+                       "تكون عرض/طلب أو هامش تاجر أو فرق توقيت."),
+        }
+        return jsonify(out)
+    except Exception as e:
+        _log_exc("gold-attribution", e)
+        return jsonify({"ok": False, "error": "تعذّر حساب التفكيك"}), 502
+
+
 @app.route("/api/top-movers")
 def top_movers():
     """أعلى/أسفل 10 أسهم + الأكثر تداولاً"""
