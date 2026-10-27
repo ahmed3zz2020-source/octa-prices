@@ -141,15 +141,27 @@ def parse(html):
     # ⛔ ملاحظة: القيمة موجودة في HTML الساكن (Alpine x-text) لكن مدة
     #    الفترة بتتغيّر مع الـchart ⇒ بنقرا الافتراضي (سنة) بس.
     #    أرقام الـ5 سنين بتتحصد بمتصفح (tools/harvest_gold_local.py).
-    gm = re.search(r'<bdi[^>]*current\.growth[^>]*>([^<]*)</bdi>', html)
+    # ⛔⛔ ٢٧ أكتوبر ٢٠٢٦ (حيدر-البيانات): الـregex القديم كان بياخد **أول**
+    #    <bdi> فيه current.growth وده **العنوان** («معدل النمو خلال السنة الماضية :»)
+    #    مش الرقم ⇒ النمو دايماً None. الرقم في:
+    #    <span x-text="current.growth === null ? '' : current.growth + '%'">15%</bdi>
+    gm = re.search(r"current\.growth\s*\+\s*'%'\"\s*>\s*([^<]*)<\/bdi>", html)
+    if not gm:
+        gm = re.search(r"current\.growth[^>]*>\s*([0-9][0-9.,]*)\s*%<\/bdi>", html)
     if gm:
-        v = _num(str(gm.group(1)).replace("%", "").replace("٪", ""))
+        v = _num(str(gm.group(1)).replace("%", "").replace("٪", "").replace(",", ""))
         if v is not None:
             out["growth_pct"] = v
             out["growth_period"] = "السنة الماضية"   # الـchart الافتراضي
+            # ⛔ المدة الافتراضية (سنة) — المصدر بيغيّرها مع الـchart
+            out["growth_period"] = "السنة الماضية"
     g5 = re.search(r'معدل النمو خلال آخر خمس سنوات\s*:\s*([0-9.]+)\s*%', html)
     if g5:
         out["growth_5y_pct"] = _num(g5.group(1))
+    else:
+        # ⛔ الرقم مش في الـHTML الساكن (بيتحصد بمتصفح) ⇒ سبب صريح
+        out["growth_5y_note"] = ("رقم النمو لـ5 سنين مش في الصفحة الساكنة — "
+                                 "بيتحصد بمتصفح (أداة الحصاد).")
 
     # ⑥ الأونصة بالدولار (لو موجودة في الصفحة)
     om = re.search(r'أوقية الذهب.{0,300}?>\s*([0-9]{3,5}\.[0-9]{2})\s*<', html, re.S)

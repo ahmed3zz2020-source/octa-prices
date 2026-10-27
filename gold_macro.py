@@ -191,6 +191,24 @@ def first_ok(*fetchers):
         "%s(%s)" % (n, e) for n, e in errs)[:200]}
 
 
+def tv_fred(series_id, count=400):
+    """
+    📌 FRED عن طريق TradingView (`FRED:<ID>`) — **شغّال وسريع**
+    (الفRED الأصلي مقفول/بطيء من بيئتنا).
+    ⛔ نفس البيانات (نفس المصدر) ⇒ لازم يتحدّث مع http FRED.
+    """
+    try:
+        import importlib
+        gh = importlib.import_module("gold_history")
+        bars = gh._tv_bars("FRED:" + str(series_id), int(count))
+        return {"points": [(d, v) for d, v in (bars or [])],
+                "source": "FRED (عبر TradingView)",
+                "source_url": "https://fred.stlouisfed.org/series/" + str(series_id),
+                "error": None}
+    except Exception as e:
+        return {"points": [], "error": "فشل FRED عبر TradingView: " + str(e)[:70]}
+
+
 def fred(series_id, years=None, tries=2):
     """
     FRED بدون مفتاح: fredgraph.csv?id=<ID>
@@ -341,6 +359,8 @@ def _series_stats(pts, unit=""):
 # ═══════════ سجل العوامل ═══════════
 # 📌 كل عامل: الاسم · المصدر · ليه مهم · العلاقة النوعية بالذهب
 FACTOR_META = {
+    # ⛔⛔ ٢٧ أكتوبر ٢٠٢٦ (حيدر-البيانات): الرقم **مؤشر (نقطة) أساس ١٩٧٣=١٠٠**
+    #    مش نسبة ⇒ الوحدة كانت «%» وبتظهر للمستخدم غلط.
     "dxy": {"name_ar": "مؤشر الدولار (DXY)", "cat": "الدولار الأمريكي",
             "why": "الدولار القوي بيضغط على الذهب المقوّم بالدولار (لأن الذهب غالي بالم dolar بيبقى أقل جاذبية).",
             "relation": "عادة علاقة عكسية — بس مش دايماً، وبنتكلم عن الملاحظة مش القاعدة.",
@@ -357,7 +377,8 @@ FACTOR_META = {
              "why": "بيعكس توقعات الفيدرالي على المدى القريب.",
              "relation": "ارتفاعه = السوق متوقع فائدة أعلى = ضغط على الذهب غالباً.",
              "freq": "daily"},
-    "cpi_us": {"name_ar": "تضخم الأسعار الأمريكي (CPI)", "cat": "التضخم الأمريكي",
+    # ⛔⛔ (حيدر): الرقم **مؤشر أسعار** مش نسبة تضخم + أساسه ١٩٨٢-٨٤=١٠٠
+    "cpi_us": {"name_ar": "مؤشر أسعار المستهلك الأمريكي", "cat": "التضخم الأمريكي",
                "why": "التضخمaga يخلّي الذهب وسيلة حفظ القيمة جذابة — بس الأثر بييجي عبر الفيدرالي.",
                "relation": "تضخم أعلى = توقع فائدة أعلى = ضغط على الذهب غالباً (مش مضمون).",
                "freq": "monthly"},
@@ -377,7 +398,8 @@ FACTOR_META = {
                   "why": "السعر الفعلي中对لبنان — بيعكس توقعات السوق.",
                   "relation": "الفائدة أعلى = تكلفة فرصة أعلى = ضغط على الذهب.",
                   "freq": "daily"},
-    "cpi_eg": {"name_ar": "التضخم المصري (البنك الدولي)", "cat": "التضخم المصري",
+    # ⛔⛔ (حيدر): **مؤشر** أسعار مش نسبة تضخم
+    "cpi_eg": {"name_ar": "مؤشر أسعار المستهلك المصري (البنك الدولي)", "cat": "التضخم المصري",
                "why": "التضخم بيقلل القوة الشرائية للجنيه ⇒ الذهب بيبقى ملاذ.",
                "relation": "تضخم محلي أعلى = ضغط على الجنيه = دعم لأسعار الذهب بالجنيه.",
                "freq": "annual"},
@@ -389,7 +411,8 @@ FACTOR_META = {
                    "why": "الرقم الرسمي.bi角落里.",
                    "relation": "فائدة أعلى = تكلفة سيولة أعلى = ضغط على الذهب.",
                    "freq": "current"},
-    "cbe_inflation": {"name_ar": "التضخم المصري (البنك المركزي)", "cat": "التضخم المصري",
+    # ⛔⛔ (حيدر): الرقم ١٣٫٩٪ = **سنوي (y/y)** مش شهري ⇒ لازم mousom
+    "cbe_inflation": {"name_ar": "التضخم المصري — سنوي (البنك المركزي)", "cat": "التضخم المصري",
                       "why": "الرقم الرسمي الأحدث (شهري/سنوي).",
                       "relation": "كل ما التضخم أعلى، كل ما ضغط الجنيه زاد.",
                       "freq": "current"},
@@ -468,7 +491,11 @@ def build(force=False):
             return ("dxy", dxy_bars())
 
         def _t_fred(sid):
-            return ("fred:" + sid, fred(sid, tries=1))
+            # ⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — FRED عبر TradingView (شغّال وسريع) أولاً
+            _r = tv_fred(sid)
+            if not _r.get("points") and _use_fred:
+                _r = fred(sid, tries=1)
+            return ("fred:" + sid, _r)
 
         def _t_wb(ind):
             return ("wb:" + ind, world_bank(ind))
@@ -479,8 +506,9 @@ def build(force=False):
         with ThreadPoolExecutor(max_workers=10) as _ex:
             _futs = [_ex.submit(_t_nominal), _ex.submit(_t_real),
                      _ex.submit(_t_effr), _ex.submit(_t_dxy)]
-            if _use_fred:
-                _futs += [_ex.submit(_t_fred, s) for s in _FRED_IDS]
+            # ⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — FRED عبر TradingView شغّال وسريع
+            #    ⇒ المجموعة بتشتغل دايماً (مش بس مع GOLD_FRED).
+            _futs += [_ex.submit(_t_fred, s) for s in _FRED_IDS]
             _futs += [_ex.submit(_t_wb, i) for i in _WB_IDS]
             R = {}
             for _f in _futs:
@@ -524,12 +552,17 @@ def build(force=False):
                 {"error": r.get("error")})
 
         # ── عوامل الفيدرالي (FRED) ──
-        for key, sid, unit in (("cpi_us", "CPIAUCSL", "مؤشر (2010=100)"),
-                               ("pce_us", "PCEPI", "مؤشر (2017=100)"),
+        for key, sid, unit in (("cpi_us", "CPIAUCSL", "مؤشر (1982-84=100) — موسمي"),
+                               ("pce_us", "PCEPI", "مؤشر (2017=100) — موسمي"),
                                ("payrolls", "PAYEMS", "ألف شخص"),
                                ("unrate", "UNRATE", "%")):
             r = R.get("fred:" + sid) or {}
-            st = _series_stats(r.get("points"), unit)
+            _pts = r.get("points") or []
+            # ⛔⛔ PAYEMS من FRED **بالأفراد** (159,044,000) ومن BLS **بالآلاف**
+            #    (159,044) ⇒ لازم نطبّع لوحدة واحدة (آلاف) عشان ما يتقارنوش غلط.
+            if key == "payrolls":
+                _pts = [(d, (v / 1000.0 if v and v > 1e6 else v)) for d, v in _pts]
+            st = _series_stats(_pts, unit)
             # ⛔⛔ سبب واضح لو المصدر رجع فاضي (مش error فاضي!)
             _err = r.get("error")
             if not st and not _err:
@@ -542,7 +575,8 @@ def build(force=False):
         _need = [k for k in ("cpi_us", "unrate", "payrolls")
                  if not (F.get(k) or {}).get("value")]
         if _need:
-            _BLS_MAP = {"cpi_us": ("CUUR0000SA0", "مؤشر (1982-84=100)"),
+            # ⛔ BLS CUUR0000SA0 = غير موسمي (NSA) وأساسه 1982-84=100
+            _BLS_MAP = {"cpi_us": ("CUUR0000SA0", "مؤشر (1982-84=100) — غير موسمي"),
                         "unrate": ("LNS14000000", "%"),
                         "payrolls": ("CES0000000001", "ألف شخص")}
             _ids = [_BLS_MAP[k][0] for k in _need if k in _BLS_MAP]
@@ -565,7 +599,7 @@ def build(force=False):
                             {"error": rb.get("error") or "البديل (BLS) رجّع فاضي"})
 
         # ── البنك الدولي (مصر) ──
-        for key, ind, unit in (("cpi_eg", "FP.CPI.TOTL", "مؤشر (2010=100)"),
+        for key, ind, unit in (("cpi_eg", "FP.CPI.TOTL", "مؤشر (2010=100)"),  # ✅ صح
                                ("eg_deposit", "FR.INR.DPST", "%")):
             r = R.get("wb:" + ind) or {}
             st = _series_stats(r.get("points"), unit)
@@ -575,8 +609,9 @@ def build(force=False):
         # ── DXY (TradingView) ──
         _dxy = R.get("dxy") or []
         st = _series_stats([(b["d"], b["c"]) for b in _dxy]) if _dxy else None
+        # ⛔⛔ (حيدر): DXY **نقطة مؤشر** (أساس 1973=100) مش نسبة
         add("dxy", st, "TradingView TVC:DXY",
-            "https://www.tradingview.com/symbols/TVC-DXY/", "%",
+            "https://www.tradingview.com/symbols/TVC-DXY/", "نقطة (أساس 1973=100)",
             {"error": None if _dxy else "فشل جلب DXY"})
 
         # ── البنك المركزي المصري (ملف محفوظ) ──
