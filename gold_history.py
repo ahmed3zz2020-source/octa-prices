@@ -59,8 +59,13 @@ _MEM = {"ts": 0, "data": None}
 
 
 # ═══════════ أدوات ═══════════
-def _tv_bars(symbol, count):
-    """جلب شموع من TradingView (tv_ws) — مفيش fallback مخترع."""
+def _tv_bars(symbol, count, with_ohlc=False):
+    """
+    جلب شموع من TradingView (tv_ws) — مفيش fallback مخترع.
+    ⛔ with_ohlc=True ⇒ بترجع (d, {o,h,l,c}) — هنستخدمها للـATR
+       بس لأداة **الذهب العالمي** (الجرام المحلي مالهوش OHLC مرصود
+       ⇒ ما بنخترعش له ق/high/low).
+    """
     import importlib
     tws = importlib.import_module("tv_ws")
     bars = tws.fetch(symbol, count)
@@ -72,7 +77,14 @@ def _tv_bars(symbol, count):
             continue
         try:
             d = datetime.datetime.utcfromtimestamp(float(t)).strftime("%Y-%m-%d")
-            out.append((d, float(c)))
+            if with_ohlc:
+                o = b.get("o"); h = b.get("h"); l = b.get("l")
+                out.append((d, {"o": float(o) if o is not None else None,
+                                "h": float(h) if h is not None else None,
+                                "l": float(l) if l is not None else None,
+                                "c": float(c)}))
+            else:
+                out.append((d, float(c)))
         except Exception:
             continue
     out.sort()
@@ -382,3 +394,58 @@ if __name__ == "__main__":
     if st.get("ok"):
         print("أول جرام:", st["first_gram"], "| آخر جرام:", st["last_gram"],
               "| الضاعف:", st["times"], "| القمة:", st["all_time_high"])
+
+
+def xau_ohlc(count=COUNT_XAU):
+    """
+    شموع الذهب العالمي (XAU/USD) بالـOHLC الكاملة — للـATR والشارت.
+    ⛔ لو فشل ⇒ [] (مش أرقام مخترعة).
+    """
+    try:
+        rows = _tv_bars(TV_XAU, count, with_ohlc=True)
+    except Exception:
+        return []
+    return [{"d": d, "o": v.get("o"), "h": v.get("h"), "l": v.get("l"), "c": v.get("c")}
+            for d, v in rows]
+
+
+def fx_ohlc():
+    """
+    شموع سعر الصرف (EGP/USD) بالـOHLC — من Yahoo EGP=X.
+    ⛔ Yahoo بيرجّع open/close/high/low ⇒ ATR متاح للدولار كمان.
+    """
+    import urllib.request, gzip, io as _io
+    url = ("https://query1.finance.yahoo.com/v8/finance/chart/%s"
+           "?range=%s&interval=1d" % (YAHOO_FX, YAHOO_FX_RANGE))
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json,text/plain,*/*", "Accept-Encoding": "gzip"})
+    with urllib.request.urlopen(req, timeout=25) as r:
+        raw = r.read()
+        if (r.headers.get("Content-Encoding") or "").lower() == "gzip":
+            raw = gzip.GzipFile(fileobj=_io.BytesIO(raw)).read()
+        j = json.loads(raw.decode("utf-8", errors="ignore"))
+    res = ((j or {}).get("chart") or {}).get("result") or []
+    if not res:
+        return []
+    ts = res[0].get("timestamp") or []
+    q = (res[0].get("indicators") or {}).get("quote") or [{}]
+    q = q[0] if q else {}
+    o = q.get("open") or []
+    h = q.get("high") or []
+    l = q.get("low") or []
+    c = q.get("close") or []
+    out = []
+    for i, t in enumerate(ts):
+        cc = c[i] if i < len(c) else None
+        if cc is None:
+            continue
+        out.append({
+            "d": datetime.datetime.utcfromtimestamp(float(t)).strftime("%Y-%m-%d"),
+            "o": o[i] if i < len(o) else None,
+            "h": h[i] if i < len(h) else None,
+            "l": l[i] if i < len(l) else None,
+            "c": float(cc),
+        })
+    return out

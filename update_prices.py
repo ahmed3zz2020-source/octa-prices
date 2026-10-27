@@ -14132,3 +14132,54 @@ try:
 except Exception:
     pass
 # trigger redeploy 1792487747
+
+
+# ════════════════════════════════════════════════════════════════
+# 📈 التحليل الفني + الدعم والمقاومة (لكل أداة لوحدها)
+# ════════════════════════════════════════════════════════════════
+# 📌 instrument: gram (الجرام المصري) · xau (الذهب العالمي) · fx (الدولار)
+# ⛔⛔⛔ **كل أداة بمستوياتها الخاصة** — ممنوع نخلط (جرام بالجنيه ≠
+#    دولار للأونصة ≠ دولار/جنيه). ممنوع نعيد استخدام الأرقام.
+# 📌 ⛔ الجرام المصري مالهوش OHLC مرصود ⇒ ATR/Bollinger-ارتفاع غير متاح
+#    له (بنقول كده صراحةً بدل ما نخترع شموع).
+@app.route("/api/gold/technical")
+def gold_technical_api():
+    try:
+        inst = (request.args.get("instrument") or "gram").lower().strip()
+        import importlib
+        gh = importlib.import_module("gold_history")
+        gt = importlib.import_module("gold_technical")
+        if inst in ("gram", "egp", "local"):
+            data = gh.build()
+            if not data or not data.get("ok"):
+                return jsonify({"ok": False, "error": "السلسلة غير متاحة"}), 502
+            bars = gt.bars_from(data.get("series"), "gram")
+            label = "سعر جرام الذهب عيار ٢٤ بالجنيه (نظري — محسوب من الذهب العالمي وسعر الصرف)"
+            src = {"price_source": "محسوب: XAU/USD × EGP/USD ÷ 31.1035",
+                   "history_source": (data.get("sources") or {}),
+                   "note": "السلسلة النظرية — مش سعر صاغة مرصود تاريخياً."}
+        elif inst == "xau":
+            bars = gh.xau_ohlc()
+            label = "الذهب العالمي XAU/USD (دولار للأونصة تروي)"
+            src = {"price_source": "TradingView FX_IDC:XAUUSD"}
+        elif inst in ("fx", "egp_usd", "usdegp"):
+            bars = gh.fx_ohlc()
+            label = "سعر الدولار مقابل الجنيه (جنيه لكل دولار)"
+            src = {"price_source": "Yahoo Finance EGP=X"}
+        else:
+            return jsonify({"ok": False, "error": "الأداة غير معروفة — gram | xau | fx"}), 400
+        if not bars:
+            return jsonify({"ok": False, "error": "مفيش شموع للأداة دي"}), 502
+        a = gt.analyze(bars, label=label)
+        a["instrument"] = inst
+        a["source"] = src
+        a["label"] = label
+        # ⛔ ملاحظة صريحة لكل أداة
+        a["interpretation_caveat"] = (
+            "المستويات مناطق تاريخية اتكوّنت من ردود فعل حقيقية — الدعم ما بيضمنش "
+            "ارتداد والمقاومة ما بتضمنش هبوط. و«مفيش مقاومة فوق» معناها السعر عند "
+            "أعلى نقطة في النافذة.")
+        return jsonify(a)
+    except Exception as e:
+        _log_exc("gold-technical", e)
+        return jsonify({"ok": False, "error": "تعذّر حساب التحليل الفني"}), 502
