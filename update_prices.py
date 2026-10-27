@@ -14204,6 +14204,24 @@ def gold_technical_api():
         return jsonify({"ok": False, "error": "تعذّر حساب التحليل الفني"}), 502
 
 
+@app.route("/api/gold/scenarios")
+def gold_scenarios_api():
+    """محرك السيناريوهات + الادخار (اسمي vs حقيقي) + الخلاصة التحليلية.
+    ⛔ مفيش احتمالات ولا توصيات — شروط قابلة للقياس + أرقام مرصودة."""
+    try:
+        import importlib
+        gsc = importlib.import_module("gold_scenarios")
+        _as_of = request.args.get("as_of")
+        d = gsc.build(as_of=(_as_of.strip() if _as_of else None))
+        if not d or not d.get("ok"):
+            return jsonify({"ok": False, "error": (d or {}).get("error",
+                            "محرك السيناريوهات غير متاح")}), 502
+        return jsonify(d)
+    except Exception as e:
+        _log_exc("gold-scenarios", e)
+        return jsonify({"ok": False, "error": "تعذّر بناء السيناريوهات"}), 502
+
+
 @app.route("/api/gold/factors")
 def gold_factors_api():
     """محرك العوامل الماكرو — ⛔ توصيف مش قياس، وبيوضّح مصدر كل رقم وتاريخه."""
