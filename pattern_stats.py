@@ -332,6 +332,125 @@ def _finalize(counts):
 
 
 # ══════════════════════════════════════════════════════════════════════
+#  جمع الإشارات بتفاصيلها (لأبحاث الفلاتر)
+# ══════════════════════════════════════════════════════════════════════
+
+def _turnover(bars, idx):
+    """قيمة التداول في الشمعة (إقفال × حجم) بالجنيه — مقياس سيولة مبدئي."""
+    b = bars[idx]
+    close = b.get("c")
+    vol = b.get("v")
+    if close is None or vol is None:
+        return None
+    try:
+        return float(close) * float(vol)
+    except (TypeError, ValueError):
+        return None
+
+
+def _avg_turnover(bars, idx, lookback=20):
+    """متوسط قيمة التداول قبل الشمعة."""
+    seg = [_turnover(bars, i) for i in range(max(0, idx - lookback), idx)]
+    seg = [x for x in seg if x is not None]
+    if len(seg) < 5:
+        return None
+    return sum(seg) / float(len(seg))
+
+
+def collect_signals(bars_by_code, cfg=None, horizon=10, step=1, warmup=320,
+                    max_codes=None, start_date=None, kinds=None):
+    """بيرجّع قائمة كل الإشارات بتفاصيلها ونتائجها — لأبحاث الفلاتر.
+
+    ⛔ نفس منطق الـwalk-forward بالظبط (نفس حاجز التاريخ ونفس حساب النتيجة)
+       ⇒ لازم يطابق `evaluate` (فيه اختبار مقارنة).
+    ⭐ الهدف: نشتغل على البيانات مرة واحدة وبعدين نفلتر بأي شكل من غير إعادة قياس.
+    """
+    settings = dict(cfg or {})
+    horizon = max(1, int(horizon))
+    step = max(1, int(step))
+    warmup = max(0, int(warmup))
+    detector = _resolve_detect(settings)
+    if detector is None:
+        raise RuntimeError("مفيش detect متاح: لازم pattern_detector.detect")
+    forward_cfg = {k: v for k, v in settings.items()
+                   if k not in ("detect", "detector")}
+    all_codes = list(bars_by_code.keys()) if bars_by_code else []
+    codes = all_codes if max_codes is None else all_codes[:int(max_codes)]
+    out = []
+    for code in codes:
+        bars = list(bars_by_code.get(code) or [])
+        start_idx = 0
+        if start_date:
+            for i, b in enumerate(bars):
+                if _date_key(_bar_date(b)) >= start_date:
+                    start_idx = i
+                    break
+            else:
+                start_idx = len(bars)
+        first = max(warmup, start_idx)
+        if len(bars) <= first + horizon:
+            continue
+        for index in range(first, len(bars) - horizon, step):
+            result = _call_detect(detector, bars[: index + 1], code, forward_cfg)
+            if result is None or _is_insufficient(result):
+                continue
+            bar_date = _date_key(_bar_date(bars[index]))
+            for signal in _extract_signals(result):
+                if _date_key(_signal_detected_at(signal)) != bar_date:
+                    continue
+                family = _normalize_family(signal)
+                if family not in FAMILIES:
+                    continue
+                if kinds and family not in kinds:
+                    continue
+                direction = _normalize_direction(signal)
+                if direction not in DIRECTIONS:
+                    continue
+                entry = _signal_price(signal, ("entry", "entry_price", "price"))
+                target = _signal_price(signal, ("target", "target_price", "tp"))
+                stop = _signal_price(signal, ("stop", "stop_price", "sl"))
+                if entry is None or target is None or stop is None:
+                    continue
+                outcome = _evaluate_outcome(bars, index, horizon, direction,
+                                            target, stop)
+                multiple = risk_multiple(direction, entry, target, stop)
+                if outcome == "win":
+                    realized_r = multiple
+                elif outcome == "loss":
+                    realized_r = -multiple
+                else:
+                    realized_r = 0.0
+                ev = signal.get("evidence") or {}
+                rec = {
+                    "code": code, "kind": family, "direction": direction,
+                    "date": bar_date, "year": bar_date[:4],
+                    "month": bar_date[5:7] if len(bar_date) >= 7 else "",
+                    "entry": entry, "stop": stop, "target": target,
+                    "rr": round(multiple, 3),
+                    "price": bars[index].get("c"),
+                    "atr": ev.get("atr"), "atr_pct": ev.get("atr_pct"),
+                    "zone_score": ev.get("zone_score"),
+                    "touches": ev.get("touches"), "reactions": ev.get("reactions"),
+                    "last_test": ev.get("last_test"),
+                    "age_days": ev.get("age_days"),
+                    "vol_ratio": ev.get("vol_ratio"),
+                    "volume_confirmed": bool(signal.get("volume_confirmed")),
+                    "confirmed": bool(signal.get("confirmed")),
+                    "trend": signal.get("trend"),
+                    "bars_since": signal.get("bars_since"),
+                    "target_method": ev.get("target_method"),
+                    "structure_label": ev.get("structure_label"),
+                    "fillable": _is_fillable(bars, index, direction, entry),
+                    "outcome": outcome, "r": round(realized_r, 4),
+                    "turnover": _turnover(bars, index),
+                    "avg_turnover20": _avg_turnover(bars, index),
+                    "pattern_id": signal.get("pattern_id"),
+                }
+                out.append(rec)
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════
 #  الدالة الرئيسية
 # ══════════════════════════════════════════════════════════════════════
 

@@ -10,6 +10,7 @@
 """
 import os
 import sys
+import json
 from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -161,6 +162,50 @@ else:
           all(k in res for k in ("families", "universe", "notes")))
     check("العائلتين موجودين",
           all(f in res["families"] for f in ("BREAKOUT", "PULLBACK")))
+
+print("\n▶️ ⑧ ⛔ collect_signals يطابق evaluate (نفس المسار بالظبط)")
+if pattern_stats.detect is not None:
+    import pattern_detector as _pdet
+    # سلسلة حقيقية: نتحقق إن العدّادات متطابقة مع الإشارات المجموعة
+    _real = None
+    _cd = "/workspace/pattern_data/candles"
+    if os.path.isdir(_cd):
+        for _n in sorted(os.listdir(_cd)):
+            if _n.endswith(".json"):
+                try:
+                    with open(os.path.join(_cd, _n), "r", encoding="utf-8") as _f:
+                        _real = json.load(_f)
+                except Exception:
+                    _real = None
+                break
+    if _real:
+        _bars = {"REAL": _real}
+        _ev = pattern_stats.evaluate(_bars, horizon=10, warmup=320)
+        _recs = pattern_stats.collect_signals(_bars, horizon=10, warmup=320)
+        _counted = sum(_ev["families"][f]["signals"] for f in ("BREAKOUT", "PULLBACK"))
+        check("عدد الإشارات المجمّعة = عدد المحسوب في evaluate",
+              len(_recs) == _counted, "%d مقابل %d" % (len(_recs), _counted))
+        if _recs and _counted:
+            _w = sum(1 for r in _recs if r["outcome"] == "win")
+            _l = sum(1 for r in _recs if r["outcome"] == "loss")
+            _fam = _ev["families"]["BREAKOUT"]
+            _check_ok = True
+            for _f in ("BREAKOUT", "PULLBACK"):
+                _m = _ev["families"][_f]
+                if _m["signals"] == 0:
+                    continue
+                _sub = [r for r in _recs if r["kind"] == _f]
+                if sum(1 for r in _sub if r["outcome"] == "win") != _m["wins"]:
+                    _check_ok = False
+                if sum(1 for r in _sub if r["outcome"] == "loss") != _m["losses"]:
+                    _check_ok = False
+            check("النتائج (فوز/خسارة) متطابقة لكل عائلة", _check_ok)
+            check("كل سجل فيه النتيجة والحقول الأساسية",
+                  all(all(k in r for k in ("code", "kind", "direction", "date",
+                                          "outcome", "r", "fillable", "atr_pct",
+                                          "zone_score", "turnover")) for r in _recs))
+    else:
+        check("مفيش كاش شموع محلي للاختبار المقارن", True, "تخطّي")
 
 print("\n" + ("✅ كل الاختبارات عدّت" if not FAILED else "❌ فشل: %d" % FAILED))
 for f in FAILURES:

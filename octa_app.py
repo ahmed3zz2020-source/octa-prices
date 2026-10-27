@@ -443,4 +443,27 @@ def _octa_diag():
     return jsonify(out)
 
 
+# ══════════════════════════════════════════════════════════════════════
+#  🛰️ محرك الأنماط — المسح اليومي + الإنذار + مسار /api/setups
+#  (٢٧ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+# ⛔ fail-soft: لو الملف مش موجود أو فيه خطأ، السيرفر بيفضل شغال
+#    والأنماط بس بتطلع «غير متاح» — أحسن من إن الموقع كله يقع.
+# 📌 التسجيل لازم يكون بعد تعريف send() (المهمة اليومية محتاجاه).
+try:
+    import pattern_daily as _pattern_mod
+
+    def _live_egx():
+        try:
+            return (getattr(U, "LIVE_DATA", {}) or {}).get("egx30") or []
+        except Exception:
+            return []
+
+    _pattern_mod.register(app, require_user=U.require_user, send=send,
+                          live_data_getter=_live_egx)
+    print("[pattern] ✅ محرك الأنماط متركّب", flush=True)
+except Exception as _pattern_err:
+    print("[pattern] ⚠️ مش متركّب: %s" % _pattern_err, flush=True)
+
+
 print("[octa] ✅ ready", flush=True)
