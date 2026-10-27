@@ -14183,3 +14183,34 @@ def gold_technical_api():
     except Exception as e:
         _log_exc("gold-technical", e)
         return jsonify({"ok": False, "error": "تعذّر حساب التحليل الفني"}), 502
+
+
+@app.route("/api/gold/factors")
+def gold_factors_api():
+    """محرك العوامل الماكرو — ⛔ توصيف مش قياس، وبيوضّح مصدر كل رقم وتاريخه."""
+    try:
+        import importlib
+        gm = importlib.import_module("gold_macro")
+        _refresh = str(request.args.get("refresh") or "").strip() in ("1", "true", "yes")
+        d = gm.build(force=_refresh)
+        if not d or not d.get("ok"):
+            return jsonify({"ok": False, "error": "محرك العوامل غير متاح حالياً"}), 502
+        lst = gm.factors_list()
+        out = {
+            "ok": True,
+            "built_at": d.get("built_at"),
+            "built_iso": d.get("built_iso"),
+            "factors": d.get("factors") or {},
+            "available": d.get("available") or [],
+            "missing": d.get("missing") or [],
+            "categories": lst.get("categories") or [],
+            "caveat": d.get("caveat"),
+            "reading_guide": (
+                "كل عامل بيقول «الحالة دلوقتي» + ليه بيهم الذهب + مصدره وتاريخه. "
+                "العوامل دي **مشتة** — مفيش رقم تأثير ولا احتمالات متخيّلة. "
+                "لو العامل ناقص ⇒ مش معناه صفر."),
+        }
+        return jsonify(out)
+    except Exception as e:
+        _log_exc("gold-factors", e)
+        return jsonify({"ok": False, "error": "تعذّر بناء محرك العوامل"}), 502
