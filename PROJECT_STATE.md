@@ -125,3 +125,28 @@
 
 ---
 *حدّثه مع كل commit جديد.*
+
+---
+
+## 🏦 ذكاء الذهب (Gold Intelligence) — ٢٧ أكتوبر ٢٠٢٦ — ✅ مكتمل
+
+**الحالة:** الباك منشور على الإنتاج · الواجهة على المعاينة (octa-preview) · الدومين ما اتمسش
+**تقرير التسليم:** `GOLD_INTELLIGENCE_DELIVERY_2026-10-27.md`
+
+| الملف | الوظيفة |
+|---|---|
+| `gold_history.py` | سلسلة الجرام 6855 نقطة (1997→2026) · `egp_per_usd`/`usd_per_egp` · `effective_date_cairo` |
+| `gold_local.py` | السعر المرصود (iSagha + goldbullioneg) + cross-check |
+| `gold_technical.py` | المؤشرات الفنية + الدعم/المقاومة لكل أداة |
+| `gold_macro.py` | 15 عاملاً ماكرو + كاش (ذاكرة + قرص 6 ساعات) |
+| `gold_scenarios.py` | 4 سيناريوهات (شروط لا احتمالات) + العائد الحقيقي بعد التضخم |
+| `test_gold_*.py` (6) | كل الاختبارات pass · `test_gold_savings_ui.py` في متصفح حقيقي |
+
+**8 endpoints:** `/api/gold/{local,history,gram,attribution,technical,factors,scenarios}`
+
+**⛔ مصائد اتصلّحت (مهمة):**
+- `FX_IDC:EGPUSD` = **سوق موازي** (موثوق +2.4٪) ⇒ استخدم `FX_IDC:USDEGP` (نفس `tk-usd`)
+- `bars_from(rows, close_key)` — المفتاح **اسم الحقل** مش اسم الأداة
+- `window.OCTA_API` لازم يتقرا **وقت الطلب** (octa-api.js بيكتبه بعد التحميل)
+- `schema` الكاش لازم يتنضبط مع تغيير الحقول (بطل الكاش القديم)
+- RTL: الأرقام بإشارة ⇒ `dir="ltr"` · التواريخ ⇒ DD/MM/YYYY
