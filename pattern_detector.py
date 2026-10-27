@@ -60,6 +60,9 @@ DEFAULTS = {
     "entry_buffer_atr": 0.25, # بافافيز الدخول بعد الحافة
     "max_age_bars": 5,        # أقصى حداثة للإشارة (بالشموع)
     "max_zones": 6,           # أقصى عدد مناطق لكل جهة
+    # ── فلاتر اختيارية (مقفولة بالافتراضي — تُقاس قبل ما تتفعّل) ──
+    "require_trend_alignment": False,  # الإشارات بس في اتجاه البنية
+    "require_reversal": False,         # لازم إغلاق راجع فوق/تحت المنطقة
 }
 
 # أسماء عربية لل 방향 — بتظهر في التقرير
@@ -313,9 +316,12 @@ def _break_event(bars, zone, atr_series, atr_val, cfg):
         if not beyond:
             j += 1
             continue
-        # لازم `need` إغلاقات متتالية في نفس الاتجاه
+        # ⛔ لازم `need` إغلاقات متتالية في نفس الاتجاه — ولو السلسلة خلصت
+        #    قبل كده ⇒ الكسر **غير مؤكد** (مفيش تساهل في آخر السلسلة).
+        if j + need - 1 >= n:
+            return None
         ok = True
-        for k2 in range(j, min(j + need, n)):
+        for k2 in range(j, j + need):
             a2 = _atr_at(atr_series, k2, atr_val)
             thr2 = thr_mult * (a2 or 0.0)
             c2 = bars[k2]["c"]
@@ -326,8 +332,8 @@ def _break_event(bars, zone, atr_series, atr_val, cfg):
                 ok = False
                 break
         if ok:
-            return {"break_i": j, "confirm_i": min(j + need - 1, n - 1),
-                    "confirmed": True}
+            return {"break_i": j, "confirm_i": j + need - 1,
+                    "confirmed": True, "closes_beyond": need}
         j += 1
     return None
 
@@ -555,11 +561,22 @@ def detect(bars, code=None, name=None, sector=None, cfg=None):
         if ti is None:
             continue
         direction = "up" if z["kind"] == "support" else "down"
+        # ⭐ فلتر اتجاه البنية (اختياري): ارتداد صاعد لازم يكون في بنية صاعدة
+        if c["require_trend_alignment"] and trend != direction:
+            continue
+        # ⭐ فلتر الانعكاس (اختياري): لازم إغلاق راجع فوق/تحت المنطقة
+        if c["require_reversal"]:
+            last_close = bs[-1]["c"]
+            if direction == "up" and last_close <= z["high"]:
+                continue
+            if direction == "down" and last_close >= z["low"]:
+                continue
         entry, stop, target, method = _levels_for(z, direction, atr_val, c)
         rr = _rr(direction, entry, stop, target)
         dist_pct = round((z["mid"] / price - 1) * 100, 2) if price else None
-        near_ok = abs(dist_pct) is not None and \
-            abs(dist_pct) <= (c["pullback_atr_mult"] * atr_val / price * 100)
+        near_limit = (c["pullback_atr_mult"] * atr_val / price * 100) if price else None
+        near_ok = (dist_pct is not None and near_limit is not None
+                   and abs(dist_pct) <= near_limit)
         if not near_ok:
             continue
         bars_since = last_i - ti

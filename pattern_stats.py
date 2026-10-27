@@ -276,7 +276,28 @@ def _new_counts():
 
 def _new_breakdown():
     return {"by_direction": {}, "by_year": {}, "by_confirmed": {},
-            "by_volume_confirmed": {}}
+            "by_volume_confirmed": {}, "by_fillable": {}}
+
+
+def _is_fillable(bars, index, direction, entry):
+    """هل كان ممكن تنفيذ الدخول في الشمعة التالية؟
+
+    ⛔ لو الشمعة التالية فتحت بعيدة عن سعر الدخول ⇒ الصفقة كانت مش
+       هتنفّذ ⇒ القياس لازم يعدّيها (ده الفرق بين «نسبة نجاح حقيقية»
+       و«نسبة نجاح على صفقات مفترضة»).
+    """
+    if index + 1 >= len(bars):
+        return False
+    nxt = bars[index + 1]
+    if direction == "up":
+        low = nxt.get("l")
+        if low is None:
+            low = nxt.get("c")
+        return low is not None and low <= entry
+    high = nxt.get("h")
+    if high is None:
+        high = nxt.get("c")
+    return high is not None and high >= entry
 
 
 def _record(counts, outcome, realized_r):
@@ -409,6 +430,7 @@ def _walkforward(bars_by_code, cfg=None, horizon=10, step=1, warmup=320,
                     realized_r = 0.0
                 confirmed = _signal_flag(signal, ("confirmed",))
                 volume_ok = _signal_flag(signal, ("volume_confirmed",))
+                fillable = _is_fillable(bars, index, direction, entry)
                 year = bar_date[:4] if bar_date else "unknown"
 
                 _record(counts[family], outcome, realized_r)
@@ -418,6 +440,7 @@ def _walkforward(bars_by_code, cfg=None, horizon=10, step=1, warmup=320,
                     ("by_confirmed", "confirmed" if confirmed else "unconfirmed"),
                     ("by_volume_confirmed",
                      "volume_confirmed" if volume_ok else "not_volume_confirmed"),
+                    ("by_fillable", "fillable" if fillable else "not_fillable"),
                 ):
                     bucket = breakdowns[family][dim].setdefault(key, _new_counts())
                     _record(bucket, outcome, realized_r)
@@ -432,6 +455,8 @@ def _walkforward(bars_by_code, cfg=None, horizon=10, step=1, warmup=320,
             breakdowns[family]["by_confirmed"].setdefault(key, _new_counts())
         for key in ("volume_confirmed", "not_volume_confirmed"):
             breakdowns[family]["by_volume_confirmed"].setdefault(key, _new_counts())
+        for key in ("fillable", "not_fillable"):
+            breakdowns[family]["by_fillable"].setdefault(key, _new_counts())
 
     universe = {
         "codes": len(codes_used),

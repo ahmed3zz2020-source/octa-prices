@@ -167,7 +167,22 @@ if vol_sigs:
     check(s["evidence"]["vol_ratio"] is None, "نسبة الحجم = None (مش 0)")
     check("الحجم غير متاح" in s["why"], "التفسير بيقول إن الحجم غير متاح")
 
-print("\n▶️ ⑥ الحداثة: كسر قديم ⇒ مفيش إشارة (مع الإعدادات العادية)")
+print("\n▶️ ٦أ ⛔ مفيش تساهل في آخر السلسلة (باج ٢٧ أكتوبر)")
+# كسر في آخر شمعة ⇒ مفيش ٣ إغلاقات ⇒ لازم مايتconfirmش
+last_break = mk_with_breakout(n=200, break_at=199)
+r = pd.detect(last_break, code="TEST")
+check(not [s for s in r["signals"] if s["kind"] == "BREAKOUT"],
+      "كسر في آخر شمعة ⇒ مفيش إشارة (التأكيد محتاج ٣ إغلاقات)")
+# كسر قبل آخر ٣ شموع ⇒ يتأكد في آخر شمعة
+ok_break = mk_with_breakout(n=200, break_at=197)
+r = pd.detect(ok_break, code="TEST")
+ok_sigs = [s for s in r["signals"] if s["kind"] == "BREAKOUT"]
+check(bool(ok_sigs), "كسر بـ٣ إغلاقات كاملة ⇒ فيه إشارة")
+if ok_sigs:
+    check(ok_sigs[0]["detected_at"] == ok_break[199]["d"],
+          "تاريخ التأكيد = آخر شمعة")
+
+print("\n▶️ ⑥ب الحداثة: كسر قديم ⇒ مفيش إشارة (مع الإعدادات العادية)")
 old = mk_with_breakout(n=200, break_at=100)
 r_old = pd.detect(old, code="TEST")
 check(all(s["bars_since"] <= 5 for s in r_old["signals"]),
