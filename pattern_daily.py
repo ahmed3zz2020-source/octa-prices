@@ -368,6 +368,13 @@ def register(app, require_user=None, send=None, live_data_getter=None,
             return _locked_response(u)
         payload = load_shortlist(max_age_hours=12)
         stale = bool(payload and payload.get("stale"))
+        if payload is None and _REBUILDING["on"]:
+            # ⛔ في بناء شغال بالفعل ⇒ نستنى شوية بدل ما نبني اتنين
+            for _ in range(30):
+                time.sleep(1)
+                payload = load_shortlist(max_age_hours=12)
+                if payload:
+                    break
         if payload is None:
             # ⛔ مفيش كاش خالص ⇒ نبنيه دلوقتي (أول طلب بعد النشر)
             try:
