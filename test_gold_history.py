@@ -58,14 +58,17 @@ print("   ok:", data.get("ok"), "| count:", data.get("count"),
 print("\n▶️ ① شكل السلسلة ومصدرها")
 check(data.get("ok") is True, "السلسلة اتبنت بنجاح")
 s = data.get("series") or []
-check(len(s) > 3000, f"السلسلة طويلة (>3000 يوم) — {len(s)}")
-check(data.get("from", "") < "2011-01-01", "بتبدأ من ٢٠١٠ أو قبله")
+check(len(s) > 1500, f"السلسلة طويلة (>1500 يوم) — {len(s)}")
+check(data.get("from", "") <= "2016-10-27", "بتبدأ من يوم تعويم الجنيه (٢٠١٦-١٠-٢٦) أو قبله")
+check(data.get("sources", {}).get("fx", {}).get("id") in ("yahoo_egpx", "tradingview_egpusd"),
+      "مصدر الصرف موسوم: " + str(data.get("sources", {}).get("fx", {}).get("id")))
 check(data.get("to", "") >= (datetime.datetime.utcnow() - datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
       "بتوصل لآخر几天")
 check(bool(data.get("sources", {}).get("gold")), "مصدر الذهب موثّق")
 check(bool(data.get("sources", {}).get("fx")), "مصدر سعر الدولار موثّق")
 check(bool(data.get("method", {}).get("formula")), "المعادلة موثّقة")
 check(bool(data.get("method", {}).get("caveats")), "القيود (caveats) موثّقة")
+check(bool(data.get("fx_alternative")), "السلسلة البديلة (FX تاني) موجودة وموثّقة")
 
 print("\n▶️ ② المعادلة صح على كل الصفوف")
 bad = 0

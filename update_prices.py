@@ -11029,11 +11029,17 @@ def gold_gram_api():
             return jsonify({"ok": False, "error": "السلسلة غير متاحة"}), 502
         row = gh.value_on(d, data)
         if not row:
-            return jsonify({"ok": False, "error": "مفيش سعر قبل التاريخ ده"}), 404
+            return jsonify({"ok": False, "error": "مفيش سعر قبل التاريخ ده",
+                            "series_from": data.get("from")}), 404
         return jsonify({"ok": True, "requested": d, "date": row["d"],
-                        "gram": row["gram"], "ounce_egp": row["ounce_egp"],
-                        "xau_usd": row["xau"], "egp_per_usd": row["egp_per_usd"],
-                        "usd_per_egp": row["usd_per_egp"],
+                        "gram": row["gram"],
+                        "ounce_egp": row.get("ounce_egp"),
+                        "xau_usd": row.get("xau"),
+                        "egp_per_usd": row.get("egp_per_usd"),
+                        "usd_per_egp": row.get("usd_per_egp"),
+                        "fx_source": row.get("fx_source"),
+                        "fx_note": row.get("fx_note"),
+                        "approximate": bool(row.get("approximate")),
                         "method": data.get("method")})
     except Exception as e:
         _log_exc("gold-gram", e)
@@ -11101,7 +11107,33 @@ def gold_attribution_api():
             return jsonify({"ok": False, "error": dec.get("error")}), 404
 
         out = {"ok": True, "decomposition": dec,
-               "attribution": gp.attribute(dec)}
+               "attribution": gp.attribute(dec),
+               "quality": (gh.stats(data) or {}).get("quality")}
+
+        # ⛔ فحص جودة: آخر نقطة السلسلة (Yahoo) ممكن تكون متأخرة يومين
+        #    عن السعر الرسمي ⇒ بنقيس الفرق ونعلنه صريح.
+        _last_row = data["series"][-1]
+        _live = None
+        try:
+            _tk = {t["id"]: t for t in LIVE_DATA.get("ticker", [])}
+            _g = _tk.get("tk-gold"); _u = _tk.get("tk-usd")
+            if _g and _u and _g.get("value") and _u.get("value"):
+                _live = gp.theoretical_gram(_g["value"], _u["value"])
+        except Exception:
+            _live = None
+        if _live and _last_row.get("gram"):
+            _gap = (_live / _last_row["gram"] - 1) * 100
+            out["quality"]["last_series_gram"] = _last_row["gram"]
+            out["quality"]["last_series_date"] = _last_row["d"]
+            out["quality"]["live_theoretical_gram"] = round(_live, 2)
+            out["quality"]["last_vs_live_pct"] = round(_gap, 2)
+            out["quality"]["last_point_stale"] = abs(_gap) > 1.0
+            if out["quality"]["last_point_stale"]:
+                out["quality"]["last_point_note"] = (
+                    "آخر نقطة في السلسلة (%.0f ج.م) {%s} مختلفة %.1f%% عن السعر "
+                    "اللحظي المحسوب (%.0f ج.م) — لأن سعر الصرف في السلسلة بيتأخر "
+                    "يوم-يومين. ⛔ استخدم السعر اللحظي لعرض «النهارده»."
+                    % (_last_row["gram"], _last_row["d"], _gap, _live))
 
         # ── العلاوة المحلية دلوقتي (لو السعر المرصود متاح) ──
         # ⛔⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — لازم **نفس** سعر الدولار المستخدم في

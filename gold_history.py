@@ -39,7 +39,20 @@ HIST_TTL = int(os.environ.get("GOLD_HISTORY_TTL", str(6 * 3600)))   # ٦ ساع�
 TV_XAU = "FX_IDC:XAUUSD"
 TV_EGP = "FX_IDC:EGPUSD"
 COUNT_XAU = 9000          # ≈ ٣٦ سنة يومية
-COUNT_EGP = 5000          # ≈ ٢٠ سنة يومية
+COUNT_EGP = 5000          # ≈ ٢٠ سنة يومية (سلسلة بديلة — موثّقة)
+
+# ⛔⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — مصدر الصرف الأساسي اتغيّر ل Yahoo EGP=X
+# 📌 السبب (قياس حقيقي — حيدر-البيانات): ساق tv_ws (FX_IDC:EGPUSD) فوق
+#    السعر الرسمي بـ **+2.12٪** متوسط (ومقابل Yahoo EGP=X فقط −0.12٪).
+#    ⇒ سلسلتنا القديمة كانت أعلى من سعر السوق بـ 2٪ ⇒ ناقصة.
+# 📌 Yahoo EGP=X = سعر الصرف الرسمي ⇒ نفس أساس سعر الصاغة ⇒ المقارنة
+#    بين النظري والمرصود بقت بتطلع مطابقة 0.05% (تحقّق).
+# ⛔ Yahoo EGP=X بيبدأ 2016-10-26 ⇒ السلسلة الأساسية ١٠ سنين.
+#    السلسلة الأطول (٢٠٠٩+) بتفضل موجودة لكن بـ FX تاني وموثّقة.
+YAHOO_FX = "EGP=X"
+YAHOO_FX_RANGE = "10y"
+FX_PRIMARY = "yahoo_egpx"
+FX_FALLBACK = "tradingview_egpusd"
 
 _LOCK = threading.Lock()
 _MEM = {"ts": 0, "data": None}
@@ -68,6 +81,41 @@ def _tv_bars(symbol, count):
     for d, c in out:
         dedup[d] = c
     return sorted(dedup.items())
+
+
+def _yahoo_fx():
+    """Yahoo EGP=X — سعر الصرف الرسمي (جنيه لكل دولار) — ٢٦٠١ نقطة يومية."""
+    import urllib.request
+    import gzip
+    import io as _io
+    url = ("https://query1.finance.yahoo.com/v8/finance/chart/%s"
+           "?range=%s&interval=1d" % (YAHOO_FX, YAHOO_FX_RANGE))
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json,text/plain,*/*",
+        "Accept-Encoding": "gzip",
+    })
+    with urllib.request.urlopen(req, timeout=25) as r:
+        raw = r.read()
+        if (r.headers.get("Content-Encoding") or "").lower() == "gzip":
+            raw = gzip.GzipFile(fileobj=_io.BytesIO(raw)).read()
+        j = json.loads(raw.decode("utf-8", errors="ignore"))
+    res = ((j or {}).get("chart") or {}).get("result") or []
+    if not res:
+        return []
+    ts = res[0].get("timestamp") or []
+    cl = ((res[0].get("indicators") or {}).get("quote") or [{}])[0].get("close") or []
+    out = {}
+    for t, c in zip(ts, cl):
+        if c is None:
+            continue
+        try:
+            d = datetime.datetime.utcfromtimestamp(float(t)).strftime("%Y-%m-%d")
+            out[d] = float(c)
+        except Exception:
+            continue
+    return sorted(out.items())
 
 
 def _read_file():
@@ -120,11 +168,41 @@ def build(force=False):
         except Exception as e:
             return {"ok": False, "error": "فشل جلب الذهب: " + str(e)[:120],
                     "built_at": now, "series": []}
+        # ⛔⛔⛔ مصدر الصرف الأساسي = Yahoo EGP=X (رسمي) — مش tv_ws (+2.12٪)
+        fx_src_used = FX_PRIMARY
+        # ⛔⛔⛔ اتجاه الاقتباس مختلف بين المصدرين!
+        #   Yahoo  EGP=X        ⇒ EGP لكل دولار  (56.1)  ⇒ نحتاجه زي ما هو
+        #   TradingView EGPUSD  ⇒ دولار لكل جنيه (0.0174) ⇒ ن inversed
+        fx_inverted = False
         try:
-            egp = _tv_bars(TV_EGP, COUNT_EGP)
+            egp = _yahoo_fx()
         except Exception as e:
-            return {"ok": False, "error": "فشل جلب سعر الدولار: " + str(e)[:120],
-                    "built_at": now, "series": []}
+            egp = []
+            fx_error = str(e)[:120]
+        if not egp:
+            # ⛔ fallback: ساق TradingView — بنوثّق إنها +2٪ عن الرسمي
+            try:
+                egp = _tv_bars(TV_EGP, COUNT_EGP)
+                fx_src_used = FX_FALLBACK
+                fx_inverted = True
+            except Exception as e:
+                return {"ok": False, "error": "فشل جلب سعر الدولار: " + str(e)[:120],
+                        "built_at": now, "series": []}
+        # ⛔ سلسلة بديلة أطول (٢٠٠٩+) بس بـ FX تاني — محفوظة للشفافية
+        alt_series = []
+        try:
+            if fx_src_used == FX_PRIMARY:
+                alt = _tv_bars(TV_EGP, COUNT_EGP)
+                amap = dict(alt)
+                for dd, xx in xau:
+                    ee = amap.get(dd)
+                    if not ee:
+                        continue
+                    g = (xx * (1.0 / ee)) / TROY_OUNCE_GRAMS   # tv_ws ⇒ معكوس
+                    alt_series.append({"d": dd, "gram": round(g, 2),
+                                       "fx_source": FX_FALLBACK})
+        except Exception:
+            alt_series = []
         if not xau:
             return {"ok": False, "error": "مفيش شموع ذهب من المصدر", "built_at": now, "series": []}
         if not egp:
@@ -144,11 +222,12 @@ def build(force=False):
             #   ⇒ سعر الأونصة بالجنيه = xau × (1 / usd_per_egp)
             #   ⚠️ قبل التصحيح كان الحقل اسمه «egp» وده معكوس ⇒ في حساب
             #      الـlog return الإشارة بتتقلب ⇒ إسناد فاسد («الذهب −58%»).
-            egp_per_usd = 1.0 / e            # جنيه لكل دولار
+            egp_per_usd = (1.0 / e) if fx_inverted else float(e)   # جنيه لكل دولار
             ounce_egp = x * egp_per_usd
             gram = ounce_egp / TROY_OUNCE_GRAMS
             series.append({
                 "d": d,
+                "fx_source": fx_src_used,
                 "xau": round(x, 4),
                 "usd_per_egp": round(e, 8),   # دولار لكل جنيه (كما ورد من المصدر)
                 "egp_per_usd": round(egp_per_usd, 4),  # جنيه لكل دولار (المستخدم في الحساب)
@@ -172,8 +251,24 @@ def build(force=False):
             "sources": {
                 "gold": {"provider": "TradingView", "symbol": TV_XAU, "points": len(xau),
                          "from": xau[0][0], "to": xau[-1][0]},
-                "fx": {"provider": "TradingView", "symbol": TV_EGP, "points": len(egp),
-                       "from": egp[0][0], "to": egp[-1][0]},
+                "fx": {"provider": ("Yahoo Finance" if fx_src_used == FX_PRIMARY
+                                    else "TradingView"),
+                       "symbol": (YAHOO_FX if fx_src_used == FX_PRIMARY else TV_EGP),
+                       "points": len(egp), "from": egp[0][0], "to": egp[-1][0],
+                       "id": fx_src_used,
+                       "quote_convention": ("EGP لكل دولار (مباشر)" if fx_src_used == FX_PRIMARY
+                                            else "دولار لكل جنيه (معكوس) — بيتحول لجنيه/دولار"),
+                       "note": ("سعر الصرف الرسمي (جنيه/دولار) — مطابق لأساس تسعير "
+                                "محلات الصياغة." if fx_src_used == FX_PRIMARY else
+                                "ساق TradingView — أعلى ~2٪ من الرسمي (مستخدمة كبديل).")},
+            },
+            "fx_alternative": {
+                "id": FX_FALLBACK, "points": len(alt_series),
+                "from": alt_series[0]["d"] if alt_series else None,
+                "to": alt_series[-1]["d"] if alt_series else None,
+                "caveat": ("سلسلة أطول (من ٢٠٠٩) بس سعر صرف أعلى ~٢٪ عن الرسمي — "
+                           "مستعملة للرجوع التاريخي مش للمقارنة بالحالي."),
+                "series": alt_series,
             },
             "method": {
                 "formula": "gram_egp = (XAUUSD x EGP_per_USD) / 31.1035  |  EGP_per_USD = 1 / USD_per_EGP",
@@ -219,6 +314,14 @@ def stats(data=None):
     return {
         "ok": True,
         "from": first["d"], "to": last["d"], "count": d["count"],
+        "quality": {
+            "fx_source": (d.get("sources") or {}).get("fx", {}).get("id"),
+            "fx_note": ("سعر الصرف من Yahoo EGP=X — **اقتباس استرشادي بيتأخر** عن "
+                        "السعر الرسمي sometimes بيوم-يومين ⇒ آخر نقطة في السلسلة "
+                        "ممكن تكون قديمة. القيمة اللحظية بتيجي من سعر البنك المركزي."),
+            "last_point_caution": ("قارن آخر جرام في السلسلة بالسعر اللحظي (من "
+                                   "الـscanner) قبل ما تعرضه كسعر النهارده."),
+        },
         "first_gram": first["gram"], "last_gram": last["gram"],
         "total_return_pct": round(((last["gram"] / first["gram"]) - 1) * 100, 2) if first["gram"] else None,
         "times": round(last["gram"] / first["gram"], 2) if first["gram"] else None,
@@ -231,7 +334,12 @@ def stats(data=None):
 
 
 def value_on(date_str, data=None):
-    """سعر الجرام في تاريخ محدد (أقرب يوم سابق — markets closed)."""
+    """
+    سعر الجرام في تاريخ محدد (أقرب يوم تداول سابق).
+    ⛔ لو التاريخ قبل بداية السلسلة الأساسية (قبل ٢٠١٦-١٠-٢٦) ⇒
+       بنرجّع من السلسلة البديلة (FX تاني، أعلى ~٢٪) **ومعاها تحذير**.
+       ⛔ أحسن من 404 — المستخدم عايز يعرف سعر أي تاريخ.
+    """
     d = data or build()
     if not d or not d.get("ok"):
         return None
@@ -242,7 +350,29 @@ def value_on(date_str, data=None):
             pick = r
         else:
             break
-    return pick
+    if pick:
+        pick = dict(pick)
+        pick["fx_source"] = d.get("sources", {}).get("fx", {}).get("id")
+        pick["fx_note"] = None
+        return pick
+    # ⛔ السلسلة البديلة (أطول، بس FX مختلف)
+    alt = (d.get("fx_alternative") or {}).get("series") or []
+    apick = None
+    for r in alt:
+        if r["d"] <= date_str:
+            apick = r
+        else:
+            break
+    if apick:
+        return {
+            "d": apick["d"], "gram": apick["gram"],
+            "fx_source": (d.get("fx_alternative") or {}).get("id"),
+            "fx_note": ("⚠️ التاريخ ده قبل بداية السلسلة الأساسية (٢٠١٦-١٠-٢٦) ⇒ "
+                        "الرقم محسوب بسعر صرف من مصدر تاني (TradingView) — "
+                        "أعلى ~٢٪ من الرسمي. استخدمه كمرجع تاريخي مش كسعر دقيق."),
+            "approximate": True,
+        }
+    return None
 
 
 if __name__ == "__main__":
