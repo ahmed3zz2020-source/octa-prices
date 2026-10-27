@@ -22,3 +22,6 @@ _scratch/
 # ⛔ ملفات temporary من شاتات موازية — تترفع بالغلط
 merged.py
 st.json
+
+# ⛔ كاش محرك العوامل — بيتولّد محلياً (مش ملف مصدر)
+data/gold_factors.json
