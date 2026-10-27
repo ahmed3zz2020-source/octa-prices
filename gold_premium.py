@@ -36,15 +36,27 @@ def _log(a, b):
     return lr, sr
 
 
-def theoretical_gram(xau_usd, usd_egp, purity=1.0):
+def theoretical_gram(xau_usd, egp_per_usd, purity=1.0):
     """
     السعر النظري لجرام الذهب عيار 24 بالجنيه.
-      = (XAU/USD × USD/EGP ÷ 31.1035) × معامل النقاء
+      = (XAU USD/oz × EGP لكل دولار ÷ 31.1035) × معامل النقاء
     ⛔ الأونصة **تروي** (31.1035 جرام) — مش الأونصة العادية (28.3495).
+    ⛔⛔ الحارس: EGP لكل دولار دايماً > 1 ⇒ لو حد مرّر USD/EGP (0.0174)
+       ⇒ بنرجّع None مش رقم غلط ×3300 (نور-الكوانت).
     """
-    if not xau_usd or not usd_egp:
+    if not xau_usd or not egp_per_usd:
         return None
-    return (float(xau_usd) * float(usd_egp) / TROY_OUNCE_GRAMS) * float(purity or 1.0)
+    try:
+        _e = float(egp_per_usd)
+        _x = float(xau_usd)
+    except Exception:
+        return None
+    if _e <= 0 or _x <= 0:
+        return None
+    if _e < 1:
+        # ⛔ ده شكل USD/EGP (0.0174) — غلط ⇒ None مش رقم مخترع
+        return None
+    return (_x * _e / TROY_OUNCE_GRAMS) * float(purity or 1.0)
 
 
 def premium(observed_gram, theo_gram):
@@ -68,27 +80,37 @@ def premium(observed_gram, theo_gram):
     }
 
 
-def implied_usd_egp(observed_gram, xau_usd):
+def implied_egp_per_usd(observed_gram, xau_usd):
     """
-    ⛔ «سعر الدولار الضمني» — لو السعر المحلي مرصود ومعروف سعر الذهب العالمي،
-       السعر الضمني = (الجرام × 31.1035) ÷ XAU. ده **مؤشر** على فروق
-       التوقيت/العلاوة/السوق الموازي — مش سعر صرف رسمي.
+    ⛔ «سعر الدولار الضمني» (جنيه لكل دولار) — لو السعر المحلي مرصود
+       ومعروف سعر الذهب العالمي: (الجرام × 31.1035) ÷ XAU.
+    📌 ده **مش** سعر صرف رسمي — ده فحص اتساق: لو قرب من سعر الصرف الرسمي
+       ⇒ السعر المحلي **محسوب** من الذهب العالمي × الصرف (مش «علاوة»).
     """
     if not observed_gram or not xau_usd:
         return None
     return round(float(observed_gram) * TROY_OUNCE_GRAMS / float(xau_usd), 4)
 
 
-def decompose(series, days=365, observed_series=None):
+def implied_usd_egp(observed_gram, xau_usd):
+    """⚠️ اسم قديم (مقلوب) — اتحفظ للتوافق. استخدم implied_egp_per_usd."""
+    return implied_egp_per_usd(observed_gram, xau_usd)
+
+
+def decompose(series, days=365, observed_series=None, as_of=None):
     """
     تفكيك حركة السعر النظري لجرام الذهب على طول فترة.
-      log(نظري) = log(XAU/USD) + log(USD/EGP)   (بالضبط)
+      log(نظري) = log(XAU) + log(EGP_per_USD)   (بالضبط)
       simple(نظري) ≠ simple(XAU) + simple(FX)     (بسبب الهامش الضرب)
-    📌 series: [{d, xau, egp, gram}] مرتّبة تصاعدياً (من gold_history).
+    📌 series: [{d, xau, egp_per_usd, gram}] مرتّبة تصاعدياً (من gold_history).
     ⛔ لو السلسلة أقصر من الفترة المطلوبة ⇒ بنستخدم أطول فترة متاحة
        وبنقول كده بصراحة (مش بنكمّل برقم مخترع).
+    ⛔ as_of: لو اتحدّد ⇒ الفترة بتتقفل على تاريخ محدد (مفيش look-ahead).
     """
     s = [r for r in (series or []) if r.get("xau") and r.get("egp_per_usd") and r.get("gram")]
+    if as_of:
+        _cut = str(as_of)[:10]
+        s = [r for r in s if str(r.get("d"))[:10] <= _cut]
     if len(s) < 30:
         return {"ok": False, "error": "السلسلة قصيرة جداً للتحليل"}
     last = s[-1]
@@ -138,7 +160,11 @@ def decompose(series, days=365, observed_series=None):
 
     # 📌 لو عندنا سعر محلي مرصود في نفس الفترة ⇒ نقارن
     if observed_series:
+        # ⛔⛔⛔ المقارنة لازم تكون على **نفس نقطة البداية والنهاية** —
+        #    الكود القديم كان بيطرح عائد فترة المرصود (كله) من عائد فترة
+        #    النظري (أقصر) ⇒ رقم مش صحيح (نور-الكوانت).
         o = [r for r in observed_series if r.get("gram") and r.get("d") <= last["d"]]
+        o = [r for r in o if r.get("d") >= first["d"]]
         if o:
             o_first = o[0]
             o_last = o[-1]
@@ -151,6 +177,20 @@ def decompose(series, days=365, observed_series=None):
                     "log_ret": round(lr_o, 6) if lr_o is not None else None,
                     "source": "السعر المحلي المرصود",
                 }
+                # ⛔⭐ الأصح: فرق **العلاوة** بين نقطتين (مش طرح عائدين)
+                def _theo_at(dd):
+                    cand = [r for r in s if r["d"] <= dd]
+                    return cand[-1] if cand else None
+                _ts, _te = _theo_at(o_first["d"]), _theo_at(o_last["d"])
+                if _ts and _te and _ts.get("gram") and _te.get("gram"):
+                    p_s = o_first["gram"] / _ts["gram"] - 1.0
+                    p_e = o_last["gram"] / _te["gram"] - 1.0
+                    out["observed_local"]["premium_start_pct"] = round(p_s * 100, 3)
+                    out["observed_local"]["premium_end_pct"] = round(p_e * 100, 3)
+                    out["observed_local"]["premium_change_pp"] = round((p_e - p_s) * 100, 3)
+                    out["observed_local"]["note"] = (
+                        "الفرق عن النظري عند بداية الفترة وعند نهايتها (نفس النقطتين) "
+                        "— مش طرح عائد فترتين مختلفتين.")
                 if sr_o is not None and sr_t is not None:
                     out["observed_local"]["vs_theoretical_pct"] = round(sr_o - sr_t, 2)
     return out
@@ -166,15 +206,42 @@ def attribute(d):
         return None
     x = d.get("xau", {}).get("log_ret")
     f = d.get("egp", {}).get("log_ret")
-    t = d.get("theoretical", {}).get("log_ret")
-    if x is None or f is None or t is None or t == 0:
+    if x is None or f is None:
         return None
-    sh_x = x / t * 100.0
-    sh_f = f / t * 100.0
+    th = d.get("theoretical") or {}
+    g0, g1 = th.get("start"), th.get("end")
+    if g0 is None or g1 is None:
+        return None
+    # 📌 ① المساهمة **بالجنيه/جرام** — المجموع = التغير الحقيقي بالظبط
+    #    (الصيغة: g1 = g0·(1+rg)·(1+rf) ⇒ نقسم حدّ الضرب على الاتنين)
+    try:
+        total = g1 - g0
+        rg, rf = math.expm1(x), math.expm1(f)
+        cross = g0 * rg * rf
+        gold_pts = g0 * rg + cross / 2.0
+        fx_pts = g0 * rf + cross / 2.0
+    except Exception:
+        return None
+    # 📌 ② قوة المساهمتين (نسب محدودة ٠..١٠٠ — من لوغاريتم العوائد)
+    den = abs(x) + abs(f)
+    sh_x = (abs(x) / den * 100.0) if den else None
+    sh_f = (abs(f) / den * 100.0) if den else None
+    driver = ("سعر الدولار مقابل الجنيه" if abs(fx_pts) >= abs(gold_pts)
+              else "الذهب العالمي")
+    dpts = fx_pts if abs(fx_pts) >= abs(gold_pts) else gold_pts
     return {
-        "gold_share_pct": round(sh_x, 1),
-        "currency_share_pct": round(sh_f, 1),
-        "text": ("من الحركة تقريباً %.0f%% من الذهب العالمي و%.0f%% من سعر الدولار مقابل الجنيه."
-                 % (sh_x, sh_f)),
-        "caveat": ("ده إسهام حسابي على أساس لوغاريتم العوائد — مش إثبات إن العامل ده سبّب الحركة."),
+        "total_change_gram": round(total, 1),
+        "total_change_pct": round((g1 / g0 - 1.0) * 100.0, 2) if g0 else None,
+        "gold_points": round(gold_pts, 1),
+        "fx_points": round(fx_pts, 1),
+        "gold_share_pct": round(sh_x, 1) if sh_x is not None else None,
+        "currency_share_pct": round(sh_f, 1) if sh_f is not None else None,
+        "driver": driver,
+        "text": ("الجرام %s %.0f ج.م (%.1f%%): %s contributing %+.0f ج.م، "
+                 "والذهب العالمي %+.0f ج.م."
+                 % ("ارتفع" if total >= 0 else "انخفض", abs(total),
+                    (g1 / g0 - 1.0) * 100.0 if g0 else 0.0,
+                    driver, dpts, gold_pts)),
+        "caveat": ("ده إسهام حسابي على أساس لوغاريتم العوائد — مش إثبات إن العامل "
+                   "ده سبّب الحركة. والنسب = قوة المساهمة (٠..١٠٠) مش نسبة من التغير."),
     }

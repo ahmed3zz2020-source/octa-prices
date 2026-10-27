@@ -37,22 +37,25 @@ TROY_OUNCE_GRAMS = 31.1035          # ثابت فيزيائي: أونصة ترو
 HIST_FILE = Path(os.environ.get("GOLD_HISTORY_PATH", "/app/gold_history.json"))
 HIST_TTL = int(os.environ.get("GOLD_HISTORY_TTL", str(6 * 3600)))   # ٦ ساعات
 TV_XAU = "FX_IDC:XAUUSD"
-TV_EGP = "FX_IDC:EGPUSD"
+# ⛔⛔⛔ ٢٧ أكتوبر ٢٠٢٦ (تعديل ٢) — مصدر الصرف = FX_IDC:USDEGP
+# 📌 السبب (مراجعة نور-الكوانت — قياس حقيقي): الرمز القديم EGPUSD
+#    (0.0174) هو **سعر السوق الموازي** ⇒ 1/0.0174 = 57.47 جنيه/دولار
+#    = أعلى بـ **+2.4٪** من الرسمي ⇒ آخر نقطة في السلسلة كانت
+#    (ذهب حيّ × دولار منتهٍ الصلاحية) ⇒ −2.42٪ عن السعر المرصود.
+# 📌 USDEGP = **نفس الرمز** اللي الـscanner بيستخدمه لـ tk-usd (سطر 6160)
+#    ⇒ كارت الذهب والسلسلة بقى من **مصدر واحد** ⇒ مفيش رقمين لنفس الحاجة.
+# 📌 USDEGP بيرجع ل 1997-08-17 ⇒ السلسلة الأساسية بقت ~٢٩ سنة.
+TV_EGP = "FX_IDC:USDEGP"
 COUNT_XAU = 9000          # ≈ ٣٦ سنة يومية
-COUNT_EGP = 5000          # ≈ ٢٠ سنة يومية (سلسلة بديلة — موثّقة)
+COUNT_EGP = 8000          # ≈ ٢٩ سنة يومية (من 1997)
 
-# ⛔⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — مصدر الصرف الأساسي اتغيّر ل Yahoo EGP=X
-# 📌 السبب (قياس حقيقي — حيدر-البيانات): ساق tv_ws (FX_IDC:EGPUSD) فوق
-#    السعر الرسمي بـ **+2.12٪** متوسط (ومقابل Yahoo EGP=X فقط −0.12٪).
-#    ⇒ سلسلتنا القديمة كانت أعلى من سعر السوق بـ 2٪ ⇒ ناقصة.
-# 📌 Yahoo EGP=X = سعر الصرف الرسمي ⇒ نفس أساس سعر الصاغة ⇒ المقارنة
-#    بين النظري والمرصود بقت بتطلع مطابقة 0.05% (تحقّق).
-# ⛔ Yahoo EGP=X بيبدأ 2016-10-26 ⇒ السلسلة الأساسية ١٠ سنين.
-#    السلسلة الأطول (٢٠٠٩+) بتفضل موجودة لكن بـ FX تاني وموثّقة.
+# 📌 Yahoo EGP=X = سعر صرف رسمي مرجعي (جنيه/دولار) — **بديل** دلوقتي.
+#    (كان الأساسي الأول، بس مش مضمون إنه بنفس ساعة إقفال جلسة الذهب
+#     ⇒ آخر نقطة كانت قديمة يومين ⇒ فرق 2.4٪.)
 YAHOO_FX = "EGP=X"
 YAHOO_FX_RANGE = "10y"
-FX_PRIMARY = "yahoo_egpx"
-FX_FALLBACK = "tradingview_egpusd"
+FX_PRIMARY = "tradingview_usdegp"
+FX_FALLBACK = "yahoo_egpx"
 
 _LOCK = threading.Lock()
 _MEM = {"ts": 0, "data": None}
@@ -180,38 +183,39 @@ def build(force=False):
         except Exception as e:
             return {"ok": False, "error": "فشل جلب الذهب: " + str(e)[:120],
                     "built_at": now, "series": []}
-        # ⛔⛔⛔ مصدر الصرف الأساسي = Yahoo EGP=X (رسمي) — مش tv_ws (+2.12٪)
+        # ⛔⛔⛔ مصدر الصرف الأساسي = TV USDEGP (نفس tk-usd في الـscanner)
         fx_src_used = FX_PRIMARY
-        # ⛔⛔⛔ اتجاه الاقتباس مختلف بين المصدرين!
-        #   Yahoo  EGP=X        ⇒ EGP لكل دولار  (56.1)  ⇒ نحتاجه زي ما هو
-        #   TradingView EGPUSD  ⇒ دولار لكل جنيه (0.0174) ⇒ ن inversed
+        # ⛔ اتجاه الاقتباس: USDEGP ⇒ جنيه/دولار مباشرة · Yahoo EGP=X ⇒ زي ما هو
+        #   (الرمز القديم EGPUSD كان دولار/جنيه ⇒ كنا بنعمله inverse ⇒
+        #    لازم نتأكد إحنا بنستخدم الرمز الصح!)
         fx_inverted = False
+        fx_error = None
         try:
-            egp = _yahoo_fx()
+            egp = _tv_bars(TV_EGP, COUNT_EGP)
         except Exception as e:
             egp = []
             fx_error = str(e)[:120]
         if not egp:
-            # ⛔ fallback: ساق TradingView — بنوثّق إنها +2٪ عن الرسمي
+            # ⛔ fallback: Yahoo EGP=X (رسمي — بس ١٠ سنين وآخر نقطة ممكن تتأخر)
             try:
-                egp = _tv_bars(TV_EGP, COUNT_EGP)
+                egp = _yahoo_fx()
                 fx_src_used = FX_FALLBACK
-                fx_inverted = True
+                fx_inverted = False
             except Exception as e:
                 return {"ok": False, "error": "فشل جلب سعر الدولار: " + str(e)[:120],
                         "built_at": now, "series": []}
-        # ⛔ سلسلة بديلة أطول (٢٠٠٩+) بس بـ FX تاني — محفوظة للشفافية
+        # ⛔ سلسلة بديلة = **نفس الذهب + مصدر صرف تاني** (Yahoo) ⇒ فحص تقاطع
+        #    (بيوضح لو كان في فرق بسبب المصدر مش بسبب السعر نفسه)
         alt_series = []
         try:
             if fx_src_used == FX_PRIMARY:
-                alt = _tv_bars(TV_EGP, COUNT_EGP)
-                amap = dict(alt)
+                amap = dict(_yahoo_fx())
                 for dd, xx in xau:
                     ee = amap.get(dd)
                     if not ee:
                         continue
-                    g = (xx * (1.0 / ee)) / TROY_OUNCE_GRAMS   # tv_ws ⇒ معكوس
-                    alt_series.append({"d": dd, "gram": round(g, 2),
+                    g = (xx * float(ee)) / TROY_OUNCE_GRAMS   # Yahoo ⇒ جنيه/دولار مباشرة
+                    alt_series.append({"d": dd, "gram": round(g, 4),
                                        "fx_source": FX_FALLBACK})
         except Exception:
             alt_series = []
@@ -223,10 +227,12 @@ def build(force=False):
         egp_map = dict(egp)
         series = []
         skipped = 0
+        gap_dates = []
         for d, x in xau:
             e = egp_map.get(d)
             if e is None or not e:
                 skipped += 1
+                gap_dates.append(d)
                 continue
             # ⛔⛔⛔ ٢٧ أكتوبر ٢٠٢٦ — تصحيح تسمية (اكتشفه فحص الـlog)
             #   المصدر TradingView: FX_IDC:EGPUSD = **دولار لكل جنيه** (0.0174)
@@ -234,22 +240,43 @@ def build(force=False):
             #   ⇒ سعر الأونصة بالجنيه = xau × (1 / usd_per_egp)
             #   ⚠️ قبل التصحيح كان الحقل اسمه «egp» وده معكوس ⇒ في حساب
             #      الـlog return الإشارة بتتقلب ⇒ إسناد فاسد («الذهب −58%»).
-            egp_per_usd = (1.0 / e) if fx_inverted else float(e)   # جنيه لكل دولار
-            ounce_egp = x * egp_per_usd
-            gram = ounce_egp / TROY_OUNCE_GRAMS
+            # ⛔⛔⛔ اتجاه الاقتباس: لو المصدر معكوس (دولار/جنيه) ⇒ نعكسه.
+            #    (الرمز القديم EGPUSD كان معكوس — دلوقتي USDEGP مباشر.)
+            egp_per_usd = (1.0 / float(e)) if fx_inverted else float(e)  # جنيه لكل دولار
+            # 📌 دقة التخزين (نور-الكوانت): خزّن أدق وقرّب وقت العرض بس
+            #    ⇒ gram بيتحسب من egp_per_usd **بعد** التقريب ⇒ البيانات
+            #      reproducible بالظبط (أقصى |باقي| ≈ 3.3e-6 بدل 1.6e-5).
+            egp_per_usd = round(egp_per_usd, 6)
+            xau_r = round(x, 6)
+            gram = round(xau_r * egp_per_usd / TROY_OUNCE_GRAMS, 4)
+            ounce_egp = round(xau_r * egp_per_usd, 4)
+            # 📌 تسمية الجلسة: شمعة TradingView مختومة 22:00/23:00 UTC
+            #    (بداية جلسة الفوركس) ⇒ الصف D = إقفال جلسة بدأت D
+            #    ⇒ «تاريخ التداول الفعلي» بالقاهرة = D+1.
+            try:
+                _dd = datetime.date.fromisoformat(d)
+                _eff = (_dd + datetime.timedelta(days=1)).isoformat()
+            except Exception:
+                _eff = d
             series.append({
                 "d": d,
                 "fx_source": fx_src_used,
-                "xau": round(x, 4),
-                "usd_per_egp": round(e, 8),   # دولار لكل جنيه (كما ورد من المصدر)
-                "egp_per_usd": round(egp_per_usd, 4),  # جنيه لكل دولار (المستخدم في الحساب)
-                "ounce_egp": round(ounce_egp, 2),
-                "gram": round(gram, 2),
+                "xau": xau_r,
+                # ⛔ الأسماء بعد الإصلاح (نور-الكوانت): كل حقل باسم اتجاهه
+                "egp_per_usd": egp_per_usd,     # جنيه لكل دولار (المستخدم في الحساب)
+                "usd_per_egp": round(1.0 / egp_per_usd, 10),  # دولار لكل جنيه (المقلوب فعلاً)
+                "ounce_egp": ounce_egp,
+                "gram": gram,
+                "session_start_utc": d,
+                "effective_date_cairo": _eff,   # يوم الإقفال الفعلي بالقاهرة
             })
 
         if not series:
             return {"ok": False, "error": "مفيش تقاطع بين سلسلتي الذهب والدولار",
                     "built_at": now, "series": []}
+        # ⛔ فجوات **جوّه** السلسلة فقط (بعد أول نقطة) — الباقي = قبل بداية المصدر
+        _first_d = series[0]["d"]
+        in_series_gaps = [g for g in gap_dates if g >= _first_d]
 
         data = {
             "ok": True,
@@ -259,37 +286,48 @@ def build(force=False):
             "count": len(series),
             "from": series[0]["d"],
             "to": series[-1]["d"],
-            "skipped_no_fx": skipped,
+            # ⛔ الرقم ده كل أيام الذهب اللي قبل بداية مصدر الصرف (مش فجوات!)
+            "skipped_before_fx_start": skipped,
             "sources": {
                 "gold": {"provider": "TradingView", "symbol": TV_XAU, "points": len(xau),
                          "from": xau[0][0], "to": xau[-1][0]},
-                "fx": {"provider": ("Yahoo Finance" if fx_src_used == FX_PRIMARY
-                                    else "TradingView"),
-                       "symbol": (YAHOO_FX if fx_src_used == FX_PRIMARY else TV_EGP),
+                "fx": {"provider": ("TradingView" if fx_src_used == FX_PRIMARY
+                                    else "Yahoo Finance"),
+                       "symbol": (TV_EGP if fx_src_used == FX_PRIMARY else YAHOO_FX),
                        "points": len(egp), "from": egp[0][0], "to": egp[-1][0],
                        "id": fx_src_used,
-                       "quote_convention": ("EGP لكل دولار (مباشر)" if fx_src_used == FX_PRIMARY
-                                            else "دولار لكل جنيه (معكوس) — بيتحول لجنيه/دولار"),
-                       "note": ("سعر الصرف الرسمي (جنيه/دولار) — مطابق لأساس تسعير "
-                                "محلات الصياغة." if fx_src_used == FX_PRIMARY else
-                                "ساق TradingView — أعلى ~2٪ من الرسمي (مستخدمة كبديل).")},
+                       "quote_convention": "EGP لكل دولار (مباشر)",
+                       "note": ("سعر الصرف الرسمي — **نفس رمز الـscanner (tk-usd)** "
+                                "⇒ كارت الذهب والسلسلة من مصدر واحد."
+                                if fx_src_used == FX_PRIMARY else
+                                "Yahoo EGP=X (رسمي) — بديل: آخر نقطة ممكن تتأخر "
+                                "يومين ⇒ فرق ~٢٪ عن الكارت.")},
             },
             "fx_alternative": {
                 "id": FX_FALLBACK, "points": len(alt_series),
                 "from": alt_series[0]["d"] if alt_series else None,
                 "to": alt_series[-1]["d"] if alt_series else None,
-                "caveat": ("سلسلة أطول (من ٢٠٠٩) بس سعر صرف أعلى ~٢٪ عن الرسمي — "
-                           "مستعملة للرجوع التاريخي مش للمقارنة بالحالي."),
+                "caveat": ("نفس الذهب + مصدر صرف تاني (Yahoo) ⇒ **فحص تقاطع**: "
+                           "الفرق بين السلسلتين = أثر اختلاف المصدر بس."),
                 "series": alt_series,
+            },
+            "gaps": {
+                "count": len(in_series_gaps),
+                "dates": in_series_gaps[:400],
+                "note": ("أيام مفيش فيها سعر صرف (عطلة/سقوط المصدر) ⇒ الرسم "
+                         "لازم يكسر الخط عند الفجوة (مفيش داتا متخيّلة)."),
             },
             "method": {
                 "formula": "gram_egp = (XAUUSD x EGP_per_USD) / 31.1035  |  EGP_per_USD = 1 / USD_per_EGP",
                 "troy_ounce_grams": TROY_OUNCE_GRAMS,
                 "alignment": "تقاطع يومي بين السلسلتين (يوم موجود في الاتنين)",
+                "date_labeling": ("الصف D = شمعة جلسة بدأت D (TradingView بتختم 22:00/23:00 "
+                                  "UTC) ⇒ يوم التداول الفعلي بالقاهرة = D+1 "
+                                  "(`effective_date_cairo`). مفيش جمعة ولا سبت."),
                 "caveats": [
                     "سعر مرجعي محسوب — مش سعر البيع في محلات الصياغة (فيه هامش صناعة ودمغة وربح).",
                     "سعر الدولار هو السعر الرسمي المعروض — السوق الموازي مختلف.",
-                    "سلسلة الجنيه تبدأ 2009-12-06 ⇒ كل ما قبل كده غير متاح في الجنيه.",
+                    "الصف مسمّى بتاريخ بدء الجلسة؛ استخدم `effective_date_cairo` للعرض.",
                 ],
             },
             "series": series,

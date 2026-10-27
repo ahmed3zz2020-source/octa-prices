@@ -10854,7 +10854,9 @@ def gold_api():
     ounce_egp = g["value"] * u["value"]
     return jsonify({
         "ounce_usd": round(g["value"], 2),
-        "usd_egp": round(u["value"], 2),
+        # ⛔ الاسم الصحيح: tk-usd = جنيه لكل دولار (مش دولار/جنيه)
+        "egp_per_usd": round(u["value"], 4),
+        "usd_per_egp": round(1.0 / u["value"], 10) if u.get("value") else None,
         "ounce_egp": round(ounce_egp, 2),
         "gram_egp": round(ounce_egp / 31.1035, 2),
         "ounce_egp_change": round((g.get("change",0) + u.get("change",0)) / 2, 2),
@@ -11150,7 +11152,7 @@ def gold_attribution_api():
         xau_val = gk.get("value") if gk else None
         egp_val = uk.get("value") if uk else None
         if xau_val and egp_val:
-            fx_src = {"usd_egp": round(egp_val, 4), "xau_usd": round(xau_val, 4),
+            fx_src = {"egp_per_usd": round(egp_val, 4), "xau_usd": round(xau_val, 4),
                       "source": "الـscanner (سعر البنك المركزي) — نفس سعر كارت الذهب"}
         else:
             # ⛔ fallback: بيانات البنك المركزي المحفوظة (data/egypt_macro.json)
@@ -11166,7 +11168,7 @@ def gold_attribution_api():
                 if _sell and _last.get("xau"):
                     egp_val = float(_sell)
                     xau_val = float(_last["xau"])
-                    fx_src = {"usd_egp": round(egp_val, 4), "xau_usd": round(xau_val, 4),
+                    fx_src = {"egp_per_usd": round(egp_val, 4), "xau_usd": round(xau_val, 4),
                               "source": "البنك المركزي المصري (ملف البيانات المحفوظ)",
                               "source_date": _fx.get("last_updated")}
             except Exception:
@@ -11178,7 +11180,8 @@ def gold_attribution_api():
             last = data["series"][-1]
             theo_tv = gp.theoretical_gram(last["xau"], last["egp_per_usd"])
             if pr:
-                pr["implied_usd_per_egp"] = gp.implied_usd_egp(obs, xau_val)
+                # ⛔ الاسم الصحيح: الأرقام دي **جنيه لكل دولار** (مش دولار/جنيه)
+                pr["implied_egp_per_usd"] = gp.implied_egp_per_usd(obs, xau_val)
                 pr["fx_used"] = fx_src
                 pr["theoretical_tv_fx"] = round(theo_tv, 2)
                 pr["theoretical_tv_fx_note"] = (
@@ -11189,13 +11192,28 @@ def gold_attribution_api():
                 pr["observed_updated"] = loc.get("updated_iso")
                 pr["observed_freshness"] = gl.freshness(loc)
                 pr["xau_usd_used"] = xau_val
+            # ⛔⛔⛔ تسمية صريحة (نور-الكوانت): السعر المصري **محسوب**
+            #    (الذهب العالمي × سعر الصرف الرسمي) ⇒ «العلاوة» ≈ ٠
+            #    نتيجة حتمية مش قياس ⇒ بنسمّيها «الفرق عن المرجع».
+            pr["label"] = ("فرق عن السعر المرجعي (هامش التاجر)" if obs >= theo_card
+                           else "فرق عن السعر المرجعي")
+            pr["note"] = (
+                "⚠️ السعر المصري بيتحسب من الذهب العالمي × سعر الصرف الرسمي، "
+                "فالمفروض يبقى الفرق ≈ ٠ (هو هامش التاجر ودمغة الصياغة بس). "
+                "يعني **مفيش علاوة حقيقية** في السوق دلوقتي — والفرق ده "
+                "مش دليل على عرض/طلب.")
+            pr["is_tautology"] = True
+            pr["dealer_margin_note"] = (
+                "هامش التاجر (شراء→بيع) ≈ ٠٫٨٪ · الفرق بين صاغتين ≈ ٠٫٢٪")
             out["premium"] = pr
+            out["premium_renamed"] = True
             out["local"] = {
                 "gram_24_reference": obs,
                 "updated_iso": loc.get("updated_iso"),
                 "freshness": gl.freshness(loc),
                 "source": loc.get("source"),
-                "xau_usd": xau_val, "usd_egp": egp_val,
+                "xau_usd": xau_val, "egp_per_usd": egp_val,
+                "usd_per_egp": round(1.0 / egp_val, 10) if egp_val else None,
             }
         else:
             out["premium"] = None
