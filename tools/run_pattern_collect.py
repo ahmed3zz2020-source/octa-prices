@@ -62,6 +62,10 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--jobs", type=int, default=2)
     ap.add_argument("--out", default="pattern_signals.jsonl")
+    ap.add_argument("--execution", action="store_true",
+                    help="يضيف نماذج التنفيذ والضوابط لكل إشارة")
+    ap.add_argument("--cost-pct", type=float, default=0.0,
+                    help="تكلفة صفقة كاملة %% (عمولة+دمغة+spread)")
     args = ap.parse_args(argv)
 
     if not os.path.isdir(args.candles_dir):
@@ -76,7 +80,8 @@ def main(argv=None):
         codes = codes[:args.limit]
 
     kwargs = {"horizon": args.horizon, "step": args.step,
-              "warmup": args.warmup, "start_date": args.start}
+              "warmup": args.warmup, "start_date": args.start,
+              "execution": args.execution, "cost_pct": args.cost_pct}
     chunks = []
     size = max(1, len(codes) // max(1, args.jobs) + 1)
     for i in range(0, len(codes), size):

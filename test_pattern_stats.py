@@ -207,6 +207,53 @@ if pattern_stats.detect is not None:
     else:
         check("مفيش كاش شموع محلي للاختبار المقارن", True, "تخطّي")
 
+print("\n▶️ ٧ نماذج التنفيذ والضوابط (٢٨ أكتوبر ٢٠٢٦)")
+_B = [
+ {"d": "2026-01-01", "o": 100, "h": 101, "l": 99, "c": 100, "v": 1000},
+ {"d": "2026-01-02", "o": 100, "h": 101, "l": 99, "c": 100, "v": 1000},   # الإشارة
+ {"d": "2026-01-03", "o": 101, "h": 106, "l": 100.5, "c": 105, "v": 1000},  # لمس الهدف
+ {"d": "2026-01-04", "o": 105, "h": 106, "l": 104, "c": 105, "v": 1000},
+]
+_ex = pattern_stats._exec_variants(_B, 1, 10, "up", 101.0, 99.0, 105.0,
+                                   cost_pct=0.35)
+check("النماذج الأربعة موجودة",
+      all(k in _ex for k in ("planned", "next_open", "limit", "flip")),
+      str(sorted(_ex.keys())))
+check("الدخول بفتتاح الشمعة التالية ⇒ فوز",
+      _ex["next_open"]["status"] == "win", str(_ex["next_open"]))
+check("المفاضلة (plan) تبدأ من الشمعة بعد الإشارة (مش الشمعة نفسها)",
+      _ex["planned"]["status"] == "win", str(_ex["planned"]))
+check("الانعكاس (ضابط) لازم يخسر",
+      _ex["flip"]["status"] == "loss", str(_ex["flip"]))
+check("التكلفة بتتخفض من الـR",
+      _ex["planned"]["r_net"] < _ex["planned"]["r"],
+      "%s مقابل %s" % (_ex["planned"]["r_net"], _ex["planned"]["r"]))
+
+# ⛔ حالة: الافتتاح تجاوز الهدف ⇒ الصفحة فاتتها (مش خسارة)
+_B2 = [
+ {"d": "2026-01-01", "o": 100, "h": 101, "l": 99, "c": 100, "v": 1000},
+ {"d": "2026-01-02", "o": 100, "h": 101, "l": 99, "c": 100, "v": 1000},
+ {"d": "2026-01-03", "o": 106, "h": 107, "l": 105.5, "c": 106, "v": 1000},
+]
+_ex2 = pattern_stats._exec_variants(_B2, 1, 10, "up", 101.0, 99.0, 105.0)
+check("لو الافتتاح عدّى الهدف ⇒ not_filled (مش خسارة)",
+      _ex2["next_open"]["status"] == "not_filled", str(_ex2["next_open"]))
+
+# ⛔ حالة: ما لمسش الهدف ⇒ open مع mark-to-market (مش 0)
+_B3 = [
+ {"d": "2026-01-01", "o": 100, "h": 101, "l": 99, "c": 100, "v": 1000},
+ {"d": "2026-01-02", "o": 100, "h": 101, "l": 99, "c": 100, "v": 1000},
+ {"d": "2026-01-03", "o": 101, "h": 102, "l": 100.5, "c": 102, "v": 1000},
+]
+_ex3 = pattern_stats._exec_variants(_B3, 1, 10, "up", 101.0, 99.0, 105.0)
+check("الصفحة المفتوحة بتتقوّم بالسعر (mark-to-market) مش 0",
+      _ex3["planned"]["status"] == "open" and abs(_ex3["planned"]["r"]) > 0,
+      str(_ex3["planned"]))
+check("الحدود: هدف ووقف متساويين في نفس الشمعة ⇒ ambiguous",
+      pattern_stats._simulate(
+          [{"d": "x", "o": 100, "h": 110, "l": 90, "c": 100, "v": 1}],
+          0, 5, "up", 100, 95, 105)["status"] == "ambiguous")
+
 print("\n" + ("✅ كل الاختبارات عدّت" if not FAILED else "❌ فشل: %d" % FAILED))
 for f in FAILURES:
     print("   -", f)

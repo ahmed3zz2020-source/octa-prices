@@ -357,8 +357,149 @@ def _avg_turnover(bars, idx, lookback=20):
     return sum(seg) / float(len(seg))
 
 
+def _simulate(bars, fill_index, horizon, direction, entry, stop, target,
+              require_touch=False, skip_if_beyond=False, cost_pct=0.0):
+    """محاكاة صفقة بأسلوب تنفيذ محدد.
+
+    ⛔ بتمشي شمعة شمعة (مش min/max على النافذة) ⇒ لو الهدف والوقف اتلموا
+       في نفس الشمعة ⇒ ambiguous (مش success تلقائي).
+    📌 المخرجات: {"status": "win|loss|open|ambiguous|not_filled",
+                  "r": R محقق, "r_net": R بعد التكلفة, "bars": عدد الشموع}
+    """
+    n = len(bars)
+    if fill_index >= n or entry is None:
+        return {"status": "no_data", "r": 0.0, "r_net": 0.0, "bars": 0}
+
+    # ── شرط التنفيذ ───────────────────────────────────────────────
+    if skip_if_beyond:
+        # لو الافتتاح تجاوز الهدف ⇒ الصفقة فاتتها (مش خسارة)
+        first = bars[fill_index]
+        o = first.get("o")
+        if o is not None:
+            if direction == "up" and o >= target:
+                return {"status": "not_filled", "r": 0.0, "r_net": 0.0, "bars": 0}
+            if direction == "down" and o <= target:
+                return {"status": "not_filled", "r": 0.0, "r_net": 0.0, "bars": 0}
+    fill_bar = bars[fill_index]
+    if require_touch:
+        hi = fill_bar.get("h")
+        lo = fill_bar.get("l")
+        if hi is None or lo is None:
+            return {"status": "no_data", "r": 0.0, "r_net": 0.0, "bars": 0}
+        touched = (lo <= entry <= hi)
+        if not touched:
+            return {"status": "not_filled", "r": 0.0, "r_net": 0.0, "bars": 0}
+
+    # ── المخاطر بعد التنفيذ الفعلي ───────────────────────────────
+    if direction == "up":
+        risk = entry - stop
+        reward = target - entry
+    else:
+        risk = stop - entry
+        reward = entry - target
+    if risk <= 0:
+        return {"status": "invalid", "r": 0.0, "r_net": 0.0, "bars": 0}
+    mult = reward / risk
+
+    # ── المشي شمعة شمعة ──────────────────────────────────────────
+    status = "open"
+    exit_i = None
+    last_i = min(fill_index + horizon, n - 1)
+    for j in range(fill_index, last_i + 1):
+        b = bars[j]
+        hi = b.get("h")
+        lo = b.get("l")
+        if hi is None or lo is None:
+            continue
+        hit_t = (hi >= target) if direction == "up" else (lo <= target)
+        hit_s = (lo <= stop) if direction == "up" else (hi >= stop)
+        if hit_t and hit_s:
+            status = "ambiguous"
+            exit_i = j
+            break
+        if hit_t:
+            status = "win"
+            exit_i = j
+            break
+        if hit_s:
+            status = "loss"
+            exit_i = j
+            break
+
+    r = 0.0
+    if status == "win":
+        r = mult
+    elif status == "loss":
+        r = -1.0
+    elif status == "open":
+        # ⭐ mark-to-market عند آخر شمعة في الأفق (أعدل من ٠)
+        last_close = bars[last_i].get("c")
+        if last_close is not None:
+            if direction == "up":
+                r = (last_close - entry) / risk
+            else:
+                r = (entry - last_close) / risk
+    r_net = r
+    if cost_pct and risk:
+        entry_pct = abs(entry) or 1.0
+        cost_r = (float(cost_pct) / 100.0) / (risk / entry_pct)
+        r_net = r - cost_r
+    return {"status": status, "r": round(r, 4), "r_net": round(r_net, 4),
+            "mult": round(mult, 3),
+            "bars": (exit_i - fill_index + 1) if exit_i is not None
+            else (last_i - fill_index + 1)}
+
+
+def _exec_variants(bars, index, horizon, direction, entry, stop, target,
+                   cost_pct=0.0):
+    """نماذج التنفيذ + الضوابط لكل إشارة.
+
+    📌 ① planned  : الدخول بسعر الإشارة المخطط (متفائل)
+    📌 ② next_open: الدخول بسعر افتتاح الشمعة التالية (واقعي للبوت)
+    📌 ③ limit    : أمر حد عند السعر المخطط (يتنفّذ بس لو السعر لمسه)
+    📌 ④ flip     : نفس الإشارة معكوسة الاتجاه (ضابط: لازم يفشل)
+    📌 ⑤ delay1/2 : الدخول بعد شمعة/شمعتين (ضابط: لازم يضعف)
+    """
+    out = {}
+    nxt = index + 1
+    # ⭐ كل النماذج بتبدأ من الشمعة اللي بعد الإشارة (القرار بيتم عند
+    #   إغلاق الشمعة i ⇒ مش معروف قبل كده).
+    if nxt < len(bars):
+        out["planned"] = _simulate(bars, nxt, horizon, direction, entry, stop,
+                                   target, cost_pct=cost_pct)
+        o = bars[nxt].get("o")
+        out["next_open"] = _simulate(bars, nxt, horizon, direction, o, stop,
+                                     target, skip_if_beyond=True,
+                                     cost_pct=cost_pct)
+        out["limit"] = _simulate(bars, nxt, horizon, direction, entry, stop,
+                                 target, require_touch=True, cost_pct=cost_pct)
+        out["delay1"] = _simulate(bars, nxt + 1, horizon, direction,
+                                   bars[nxt + 1].get("o") if nxt + 1 < len(bars)
+                                   else None, stop, target,
+                                   skip_if_beyond=True, cost_pct=cost_pct)
+        out["delay2"] = _simulate(bars, nxt + 2, horizon, direction,
+                                   bars[nxt + 2].get("o") if nxt + 2 < len(bars)
+                                   else None, stop, target,
+                                   skip_if_beyond=True, cost_pct=cost_pct)
+    # ── الانعكاس: نفس السعر والمسافات بس الاتجاه المعاكس (ضابط) ──
+    if direction == "up":
+        risk = entry - stop
+        reward = target - entry
+    else:
+        risk = stop - entry
+        reward = entry - target
+    out["flip"] = _simulate(bars, nxt, horizon,
+                            "down" if direction == "up" else "up",
+                            entry,
+                            entry + risk if direction == "up" else entry - risk,
+                            entry - reward if direction == "up" else entry + reward,
+                            skip_if_beyond=True, cost_pct=cost_pct)
+    return out
+
+
 def collect_signals(bars_by_code, cfg=None, horizon=10, step=1, warmup=320,
-                    max_codes=None, start_date=None, kinds=None):
+                    max_codes=None, start_date=None, kinds=None,
+                    execution=False, cost_pct=0.0):
     """بيرجّع قائمة كل الإشارات بتفاصيلها ونتائجها — لأبحاث الفلاتر.
 
     ⛔ نفس منطق الـwalk-forward بالظبط (نفس حاجز التاريخ ونفس حساب النتيجة)
@@ -446,6 +587,10 @@ def collect_signals(bars_by_code, cfg=None, horizon=10, step=1, warmup=320,
                     "avg_turnover20": _avg_turnover(bars, index),
                     "pattern_id": signal.get("pattern_id"),
                 }
+                if execution:
+                    rec["exec"] = _exec_variants(bars, index, horizon,
+                                                 direction, entry, stop, target,
+                                                 cost_pct=cost_pct)
                 out.append(rec)
     return out
 

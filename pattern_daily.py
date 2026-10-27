@@ -284,7 +284,8 @@ def digest_text(items, limit=12):
 #  المسجّل (API) + المهمة اليومية
 # ══════════════════════════════════════════════════════════════════════
 
-def register(app, require_user=None, send=None, live_data_getter=None):
+def register(app, require_user=None, send=None, live_data_getter=None,
+             plan_checker=None, plan_setter=None):
     """بيسجّل المسارات + يشغّل المهمة اليومية (fail-soft)."""
     from flask import jsonify, request
 
@@ -296,12 +297,32 @@ def register(app, require_user=None, send=None, live_data_getter=None):
         except Exception:
             return None
 
+    def _plan_of(user):
+        """خطة المستخدم — 'pro' يعني إن باقة «نماذجي» مفتوحة."""
+        if not user:
+            return "free"
+        try:
+            if plan_checker:
+                p = plan_checker(user)
+                if p:
+                    return str(p)
+        except Exception:
+            pass
+        return str(user.get("plan") or "free")
+
+    def _locked_response(user):
+        return jsonify({"ok": False, "locked": True,
+                        "plan": _plan_of(user),
+                        "error": "باقة «نماذجي» مدفوعة — محتاجة تفعيل"}), 403
+
     @app.route("/api/setups", methods=["GET"])
     def setups_api():
         u = _guard()
         if require_user is not None and not u:
             return jsonify({"ok": False,
                             "error": "لازم تسجّل دخول عشان تشوف الأنماط"}), 401
+        if _plan_of(u) != "pro":
+            return _locked_response(u)
         payload = load_shortlist(max_age_hours=12)
         if payload is None:
             try:
@@ -324,6 +345,7 @@ def register(app, require_user=None, send=None, live_data_getter=None):
         payload = load_shortlist(max_age_hours=12) or {}
         return jsonify({"ok": True, "filters": load_filters(),
                         "summary": payload.get("summary"),
+                        "plan": _plan_of(u),
                         "generated_at": payload.get("generated_at")})
 
     @app.route("/api/setups/refresh", methods=["POST"])
@@ -331,6 +353,8 @@ def register(app, require_user=None, send=None, live_data_getter=None):
         u = _guard()
         if require_user is not None and not u:
             return jsonify({"ok": False, "error": "محمي"}), 401
+        if _plan_of(u) != "pro":
+            return _locked_response(u)
         try:
             live = live_data_getter() if live_data_getter else None
             payload = build_shortlist(live_data=live)
@@ -339,6 +363,36 @@ def register(app, require_user=None, send=None, live_data_getter=None):
                             "summary": payload.get("summary")})
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:160]}), 503
+
+    @app.route("/api/setups/plan", methods=["POST"])
+    def setups_plan():
+        """🔐 تفعيل/إلغاء باقة «نماذجي» لحساب — أدمن بس.
+        ⛔ fail-closed: مفيش OCTA_ADMIN_TOKEN ⇒ 503 (مش 200)."""
+        import hmac
+        import os as _os
+        want = str(_os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+        if not want:
+            return jsonify({"ok": False, "error": "الأدمن مش متظبط"}), 503
+        got = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+        if not got or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                              want.encode("utf-8", "replace")):
+            return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
+        body = request.get_json(silent=True) or {}
+        uid = str(body.get("uid") or "").strip()
+        plan = str(body.get("plan") or "").strip().lower()
+        if not uid or plan not in ("free", "pro"):
+            return jsonify({"ok": False,
+                            "error": "لازم uid و plan (free/pro)"}), 400
+        if not plan_setter:
+            return jsonify({"ok": False,
+                            "error": "تعديل الخطة غير متاح"}), 501
+        try:
+            rec = plan_setter(uid, plan)
+        except Exception as e:
+            return jsonify({"ok": False, "error": str(e)[:160]}), 500
+        if not rec:
+            return jsonify({"ok": False, "error": "مفيش حساب ببالمعرّف ده"}), 404
+        return jsonify({"ok": True, "uid": uid, "plan": plan})
 
     # ── المهمة اليومية ────────────────────────────────────────────
     def _daily_worker():
