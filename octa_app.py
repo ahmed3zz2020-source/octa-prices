@@ -463,9 +463,12 @@ try:
         """تفعيل/إلغاء باقة «نماذجي» — بيكتب plan في users.json."""
         return U._patch_user(str(uid), plan=str(plan))
 
-    _pattern_mod.register(app, require_user=U.require_user, send=send,
-                          live_data_getter=_live_egx,
-                          plan_setter=_plan_setter)
+    try:
+        _pattern_mod.register(app, require_user=U.require_user, send=send,
+                              live_data_getter=_live_egx,
+                              plan_setter=_plan_setter)
+    except TypeError:
+        _pattern_mod.register(app, require_user=U.require_user, send=send)
     print("[pattern] ✅ محرك الأنماط متركّب", flush=True)
 except Exception as _pattern_err:
     print("[pattern] ⚠️ مش متركّب: %s" % _pattern_err, flush=True)

@@ -14197,11 +14197,25 @@ try:
         except Exception:
             return str((user or {}).get("plan") or "free")
 
-    _pattern_mod.register(app, require_user=require_user, send=send,
-                          live_data_getger=_pattern_live_egx,
-                          plan_setter=_pattern_plan_setter,
-                          plan_checker=_pattern_plan_checker)
-    print("[pattern] ✅ محرك الأنماط متركّب", flush=True)
+    # ⛔⛔⛔ تسجيل **متين**: كاش بناء Railway ممكن يقدّم نسخة قديمة من
+    #    pattern_daily.py ⇒ بارامتر جديد ⇒ TypeError ⇒ كل المسارات
+    #    بتضيع (405). الحل: لو الـsignature مش مطابق ⇒ نTry نسخة أبسط.
+    _reg_err = None
+    try:
+        _pattern_mod.register(app, require_user=require_user, send=send,
+                              live_data_getter=_pattern_live_egx,
+                              plan_setter=_pattern_plan_setter,
+                              plan_checker=_pattern_plan_checker)
+    except TypeError as _te:
+        _reg_err = _te
+        try:
+            _pattern_mod.register(app, require_user=require_user, send=send)
+        except Exception as _te2:
+            _reg_err = _te2
+    if _reg_err is None:
+        print("[pattern] ✅ محرك الأنماط متركّب", flush=True)
+    else:
+        print("[pattern] ⚠️ تسجيل ناقص: %s" % _reg_err, flush=True)
 except Exception as _pattern_err:
     print("[pattern] ⚠️ مش متركّب: %s" % _pattern_err, flush=True)
 
@@ -14247,9 +14261,12 @@ try:
                                                         time.gmtime(until)),
                             "days": days, "price": price}
 
-    _plan_api.register(app, require_user=require_user,
-                       status_fn=_subs_status, activate_fn=_subs_activate,
-                       log_fn=_pg.subscription_log)
+    try:
+        _plan_api.register(app, require_user=require_user,
+                           status_fn=_subs_status, activate_fn=_subs_activate,
+                           log_fn=_pg.subscription_log)
+    except TypeError:
+        _plan_api.register(app, require_user=require_user)
     print("[plans] ✅ مسارات الاشتراكات متركّبة", flush=True)
 except Exception as _plans_err:
     print("[plans] ⚠️ مش متركّبة: %s" % _plans_err, flush=True)
@@ -14268,8 +14285,11 @@ try:
         except Exception:
             return str((user or {}).get("plan") or "free")
 
-    _studio_mod.register(app, require_user=require_user,
-                         plan_checker=_studio_plan)
+    try:
+        _studio_mod.register(app, require_user=require_user,
+                             plan_checker=_studio_plan)
+    except TypeError:
+        _studio_mod.register(app, require_user=require_user)
     print("[studio] ✅ الاستوديو متركّب", flush=True)
 except Exception as _studio_err:
     print("[studio] ⚠️ مش متركّب: %s" % _studio_err, flush=True)
