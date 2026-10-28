@@ -291,6 +291,14 @@ def _apply_setup(item):
         "stop_atr": SETUP_STOP_ATR,
         "target_atr": SETUP_TARGET_ATR,
         "entry_note": "الدخول الفعلي: افتتاح الشمعة التالية للتأكيد",
+        # ⭐ مستويات الرسم الاحترافي (إدارة الصفقة — **مش جزء من القياس**)
+        # 📌 الدخول الأعمق = نص النطاق (سعر أحسن بس أضعف تأكيداً)
+        # 📌 الهدف الأول = نصف المسافة للهدف (تقسيم على مرحلتين)
+        # ⚠️ دي مش الإعداد المُقاس (٥٨٪/+0.43R) — لازم الواجهة تقول كده.
+        "entry_deep": round(float((item.get("zone_high") if direction == "up"
+                                    else item.get("zone_low")) or level), 4),
+        "target_partial": round(float(entry + (2.0 * atr) * (1 if direction == "up" else -1)), 4),
+        "measured": True,
     }
     return item
 
