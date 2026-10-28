@@ -14171,24 +14171,9 @@ try:
     def _pattern_plan_setter(uid, plan):
         return _patch_user(str(uid), plan=str(plan))
 
-    def _pattern_plan_lookup(email):
-        """uid من الإيميل (للأدمن) — الحسابات متخزّنة بالـuid."""
-        want = str(email or "").strip().lower()
-        if not want:
-            return None
-        try:
-            users = _load_users()
-        except Exception:
-            return None
-        for uid, rec in (users or {}).items():
-            if str((rec or {}).get("email") or "").strip().lower() == want:
-                return uid
-        return None
-
     _pattern_mod.register(app, require_user=require_user, send=send,
                           live_data_getter=_pattern_live_egx,
-                          plan_setter=_pattern_plan_setter,
-                          plan_lookup=_pattern_plan_lookup)
+                          plan_setter=_pattern_plan_setter)
     print("[pattern] ✅ محرك الأنماط متركّب", flush=True)
 except Exception as _pattern_err:
     print("[pattern] ⚠️ مش متركّب: %s" % _pattern_err, flush=True)

@@ -539,7 +539,7 @@ def _rebuild_in_background(live_data_getter=None):
 
 
 def register(app, require_user=None, send=None, live_data_getter=None,
-             plan_checker=None, plan_setter=None, plan_lookup=None):
+             plan_checker=None, plan_setter=None):
     """بيسجّل المسارات + يشغّل المهمة اليومية (fail-soft)."""
     from flask import jsonify, request
 
@@ -650,26 +650,10 @@ def register(app, require_user=None, send=None, live_data_getter=None,
             return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
         body = request.get_json(silent=True) or {}
         uid = str(body.get("uid") or "").strip()
-        email = str(body.get("email") or "").strip().lower()
         plan = str(body.get("plan") or "").strip().lower()
-        if plan not in ("free", "pro"):
+        if not uid or plan not in ("free", "pro"):
             return jsonify({"ok": False,
-                            "error": "لازم plan (free/pro)"}), 400
-        # ⭐ التفعيل بالإيميل (أسهل من الـuid — الأدمن مش بيشوف الـuid)
-        if not uid and email:
-            if not plan_lookup:
-                return jsonify({"ok": False,
-                                "error": "البحث بالإيميل غير متاح"}), 501
-            try:
-                uid = str(plan_lookup(email) or "")
-            except Exception as e:
-                return jsonify({"ok": False, "error": str(e)[:160]}), 500
-            if not uid:
-                return jsonify({"ok": False,
-                                "error": "مفيش حساب بالإيميل ده"}), 404
-        if not uid:
-            return jsonify({"ok": False,
-                            "error": "لازم uid أو email"}), 400
+                            "error": "لازم uid و plan (free/pro)"}), 400
         if not plan_setter:
             return jsonify({"ok": False,
                             "error": "تعديل الخطة غير متاح"}), 501
@@ -678,9 +662,8 @@ def register(app, require_user=None, send=None, live_data_getter=None,
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:160]}), 500
         if not rec:
-            return jsonify({"ok": False, "error": "مفيش حساب بالمعرّف ده"}), 404
-        return jsonify({"ok": True, "uid": uid, "plan": plan,
-                        "email": rec.get("email") if isinstance(rec, dict) else None})
+            return jsonify({"ok": False, "error": "مفيش حساب ببالمعرّف ده"}), 404
+        return jsonify({"ok": True, "uid": uid, "plan": plan})
 
     # ── المهمة اليومية ────────────────────────────────────────────
     def _daily_worker():
