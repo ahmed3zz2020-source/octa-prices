@@ -318,10 +318,18 @@ def register(app, require_user=None, plan_checker=None, universe=None):
                                 "error": "تعذّر بناء الخريطة: %s" % e}), 503
         elif stale:
             _rebuild_zones_in_background()
+        # ⭐ أكواد مؤشر EGX30 (للتصفية في الواجهة — صفر تكلفة)
+        _eg = []
+        try:
+            import pattern_daily as _pd
+            _eg = _pd.egx30_codes()
+        except Exception:
+            _eg = []
         return jsonify({"ok": True, "rows": payload.get("rows") or [],
                         "count": payload.get("count"),
                         "generated_at": payload.get("generated_at"),
                         "summary": payload.get("summary"),
+                        "egx30": _eg,
                         "stale": stale})
 
     @app.route("/api/zones/refresh", methods=["POST"])

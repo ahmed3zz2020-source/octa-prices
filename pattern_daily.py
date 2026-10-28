@@ -91,6 +91,29 @@ def _log(msg):
     print("[pattern] %s" % msg, flush=True)
 
 
+def egx30_codes():
+    """📦 أكواد أسهم مؤشر EGX30 (من اللقطة الرسمية).
+
+    📌 المصدر: `data/index_official.json` (البورصة المصرية).
+    ⛔ لو الملف مش موجود ⇒ [] (يعني: مافيش تقييد) — مافيش تخمين.
+    """
+    try:
+        p = HERE / "data" / "index_official.json"
+        if not p.exists():
+            return []
+        with open(p, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        w = ((data.get("indices") or {}).get("EGX30") or {}).get("weights") or []
+        out = []
+        for row in w:
+            code = str((row or {}).get("reuters") or "").replace(".CA", "").strip()
+            if code:
+                out.append(code)
+        return sorted(set(out))
+    except Exception:
+        return []
+
+
 def _load_universe():
     """{code: {"name": ..., "sector": ...}} من egx_names.json."""
     try:
@@ -607,13 +630,29 @@ def register(app, require_user=None, send=None, live_data_getter=None,
         elif stale:
             # ⛔ الكاش قديم ⇒ نبني نسخة جديدة في **الخلفية** ونرجّع القديم
             _rebuild_in_background(live_data_getter)
-        return jsonify({"ok": True, "items": payload.get("items") or [],
+        # ⭐ النطاق: مؤشر EGX30 (الافتراضي) أو كل الأسهم
+        # 📌 التصفية على الكاش ⇒ صفر تكلفة زيادة والرد فوري.
+        # ⚠️ الأرقام المقاسة (measured) محسوبة على كل الأسهم — وده
+        #    مكتوب صراحة في الرد عشان ميفهمش المستخدم إن المقاس لمؤشر.
+        all_items = payload.get("items") or []
+        scope = str((request.args.get("scope") or "egx30")).strip().lower()
+        eg = egx30_codes()
+        items = all_items
+        if scope == "egx30" and eg:
+            _egset = set(eg)
+            items = [it for it in all_items if str(it.get("code")) in _egset]
+        return jsonify({"ok": True, "items": items,
                         "asof": payload.get("asof"),
                         "generated_at": payload.get("generated_at"),
                         "summary": payload.get("summary"),
                         "stale": stale,
                         "measured": MEASURED_PERFORMANCE,
-                        "filters": payload.get("filters")})
+                        "filters": payload.get("filters"),
+                        "scope": scope if scope in ("egx30", "all") else "egx30",
+                        "scope_label": ("أسهم مؤشر EGX30" if scope != "all" else "كل الأسهم"),
+                        "scope_count": len(items),
+                        "scope_total": len(all_items),
+                        "scope_codes": eg})
 
     @app.route("/api/setups/meta", methods=["GET"])
     def setups_meta():
