@@ -14168,8 +14168,26 @@ try:
         except Exception:
             return []
 
-    def _pattern_plan_setter(uid, plan):
-        return _patch_user(str(uid), plan=str(plan))
+    def _pattern_plan_setter(who, plan):
+        """تفعيل الباقة بـuid **أو** بالإيميل.
+
+        ⛔ الحسابات متخزّنة بالـuid (والأدمن مش بيشوفه) ⇒ الباك هو اللي
+        بيحوّل الإيميل لـuid. وسم الـsignature ما بيتغيّرش (الكاش).
+        """
+        key = str(who or "").strip()
+        if not key:
+            return None
+        try:
+            users = _load_users() or {}
+        except Exception:
+            users = {}
+        if key not in users:
+            want = key.lower()
+            for uid, rec in users.items():
+                if str((rec or {}).get("email") or "").strip().lower() == want:
+                    key = uid
+                    break
+        return _patch_user(key, plan=str(plan))
 
     _pattern_mod.register(app, require_user=require_user, send=send,
                           live_data_getter=_pattern_live_egx,

@@ -650,10 +650,14 @@ def register(app, require_user=None, send=None, live_data_getter=None,
             return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
         body = request.get_json(silent=True) or {}
         uid = str(body.get("uid") or "").strip()
+        email = str(body.get("email") or "").strip()
         plan = str(body.get("plan") or "").strip().lower()
+        # ⭐ التفعيل بالإيميل كمان (الأسهل للأدمن — الـuid مش ظاهر)
+        if not uid and email:
+            uid = email
         if not uid or plan not in ("free", "pro"):
             return jsonify({"ok": False,
-                            "error": "لازم uid و plan (free/pro)"}), 400
+                            "error": "لازم uid أو email و plan (free/pro)"}), 400
         if not plan_setter:
             return jsonify({"ok": False,
                             "error": "تعديل الخطة غير متاح"}), 501
