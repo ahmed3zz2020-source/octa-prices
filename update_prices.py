@@ -14312,6 +14312,19 @@ try:
         except Exception:
             return str((user or {}).get("plan") or "free")
 
+    def _ch_require_user():
+        """المستخدم + الـuid (السجل بيتخزّن بالـuid كـkey مش كحقل)."""
+        u = require_user()
+        if not u:
+            return None
+        try:
+            u = dict(u)
+            if not u.get("uid"):
+                u["uid"] = str(_read_token(_bearer()) or "")
+            return u
+        except Exception:
+            return u
+
     def _ch_user_getter(uid):
         """👤 اسم المستخدم للاسم المستعار المقنّع (مافيش إيميل ظاهر)."""
         try:
@@ -14322,7 +14335,7 @@ try:
             return {}
 
     try:
-        _ch_mod.register(app, require_user=require_user,
+        _ch_mod.register(app, require_user=_ch_require_user,
                         plan_checker=_ch_plan,
                         user_getter=_ch_user_getter)
     except TypeError:

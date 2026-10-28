@@ -344,15 +344,19 @@ def resolve_challenge(cand, bars):
                 hit_stop = hi >= stop
             if hit_target and hit_stop:
                 return ({"outcome": "neutral", "reason": "الشمعة لمست المستويين مع بعض",
-                         "resolved_at": int(time.time()), "hit_at": b.get("d")}), None
+                         "resolved_at": int(time.time()), "hit_at": b.get("d"),
+                         "target_at": b.get("d"), "stop_at": b.get("d")}), None
             if hit_target:
                 return ({"outcome": direction, "reason": "الهدف اتلمس قبل الوقف",
-                         "resolved_at": int(time.time()), "hit_at": b.get("d")}), None
+                         "resolved_at": int(time.time()), "hit_at": b.get("d"),
+                         "target_at": b.get("d"), "stop_at": None}), None
             if hit_stop:
                 return ({"outcome": _opp(direction), "reason": "الوقف اتلمس قبل الهدف",
-                         "resolved_at": int(time.time()), "hit_at": b.get("d")}), None
+                         "resolved_at": int(time.time()), "hit_at": b.get("d"),
+                         "target_at": None, "stop_at": b.get("d")}), None
         return ({"outcome": "neutral", "reason": "مفيش لمس خلال %d جلسات" % HORIZON,
-                 "resolved_at": int(time.time()), "hit_at": None}), None
+                 "resolved_at": int(time.time()), "hit_at": None,
+                 "target_at": None, "stop_at": None}), None
     except Exception as e:
         return None, "تعذّر حساب النتيجة: %s" % str(e)[:100]
 
@@ -658,7 +662,7 @@ def register(app, require_user=None, plan_checker=None, user_getter=None,
         vote = str(body.get("vote") or "").strip().lower()
         key = str(body.get("code") or body.get("challenge_id") or "").strip()
         if vote not in ("up", "down"):
-            return jsonify({"ok": False, "error": " vote لازم يكون up أو down"}), 400
+            return jsonify({"ok": False, "error": "لازم يكون up أو down"}), 400
         if not key:
             return jsonify({"ok": False, "error": "محتاج كود التحدي"}), 400
         uid = str((u or {}).get("uid") or "")
