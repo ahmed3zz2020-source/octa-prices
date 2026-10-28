@@ -14189,12 +14189,70 @@ try:
                     break
         return _patch_user(key, plan=str(plan))
 
+    def _pattern_plan_checker(user):
+        """حالة الباقة (مع تاريخ الانتهاء) — من plan_gate (مصدر واحد)."""
+        try:
+            import plan_gate as _pg
+            return _pg.plan_of(user)
+        except Exception:
+            return str((user or {}).get("plan") or "free")
+
     _pattern_mod.register(app, require_user=require_user, send=send,
-                          live_data_getter=_pattern_live_egx,
-                          plan_setter=_pattern_plan_setter)
+                          live_data_getger=_pattern_live_egx,
+                          plan_setter=_pattern_plan_setter,
+                          plan_checker=_pattern_plan_checker)
     print("[pattern] ✅ محرك الأنماط متركّب", flush=True)
 except Exception as _pattern_err:
     print("[pattern] ⚠️ مش متركّب: %s" % _pattern_err, flush=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 💳 الاشتراكات — «اشتراكي» + التفعيل (أدمن) (٢٨ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+try:
+    import plan_gate as _pg
+    import plan_api as _plan_api
+
+    def _subs_status(user):
+        return _pg.status_of(user)
+
+    def _subs_activate(who, plan, days, price, method, note):
+        """تفعيل/تجديد: يمدّد من تاريخ الانتهاء الحالي (لو لسه ساري)."""
+        try:
+            users = _load_users() or {}
+        except Exception:
+            users = {}
+        key = str(who or "").strip()
+        rec = users.get(key)
+        if rec is None:
+            want = key.lower()
+            for uid, u in users.items():
+                if str((u or {}).get("email") or "").strip().lower() == want:
+                    key, rec = uid, u
+                    break
+        if rec is None:
+            return False, "مفيش حساب بالإيميل أو الـuid ده", None
+        now = int(time.time())
+        cur_until = int(rec.get("plan_until") or 0)
+        base = cur_until if cur_until > now else now
+        until = base + int(days) * 86400
+        _patch_user(key, plan=plan, plan_until=until)
+        lg, err = _pg.log_subscription(key, rec.get("email"), plan, days,
+                                       price, method, note)
+        if err:
+            return False, err, None
+        return True, None, {"uid": key, "email": rec.get("email"),
+                            "plan": plan, "until": until,
+                            "until_date": time.strftime("%Y-%m-%d",
+                                                        time.gmtime(until)),
+                            "days": days, "price": price}
+
+    _plan_api.register(app, require_user=require_user,
+                       status_fn=_subs_status, activate_fn=_subs_activate,
+                       log_fn=_pg.subscription_log)
+    print("[plans] ✅ مسارات الاشتراكات متركّبة", flush=True)
+except Exception as _plans_err:
+    print("[plans] ⚠️ مش متركّبة: %s" % _plans_err, flush=True)
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -14204,12 +14262,11 @@ try:
     import pattern_studio as _studio_mod
 
     def _studio_plan(user):
-        if not user:
-            return "free"
         try:
-            return str(user.get("plan") or "free")
+            import plan_gate as _pg
+            return _pg.plan_of(user)
         except Exception:
-            return "free"
+            return str((user or {}).get("plan") or "free")
 
     _studio_mod.register(app, require_user=require_user,
                          plan_checker=_studio_plan)
