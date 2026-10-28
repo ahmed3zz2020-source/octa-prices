@@ -512,13 +512,27 @@ def _p(v):
 
 
 def digest_text(items, limit=12):
-    """نص الملخص العربي للإنذار."""
+    """نص الملخص العربي للإنذار.
+
+    ⭐ مؤشر EGX30 أولاً (ده محور المنتج دلوقتي) وبعده باقي الأسهم.
+    """
     if not items:
         return ("🌙 <b>لا توجد إشارات اليوم</b>\n\n"
                 "مفيش كسر منطقة عدّى الفلاتر.\n"
                 "⚠️ محتوى تعليمي — القرار قرارك.")
+    # ⭐ ترتيب: أسهم مؤشر EGX30 الأول
+    eg = set(egx30_codes() or [])
+    if eg:
+        head_items = [s for s in items if str(s.get("code")) in eg]
+        rest_items = [s for s in items if str(s.get("code")) not in eg]
+        ordered = head_items + rest_items
+    else:
+        ordered = list(items)
+        head_items = []
+    items = ordered
     lines = ["🛰️ <b>نماذجي — كسر منطقة</b>",
-             "%s · %d نمط" % (items[0].get("detected_at") or "", len(items)),
+             "%s · %d نمط%s" % (items[0].get("detected_at") or "", len(items),
+                                 (" · %d من مؤشر EGX30" % len(head_items)) if head_items else ""),
              "━" * 20]
     for s in items[:limit]:
         direction = "صاعد ▲" if s.get("direction") == "up" else "هابط ▼"
