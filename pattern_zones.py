@@ -98,9 +98,14 @@ def detect_zones(bars, code=None, cfg=None, max_zones=3):
     out["price"] = price
     out["atr"] = round(atr_val, 4)
     out["atr_pct"] = round(atr_val / price * 100, 2) if price else None
-    out["zones"] = [_pack(z) for z in (res + sup)]
+    packed = [_pack(z) for z in (res + sup)]
+    # ⭐ الترتيب بالأقرب للم��عر أولاً (هو اللي يهم المستخدم)
+    packed.sort(key=lambda z: abs(z.get("distance_pct") or 0))
+    out["zones"] = packed
     out["nearest"] = (min(out["zones"], key=lambda z: abs(z["distance_pct"]))
                       if out["zones"] else None)
+    # ⛔ «الأقرب» = أقل مسافة (ماشي أول واحد في الترتيب) — مش أول
+    #    مقاومة في القايمة (كانت بترجّع أبعد واحدة أحياناً).
     out["nearest_resistance"] = next(
         (z for z in out["zones"] if z["kind"] == "resistance"), None)
     out["nearest_support"] = next(

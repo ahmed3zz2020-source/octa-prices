@@ -209,6 +209,10 @@ _ALWAYS_SHOW_OUTPUT = (
     # 📌 ⇒ متاحة للزائر زي «ذكاء المؤشرات» — بس لو اتضاف حقل «قرار»
     # 📌 ⛌ ⛌ ⛌ لازم يفضل ظاهر (القائمة دي بتمنع شيله بالاسم).
     "/api/usd",
+    # ⛔⛔⛔ ٢٨ أكتوبر ٢٠٢٦ — ⭐ «تحدي اليوم» + لوحة المتصدرين
+    # 📌 السبب: حقول زي question_ar وalias وmy_vote بتتشال بالاسم
+    # 📌 ⇒ المسار محمي بـrequire_user + بوابة الباقة (plan=pro).
+    "/api/challenges",
     # ⛔⛔⛔ ٢٨ أكتوبر ٢٠٢٦ — ⭐ «نماذجي» (محرك الأنماط)
     # 📌 السبب: مفتاح "why" (سبب النمط) في _HIDDEN_KEYS_OUTPUT ⇒
     # 📌 كان بيتشال بالاسم من كل رد ⇒ الواجهة بتعرض سبب فاضي.
@@ -1048,7 +1052,7 @@ def rate_limit_guard():
             "hint": "استنى شوية وجرب تاني",
         }
         # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نفس الـBUG (شوف فوق)
-        # 📌 Response(jsonify(...)) ⇒ 500 بدل 429.
+        # 📌 Response(jsonify(body)) ⇒ 500 بدل 429.
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ الأثر: أي حد يعمل طلبات كتير ⇒ السيرفر
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ بيرجّع 500 ⇒ الواجهة مش بتعرف إنه rate limit.
         resp = jsonify(_b)
@@ -2603,7 +2607,7 @@ def _pin_locked_resp(retry, what="الباسورد"):
         "retry_after": retry,
     }
     # ⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ الـBUG الحقيقي اللي كان مبيبانش
-    # 📌 الشكل القديم: Response(jsonify(body), status=429, ...)
+    # 📌 الشكل القديم: Response(jsonify(body), status=429)
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ jsonify() بترجّع **Response** أصلاً!
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⇒ Response(<Response>) ⇒ Werkzeug بيعمل
     # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ list() على الـbody ⇒ «'Response' object is
@@ -10084,7 +10088,7 @@ def calibration_api():
 # ════════════════════════════════════════════════════════════════════════════
 
 _IDX_HIST = {}          # {id: {rows, from, to, count}}
-_IDX_CONF = {}          # {id: {...}}
+_IDX_CONF = {}          # {id: <بيانات المؤشر>}
 _IDX_OFF = {}           # {market_status, indices:{id:{live, constituents, weights}}}
 _IDX_LOADED = False
 _IDX_TICKER = {         # خرائط مساعدة للربط
@@ -10224,7 +10228,7 @@ def _idx_load():
 
 
 def _idx_series(idx_id):
-    """السلسلة اليومية: [[ts, close], ...] — أو [] لو مفيش."""
+    """السلسلة اليومية: [[ts, close], ومزيد] — أو [] لو مفيش."""
     _idx_load()
     v = _IDX_HIST.get(idx_id) or {}
     rows = v.get("rows") or []
@@ -11000,7 +11004,7 @@ def gold_candles_api():
 def gold_history_api():
     """
     GET ?full=1 ⇒ السلسلة كاملة · ?stats=1 ⇒ ملخص فقط
-    📌 الشكل: {ok, count, from, to, series:[{d,xau,egp,ounce_egp,gram}], stats:{...}}
+    📌 الشكل: {ok, count, from, to, series:[{d,xau,egp,ounce_egp,gram}], stats:{<الحقول>}}
     """
     try:
         import importlib
@@ -14293,6 +14297,43 @@ try:
     print("[zones] ✅ خريطة المستويات متركّبة", flush=True)
 except Exception as _zones_err:
     print("[zones] ⚠️ مش متركّبة: %s" % _zones_err, flush=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 🎯 تحدي اليوم + لوحة المتصدرين (٢٨ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+try:
+    import pattern_challenges as _ch_mod
+
+    def _ch_plan(user):
+        try:
+            import plan_gate as _pg
+            return _pg.plan_of(user)
+        except Exception:
+            return str((user or {}).get("plan") or "free")
+
+    def _ch_user_getter(uid):
+        """👤 اسم المستخدم للاسم المستعار المقنّع (مافيش إيميل ظاهر)."""
+        try:
+            users = _load_users() or {}
+            u = users.get(str(uid))
+            return u if isinstance(u, dict) else {}
+        except Exception:
+            return {}
+
+    try:
+        _ch_mod.register(app, require_user=require_user,
+                        plan_checker=_ch_plan,
+                        user_getter=_ch_user_getter)
+    except TypeError:
+        try:
+            _ch_mod.register(app, require_user=require_user,
+                            plan_checker=_ch_plan)
+        except TypeError:
+            _ch_mod.register(app, require_user=require_user)
+    print("[challenges] ✅ تحدي اليوم متركّب", flush=True)
+except Exception as _ch_err:
+    print("[challenges] ⚠️ مش متركّب: %s" % _ch_err, flush=True)
 
 
 # ══════════════════════════════════════════════════════════════════════
