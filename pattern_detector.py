@@ -448,6 +448,70 @@ def _fmt(x, nd=2):
 #  الدالة الرئيسية
 # ══════════════════════════════════════════════════════════════════════
 
+def detect_zones(bars, code=None, cfg=None, max_zones=3):
+    """🗺️ المناطق المهمة للسهم (مقاومة + دعم) — قبل الكسر.
+
+    📌 الغرض: المستخدم يشوف المستويات **قبل** ما الكسر يحصل ⇒ يقدر
+    يراقب المستوى الأقرب. ده الفرق بين منتج تفاعلي ومنتج «إنذار».
+
+    ⛔ مافيش look-ahead: المنطقة بتتبني من الشموع لحد الآن بس.
+    ⛔ مافيش تخمين: لو البيانات ناقصة ⇒ status=insufficient.
+    """
+    c = dict(DEFAULTS)
+    if cfg:
+        c.update(cfg)
+    bs = [b for b in (bars or []) if isinstance(b, dict) and _has_ohlc([b])]
+    out = {
+        "code": code, "status": "insufficient", "reason": "",
+        "price": None, "atr": None, "atr_pct": None, "zones": [],
+    }
+    if len(bs) < c["min_bars"]:
+        out["reason"] = "سلسلة قصيرة: %d < %d شمعة" % (len(bs), c["min_bars"])
+        return out
+    atr_val = _gold_atr(bs, c["atr_len"])
+    if not atr_val or atr_val <= 0:
+        out["reason"] = "ATR غير متاح"
+        return out
+    price = bs[-1]["c"]
+    zones = _build_zones(bs, atr_val, c)
+    res = [z for z in zones if z["kind"] == "resistance"]
+    sup = [z for z in zones if z["kind"] == "support"]
+    # ⛔ نستبعد المنطقة اللي السعر واقف عليها دلوقتي (مش «المستوى
+    #    الجاي») — لازم المسافة حقيقية (نص ATR على الأقل).
+    min_atr = 0.5
+    res = [z for z in res
+           if z["high"] > price
+           and (z["high"] - price) / (atr_val or 1) >= min_atr][:max_zones]
+    sup = [z for z in sup
+           if z["low"] < price
+           and (price - z["low"]) / (atr_val or 1) >= min_atr][:max_zones]
+
+    def _pack(z):
+        level = z["high"] if z["kind"] == "resistance" else z["low"]
+        dist = ((level - price) / price) * 100.0
+        return {
+            "kind": z["kind"],
+            "label": "مقاومة" if z["kind"] == "resistance" else "دعم",
+            "level": round(level, 4),
+            "zone_low": z["low"], "zone_high": z["high"],
+            "distance_pct": round(dist, 2),
+            "distance_atr": round(abs(level - price) / atr_val, 2),
+            "touches": z["touches"], "reactions": z["reactions"],
+            "last_test": z["last_test"], "age_days": z["age_days"],
+            "score": z["score"], "score_parts": z.get("score_parts"),
+            "why": z.get("why"),
+        }
+
+    out["status"] = "ok"
+    out["price"] = price
+    out["atr"] = round(atr_val, 4)
+    out["atr_pct"] = round(atr_val / price * 100, 2) if price else None
+    out["zones"] = [_pack(z) for z in (res + sup)]
+    out["nearest"] = (min(out["zones"], key=lambda z: abs(z["distance_pct"]))
+                      if out["zones"] else None)
+    return out
+
+
 def detect(bars, code=None, name=None, sector=None, cfg=None):
     """يكشف الأنماط في سلسلة شموع.
 
