@@ -14273,6 +14273,29 @@ except Exception as _plans_err:
 
 
 # ══════════════════════════════════════════════════════════════════════
+# 🗺️ خريطة المستويات — أقرب مستوى قدام كل سهم (٢٨ أكتوبر ٢٠٢٦)
+# ══════════════════════════════════════════════════════════════════════
+try:
+    import pattern_zones as _zones_mod
+
+    def _zones_plan(user):
+        try:
+            import plan_gate as _pg
+            return _pg.plan_of(user)
+        except Exception:
+            return str((user or {}).get("plan") or "free")
+
+    try:
+        _zones_mod.register(app, require_user=require_user,
+                           plan_checker=_zones_plan)
+    except TypeError:
+        _zones_mod.register(app, require_user=require_user)
+    print("[zones] ✅ خريطة المستويات متركّبة", flush=True)
+except Exception as _zones_err:
+    print("[zones] ⚠️ مش متركّبة: %s" % _zones_err, flush=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
 # 🎨 الاستوديو — رسومات المستخدم (٢٨ أكتوبر ٢٠٢٦)
 # ══════════════════════════════════════════════════════════════════════
 try:
