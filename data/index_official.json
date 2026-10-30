@@ -1,11 +1,11 @@
 {
- "version": "2026-10-29",
+ "version": "2026-10-30",
  "source": "البورصة المصرية (EGX) — beta.egx.com.eg/api/bff/egx",
  "source_note": "لقطة رسمية: قيمة المؤشر، الأوزان، ومكونات كل مؤشر + حالة السوق.",
  "market_status": {
   "status": "Closed",
   "status_Ar": "مغلق",
-  "statusDate": "2026-10-29T15:12:26"
+  "statusDate": "2026-10-30T16:12:51"
  },
  "indices": {
   "EGX30": {
