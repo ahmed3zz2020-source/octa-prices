@@ -2,6 +2,7 @@ import json, time, requests, os, sys, threading
 import os as _os  # alias للمعاملات (EGX_RISK_FREE) — واحد يكفي، وده أوضح
 import div_actions
 from flask import Flask, jsonify, request, Response
+from flask import g as _flask_g   # 🐞 ١٥ نوفمبر ٢٠٢٦ — علامة النشاط (after_request)
 import json as _json
 import urllib.request as _urllib
 from pathlib import Path
@@ -535,6 +536,30 @@ def _json_error_handler(exc):
     return resp
 
 
+@app.after_request
+def touch_session_seen(response):
+    """🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — تحديث «آخر نشاط» ⬇️ (سياسة الخمول)
+
+    ⛔ ⬇️ بيتم هنا ⬇️ (مش جوه الـroute) ⬇️ ⬇️
+    ⛔ ⬇️ عشان الـUSERS_LOCK ما يتحملش قفل جوّه قفل ⬇️ ⬇️
+    ⛔ ⬇️ (الأقفال بتفك قبل الـafter_request) ⬇️ ⬇️
+    ⛔ الكتابة بتتم مرة كل ٥ دقايق ⬇️ (مش كل طلب) ⬇️
+    """
+    try:
+        uid = str(getattr(_flask_g, "_octa_active_uid", "") or "")
+        if not uid:
+            return response
+        now = int(time.time())
+        rec = (_load_users() or {}).get(uid) or {}
+        seen = int(rec.get("session_seen") or 0)
+        if seen and (now - seen) < SESSION_TOUCH_EVERY:
+            return response
+        _patch_user(uid, session_seen=now)
+    except Exception:
+        pass
+    return response
+
+
 @app.before_request
 def protect_admin_routes():
     """
@@ -552,6 +577,27 @@ def protect_admin_routes():
     if request.path not in ADMIN_PATHS:
         return None
 
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — ⛔ الأدمن يتفحص **قبل** الجلسة ⬇️
+    # 📌 ⛔ عشان المالك بيفتح المسارات دي من Railway مباشر ⬇️
+    # 📌 ⬇️ (بالـheader — من غير جلسة) ⬇️ ⬇️
+    # ⛔⛔⛔ قبل: كان لازم جلسة ⬇️ ⬇️ ⇒ المالك مش هيقدر يفتحهم ⬇️ ⬇️
+    # ⛔ ⬇️ وبالعكس: أي مستخدم مسجّل كان هيقدر يقرأ ⬇️ ⬇️
+    _adm_tok = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    _adm_key = str(ADMIN_KEY or "").strip()
+    _got_tok = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    _got_key = str(request.headers.get("X-Admin-Key", "") or "").strip()
+    _adm_ok = False
+    if _adm_tok and _got_tok and hmac.compare_digest(
+            _got_tok.encode("utf-8", "replace"),
+            _adm_tok.encode("utf-8", "replace")):
+        _adm_ok = True
+    if (not _adm_ok) and _adm_key and _got_key and hmac.compare_digest(
+            _got_key.encode("utf-8", "replace"),
+            _adm_key.encode("utf-8", "replace")):
+        _adm_ok = True
+    if _adm_ok:
+        return None
+
     # المستخدم المسجّل يقدر
     u = require_user()
     if not u:
@@ -561,19 +607,43 @@ def protect_admin_routes():
             "hint": "سجّل دخول من /api/auth/register الأول",
         }), 401
 
-    # ⛌ ⛌ الأدمن: OCTA_ADMIN_KEY كان متقرأ من Railway ومحدش بيستخدمه —
-    #    يعني أي مستخدم مسجّل (مش المالك بس) كان يقدر يقرأ التشخيص
-    #    والأرقام الداخلية. لو المتغير مضبوط، المسارات دي بتتقفل على
-    #    صاحبه بس. لو مش مضبوط، سلوكه زي ما كان عشان ما نكسرش
-    #    فحص المالك.
-    if ADMIN_KEY:
-        sent = (request.headers.get("X-Admin-Key") or "").strip()
-        if not hmac.compare_digest(sent, ADMIN_KEY):
-            return jsonify({
-                "ok": False,
-                "error": "المسار ده للأدمن بس",
-                "hint": "ابعت X-Admin-Key في الهيدر",
-            }), 403
+    # ⛌⛔⛔ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — ⛔ «مستخدم عادي» ⬇️
+    # 📌 كان: أي مستخدم **مسجّل دخول** يقدر يقرأ التشخيص ⬇️ ⬇️
+    # 📌 ⬇️ (لأن مفتاح الأدمن كان اختياري — ولو مش متظبطلوش ⬇️
+    # 📌 ⬇️  سلوكه زي ما كان) ⬇️ ⬇️
+    # 📌 ⬇️ ⇒ أي حساب (حتى واحد عملناه امبارح) كان يقدر يقرأ ⬇️
+    # 📌 ⬇️ الأرقام الداخلية (تغطية · فجوات · أوزان) ⬇️ ⬇️
+    # ✅ الحل: fail-closed ⬇️ — لازم مفتاح أدمن ⬇️
+    # ⛔ (إما X-OCTA-Admin مع OCTA_ADMIN_TOKEN ⬇️
+    # ⛔  أو X-Admin-Key مع OCTA_ADMIN_KEY ⬇️) ⬇️
+    # ⛔ ⬇️ ولو مفيش أي مفتاح متظبطلوش ⇒ 503 (مش 200) ⬇️ ⬇️
+    # 📌 الدليل على إنه مش مستخدم ⬇️: زرار التقرير اتشال من الواجهة ⬇️
+    # 📌 (index.html — «الزر القديم بتاع التقرير اتشال») ⬇️
+    _adm_tok = str(os.environ.get("OCTA_ADMIN_TOKEN", "") or "").strip()
+    _adm_key = str(ADMIN_KEY or "").strip()
+    if not _adm_tok and not _adm_key:
+        return jsonify({
+            "ok": False,
+            "error": "التقرير مش متظبط",
+            "why": "admin_not_configured",
+        }), 503
+    _got_tok = str(request.headers.get("X-OCTA-Admin", "") or "").strip()
+    _got_key = str(request.headers.get("X-Admin-Key", "") or "").strip()
+    _ok = False
+    if _adm_tok and _got_tok and hmac.compare_digest(
+            _got_tok.encode("utf-8", "replace"),
+            _adm_tok.encode("utf-8", "replace")):
+        _ok = True
+    if (not _ok) and _adm_key and _got_key and hmac.compare_digest(
+            _got_key.encode("utf-8", "replace"),
+            _adm_key.encode("utf-8", "replace")):
+        _ok = True
+    if not _ok:
+        return jsonify({
+            "ok": False,
+            "error": "المسار ده للأدمن بس",
+            "hint": "ابعت X-OCTA-Admin في الهيدر",
+        }), 403
     return None
 
 
@@ -593,6 +663,94 @@ def guard_preflight():
         resp = jsonify({"error": "forbidden origin"})
         resp.status_code = 403
         return resp
+    return None
+
+
+# ══════════════════════════════════════════════════════════════════
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — سياسة deny-by-default
+# ══════════════════════════════════════════════════════════════════
+# 📌 المشكلة الجذرية: البوابة (gate) كانت في **الـWorker** بس ⬇️
+#    ⬇️ والباك على Railway **مكشوف مباشرة** ⬇️ ⬇️
+#    ⬇️ ⇒ أي حد بينادي octa-prices-production-4ccb.up.railway.app ⬇️
+#    ⬇️   /api/portfolio أو /api/alerts/... أو /api/admin/users ⬇️ ⬇️
+#    ⬇️ ⇒ ٦٠+ مسار حساس مفتوحين على الإنترنت ⬇️ ⬇️
+#    (lock الـWorker لوحده ما بيقفلش الباب —Railway تاني).
+#
+# ✅ الحل على شقّين — كل واحد بيشتغل لوحده (مش كترTank):
+#   ① OCTA_PROXY_SECRET ⬇️
+#      ⛔ كل طلب لازم يبقى جاي من الـWorker ⬇️
+#      ⛔ (سر في Cloudflare **secret binding** + Railway variable ⬇️
+#      ⛔  — السر **مش في الريبو** — ده شرط أساسي) ⬇️ ⬇️
+#      ⛔ ⇒ الوصول المباشر لـRailway بيتقفل ⬇️ ⬇️
+#      ⛔ ⇒ كمان الـIP المرسل يبقى موثوق ⬇️ (من الـWorker) ⬇️ ⬇️
+#   ② OCTA_API_DENY_DEFAULT=on ⬇️
+#      ⛔ كل /api/* محمي ⬇️ غير قائمة المسارات العامة المحددة ⬇️ ⬇️
+# ⛔ الافتراضي OFF ⬇️ ⇒ التفعيل محتاج قرار المالك (غيّر أرقام الإنتاج) ⬇️
+# ⛔ ⬇️ (قاعدة: «policy المصادقة كلها ما تتغيّرش دفعة واحدة») ⬇️ ⬇️
+
+API_DENY_DEFAULT = str(
+    os.environ.get("OCTA_API_DENY_DEFAULT", "off") or "off"
+).strip().lower() in ("1", "true", "yes", "on")
+
+PROXY_SECRET = str(os.environ.get("OCTA_PROXY_SECRET", "") or "").strip()
+PROXY_SECRET_CONFIGURED = bool(PROXY_SECRET)
+
+# ⛔ المسارات العامة — قائمة **محددة** (مش "كل حاجة برا القائمة")
+PUBLIC_API_EXACT = {
+    "/api/health",        # ⛌ مراقبة Railway + العامل
+    "/api/quotes",        # ⛌ صفحة السوق العامة (market.html)
+    "/api/prices",        # ⛌ صفحة السوق العامة
+    "/api/track",         # ⛌ التتبع (حدث واحد)
+    "/api/logos",         # ⛌ صور الشركات
+}
+PUBLIC_API_PREFIX = ("/api/tvlogo/", "/api/search/")
+
+
+def _proxy_secret_ok():
+    """⛔ يتحقق من سر الـproxy ⬇️ (constant-time) ⬇️."""
+    if not PROXY_SECRET_CONFIGURED:
+        return False
+    got = str(request.headers.get("X-OCTA-Proxy", "") or "").strip()
+    if not got:
+        return False
+    return hmac.compare_digest(got.encode("utf-8", "replace"),
+                               PROXY_SECRET.encode("utf-8", "replace"))
+
+
+@app.before_request
+def api_deny_by_default():
+    """🛡️ البوابة على مستوى الباك نفسه — مش الـWorker بس."""
+    path = request.path or ""
+    if not path.startswith("/api/"):
+        return None
+    # ⛔ preflight — مابيتحكمش (الكوكي مش بيتبعت في OPTIONS)
+    if request.method == "OPTIONS":
+        return None
+
+    # ① ⛔ الوصول المباشر لـRailway
+    if PROXY_SECRET_CONFIGURED and not _proxy_secret_ok():
+        return jsonify({
+            "ok": False,
+            "error": "المسار ده مش متاح",
+            "why": "direct_access",
+        }), 403
+
+    # ② ⛔ المسارات العامة
+    if path in PUBLIC_API_EXACT or path.startswith(PUBLIC_API_PREFIX):
+        return None
+
+    # ③ مسارات المصادقة (بتmanage نفسها) + الأدمن (سرّه الخاص)
+    if path.startswith("/api/auth/") or path.startswith("/api/admin/"):
+        return None
+
+    # ④ الباقي ⇒ جلسة مطلوبة
+    if API_DENY_DEFAULT:
+        if not require_user():
+            return jsonify({
+                "ok": False,
+                "error": "محتاج تسجيل دخول",
+                "why": "unauthorized",
+            }), 401
     return None
 
 
@@ -895,6 +1053,22 @@ def _client_key():
     ip = ""
     n = 0
     first = ""
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١) — ⭐ IP موثوق ⬇️
+    # ⛔ المشكلة: Railway بي forwarding عنوان العميل في الترويسات ⬇️
+    # ⛔ ⬇️ ⇒ الـIP مبني على كلام العميل ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ حد يقدر يبعت XFF مصطنعة ويعيد ضبط عدّاد المحاولات ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ التعداد ممكن ⬇️ ⬇️
+    # ✅ الحل: الـWorker هو اللي بيحطّ IP العميل الحقيقي ⬇️
+    # ⛔ (X-OCTA-Client-IP) ⬇️ والطلب لازم يكون **متوثّق** ⬇️
+    # ⛔ (سر البروكسي صح) ⬇️ ⇒ وقتها الـIP موثوق ١٠٠٪ ⬇️ ⬇️
+    try:
+        if PROXY_SECRET_CONFIGURED and _proxy_secret_ok():
+            _cip = str(request.headers.get("X-OCTA-Client-IP", "") or "").strip()
+            if _cip:
+                return _cip[:64]
+    except Exception:
+        pass
+
     if xff:
         parts = [p.strip() for p in xff.split(",") if p.strip()]
         n = len(parts)
@@ -1191,11 +1365,28 @@ def _sign(payload: str) -> str:
 # 📌 ✅ ③ الـrenew التلقائي (كل ٥٠ دقيقة) بيجدّد الجلسة.
 # 📌 ✅ ④ logout بيمسح الكوكي فوراً من جهة العميل.
 # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ 📌 📌 📌 📌 📌 📌 📌 📌 📌
-TOKEN_TTL = 30 * 86400          # ⭐ ٣٠ يوم (كان ساعتين)
+TOKEN_TTL = int(os.environ.get("OCTA_TOKEN_TTL_SECONDS", "") or 0) or (
+    int(os.environ.get("OCTA_TOKEN_TTL_DAYS", "") or 0) * 86400
+) or (30 * 86400)     # ⭐ ٣٠ يوم (كان ساعتين) — قابل للضبط من الـenv
+
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — سياسة انتهاء الجلسة ⬇️
+# 📌 التوكن المطلق (٣٠ يوم) لوحده مش كفاية ⬇️ ⬇️
+# 📌 ⬇️ ⇒ لازم خمول (idle) يوقف الجلسة ⬇️ ⬇️
+# ⛔ القيمة الافتراضية ١٤ يوم ⬇️ (والقابل للضبط من الـenv) ⬇️
+# ⛔ ⛔ التوكن المطلق لسه موجود ⬇️ (٣٠ يوم) ⬇️
+# ⛔ ⛔ ⇒ أقصى عمر = min(مطلق · خمول) ⬇️ ⬇️
+TOKEN_IDLE_TTL = int(os.environ.get("OCTA_TOKEN_IDLE_SECONDS", "") or 0) or (
+    int(os.environ.get("OCTA_TOKEN_IDLE_DAYS", "") or 0) * 86400
+) or (14 * 86400)
+
+# ⛔ أقل مدة بين تحديثين (اللمسة) ⬇️ (عشان ما نكتبش على القرص كل طلب) ⬇️
+SESSION_TOUCH_EVERY = int(os.environ.get("OCTA_SESSION_TOUCH_SECONDS", "") or 0) or 300
 
 
-def _user_epoch(user_id: str) -> int:
-    """⛌ قراءة الـepoch من غير القفل ⬇️ لأن دوال التوكن ممكن
+def _user_epoch(user_id: str):
+    """⛌ قراءة الـepoch — بترجّع رقم أو **None** (=مش معروف ⇒ fail-closed).
+
+       ⛌ القراءة من غير القفل ⬇️ لأن دوال التوكن ممكن
        تُستدعى **جوه** USERS_LOCK ⬇️ لو قفلنا تاني ⬇️ deadlock.
 
        القراءة دي من ملف JSON آمنة ⬇️ و_kh всё بيستخدم
@@ -1204,25 +1395,41 @@ def _user_epoch(user_id: str) -> int:
     """
     try:
         rec = _load_users().get(str(user_id)) or {}
-        if not rec:
-            return 0
-        # ⛌⛔⛔ ترحيل ⬇️ أي حساب قديم مافيشوش epoch ⬇️
-        # ⬇️ كل توكناته بتتنفى ⬇️ والمستخدم بيفتكر الموقع بايظ.
-        # ⬇️ الحل ⬇️ نكتب له epoch **نفس قيمة التوكن** ⬇️
-        # ⬇️ فالتوكنات الموجودة تبقى صالحة ⬇️ والحساب يعيش.
-        try:
-            if rec.get("token_epoch") is None:
-                with USERS_LOCK:
-                    users = _load_users()
-                    if uid in users:
-                        users[uid]["token_epoch"] = 0
-                        _save_users(users)
-                return 0
-        except Exception:
-            return 0
-        return int(rec.get("token_epoch") or 0)
     except Exception:
+        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — fail-closed ⬇️
+        # 📌 لما نقدرش نقرأ ملف المستخدمين ⬇️ نرفض كل التوكنات ⬇️
+        # 📌 (مش نسلّم توكن بحالة مش معروفة).
+        return None
+    if not rec:
         return 0
+    raw = rec.get("token_epoch")
+    if raw is None:
+        # ⛔⛔⛔ ترحيل ⬇️ أي حساب قديم مافيشوش epoch ⬇️
+        # ⬇️ كل توكناته بتتنفى ⬇️ والمستخدم بيفتكر الموقع بايظ.
+        # ⬇️ الحل ⬇️ القيمة الحتمية = 0 (نفس قيمة التوكن) ⬇️
+        # ⬇️ فالتوكنات الموجودة تبقى صالحة ⬇️ والحساب يعيش.
+        # 🐞 إصلاح ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١):
+        #   المتغيّر `uid` مكانش معرّف ⬇️ ⇒ NameError ⬇️ ⇒
+        #   الفشل كان مستخبي جوّه `except: return 0` ⬇️.
+        #   ⛔ الكتابة دلوقتي best-effort ⬇️ لو فشلت مش هنخسر
+        #   ⛔ الجلسة ⬇️ لأن القيمة الحتمية واحدة (0) في كل الأحوال.
+        # 🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١):
+        #   ① المتغيّر `uid` مكانش معرّف ⬇️ ⇒ NameError ⬇️ ⇒
+        #      الفشل كان مستخبي جوّه `except: return 0` ⬇️.
+        #   ② ⛔⛔⛔ كمان كان فيه `with USERS_LOCK` هنا ⬇️ ⬇️
+        #      ⬇️ و`_make_token` بتتنادى **من جوّه** USERS_LOCK ⬇️ ⬇️
+        #      ⬇️ ⇒ القفل غير reentrant ⬇️ ⬇️
+        #      ⬇️ ⇒ deadlock ⬇️ ⬇️ ⇒ الـworker كله بيعلّق ⬇️ ⬇️
+        #      ⬇️ (عيب تشغيلي كامل — كل طلب بيلمس users.json) ⬇️ ⬇️
+        # ✅ الحل: **مافيش كتابة هنا خالص** ⬇️ ⬇️
+        #   القيمة الحتمية (0) واحدة في كل الأحوال ⬇️ ⬇️
+        #   ⇒ نقرأ بس من غير قفل ⇒ مستحيل يعمل deadlock ⬇️ ⬇️
+        #   ⇒ والترحيل للقرص مش ضروري أصلاً ⬇️ ⬇️
+        return 0
+    try:
+        return int(raw)
+    except Exception:
+        return None
 
 
 def _make_token(user_id: str, ttl=None) -> str:
@@ -1235,13 +1442,18 @@ def _make_token(user_id: str, ttl=None) -> str:
        أقفل جواه ⬇️ وإلا القفل نفسه يطلب القفل.
     """
     exp = int(time.time()) + int(ttl if ttl else TOKEN_TTL)
+    # 🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١) — ⛔ لو مقدرش نعرف الـepoch
+    # ⛔ ما نصكّش توكن بحالة مش سليمة ⬇️ (fail-closed).
+    epoch = _user_epoch(user_id)
+    if epoch is None:
+        raise RuntimeError("token epoch غير معروف — مفيش توكن")
     p = base64.urlsafe_b64encode(
-        ("%s|%d|%d" % (user_id, exp, _user_epoch(user_id))).encode()
+        ("%s|%d|%d" % (user_id, exp, epoch)).encode()
     ).decode().rstrip("=")
     return f"{p}.{_sign(p)}"
 
 
-def _set_auth_cookie(resp, uid):
+def _set_auth_cookie(resp, uid, tok=None):
     """🍪 كوكي HttpOnly — التوكن بقى يوصل بالكوكي كمان.
 
     ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — إضافة بعد تقرير الفحص الخارجي:
@@ -1250,9 +1462,13 @@ def _set_auth_cookie(resp, uid):
     ⛌ بيبعته لوحده مع كل طلب. ده خط دفاع تاني مستقل عن XSS.
     ⛌ ⛌ مهم: الـBearer في الـheader لسه شغّال — ده توافق كامل
     ⛌ مش كسر. لو الكوكي اتسرق، محتاج CSRF token.
+
+    🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١): `tok` اختياري ⬇️
+    ⛔ عشان نقدر نخلي الكوكي والـbody في الردّ نفسه يحملوا
+    ⛔ **نفس** التوكن (في تغيير الـPIN: توكن جديد بعد الإبطال).
     """
     try:
-        tok = _make_token(uid)
+        tok = tok or _make_token(uid)
         days = max(1, int(TOKEN_TTL // 86400))
         # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐⭐⭐ SameSite=None + Secure دايماً
         # 📌 السبب: الكوكي HttpOnly بـSameSite=Lax **مش كان بيوصل**
@@ -1325,12 +1541,42 @@ def _token_parts(tok: str):
         #    (تغيير باسورد · استرجاع · حذف) ⬇️ كل التوكنات القديمة
         #    بتبطل فورًا ⬇️ وده اللي بيمنع توكن مسروق.
         tok_epoch = int(_epoch_s) if _epoch_s else 0
-        if tok_epoch != _user_epoch(uid):
+        cur_epoch = _user_epoch(uid)
+        # 🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١) — ⛔ لو مقدرش نعرف
+        # ⛔ الـepoch الحالي ⬇️ نرفض التوكن (fail-closed) ⬇️
+        # ⛔ مش «نسلّم على طول» زي ما كان بيحصل.
+        if cur_epoch is None or tok_epoch != cur_epoch:
+            return None, 0
+
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ الخمول ⬇️
+        # ⛔ جلسة ساكتة مدة طويلة ⇒ التوكن يموت ⬇️ (ولو لسه within ٣٠ يوم)
+        if not _session_idle_ok(uid):
             return None, 0
 
         return uid, exp
     except Exception:
         return None, 0
+
+
+def _session_idle_ok(uid) -> bool:
+    """🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — سياسة الخمول ⬇️
+
+    ⛔ التوكن المطلق (٣٠ يوم) مش كفاية ⬇️ ⬇️
+    ⛔ ⬇️ ⇒ جلسة قديمة ساكتة لازم تموت ⬇️ ⬇️
+    ⛔ ⛔Fail-closed ⬇️ (لو مقدرش نقرأ الملف ⇒ نرفض) ⬇️ ⬇️
+    """
+    try:
+        rec = _load_users().get(str(uid)) or {}
+    except Exception:
+        return False
+    seen = rec.get("session_seen")
+    if not seen:
+        return True          # ⛔ مستخدم جديد ⇒ مافيش خمول ⬇️
+    try:
+        seen = int(seen)
+    except Exception:
+        return True
+    return (int(time.time()) - seen) <= TOKEN_IDLE_TTL
 
 
 def _read_token(tok: str):
@@ -1388,7 +1634,11 @@ except Exception:
     DATA_DIR = Path(__file__).resolve().parent
 
 USERS_FILE = DATA_DIR / "users.json"
-USERS_LOCK = threading.Lock()
+USERS_LOCK = threading.RLock()   # 🐞 ١٥ نوفمبر ٢٠٢٦ — RLock ⬇️
+# ⛔⛔⛔ كان `threading.Lock()` ⬇️ (غير reentrant) ⬇️
+# ⛔ ⬇️ ⇒ أي استدعاء متداخل للقفل = deadlock ⬇️ ⬇️
+# ⛔ ⬇️ ⇒ والقفل بيتمسك وقت-disk ⇒ كل الـworker بيعلّق ⬇️ ⬇️
+# ✅ RLock: نفس الـthread يقدر يدخل تاني ⬇️ (Cross-thread لسه معزول) ⬇️
 
 
 def _load_users():
@@ -1463,12 +1713,22 @@ def _bearer():
     # ⛔⛔ الـBearer لسه هو الأساسي (الواجهة بتبعته).
     # ⛌ الكوكي ده **خط دفاع تاني**: لو الـlocalStorage اتسرق من
     # ⛌ XSS، الكوكي ما بيتقراش من سكربت — بس المتصفح بيبعته.
-    # ⛌ ⛌ مهم أمنياً: cookies بتيتبعتة تلقائياً، فمحتاجة CSRF.
-    # ⛌ التطبيق بيستخدم Bearer مش form-based، فالمخاطرة قليلة.
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١) — ⛔⛔⛔ CSRF ⬇️
+    # ⛔ الكوكي SameSite=None ⬇️ ⇒ المتصفح بيبعته مع **أي** طلب ⬇️
+    # ⛔ ⬇️ ⇒ أي موقع تاني في العالم يقدر يعمل POST على /api/portfolio ⬇️
+    # ⛔ ⬇️ أو يمسح منبهات المستخدم ⬇️ ⬇️
+    # ⛔ ⬇️ (HttpOnly بيحمي من XSS — مش من CSRF — دي حاجة تانية خالص).
+    # ✅ الحل: الكوكي مقبول **للقراءة فقط** (GET/HEAD/OPTIONS) ⬇️
+    # ⛔ والكتابة (POST/PUT/PATCH/DELETE) لازم Bearer في الترويسة ⬇️
+    # ⛔ ⬇️ ⇒ المتصفح مش بيبعت Authorization لحجم من المواقع ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ CSRF مات ⬇️ ⬇️
+    # ✅ والواجهة بتبعث الـBearer على كل طلب (octa-api.js) ⇒ مافيش كسر.
     try:
-        ck = request.cookies.get("octa_token") or ""
-        if ck:
-            return ck.strip()
+        _m = str(request.method or "GET").upper()
+        if _m in ("GET", "HEAD", "OPTIONS"):
+            ck = request.cookies.get("octa_token") or ""
+            if ck:
+                return ck.strip()
     except Exception:
         pass
     return ""
@@ -1482,6 +1742,14 @@ def require_user():
     """
     u = _get_user(_bearer())
     if u:
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ سياسة الخمول ⬇️
+        # ⛔ بنعلّم المستخدم إنه **شغّال** ⬇️
+        # ⛔ ⬇️ والتحديث نفسه بيتم في after_request ⬇️ ⬇️
+        # ⛔ ⬇️ (بره الأقفال ⇒ مافيش deadlock) ⬇️ ⬇️
+        try:
+            _flask_g._octa_active_uid = str(u.get("id") or "")
+        except Exception:
+            pass
         return u
     return None
 
@@ -1562,114 +1830,42 @@ def _valid_email(e):
 
 @app.route("/api/auth/otp/send", methods=["POST"])
 def otp_send():
-    """POST { email } → يبعت كود 6 أرقام"""
-    data = request.get_json(silent=True) or {}
-    email = str(data.get("email") or "").strip().lower()[:120]
-    ok, why = _valid_email(email)
-    if not ok:
-        return jsonify({"error": why}), 400
-
-    # ⛔⛔⛔ حساب الباسورد: الإيميل **مش** وسيلة دخول.
-    #    الإيميل بيوصل مرة واحدة بس وقت التسجيل، والباقي الباسورد.
-    #    لو الكود اتبعت لحساب باسورد، فهو بيوصل لصاحبه بس — ومينفعش
-    #    يبقى معناه «ادخل بالإيميل» أصلاً.
-    if _pin_by_email(email)[1]:
-        return jsonify({
-            "ok": False,
-            "error": "⛔ الحساب ده بيستخدم باسورد ٤ أرقام — "
-                     "الإيميل بيوصل مرة واحدة بس وقت التسجيل",
-            "why": "pin_account",
-        }), 409
-
-    code = _otp_new(email)
-    if not code:
-        # ⛔⛔ الطلب القديم كان بيرجّع «أيوه بعثنا» وهو مش بعت حاجة —
-        #    المستخدم بيفتكر الإيميل ضاع، والمفيش حد قاله السبب.
-        #    الرسالة دي بتقول السبب الحقيقي بس **مش** بتقول
-        #    إن الإيميل ده مسجّل ولا لأ — كل الإيميلات بتاخد نفس الرسالة.
-        return jsonify({
-            "ok": False,
-            "error": f"⏰ بعتّ {OTP_TRIES_PER_DAY} أكواد على الإيميل ده اليوم — "
-                     f"استنى بكرة عشان تاخد كود جديد",
-            "why": "daily_limit",
-        }), 429
-
-    nm = str(data.get("name") or "").strip()[:40]
-    _send_mail(email, f"كود الدخول — OCTA", _otp_html(code, nm))
-    if not MAIL_ON:
-        # ⛔ مافيش خدمة إيميل = الكود بيروح لوج السيرفر. لازم
-        #    RESEND_API_KEY يكون مضبوط في الإنتاج (شوف deliverable).
-        print(f"  🔐 ⚠️ مافيش خدمة إيميل (RESEND_API_KEY) — الكود بيتطبع "
-              f"في اللوج: {email} → {code}")
-
-    # ⛔ ⛔ نفس الرد في كل الحالات — ما نقولش «الإيميل ده مش موجود»:
-    #    الرد ده بيكشف مين عندنا حساب ومين لأ.
-    return jsonify({"ok": True, "msg": "لو الإيميل ده صح، بيوصلك كود"}), 200
+    """⛔⛔ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — **مسار قديم: مقفول**
+    📌 الدليل على إنه مش مستخدم ⬇️ (مراجعة ١٥ نوفمبر) ⬇️
+      ⛔ مفيش ولا ملف في الواجهة بينادي /api/auth/otp/send ⬇️
+      ⛔ ولا /api/auth/otp/verify ⬇️ ⬇️
+      ⛔ المسارات الحيّة للتسجيل ⬇️ ⬇️
+        · /api/auth/signup/start · verify · newpin ⬇️
+        · /api/auth/pin/challenge/send · verify · newpin ⬇️
+      ⛔ والتبويبات القديمة بتعمل reload تلقائي ⬇️
+        (syncBuild في octa-gate.js — ختم النسخة) ⬇️ ⬇️
+    📌 ⛔ كان بيفتح باب «كود ٦ أرقام» قديم ⬇️ ⬇️
+    📌 ⛔ ⬇️/pathold مابقاش له_surface ⬇️ ⬇️
+    """
+    return jsonify({
+        "ok": False,
+        "error": "المسار ده اتقفل — استخدم شاشة التسجيل الجديدة",
+        "why": "gone",
+        "next": "signup/start",
+    }), 410
 
 
 @app.route("/api/auth/otp/verify", methods=["POST"])
 def otp_verify():
-    """POST { email, code } → يرجّع token"""
-    data = request.get_json(silent=True) or {}
-    email = str(data.get("email") or "").strip().lower()[:120]
-    code = str(data.get("code") or "").strip()
-
-    if not _re_guard.fullmatch(r"^\d{6}$", code or ""):
-        return jsonify({"error": "الكود 6 أرقام"}), 400
-
-    # ⛔⛔⛔ حساب الباسورد ما بيقبلش كود إيميل — أبداً.
-    #    المسار ده بيرجّع توكن لأي حد يعرف الإيميل — حتى من غير ما
-    #    يبقى الكود صح. لو حساب باسورد عدّى من هنا، الباسورد كله
-    #    بلا قيمة وأي حد عارف الإيميل ياخد الحساب كامل. القفل هنا مش
-    #    على الإيميل — كل حاجة فيه بتتمسك بالباسورد.
-    if _pin_by_email(email)[1]:
-        return jsonify({
-            "ok": False,
-            "error": "⛔ الحساب ده بيستخدم باسورد ٤ أرقام — "
-                     "الدخول بالباسورد بس",
-            "why": "pin_account",
-        }), 409
-
-    try:
-        ok, why = _otp_check(email, code)
-    except Exception as e:
-        # ⛌ صفحة 500 فاضية للمستخدم مش مفيدة — بنقوله نوع الخطأ ونسجله
-        import traceback as _tb
-        traceback.print_exc()
-        return jsonify({"error": "حصل خطأ في السيرفر — جرب تاني",
-                        "why": type(e).__name__}), 500
-    if not ok:
-        if why == "too_many_wrong":
-            return jsonify({"error": "⛔ غلط كتير — اطلب كود جديد",
-                            "why": why}), 429
-        if why == "no_code":
-            return jsonify({"error": "الكود مش موجود أو خلصت صلاحيته — اطلب كود جديد",
-                            "why": why}), 401
-        return jsonify({"error": "الكود غلط", "why": why}), 401
-
-    # ⛔ نعمل (أو نجدد) المستخدم — الإيميل بقى هو الهوية
-    uid = _hash_key(email)[:20]
-    with USERS_LOCK:
-        users = _load_users()
-        now = int(time.time())
-        if uid not in users:
-            users[uid] = {"id": uid, "name": str(data.get("name") or "")[:40] or "مستخدم",
-                          "khash": _hash_key(str(_random.SystemRandom().randint(0, 10**9))),
-                          "email": email, "email_hash": _hash_key(email),
-                          "created": now, "portfolio": {}, "watchlist": []}
-            users[uid]["last_login"] = now
-            print(f"  👤 مستخدم جديد: {email}")
-        else:
-            users[uid]["last_login"] = now
-            nm = str(data.get("name") or "").strip()[:40]
-            if nm:
-                users[uid]["name"] = nm
-        _save_users(users)
-
+    """⛔⛔ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — **مسار قديم: مقفول**
+    📌 ⛔ كان بيدخل بالحساب من غير جهاز ولا رقم ⬇️ ⬇️
+    📌 ⛔ ⬇️ (إيميل + كود ⇒ جلسة كاملة) ⬇️ ⬇️
+    📌 ⛔ ⬇️ وده كان يتخطّى كل حمايات الجهاز اللي في مسار الـPIN ⬇️ ⬇️
+    📌 📌 الدليل على إنه مش مستخدم ⬇️ (مراجعة ١٥ نوفمبر) ⬇️
+      ⛔ مفيش ولا ملف في الواجهة بينادي المسار ⬇️ ⬇️
+      ⛔ (التسجيل الحيّ = signup/* · استرجاع الـPIN = pin/challenge/*) ⬇️
+    """
     return jsonify({
-        "ok": True, "token": _make_token(uid),
-        "user": {"id": uid, "name": users[uid]["name"], "email": email},
-    }), 200
+        "ok": False,
+        "error": "المسار ده اتقفل — استخدم شاشة التسجيل أو استرجاع الرقم",
+        "why": "gone",
+        "next": "signup/start",
+    }), 410
 
 
 def _otp_html(code, name=""):
@@ -2328,6 +2524,16 @@ def _chal_hash(code, email):
     return hmac.new(_SECRET.encode(), msg.encode(), hashlib.sha256).hexdigest()
 
 
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١
+# ⛔ الكود الخام (٦ أرقام) كان بيتكتب على القرص في pinchal.json ⬇️
+# ⛔ ⬇️ باسم code_plain ⬇️ ⬇️ ⇒ تسريب (لوج · نسخة احتياطية) ⬇️ ⬇️
+# ✅ الحل: الكود الخام في الذاكرة بس ⬇️
+# ⛔ الإعادة بتفرجّع **نفس** الكود طول ما السيرفر شغّال ⬇️
+# ⛔ (لو اتقفل ⇒ كود جديد ⇒ القديم بيموت — أأمن).
+_CHAL_PLAIN_MEM = {}
+_CHAL_PLAIN_LOCK = threading.Lock()
+
+
 def _chal_prune(d):
     """
     🧹 نضّف: الكود بعد ١٠ دقايق، والتوكن المؤقت بعد ١٠ دقايق،
@@ -2342,6 +2548,12 @@ def _chal_prune(d):
             rec.pop("h", None)      # ⛔ الهاش
             rec.pop("s", None)      # ⛔ وقت الإرسال
             rec.pop("w", None)      # ⛔ عدّاد الغلط
+            # 🐞 ١٥ نوفمبر ٢٠٢٦ — ⛔ النسخة الصريحة ما بتتكتسبش ⬇️
+            # ⛔ (كانت بتتتكتب — دفعة الأمان ٠١ شالتها) ⬇️
+            rec.pop("code_plain", None)
+            # 🛡️ ونظّف نسخة الذاكرة كمان ⬇️
+            with _CHAL_PLAIN_LOCK:
+                _CHAL_PLAIN_MEM.pop(em, None)
             # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ النسخة الصريحة من الكود
             # 📌 لازم تتمسح مع الهاش (10 دقايق) — تسريب لو lingered
             rec.pop("code_plain", None)   # ⛔ الكود الصريح
@@ -2408,10 +2620,15 @@ def _chal_send(email):
         _r0 = _c0.get(email) or {}
         if _r0.get("h") and int(_r0.get("d") or 0) == day:
             # ⛌ فيه كود صالح ⇒ نستخدمه (مش نولّد جديد)
-            _code_to_send = _r0.get("code_plain")
-            if not _code_to_send:
-                # ⛌ مافيش النسخة الصريحة (كود قديم) ⇒ نولّد جديد
-                _code_to_send = None
+            _code_to_send = None
+            # 🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١) — ⛔ الكود من الذاكرة ⬇️
+            # ⛔ كان بيتقرا من القرص (code_plain) ⬇️ ⬇️
+            # ⛔ ⬇️ ⇒ الكود الخام كان على القرص (بينمسح بعد ١٠ دقايق) ⬇️
+            # ⛔ ⬇️ وده تسريب حقيقي (لوج · نسخة احتياطية · forenzics) ⬇️ ⬇️
+            with _CHAL_PLAIN_LOCK:
+                _mem = _CHAL_PLAIN_MEM.get(email)
+            if _mem and (now - int(_mem[1] or 0)) <= PIN_CHAL_TTL:
+                _code_to_send = _mem[0]
     code = _code_to_send or f"{_secrets_mod.randbelow(1000000):06d}"
     with PIN_CHAL_LOCK:
         d = _chal_prune(_chal_load())
@@ -2424,11 +2641,16 @@ def _chal_send(email):
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
         # 📌 ⛌ ⚠️ ده كود صريح على القرص — بس ميكروبايوت وبيتمسح
         # 📌 ⛌ ⛌ ⛌ بعد ١٠ دقايق (pinchal.json) + ٥ غلط.
-        rec["code_plain"] = code
+        # 🐞 ١٥ نوفمبر ٢٠٢٦ — ⛔⛔⛔ مفيش نسخة صريحة على القرص ⬇️
+        # ⛔ الكود الخام في الذاكرة بس ⬇️ (تحت) ⬇️ ⬇️
+        rec.pop("code_plain", None)          # ⛔ تنظيف أي نسخة قديمة
         rec["s"] = now
         rec["w"] = 0
         c[email] = rec
         _chal_save(d)
+    # 🐞 الكود الخام ⇒ الذاكرة فقط ⬇️ (مش القرص)
+    with _CHAL_PLAIN_LOCK:
+        _CHAL_PLAIN_MEM[email] = (code, now)
     return code
 
 
@@ -2465,7 +2687,10 @@ def _chal_check(email, code):
             # ⛌ الكود واحد Lives: بينمسح فوراً بعد أول استخدام.
             rec.pop("h", None)
             rec.pop("s", None)
-            rec.pop("code_plain", None)   # ⛔ ٢٤ أكتوبر — النسخة الصريحة
+            rec.pop("code_plain", None)
+            # 🐞 ١٥ نوفمبر ٢٠٢٦ — ⛔ امسح نسخة الذاكرة كمان ⬇️
+            with _CHAL_PLAIN_LOCK:
+                _CHAL_PLAIN_MEM.pop(email, None)   # ⛔ ٢٤ أكتوبر — النسخة الصريحة
             c[email] = rec
             _chal_save(d)
             return True, "ok"
@@ -2584,7 +2809,10 @@ def _pin_json(fn):
                         _uid = str((_bd.get("user") or {}).get("id")
                                    or _bd.get("uid") or "")
                         if _uid:
-                            _set_auth_cookie(_resp, _uid)
+                            # 🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١):
+                            # ⛔ نستخدم **نفس** التوكن اللي في الـbody ⬇️
+                            # ⛔ (مش توكن تاني) ⇒ الكوكي والـbody متطابقين.
+                            _set_auth_cookie(_resp, _uid, _bd.get("token"))
             except Exception:
                 pass
             return rv
@@ -3008,6 +3236,11 @@ def auth_pin_login():
         rec = users.get(uid)
         if rec is not None:
             rec["last_login"] = int(time.time())
+            # 🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١):
+            # ⛔ وقت آخر توثيق **بالرقم** ⬇️ (=لحظة إدخال PIN صحيح) ⬇️
+            # ⛔ ده الأساس اللي يسمح بالدخول بالبصمة (لو اتفتحت) ⬇️
+            # ⛔ لأن البصمة لوحدها مش إثبات.
+            rec["pin_ok_at"] = int(time.time())
             # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ سجل الدخول
             # 📌 سؤال أحمد: «هل ممكن أعرف مين دخل بالـPIN بس؟»
             # 📌 ⛌ ⛌ ⛌ قبل كده مافيش غير last_login (آخر مرة بس).
@@ -3165,12 +3398,45 @@ def auth_pin_change():
     _pinlock_reset(keys + k_ip + k_pin_old)
     print(f"  🔢 اتغيّر الباسورد: {uid}")
 
-    # ⛔ التوكن مش بيتغيّر (مربوط بالـuid) — المستخدم يفضل داخل
-    return jsonify({
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — إبطال كل الجلسات القديمة
+    # ⛔⛔⛔ قبل: تغيير الـPIN كان **مش** بيبطّل أي توكن ⬇️
+    #   ⛔ ⬇️ والتوكن صالح ٣٠ يوم ⬇️ ⇒ أي توكن مسروق (localStorage
+    #   ⬇️ أو XSS) فضل شغّال **بعد** ما المستخدم غيّر الباسورد ⬇️
+    #   ⬇️ ⇒ تغيير الباسورد كان بلا معنى أمني خالص.
+    # ✅ الحل: bump للـepoch ⇒ كل التوكنات القديمة تموت فوراً ⬇️
+    #   + توكن **جديد** للجهاز ده (اللي أثبت نفسه بالـPIN القديم) ⬇️
+    #   ⛔ الواجهة (octa-gate.js) بتتوقع `token` و`sessions_revoked` ⬇️
+    #   ⛔ وبتحفظهم — فالعقد بين الباك والواجهة موجود من الأصل.
+    try:
+        _patch_user(uid, token_epoch=int(time.time()) * 1000)
+    except Exception as e:
+        print(f"  ⛔ فشل إبطال الجلسات: {type(e).__name__}", flush=True)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد اتغيّر بس إبطال الجلسات مش مضمون — "
+                     "سجّل خروج وكل الجلسات هتقفل",
+            "why": "revoke_failed",
+        }), 500
+    try:
+        new_tok = _make_token(uid)
+    except Exception as e:
+        print(f"  ⛔ فشل إنشاء التوكن الجديد: {type(e).__name__}", flush=True)
+        return jsonify({
+            "ok": False,
+            "error": "الباسورد اتغيّر — سجّل دخول تاني",
+            "why": "token_failed",
+        }), 500
+
+    _r = jsonify({
         "ok": True,
         "msg": "الباسورد اتغيّر — من دلوقتي ادخل بالباسورد الجديد",
         "user": out,
-    }), 200
+        "token": new_tok,
+        "sessions_revoked": True,
+    })
+    # ⛔ نفس التوكن في الكوكي والـbody ⬇️ (الواجفة بتلمس الاتنين)
+    _set_auth_cookie(_r, uid, new_tok)
+    return _r, 200
 
 
 
@@ -4542,71 +4808,35 @@ def _reset_request():
 
 @app.route("/api/auth/reset", methods=["POST"])
 def _auth_reset_route():
-    return _reset_request()
+    """⛔⛔ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — **مسار قديم: مقفول**
+    📌 الدليل على إنه مش مستخدم ⬇️ (مراجعة ١٥ نوفمبر) ⬇️
+      ⛔ مفيش ولا ملف في الواجهة بينادي /api/auth/reset ⬇️
+      ⛔ ولا /api/auth/reset/verify ⬇️ ⬇️
+      ⛔ استرجاع الـPIN الحيّ = /api/auth/pin/challenge/* ⬇️ ⬇️
+    📌 ⛔ كان مسار استرجاع بـ«كود ٦ أرقام» ⬇️ ⬇️
+    """
+    return jsonify({
+        "ok": False,
+        "error": "المسار ده اتقفل — استخدم «نسيت الرقم» في شاشة الدخول",
+        "why": "gone",
+        "next": "pin/challenge/send",
+    }), 410
 
 
 @app.route("/api/auth/reset/verify", methods=["POST"])
 def _auth_reset_verify():
+    """⛔⛔ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١ — **مسار قديم: مقفول**
+    📌 الدليل على إنه مش مستخدم ⬇️ (مراجعة ١٥ نوفمبر) ⬇️
+      ⛔ مفيش ولا ملف في الواجهة بينادي المسار ⬇️ ⬇️
+      ⛔ استرجاع الـPIN الحيّ = /api/auth/pin/challenge/* ⬇️ ⬇️
+    📌 ⛔ ⬇️ كان «كود ٦ أرقام» ⇒ تغيير كلمة السر ⬇️ ⬇️
     """
-    ✅ تأكيد الكود وتغيير كلمة السر
-    body: { "email": "name@example.com", "code": "123456",
-            "key": "الكلمة الجديدة" }
-    """
-    try:
-        data = request.get_json(silent=True) or {}
-    except Exception:
-        data = {}
-
-    email = str(data.get("email") or "").strip().lower()[:120]
-    code = str(data.get("code") or "").strip()
-    newkey = str(data.get("key") or "").strip()
-
-    if not code or len(code) != 6 or not code.isdigit():
-        return jsonify({"error": "الكود 6 أرقام"}), 400
-    if len(newkey) < 6:
-        return jsonify({"error": "الكلمة الجديدة قصيرة — 6 حروف"}), 400
-
-    rec = RESET_STORE.get(email)
-    if not rec or not rec.get("code_hash"):
-        return jsonify({"error": "مفيش طلب استرجاع — ابدأ من الأول"}), 400
-
-    # ── انتهت المدة؟ ──
-    if time.time() - rec["sent"][-1] > RESET_TTL:
-        RESET_STORE.pop(email, None)
-        return jsonify({"error": "انتهت المدة — 15 دقيقة — ابدأ تاني"}), 400
-
-    # ── الكود صح؟ ──
-    if not hmac.compare_digest(rec["code_hash"],
-                               _hash_key(code + email)):
-        return jsonify({"error": "الكود غلط"}), 400
-
-    # ── غيّر كلمة السر ──
-    uid = rec.get("uid")
-    with USERS_LOCK:
-        users = _load_users()
-        u = users.get(uid)
-        if not u:
-            return jsonify({"error": "الحساب مش موجود"}), 404
-        u["khash"] = _hash_key(newkey)
-        u["reset_at"] = int(time.time())
-        _save_users(users)
-
-    RESET_STORE.pop(email, None)
-    rec["done"] += 1
-    RESET_STORE[email] = rec
-
-    # ⛔ التوكن القديم بيبطل — لازم يسجّل دخول تاني
-    _r = jsonify({
-        "ok": True,
-        "msg": "اتغيرت كلمة السر — سجّل دخول تاني",
-        "token": _make_token(uid),
-    })
-    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ كوكي HttpOnly (شوف _pin_json)
-    try:
-        _set_auth_cookie(_r, str(uid))
-    except Exception:
-        pass
-    return _r
+    return jsonify({
+        "ok": False,
+        "error": "المسار ده اتقفل — استخدم «نسيت الرقم» في شاشة الدخول",
+        "why": "gone",
+        "next": "pin/challenge/send",
+    }), 410
 
 
 
@@ -5046,16 +5276,48 @@ def auth_bio():
 
 
 # ====================== الدخول بالبصمة ======================
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — دفعة الأمان ٠١
+# ⛔⛔⛔ الثغرة: المسار ده كان بيعمل **جلسة كاملة** ⬇️
+#   ⛔ ⬇️ من غير PIN ولا إثبات بيومتري ⬇️ ⬇️
+#   📌 مفتاح الجهاز = نص عشوائي (٦٤ حرف hex) ⬇️
+#   📌 ⬇️ متخزّن في localStorage **وكوكي عادي** ⬇️ ⬇️
+#   📌 ⬇️ ⇒ نسخه (من الـdevtools أو من صورة قديمة للجهاز) ⬇️
+#   📌 ⬇️ = دخول كامل بحساب حد تاني ⬇️ ⬇️
+#   ⛔ «مفتاح جهاز» ≠ «إثبات بيومتري». مافيش أي بايومتري هنا.
+# ✅ الحل (المرحلة الآمنة):
+#   ⛔ ① البصمة **مقفولة افتراضياً** (fail-closed) ⬇️
+#      ⛔ تُفتح فقط بـ OCTA_FINGERPRINT_LOGIN=on (قرار المالك) ⬇️
+#   ⛔ ② حتى لو اتفتحت ⇒ لازم **توثيق حديث بالرقم** ⬇️
+#      ⛔ (آخر ١٠ دقايق) + جهاز موثوق ⬇️ ⬇️
+#      ⛔ ⇒ البصمة = «إعادة فتح» مش «دخول من الصفر» ⬇️ ⬇️
+#   ⛔ ③ الدخول بالرقم (PIN) شغّال دايماً ومش受影响.
+# 📌 التصميم النهائي (WebAuthn/Passkeys) في docs/WEBAUTHN-DESIGN.md
+FINGERPRINT_LOGIN_ON = str(
+    os.environ.get("OCTA_FINGERPRINT_LOGIN", "off") or "off"
+).strip().lower() in ("1", "true", "yes", "on")
+
+FINGERPRINT_WINDOW = int(
+    os.environ.get("OCTA_FINGERPRINT_WINDOW", "600") or 600
+)
+
+
 @app.route("/api/auth/pin/fingerprint", methods=["POST"])
 @_pin_json
 def auth_pin_fingerprint():
     """دخول بالبصمة من غير باسورد.
 
-    السبب إن اللي كان ناقص: الواجهة بتنادي المسار ده من زمان
-    بس الراوت مكانتش موجودة في الباك خالص، فأي دوسة كانت
-    بترجع 404 والواجهة كانت مش بتعرف تقرا السبب، فالمستخدم
-    بيقول "البصمة مش بتنفتح" وهو مش فاهم حاجة.
+    ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — اتقفل افتراضياً ⬇️ (شوف التعليق فوق).
+    ⛔ ما كانش في الباك روت ⬇️ فأي دوسة كانت بترجع 404 ⬇️
+    ⛔ والواجهة كانت مش بتعرف تقرا السبب ⬇️.
     """
+    if not FINGERPRINT_LOGIN_ON:
+        return jsonify({
+            "ok": False,
+            "error": "دخول البصمة موقوف مؤقتاً — استخدم الرقم (PIN)",
+            "why": "fingerprint_disabled",
+            "next": "pin/login",
+        }), 410
+
     try:
         body = request.get_json(silent=True) or {}
     except Exception:
@@ -5069,19 +5331,38 @@ def auth_pin_fingerprint():
                         "why": "bad_device"}), 400
 
     want = _device_key_hash(dev)
+    now = int(time.time())
     with USERS_LOCK:
         users = _load_users()
         hit = ""
+        hit_rec = None
         for uid, rec in users.items():
-            if str(rec.get("bio_hash") or "") == want:
-                hit = uid
+            if not isinstance(rec, dict):
+                continue
+            # ⛔ أي جهاز **موثوق** للحساب (مش bio_hash لوحده)
+            for k in _trusted_devs(rec):
+                if k and hmac.compare_digest(k, want):
+                    hit = uid
+                    hit_rec = rec
+                    break
+            if hit:
                 break
         if not hit:
             return jsonify({"ok": False,
                             "error": "البصمة مش مسجلة على الجهاز ده",
                             "why": "bio_not_found"}), 404
-        rec = users[hit]
-        users[hit] = rec
+        rec = hit_rec
+        # ⛔⛔ توثيق حديث بالرقم — البصمة مش دليل ⬇️
+        pin_ok_at = int(rec.get("pin_ok_at") or 0)
+        fresh_pin = bool(pin_ok_at) and (now - pin_ok_at) <= FINGERPRINT_WINDOW
+
+    if not fresh_pin:
+        return jsonify({
+            "ok": False,
+            "error": "لازم تتأكد بالرقم الأول (دخول بالبصمة = إعادة فتح)",
+            "why": "need_pin",
+            "next": "pin/login",
+        }), 401
 
     tok = _make_token(hit)
     _patch_user(hit, last_login=int(time.time()))
@@ -5118,16 +5399,31 @@ def auth_logout():
             uid = str(_u.get("id") or "")
     except Exception:
         uid = ""
+    revoked = False
     if uid:
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١) — ⛔ فشل صامت ⬇️
+        # ⛔ كان `except: pass` ⬇️ ⇒ لو الإبطال فشل ⬇️ ⇒ الردّ says ok ⬇️
+        # ⛔ ⬇️ بس التوكن فضل صالح ⬇️ ⬇️ ⇒ «خرج» وهي داخل ⬇️ ⬇️
+        # ✅ الحل: لو فشل الإبطال ⇒ نرجّع خطأ صريح ⬇️
+        # ⛔ (أحسن من كذبة) ⬇️ ⬇️.
         try:
             _patch_user(uid, token_epoch=int(time.time()) * 1000)
-        except Exception:
-            pass
-    r = jsonify({"ok": True})
+            revoked = True
+        except Exception as e:
+            print(f"  ⛔ فشل إبطال الجلسة عند الخروج: {type(e).__name__}",
+                  flush=True)
+    r = jsonify({"ok": True, "revoked": revoked})
     try:
         r.delete_cookie("octa_token", path="/")
     except Exception:
         pass
+    if uid and not revoked:
+        # ⛔ التوكن لسه صالح ⬇️ ⇒ لازم المستخدم يعرف ⬇️
+        return jsonify({
+            "ok": False,
+            "error": "مش قادرين نقفل الجلسة على السيرفر — جرّب تاني",
+            "why": "revoke_failed",
+        }), 500
     return r
 
 

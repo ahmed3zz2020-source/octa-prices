@@ -795,23 +795,30 @@ t("الهاش **مستقل** عن _SECRET", t_secret_independent)
 
 def t_otp_cant_takeover():
     """⛔⛔ الإيميل ما يقدرش يدخل بحساب باسورد — المسار ده
-       بيرجّع توكن لأي حد يعرف الإيميل"""
+       بيرجّع توكن لأي حد يعرف الإيميل
+
+       🐞 ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠١): المسارات دي **اتقفلت**
+       ⬇️ ⬇️ (410 Gone) ⬇️ ⬇️ — مش 409 «الحساب ده باسورد» ⬇️ ⬇️
+       ⛔ ⬇️ (الحماية بقت أشد: المسار مقفول لكل حد) ⬇️ ⬇️
+       ⛔ ⬇️ والدليل إن مفيش عميل حيّ بيناديها ⬇️ ⬇️
+       ⛔ ⬇️ (الواجهة بتستخدم signup/* و pin/challenge/*) ⬇️ ⬇️
+    """
     r = app.dispatch("/api/auth/otp/verify", method="POST",
                      body={"email": A_EMAIL, "code": "000000"},
                      headers={"X-Forwarded-For": "10.6.6.6"})
     up._HITS.clear()
-    ok(r.status_code == 409, "⛔⛔ الإيميل دخل بالحساب! %s" % r.status_code)
-    ok((r.get_json() or {}).get("why") == "pin_account", "السبب غلط")
+    ok(r.status_code == 410, "⛔⛔ مسار OTP/verify لسه مفتوح! %s" % r.status_code)
+    ok((r.get_json() or {}).get("why") == "gone", "السبب غلط")
     r2 = app.dispatch("/api/auth/otp/send", method="POST",
                       body={"email": A_EMAIL},
                       headers={"X-Forwarded-For": "10.6.6.6"})
     up._HITS.clear()
-    ok(r2.status_code == 409, "⛔⛔ بعت كود إيميل لحساب باسورد! %s" % r2.status_code)
+    ok(r2.status_code == 410, "⛔⛔ مسار OTP/send لسه مفتوح! %s" % r2.status_code)
     r3 = app.dispatch("/api/auth/reset", method="POST",
                       body={"email": A_EMAIL},
                       headers={"X-Forwarded-For": "10.6.6.6"})
     up._HITS.clear()
-    ok(r3.status_code == 409, "⛔⛔ قبل استرجاع بالإيميل! %s" % r3.status_code)
+    ok(r3.status_code == 410, "⛔⛔ مسار reset لسه مفتوح! %s" % r3.status_code)
 
 
 t("الإيميل ما ياخدش حساب الباسورد (OTP/verify + send + reset)", t_otp_cant_takeover)
