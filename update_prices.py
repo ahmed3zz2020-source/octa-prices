@@ -1584,28 +1584,6 @@ def _read_token(tok: str):
     return _token_parts(tok)[0]
 
 
-    try:
-        parts = str(tok or "").split(".")
-        if len(parts) != 2:
-            return None
-        p, sig = parts
-        if not p or not sig:
-            return None
-        if not hmac.compare_digest(sig, _sign(p)):
-            return None
-        pad = "=" * (-len(p) % 4)
-        # ⛌ strict مش ignore: بايت مش صالح = رفض. الـdecode كان
-        #    بيبتلع الأخطاء وبيطلع نص مش متوقع.
-        uid = base64.urlsafe_b64decode(p + pad).decode("utf-8", "strict")
-        # ⛔ الـuid نص قصير مطبوع (20 حرف hex دلوقتي). التوقيع بيغطي
-        #    الـpayload أصلاً — دي طبقة تانية بس ضد المدخلات الغريبة.
-        if not uid or len(uid) > 64 or not uid.isascii() or not uid.isprintable():
-            return None
-        return uid
-    except Exception:
-        return None
-
-
 # ⛌ الكود = 6 أرقام بالظبط. مش كلمة سر ومش حروف.
 _CODE_RE = __import__('re').compile(r'^\d{6}$')
 
@@ -12813,7 +12791,10 @@ def _loop():
         time.sleep(300)
 
 
-print(f"[tg] enabled={TG_ON} token={TOKEN[:6] if TOKEN else '-'} chat={CHAT or '-'}",
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ ما نطبعش جزء من توكن البوت ⬇️
+# ⛔ ⬇️ (كان token[:6] في اللوج ⬇️ ⬇️ ⇒ تسريب من اللوج) ⬇️ ⬇️
+# ⛔ ⬇️ بقى «متظبط / مش متظبط» ⬇️ ⬇️
+print(f"[tg] enabled={TG_ON} token={'set' if TOKEN else '-'} chat={CHAT or '-'}",
       flush=True)
 if TG_ON:
     threading.Thread(target=_loop, daemon=True).start()
