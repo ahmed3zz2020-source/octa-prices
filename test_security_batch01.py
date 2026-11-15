@@ -47,7 +47,7 @@ up.OTP_FILE = Path(TMP) / "otp.json"
 up.SIGNUP_FILE = Path(TMP) / "signup.json"
 up.PIN_CHAL_FILE = Path(TMP) / "pinchal.json"
 up.TRACK_FILE = Path(TMP) / "track.json"
-up.MAIL_ON = True             # ⛔邮 خدمة الإيميل "شغالة" ⬇️ (المُمسك sends)
+up.MAIL_ON = True             # ⛔ خدمة الإيميل "شغالة" ⬇️ (المُمسك sends)
 
 # ⛔ الإيميل: بنمسكه بدل ما يتبعت ⬇️ (مش إيميل حقيقي)
 MAILS = []
