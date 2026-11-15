@@ -910,11 +910,37 @@ def _sanitize_request():
 # 📌 ⬇️ ② قفل ملف (fcntl) ⇒ نسخة واحدة بس تشغّل ⬇️ ⬇️
 # ⛔ ملاحظة: القفل بيحمي **نفس الجهاز** ⬇️
 # ⛔ ⇒ التوسع على أكتر من replica محتاج قفل خارجي (KV) ⬇️
+_BG_LOCK_FH = []
+# ⛔ ⛔ ⛔ حالة انتخاب القائد ⬇️ ⬇️ ⬇️
+# 📌 ⬇️ None = لسه متقرّرش · True = القائد · False = مش القائد ⬇️ ⬇️ ⬇️
+# 📌 ⬇️ ⛔ القرار لازم يتحسب **مرة واحدة** ⬇️ ⬇️ ⬇️
+# 📌 ⬇️ ⛔ (مش كل استدعاء) ⬇️ ⬇️ ⬇️
+_BG_LEADER = None
+
+
 def _bg_tasks_allowed():
-    """⛔⛔⛔ يحقّق: هل النسخة دي هي اللي تشغّل المهام الخلفية؟ ⬇️"""
+    """⛔⛔⛔ هل النسخة دي هي اللي تشغّل المهام الخلفية؟ ⬇️
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (المراجعة المستقلة) — ⛔⛔⛔ إصلاحين ⬇️
+    📌 ⬇️ ⛔ العيب ①: القرار كان بيتحسب **كل استدعاء** ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ أول مهمة بتحجز القفل والباقي **مش بيكملوش** ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ (المهام الـ5 ما كانت بتشتغلش كلها) ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ العيب ②: لو فتح ملف القفل فشل ⇒ كان بيرجّع True ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ المهام بتشتغل **من غير ضمان القفل** ⬇️ ⬇️ ⬇️
+    ✅ الحل: ⬇️
+    📌 ⬇️ ① انتخاب القائد **مرة واحدة** والنتيجة مخزّنة ⬇️ ⬇️
+    📌 ⬇️ ② القائد ⇒ المهام الـ5 كلها بتبدأ ⬇️ ⬇️
+    📌 ⬇️ ③ غير القائد ⇒ مفيش مهمة بتبدأ ⬇️ ⬇️
+    📌 ⬇️ ④ أي تعذّر ⇒ **fail-closed** (مفيش مهام) + سبب واضح في اللوج ⬇️ ⬇️
+    """
+    global _BG_LEADER
+    # ⛔ القرار مرة واحدة بس ⬇️ ⬇️ (انتخاب القائد)
+    if _BG_LEADER is not None:
+        return _BG_LEADER
     try:
         if str(os.environ.get("OCTA_BG_TASKS", "") or "").strip().lower() in (
                 "off", "0", "no", "false"):
+            _BG_LEADER = False
             return False
     except Exception:
         pass
@@ -923,19 +949,25 @@ def _bg_tasks_allowed():
         lock_path = os.path.join(
             str(os.environ.get("OCTA_DATA_DIR") or "/data"), ".bg_tasks.lock")
         fh = open(lock_path, "a+")
-        try:
-            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except Exception:
-            fh.close()
-            return False
-        # ⛔ نسيب الـfd مفتوح طول عمر العملية ⇒ القفل فضل محجوز ⬇️
-        _BG_LOCK_FH.append(fh)
-        return True
+    except Exception as e:
+        # ⛔⛔⛔ fail-closed: من غير القفل ⇒ من غير مهمة ⬇️ ⬇️ ⬇️
+        _BG_LEADER = False
+        print("  ⛔ [bg] ملف القفل مش متاح (%s: %s) ⇒ المهام الخلفية متوقفة"
+              % (type(e).__name__, str(e)[:120]), flush=True)
+        return False
+    try:
+        fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except Exception:
-        return True
-
-
-_BG_LOCK_FH = []
+        fh.close()
+        _BG_LEADER = False
+        print("  ⛔ [bg] القفل محجوز من نسخة تانية ⇒ المهام الخلفية متوقفة في هذه النسخة",
+              flush=True)
+        return False
+    # ⛔ نسيب الـfd مفتوح طول عمر العملية ⇒ القفل فضل محجوز ⬇️
+    _BG_LOCK_FH.append(fh)
+    _BG_LEADER = True
+    print("  ✅ [bg] النسخة دي هي القائد ⇒ كل المهام الخلفية هتشتغل هنا", flush=True)
+    return True
 
 
 # ════════════════════════════════════════════════════════════════
@@ -1823,6 +1855,9 @@ class _UsersStoreError(Exception):
     pass
 
 
+USERS_STORE_ERROR = None   # ⛔ آخر خطأ في قراءة users.json (None = سليم)
+
+
 def _load_users(strict=False):
     """⛔⛔⛔ قراءة المستخدمين — الـstrict بيرمي خطأ بدل ما يرجّع {} ⬇️
 
@@ -1836,6 +1871,8 @@ def _load_users(strict=False):
     📌 ⬇️ ③ نسخة احتياطية (.bak) قبل كل استبدال ⬇️ ⬇️
     📌 ⬇️ ④ الكتابة ترجّع True/False (مافيش «نجاح» كاذب) ⬇️ ⬇️
     """
+    global USERS_STORE_ERROR
+    USERS_STORE_ERROR = None
     try:
         if USERS_FILE.exists():
             d = json.loads(USERS_FILE.read_text(encoding="utf-8"))
@@ -1843,12 +1880,14 @@ def _load_users(strict=False):
                 return d
             if strict:
                 raise _UsersStoreError("users.json مش dict")
+            USERS_STORE_ERROR = "users.json مش dict"
             return {}
     except _UsersStoreError:
         raise
     except Exception as e:
         if strict:
             raise _UsersStoreError("%s: %s" % (type(e).__name__, str(e)[:120]))
+        USERS_STORE_ERROR = "%s: %s" % (type(e).__name__, str(e)[:120])
         return {}
     return {}
 
@@ -1898,6 +1937,29 @@ def _save_users(d):
     except Exception as e:
         print(f"  💾 ⛔ users.json: {type(e).__name__}: {str(e)[:100]}", flush=True)
         return False
+
+
+
+USERS_STORE_ERROR = None   # ⛔ آخر خطأ في قراءة users.json (None = سليم)
+
+
+def _users_store_broken():
+    """⛔ هل ملف الحسابات تالف؟ ⇒ يرجّع سبب الفشل أو None ⬇️"""
+    return USERS_STORE_ERROR
+
+
+def _users_broken_resp():
+    """⛔ رد صريح (503) بدل استجابة مضلّلة (401 أو 200) ⬇️"""
+    return jsonify({"ok": False,
+                    "error": "تخزين الحسابات تالف — الخدمة محتاجة صيانة",
+                    "why": "users_store_corrupt"}), 503
+
+
+def _users_write_failed_resp():
+    """⛔ فشل الحفظ ⇒ مافيش «نجاح» كاذب ⬇️"""
+    return jsonify({"ok": False,
+                    "error": "فشل حفظ الحسابات — من غير أي تعديل اتحفظ",
+                    "why": "users_write_failed"}), 503
 
 
 def _patch_user(uid: str, **fields):
@@ -2177,6 +2239,8 @@ def auth_register():
 
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         if uid in users:
             # ⛔ ⛔ ⛔ كان بيرجّع توكن لأي حد يبعت أي كود مع إيميل
             #    مستخدم موجود — يعني إيميل واحد بس = سرقة حساب كاملة.
@@ -2208,7 +2272,8 @@ def auth_register():
             "portfolio": {},
             "watch": [],
         }
-        _save_users(users)
+        if not _save_users(users):
+            return _users_write_failed_resp()
 
     _r = jsonify({
         "ok": True, "token": _make_token(uid),
@@ -3195,7 +3260,8 @@ def _pin_find_by_scan(pin):
         if u is not None:
             u["pin_idx"] = _pin_index(pin)
             u["pin_idx_id"] = _PIN_PEPPER_ID
-            _save_users(users)
+            if not _save_users(users):
+                print('  ⛔ [users] فشل الحفظ — من غير نجاح كاذب', flush=True)
             hit = (hit_uid, u)
     return hit
 
@@ -3361,6 +3427,13 @@ def auth_pin_login():
     dev = str((data.get("device") or "")).strip()
     dev_ok = bool(dev) and (16 <= len(dev) <= 200)
 
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — لو ملف الحسابات تالف ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ لازم نعرف ده **قبل** البحث عن الـPIN ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ غير كده الرد بيبقى 401 «الباسورد غلط» ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ ⇒ مزيّف (والمستخدم هيعيد المحاولة) ⬇️ ⬇️ ⬇️
+    users = _load_users()
+    if _users_store_broken():
+        return _users_broken_resp()
     uid, u = _pin_find_by_index(pin)
     if u is None and _pin_index_stale():
         # ⛌ الفهرس مش مظبوط (pepper اتغيّر) — بحث بالهاش الحقيقي
@@ -3486,6 +3559,8 @@ def auth_pin_login():
 
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         rec = users.get(uid)
         if rec is not None:
             rec["last_login"] = int(time.time())
@@ -3584,6 +3659,8 @@ def auth_pin_change():
     rec = None
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         rec = users.get(uid)
         if rec is None or not rec.get("pin_hash"):
             bad = "not_pin"
@@ -4004,6 +4081,8 @@ def auth_pin_chal_newpin():
     out = None
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         rec = users.get(uid)
         if rec is None:
             bad = "no_user"
@@ -4559,6 +4638,8 @@ def auth_signup_verify():
     uid = _hash_key(email)[:20]
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         rec = users.get(uid)
         if rec is None:
             rec = {
@@ -4664,6 +4745,8 @@ def auth_signup_newpin():
     em = nm = ""
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         rec = users.get(uid)
         if rec is None:
             bad = "no_user"
@@ -4837,6 +4920,8 @@ def auth_refresh():
 
     with USERS_LOCK:
         u = _load_users().get(uid)
+        if _users_store_broken():
+            return _users_broken_resp()
     if not u:
         return jsonify({
             "ok": False,
@@ -5058,6 +5143,8 @@ def _reset_request():
     }
 
     users = _load_users()
+    if _users_store_broken():
+        return _users_broken_resp()
     match = next((u for u in users.values() if u.get("email") == email), None)
     if not match:
         return jsonify(generic)
@@ -5398,6 +5485,8 @@ def auth_delete_account():
 
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         rec = users.get(uid)
         if not rec:
             return jsonify({"ok": False, "error": "الحساب مش موجود",
@@ -5429,7 +5518,8 @@ def auth_delete_account():
             # ⛔ ③ إبطال كل الجلسات ⬇️ كل التوكنات القديمة تبقى ميتة
             "token_epoch": _epoch_of(rec),
         }
-        _save_users(users)
+        if not _save_users(users):
+            return _users_write_failed_resp()
 
     _send_mail(
         str(rec.get("email") or ""),
@@ -5526,6 +5616,8 @@ def _record_pending_device(uid, dev_hash, prefix):
     try:
         with USERS_LOCK:
             users = _load_users() or {}
+            if _users_store_broken():
+                return _users_broken_resp()
             rec = users.get(uid)
             if not isinstance(rec, dict):
                 return
@@ -5536,7 +5628,8 @@ def _record_pending_device(uid, dev_hash, prefix):
             lst.append({"h": dev_hash, "p": str(prefix or "")[:12],
                         "t": int(time.time()), "ip": str(_client_key() or "")[:64]})
             rec["pending_devs"] = lst[-5:]
-            _save_users(users)
+            if not _save_users(users):
+                print('  ⛔ [users] فشل الحفظ — من غير نجاح كاذب', flush=True)
     except Exception:
         pass
 
@@ -5567,9 +5660,12 @@ def auth_bio():
         # ⭐ ٢٥ أكتوبر ٢٠٢٦ — يشيل بصمة الجهاز ده بس (مش كل الأجهزة)
         with USERS_LOCK:
             users = _load_users() or {}
+            if _users_store_broken():
+                return _users_broken_resp()
             if uid in users:
                 _untrust_device(users[uid], _device_key_hash(dev))
-                _save_users(users)
+                if not _save_users(users):
+                    return _users_write_failed_resp()
         return jsonify({"ok": True, "bio": False}), 200
 
     with USERS_LOCK:
@@ -5585,7 +5681,8 @@ def auth_bio():
         # ⛌ فبنسمح ⬇️ بإعادة التعيين ⬇️ من أي جهاز ⬇️ طالما
         # ⬇️ внутри ⬇️ ⬇️ وبيبقى كل تغيير ⬇️ متسجّل ⬇️ بإيميل.
         _trust_device(users[uid], _device_key_hash(dev))
-        _save_users(users)
+        if not _save_users(users):
+            return _users_write_failed_resp()
     return jsonify({"ok": True, "bio": True}), 200
 
 
@@ -5648,6 +5745,8 @@ def auth_pin_fingerprint():
     now = int(time.time())
     with USERS_LOCK:
         users = _load_users()
+        if _users_store_broken():
+            return _users_broken_resp()
         hit = ""
         hit_rec = None
         for uid, rec in users.items():
@@ -11370,7 +11469,7 @@ def index_analysis_api(ix_id):
 @app.route("/api/indices/compare")
 @_require_user
 def indices_compare_api():
-    """⚖️ مقارنة بين مؤشرات — كله�� مطبّعة على 100 في بداية الفترة.
+    """⚖️ مقارنة بين مؤشرات — كلها مطبّعة على 100 في بداية الفترة.
 
     📌 ?ids=EGX30,EGX70&period=1Y
     """
@@ -14402,6 +14501,8 @@ def admin_users_list():
                                                        want.encode("utf-8", "replace")):
         return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
     users = _load_users() or {}
+    if _users_store_broken():
+        return _users_broken_resp()
     out = []
     for uid, u in users.items():
         if not isinstance(u, dict):
@@ -14450,7 +14551,8 @@ def admin_user_delete(uid):
         return jsonify({"ok": False, "error": "مفيش حساب بالـid ده"}), 404
     gone = users.pop(uid)
     with USERS_LOCK:
-        _save_users(users)
+        if not _save_users(users):
+            return _users_write_failed_resp()
     # ⛔ نمسح من ملف التتبع برضه — يحذف حسابه من كل إحصائيات
     try:
         tp = DATA_DIR / "track.json"
@@ -14487,6 +14589,8 @@ def admin_logins():
         return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
     with USERS_LOCK:
         users = _load_users() or {}
+        if _users_store_broken():
+            return _users_broken_resp()
         out = []
         for uid, u in users.items():
             if not isinstance(u, dict):
@@ -14570,6 +14674,8 @@ def admin_mint_session():
         return jsonify({"ok": False, "error": "لازم email"}), 400
     with USERS_LOCK:
         users = _load_users() or {}
+        if _users_store_broken():
+            return _users_broken_resp()
         hit = None
         for uid, u in users.items():
             if isinstance(u, dict) and str(u.get("email") or "").lower() == email:
@@ -14633,6 +14739,8 @@ def admin_set_device():
 
     with USERS_LOCK:
         users = _load_users() or {}
+        if _users_store_broken():
+            return _users_broken_resp()
         hit = None
         for uid, u in users.items():
             if isinstance(u, dict) and str(u.get("email") or "").lower() == email:
@@ -14645,7 +14753,8 @@ def admin_set_device():
         _trust_device(u, _device_key_hash(dev))
         u["bio_backfilled"] = int(time.time())
         u["bio_manual"] = int(time.time())
-        _save_users(users)
+        if not _save_users(users):
+            return _users_write_failed_resp()
     return jsonify({"ok": True, "email": email, "uid": str(uid),
                     "device_bound": True,
                     "replaced_old": bool(_old_hash)}), 200
@@ -14680,6 +14789,8 @@ def admin_trust_device():
         return jsonify({"ok": False, "error": "لازم email"}), 400
     with USERS_LOCK:
         users = _load_users() or {}
+        if _users_store_broken():
+            return _users_broken_resp()
         rec = None
         for uid, u in users.items():
             if isinstance(u, dict) and str(u.get("email") or "").lower() == email:
@@ -14706,7 +14817,8 @@ def admin_trust_device():
             }), 404
         _trust_device(rec, str(chosen.get("h") or ""))
         rec["pending_devs"] = [x for x in pending if x is not chosen]
-        _save_users(users)
+        if not _save_users(users):
+            return _users_write_failed_resp()
         return jsonify({
             "ok": True,
             "trusted_prefix": str(chosen.get("p") or "")[:12],
@@ -14725,6 +14837,8 @@ def admin_monthly():
         return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
 
     users = _load_users()
+    if _users_store_broken():
+        return _users_broken_resp()
     now = time.time()
     cutoff = now - 30 * 86400
     rows = []
@@ -14893,6 +15007,8 @@ try:
             return None
         try:
             users = _load_users() or {}
+            if _users_store_broken():
+                return _users_broken_resp()
         except Exception:
             users = {}
         if key not in users:
@@ -14948,6 +15064,8 @@ try:
         """تفعيل/تجديد: يمدّد من تاريخ الانتهاء الحالي (لو لسه ساري)."""
         try:
             users = _load_users() or {}
+            if _users_store_broken():
+                return _users_broken_resp()
         except Exception:
             users = {}
         key = str(who or "").strip()
@@ -15039,6 +15157,8 @@ try:
         """👤 اسم المستخدم للاسم المستعار المقنّع (مافيش إيميل ظاهر)."""
         try:
             users = _load_users() or {}
+            if _users_store_broken():
+                return _users_broken_resp()
             u = users.get(str(uid))
             return u if isinstance(u, dict) else {}
         except Exception:

@@ -28,6 +28,7 @@ FILES = [
     "test_security_batch01.py",
     "test_security_batch02.py",
     "test_security_p0.py",
+    "test_security_bgstore.py",
     "test_pin_auth.py",
     "tools/staging/run_staging.py",
     "tools/staging/run_all.sh",
@@ -137,7 +138,19 @@ for fname, line in ADDED:
         bad3.append("%s :: %s" % (fname, code.strip()[:60]))
 ok(not bad3, "مافيش ثلاث نقاط برّه التعليقات في أسطر الدفعة (قاعدة الـCI)", bad3[:6])
 
-# ---- ④ الملفات موجودة فعلاً ------------------------------------------------
+# ---- ④ محارف تالفة (U+FFFD) — نص عربي معطوب ⬇️ ⬇️ ⬇️
+bad4 = []
+for rel in sorted(set(FILES)):
+    p = os.path.join(ROOT, rel)
+    if not os.path.exists(p):
+        continue
+    text = io.open(p, "r", encoding="utf-8", errors="replace").read()
+    for i, line in enumerate(text.splitlines(), 1):
+        if "\ufffd" in line:
+            bad4.append("%s:%d" % (rel, i))
+ok(not bad4, "مافيش محارف تالفة (U+FFFD) في ملفات الدفعة", bad4[:6])
+
+# ---- ⑤ الملفات موجودة فعلاً ------------------------------------------------
 missing = [f for f in sorted(set(FILES)) if not os.path.exists(os.path.join(ROOT, f))]
 ok(not missing, "كل ملفات الدفعة موجودة", missing)
 

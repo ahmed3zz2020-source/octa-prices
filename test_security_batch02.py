@@ -282,7 +282,7 @@ def main():
            "%s ⇒ مرفوض للمستخدم العادي" % p, rr.status_code)
 
     # ─────────────────────────────────────────────────────────────
-    section("١٢) ⛔ CSRF — الكتابة بال��وكي بس ⇒ مرفوض")
+    section("١٢) ⛔ CSRF — الكتابة بالكوكي بس ⇒ مرفوض")
     r = requests.post(BASE + "/api/portfolio",
                       json={"action": "add", "code": "COMI", "shares": 1,
                             "cost": 1, "price": 1},
