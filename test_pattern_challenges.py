@@ -223,7 +223,7 @@ print("\n▶️ ⑦ ⛔ الخصوصية: مفيش إيميل ولا uid في ا
 
 
 def _getter(uid):
-    return {"name": "أحمد محمد", "email": "ahmed3zz2020@gmail.com", "uid": uid}
+    return {"name": "أحمد", "email": "ahmed.test@example.test", "uid": uid}
 
 
 votes2 = {"votes": {
@@ -233,7 +233,7 @@ votes2 = {"votes": {
 lb = pc.leaderboard(store, votes2["votes"], user_getter=_getter)
 check(lb["status"] == "ok", "اللوحة مفتوحة (٣ مصوّتين): %s" % lb["status"])
 blob = repr(lb["rows"])
-check("ahmed3zz2020" not in blob, "مفيش إيميل في اللوحة")
+check("ahmed.test" not in blob, "مفيش إيميل في اللوحة")
 check("u1" not in blob and "u2" not in blob and "u3" not in blob, "مفيش uid في اللوحة")
 if lb["rows"]:
     check(len(lb["rows"][0]["alias"]) <= 3,
@@ -248,8 +248,8 @@ check(bool(lb_small.get("reason")), "فيه سبب: %s" % lb_small.get("reason")
 print("\n▶️ ⑨ ⛔ الاسم المستعار: مفيش بيانات ⇒ «مستخدم»")
 check(pc._alias({}) == "مستخدم", "بلا اسم ولا إيميل ⇒ مستخدم")
 check(pc._alias({"name": "أحمد"}) == "أح…", "من الاسم (أول حرفين): %r" % pc._alias({"name": "أحمد"}))
-check(pc._alias({"email": "ahmed3zz2020@gmail.com"}) == "ah…",
-      "من الإيميل (أول حرفين): %r" % pc._alias({"email": "ahmed3zz2020@gmail.com"}))
+check(pc._alias({"email": "ahmed.test@example.test"}) == "ah…",
+      "من الإيميل (أول حرفين): %r" % pc._alias({"email": "ahmed.test@example.test"}))
 
 print("\n" + ("✅ كل الاختبارات عدّت" if not fails else "❌ فشل: %d" % len(fails)))
 for f in fails:
