@@ -123,7 +123,7 @@ empty, e_empty = pc.generate_for_date(d_day, codes=["TEST"], universe=uni,
                                        bars_by_code={})
 check(empty is None and bool(e_empty), "مفيش شموع ⇒ مفيش تحدي + سبب")
 
-print("\n▶️ ④ ⛔ الحل لازم ينتظر ١٠ جلسات (مفيش نتيجة提前)")
+print("\n▶️ ④ ⛔ الحل لازم ينتظر ١٠ جلسات (مفيش نتيجة مبكرة)")
 if ch1:
     ch_short = dict(ch1)
     ch_short["resolved"] = None
