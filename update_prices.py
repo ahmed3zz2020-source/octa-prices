@@ -5,6 +5,7 @@ from flask import Flask, jsonify, request, Response
 from flask import g as _flask_g   # 🐞 ١٥ نوفمبر ٢٠٢٦ — علامة النشاط (after_request)
 import json as _json
 import urllib.request as _urllib
+from urllib.parse import urlencode as _urlencode
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -77,6 +78,23 @@ def _origin_allowed(origin):
         return False
 
 
+def _origin_allows_credentials(origin):
+    """⛔⛔⛔ الكوكي (credentials) بس للمصادر **المحددة** ⬇️
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+    📌 ⬇️ ⛔ كان: `Allow-Credentials: true` لأي origin مسموح ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ ⇒ أي صفحة `*.space.minimax.io` (معاينات) ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ ⇒ تقدر تطلب الـAPI **بكوكي** المستخدم ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ ⇒ (سرقة بيانات مستخدم من غير Bearer) ⬇️ ⬇️ ⬇️
+    ✅ الحل: الكوكي بس للمصادر المحددة (الدومين + عامل Cloudflare + محلي) ⬇️
+    ✅ والنطاقات المؤقتة تفضل تطلب **من غير** كوكي ⬇️
+    """
+    if not origin:
+        return False
+    o = str(origin).strip().rstrip("/")
+    return o in ALLOWED_ORIGINS
+
+
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get("Origin", "")
@@ -84,7 +102,11 @@ def add_cors_headers(response):
     if _origin_allowed(origin):
         # نعكس الـorigin المسموح (مش *) + Vary مهم للـcache
         response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
+        # ⛔⛔ الكوكي بس للمصادر المحددة ⬇️ (معلومة أعلاه) ⬇️
+        if _origin_allows_credentials(origin):
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        else:
+            response.headers.pop("Access-Control-Allow-Credentials", None)
         response.headers["Access-Control-Allow-Headers"] = (
             "Content-Type, X-OCTA-Client, Authorization, X-Requested-With, X-OCTA-Admin"
         )
@@ -812,34 +834,108 @@ def clean_num(v, lo=None, hi=None, default=None):
     return n
 
 
+# ⛔⛔⛔ حدّ حجم جسم الطلب ⬇️ (Flask بيرجّع 413 لو اتجاوز) ⬇️
+# 📌 ⬇️ قبل: مافيش حد ⇒ حد يقدر يبعت ١٠٠ ميجا ويملا الرام ⬇️
+# 📌 ⬇️ ⛔ الطلباتLegit صغيرة (الشارت والدردشة) ⬇️
+try:
+    app.config["MAX_CONTENT_LENGTH"] = int(
+        os.environ.get("OCTA_MAX_BODY_BYTES", "") or 0) or (1024 * 1024)
+except Exception:
+    app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024
+
+
 @app.before_request
 def _sanitize_request():
     """بيتنضف كل طلب قبل أي route يلمسها.
     ⛌ مش بنرمي 400 هنا — الـroutes نفسها بترجع 400 لو محتاجة.
-       الغرض إن الـroute يشوف قيمة نظيفة أو فاضية، مش نص مبتور."""
+       الغرض إن الـroute يشوف قيمة نظيفة أو فاضية، مش نص مبتور.
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+    📌 ⬇️ ⛔ كان: `request.args[k] = ...` ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ و`request.args` في Flask = ImmutableMultiDict ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ ⇒ أول سطر بيعمل TypeError ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ ⇒ و`except: pass` كان بيبلعها ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ ⇒ **التنظيف كله ما كانش بيحصل** ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⛔ ⇒ أي query مفتوح (طويل / فيه سكربت / رقم مفتوح) ⬇️ ⬇️ ⬇️
+    ✅ الحل: نبني نسخة **جديدة** من الـquery ونمثّلها في الـenviron ⬇️
+    ✅ + نمسح الكاش (args/url) + **نطبع الخطأ** (مافيش بلع صامت) ⬇️
+    """
     try:
-        for k, v in list(request.args.items()):
-            kl = k.lower()
+        raw = request.args.to_dict(flat=True)
+        if not raw:
+            return
+        clean = {}
+        for k, v in raw.items():
+            kl = str(k).lower()
             if kl in ("code", "symbol", "codes"):
                 # ⛔ ⛔ مهم: التوكن بيتنقل كـquery في بعض الـendpoints
-                #   وهو base64 مش ticker — التنضيف هنا كان بيكسر التوقيع
+                #   وهو base64 مش ticker — التنظيف هنا كان بيكسر التوقيع
                 #   فكل توكنIssued بيترفض فوراً (401).
                 #   ⛌ التوكن بيتشال من التنضيف خالص — مش هننضفه أبداً.
                 if "token" in kl or "." in str(v):
-                    request.args[k] = clean_text(v, 400)
+                    clean[k] = clean_text(v, 400)
                 else:
-                    request.args[k] = clean_code(v) or ""
+                    clean[k] = clean_code(v) or ""
             elif kl in ("limit", "count", "days", "n", "top", "periods"):
-                request.args[k] = clean_num(v, 1, 2000, 20)
+                clean[k] = clean_num(v, 1, 2000, 20)
             elif kl in ("min_score", "min_safety", "min_liquidity", "max_risk",
                         "max_pe", "min_div_yield"):
-                request.args[k] = clean_num(v, 0, 1000, None)
+                clean[k] = clean_num(v, 0, 1000, None)
             else:
-                request.args[k] = clean_text(v, 300)
+                clean[k] = clean_text(v, 300)
+        # ⛔⛔⛔ method ImmutableMultiDict مش بيقبل التعديل ⬇️
+        # 📌 ⬇️ الحل: نكتب الـquery الجديد في الـenviron ⬇️
+        # 📌 ⬇️ ونمسح الكاش (args/url) عشان يُعاد بناؤه ⬇️
+        request.environ["QUERY_STRING"] = _urlencode(clean, doseq=False)
+        try:
+            request.__dict__.pop("args", None)
+            request.__dict__.pop("url", None)
+        except Exception:
+            pass
+    except Exception as e:
+        # ⛔⛔⛔ **مافيش بلع صامت** ⬇️ (كان `pass` وبس ⬇️)
+        print("  ⛔ فشل تنضيف الطلب (%s): %s"
+              % (type(e).__name__, str(e)[:120]), flush=True)
+
+
+
+
+# ════════════════════════════════════════════════════════════════
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · مراجعة الأمان) — ⛔ المهام الخلفية ⬇️
+# 📌 ⬇️ ⛔ كل ثريد بيشتغل **وقت الاستيراد** ⬇️ ⬇️
+# 📌 ⬇️ ⛔ ⇒ مع أكتر من worker (أو أكتر من replica) ⬇️ ⬇️
+# 📌 ⬇️ ⛔ ⇒ تحديث الأسعار ×N · تنبيهات تيليجرام مكرّرة · حمل على المصدر ⬇️
+# ✅ الحل: ⬇️
+# 📌 ⬇️ ① `OCTA_BG_TASKS=off` ⇒ ما فيش مهام خلفية ⬇️ ⬇️
+# 📌 ⬇️ ② قفل ملف (fcntl) ⇒ نسخة واحدة بس تشغّل ⬇️ ⬇️
+# ⛔ ملاحظة: القفل بيحمي **نفس الجهاز** ⬇️
+# ⛔ ⇒ التوسع على أكتر من replica محتاج قفل خارجي (KV) ⬇️
+def _bg_tasks_allowed():
+    """⛔⛔⛔ يحقّق: هل النسخة دي هي اللي تشغّل المهام الخلفية؟ ⬇️"""
+    try:
+        if str(os.environ.get("OCTA_BG_TASKS", "") or "").strip().lower() in (
+                "off", "0", "no", "false"):
+            return False
     except Exception:
         pass
+    try:
+        import fcntl
+        lock_path = os.path.join(
+            str(os.environ.get("OCTA_DATA_DIR") or "/data"), ".bg_tasks.lock")
+        fh = open(lock_path, "a+")
+        try:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except Exception:
+            fh.close()
+            return False
+        # ⛔ نسيب الـfd مفتوح طول عمر العملية ⇒ القفل فضل محجوز ⬇️
+        _BG_LOCK_FH.append(fh)
+        return True
+    except Exception:
+        return True
 
 
+_BG_LOCK_FH = []
 
 
 # ════════════════════════════════════════════════════════════════
@@ -1722,26 +1818,86 @@ USERS_LOCK = threading.RLock()   # 🐞 ١٥ نوفمبر ٢٠٢٦ — RLock ⬇
 # ✅ RLock: نفس الـthread يقدر يدخل تاني ⬇️ (Cross-thread لسه معزول) ⬇️
 
 
-def _load_users():
+class _UsersStoreError(Exception):
+    """⛔ خطأ في مخزن المستخدمين — **مافيش كتابة فوق بيانات سليمة**."""
+    pass
+
+
+def _load_users(strict=False):
+    """⛔⛔⛔ قراءة المستخدمين — الـstrict بيرمي خطأ بدل ما يرجّع {} ⬇️
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+    📌 ⬇️ ⛔ كان: أي فشل قراءة ⇒ {} ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ أي كتابة بعدها = **مسح كل المستخدمين** ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ (الملف تالف خطأ واحد ⇒ الحسابات كلها راحت) ⬇️ ⬇️ ⬇️
+    ✅ الحل: ⬇️
+    📌 ⬇️ ① `strict=True` ⇒ يرمي `_UsersStoreError` ⬇️ ⬇️
+    📌 ⬇️ ② `_save_users` يرفض الكتابة فوق ملف تالف ⬇️ ⬇️
+    📌 ⬇️ ③ نسخة احتياطية (.bak) قبل كل استبدال ⬇️ ⬇️
+    📌 ⬇️ ④ الكتابة ترجّع True/False (مافيش «نجاح» كاذب) ⬇️ ⬇️
+    """
     try:
         if USERS_FILE.exists():
-            return json.loads(USERS_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        pass
+            d = json.loads(USERS_FILE.read_text(encoding="utf-8"))
+            if isinstance(d, dict):
+                return d
+            if strict:
+                raise _UsersStoreError("users.json مش dict")
+            return {}
+    except _UsersStoreError:
+        raise
+    except Exception as e:
+        if strict:
+            raise _UsersStoreError("%s: %s" % (type(e).__name__, str(e)[:120]))
+        return {}
     return {}
 
 
 def _save_users(d):
-    """⛔⛔ الكتابة لازم تكون ذرّية ومقفولة.
-       الكتابة العادية كانت: فتح الملف → مسحه → كتابة.
-       أي قارئ في نفس اللحظة كان بيلاقي {} — وفي الإنتاج بتمسح المستخدمين.
-       الحل: نكتب في ملف مؤقت ونعمل rename ذرّي، ومن غير قفل."""
+    """⛔⛔ الكتابة ذرّية + نسخة احتياطية + **تقرير نجاح صادق**.
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+    📌 ⬇️ ⛔ ① كانت بتبتلع الخطأ ⇒ الرجوع كان «تم» والكتابة فشلت ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ② ما كانش في نسخة احتياطية ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ③ ما كانش في fsync ⇒.power loss ممكن يمسح الملف ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ④ ما كانش في حماية من الكتابة فوق ملف تالف ⬇️ ⬇️ ⬇️
+    ✅ الحل: ذرّية (tmp + rename) + fsync + نسخة .bak + رفض الكتابة فوق
+    ✅ ملف تالف + رجوع True/False ⬇️
+    """
     try:
+        # ⛔⛔⛔ حماية: ملف موجود ومش قابل للقراءة ⬇️
+        # ⛔ ⬇️ ⬇️ ⇒ ما نكتبش فوقه ⬇️ ⬇️ ⬇️ (البيانات ممكن تكون ناقرة)
+        if USERS_FILE.exists():
+            try:
+                cur = json.loads(USERS_FILE.read_text(encoding="utf-8"))
+                if not isinstance(cur, dict):
+                    raise ValueError("not-a-dict")
+            except Exception as e:
+                print("  💾 ⛔ users.json تالف — مرفوض الكتابة فوقه "
+                      "(%s)" % type(e).__name__, flush=True)
+                return False
         tmp = USERS_FILE.with_suffix(".tmp")
-        tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(json.dumps(d, ensure_ascii=False))
+            f.flush()
+            try:
+                os.fsync(f.fileno())
+            except Exception:
+                pass
+        # ⛔ نسخة احتياطية من النسخة **القديمة** قبل الاستبدال ⬇️
+        try:
+            if USERS_FILE.exists():
+                bak = USERS_FILE.with_suffix(".bak")
+                bak.write_text(USERS_FILE.read_text(encoding="utf-8"),
+                               encoding="utf-8")
+        except Exception as e:
+            print("  💾 ⚠️ نسخة users.json الاحتياطية: %s"
+                  % type(e).__name__, flush=True)
         tmp.replace(USERS_FILE)
+        return True
     except Exception as e:
         print(f"  💾 ⛔ users.json: {type(e).__name__}: {str(e)[:100]}", flush=True)
+        return False
 
 
 def _patch_user(uid: str, **fields):
@@ -1764,7 +1920,10 @@ def _patch_user(uid: str, **fields):
             return None
         for k, v in fields.items():
             rec[k] = v
-        _save_users(users)
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ لازم truthfully ⬇️
+        # ⛔ الحفظ فشل ⇒ ترجع None (مش rec) ⇒ «الإبطال» ما بيتمش ⬇️
+        if not _save_users(users):
+            return None
         return rec
 
 
@@ -3355,7 +3514,17 @@ def auth_pin_login():
             if len(_lg) > 50:
                 rec["login_log"] = _lg[-50:]
             rec["login_count"] = int(rec.get("login_count") or 0) + 1
-            _save_users(users)
+            # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+            # 📌 ⬇️ ⛔ كان: الحفظ ممكن يفشل والرد بيبقى «تم الدخول» ⬇️ ⬇️ ⬇️
+            # 📌 ⬇️ ⛔ ⇒ المستخدم داخل وفيه-loss في بياناته ⬇️ ⬇️ ⬇️
+            # ✅ الحل: فشل الحفظ ⇒ 503 صريح (فشل آمن) ⬇️
+            if not _save_users(users):
+                return jsonify({
+                    "ok": False,
+                    "error": "مقدرناش نحفظ بيانات الحساب دلوقتي — "
+                             "حاول تاني بعد شوية",
+                    "why": "storage_unavailable",
+                }), 503
         else:
             rec = u
 
@@ -3455,7 +3624,14 @@ def auth_pin_change():
                 rec["pin_idx"] = idx
                 rec["pin_idx_id"] = _PIN_PEPPER_ID
                 rec["pin_changed"] = int(time.time())
-                _save_users(users)
+                # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ الحفظ لازم ينجح ⬇️
+                if not _save_users(users):
+                    return jsonify({
+                        "ok": False,
+                        "error": "مقدرناش نحفظ الباسورد الجديد — "
+                                 "الباسورد القديم لسه شغّال",
+                        "why": "storage_unavailable",
+                    }), 503
                 out = _pin_user_json(rec)
 
     # ═══ ⛔⛔ كل فشل هنا بيبقى محسوب — مفيش استثناء ═══
@@ -3933,7 +4109,13 @@ def auth_pin_chal_newpin():
                 })
                 if len(_lg2) > 50:
                     rec["login_log"] = _lg2[-50:]
-                _save_users(users)
+                # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ الحفظ لازم ينجح ⬇️
+                if not _save_users(users):
+                    return jsonify({
+                        "ok": False,
+                        "error": "مقدرناش نحفظ حالة الجهاز — حاول تاني",
+                        "why": "storage_unavailable",
+                    }), 503
                 out = _pin_user_json(rec)
 
     if bad == "no_user":
@@ -4406,7 +4588,13 @@ def auth_signup_verify():
         #    قديم)، الباسورد القديم **مش** بيتشال هنا — بيفضل
         #    شغال لحد ما الـnewpin يقبل. عشان لو المستخدم وقف
         #    في النص، ما يتقفلش بره من حسابه خالص.
-        _save_users(users)
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ ⛔ الحفظ لازم ينجح ⬇️
+        if not _save_users(users):
+            return jsonify({
+                "ok": False,
+                "error": "مقدرناش نحفظ حسابك دلوقتي — حاول تاني",
+                "why": "storage_unavailable",
+            }), 503
 
     # ⛌ الكد اتقبل — العدّادات بتتنضف من على الجهاز عشان
     #    الباسورد الجديد يشتغل على طول.
@@ -4542,7 +4730,13 @@ def auth_signup_newpin():
                 })
                 if len(_lg) > 50:
                     rec["login_log"] = _lg[-50:]
-                _save_users(users)
+                # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ الحفظ لازم ينجح ⬇️
+                if not _save_users(users):
+                    return jsonify({
+                        "ok": False,
+                        "error": "مقدرناش نحفظ حسابك — حاول تاني",
+                        "why": "storage_unavailable",
+                    }), 503
                 out = _pin_user_json(rec)
                 em = str(rec.get("email") or "")
                 nm = str(rec.get("name") or "")
@@ -5003,7 +5197,25 @@ def track_api():
     event = str(data.get("event") or "")[:24]
     page = str(data.get("page") or "")[:32]
     label = str(data.get("label") or "")[:24]
-    uid = str(data.get("uid") or "")[:24]
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+    # 📌 ⬇️ ⛔ كان: `uid` بيتاخد من جسم الطلب ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ ⇒ أي حد يقدر ينسب أحداث لحساب حد تاني ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ ⇒ (تلويث إحصائيات + تلاعب بمتابعة المستخدم) ⬇️ ⬇️ ⬇️
+    # ✅ الحل: لو فيه جلسة ⇒ الـuid **من الجلسة** ⬇️
+    # ✅ ولو مفيش جلسة ⇒ مفيش uid (زائر مجهول) ⬇️
+    uid = ""
+    try:
+        _u = require_user()
+    except Exception:
+        _u = None
+    if _u:
+        try:
+            uid = str(_u.get("id") or "")[:24]
+        except Exception:
+            uid = ""
+    if not uid:
+        # ⛔ ما ناخدش uid من المتصفح ⬇️ (زائر مجهول ⬇️)
+        uid = ""
 
     if event not in ("page_view", "action", "signup", "login"):
         return jsonify({"ok": False, "error": "event غير معروف"}), 400
@@ -5036,13 +5248,16 @@ def track_api():
 def stats_api():
     """
     📊 تقرير الاستخدام — بس للمالك.
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+    📌 ⬇️ ⛔ كان: `require_user()` بس ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ أي مستخدم مسجّل (حتى Free) كان بيشوف تقرير الاستخدام ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ (عدد الزوار +|Pages +تسجيل دخول) ⬇️ ⬇️ ⬇️
+    ✅ الحل: أدمن بس (X-OCTA-Admin) ⬇️
     """
-    if not require_user():
-        return jsonify({
-            "ok": False,
-            "error": "المسار ده محمي",
-            "hint": "سجّل دخول الأول",
-        }), 401
+    _ok, _err = _require_admin()
+    if not _ok:
+        return _err
 
     with TRACK_LOCK:
         d = _track_load()
@@ -5513,12 +5728,24 @@ def auth_logout():
         # ✅ الحل: لو فشل الإبطال ⇒ نرجّع خطأ صريح ⬇️
         # ⛔ (أحسن من كذبة) ⬇️ ⬇️.
         try:
-            _patch_user(uid, token_epoch=_next_epoch(_user_epoch(uid)))
-            revoked = True
+            # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+            # 📌 ⬇️ ⛔ `_patch_user` بترجّع None لو الحفظ فشل ⬇️ ⬇️ ⬇️
+            # 📌 ⬇️ ⛔ ⇒ «revoked: true» كان **كاذب** ⬇️ ⬇️ ⬇️
+            # 📌 ⬇️ ⛔ ⇒ المستخدم بيشوف «خرج» والتوكن لسه صالح ⬇️ ⬇️ ⬇️
+            # ✅ الحل: نتحقق من نتيجة الحفظ ⬇️
+            _res = _patch_user(uid, token_epoch=_next_epoch(_user_epoch(uid)))
+            revoked = (_res is not None)
         except Exception as e:
             print(f"  ⛔ فشل إبطال الجلسة عند الخروج: {type(e).__name__}",
                   flush=True)
-    r = jsonify({"ok": True, "revoked": revoked})
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔ خروج مُكرّر ⬇️
+    # 📌 ⬇️ ⛔ تكرار الخروج (المستخدم ضغط مرتين) ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ ⬇️ مافيش جلسة ⇒ `revoked=false` ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ ⬇️ ⇒ الـworker بيعتبر ده «فشل» ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ ⬇️ ⇒ رسالة «ما قدرناش نقفل الجلسة» لخلاص ⬇️ ⬇️ ⬇️
+    # ✅ الحل: `already: true` ⇒ «هو فعلاً خارج» ⇒ نجاح ⬇️
+    already = (not uid)
+    r = jsonify({"ok": True, "revoked": revoked, "already": already})
     try:
         r.delete_cookie("octa_token", path="/")
     except Exception:
@@ -9584,7 +9811,9 @@ except Exception:
     pass
 print(f"  AI disk cache: {len(AI_CACHE)} entries")
 
-threading.Thread(target=update_loop, daemon=True).start()
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ نسخة واحدة بس ⬇️
+if _bg_tasks_allowed():
+    threading.Thread(target=update_loop, daemon=True).start()
 
 
 def _prices_map():
@@ -9609,11 +9838,13 @@ def _div_snapshot():
 
 
 # يجيب بيانات التوزيعات كل 6 ساعات
-threading.Thread(
-    target=div_actions.start_dividend_loop,
-    args=(_prices_map, 6 * 3600),
-    daemon=True
-).start()
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ نسخة واحدة بس ⬇️
+if _bg_tasks_allowed():
+    threading.Thread(
+        target=div_actions.start_dividend_loop,
+        args=(_prices_map, 6 * 3600),
+        daemon=True
+    ).start()
 
 
 # ============ ROUTES: Prices ============
@@ -9889,19 +10120,55 @@ def analyze():
         return jsonify({"error": str(e)}), 500
 
 
+# ⛔ حدود الشات (١٥ نوفمبر ٢٠٢٦) ⬇️
+CHAT_MAX_TEXT = 4000        # ⛔ طول الرسالة ⬇️
+CHAT_MAX_HISTORY = 40       # ⛔ عدد رسائل التاريخ ⬇️
+
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
     """شات عام مع OCTA"""
     try:
-        if not GEMINI_KEY:
-            return jsonify({"error": "API key not configured"}), 503
-
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔ ترتيب ⬇️
+        # 📌 ⬇️ ⛔ كان: فحص «المفتاح موجود» **قبل** فحوص الحجم ⬇️ ⬇️ ⬇️
+        # 📌 ⬇️ ⛔ ⇒ طلب ضخم (أو رسالة طويلة) بيرجّع 503 ⬇️ ⬇️ ⬇️
+        # 📌 ⬇️ ⛔ ⇒ والحدود (اللي بتمنع الاستهلاك) مش بتتنفّذ ⬇️ ⬇️ ⬇️
+        # ✅ الحل: الفحوص **قبل** كل حاجة ⬇️ ⬇️
+        # 📌 ⬇️ (وحتى من غير مفتاح ⇒ الطلب الضخم يترفض) ⬇️ ⬇️
         data = request.get_json(force=True, silent=True) or {}
         message = (data.get("message") or "").strip()
         history = data.get("history") or []
 
         if not message:
             return jsonify({"error": "message is required"}), 400
+        # ⛔⛔⛔ حدود الحجم ⬇️ (قبل) ⬇️
+        # 📌 ⬇️ ⛔ كان: مافيش حد على طول الرسالة ولا تاريخ المحادثة ⬇️
+        # 📌 ⬇️ ⛔ ⇒ حد يبعت ٥ ميجا نص ⇒ تكلفة + استهلاك ⬇️
+        try:
+            if len(message) > CHAT_MAX_TEXT:
+                return jsonify({
+                    "error": "الرسالة طويلة أوي (الحد %d حرف)" % CHAT_MAX_TEXT
+                }), 400
+            if not isinstance(history, list):
+                return jsonify({"error": "history لازم تكون قائمة"}), 400
+            if len(history) > CHAT_MAX_HISTORY:
+                return jsonify({
+                    "error": "تاريخ المحادثة طويل أوي (الحد %d رسالة)"
+                             % CHAT_MAX_HISTORY
+                }), 400
+            for _h in history:
+                if not isinstance(_h, dict):
+                    return jsonify({"error": "history فيها عنصر غلط"}), 400
+                if len(str(_h.get("content") or "")) > CHAT_MAX_TEXT:
+                    return jsonify({
+                        "error": "رسالة في التاريخ طويلة أوي (الحد %d حرف)"
+                                 % CHAT_MAX_TEXT
+                    }), 400
+        except Exception:
+            return jsonify({"error": "الطلب مش مظبوط"}), 400
+
+        if not GEMINI_KEY:
+            return jsonify({"error": "API key not configured"}), 503
 
         chat_prompt = """أنت OCTA، مساعد ذكي متخصص في البورصة المصرية.
 أنت بتجيب على أسئلة المستخدم عن الأسهم المصرية، التحليل الفني والأساسي، التوصيات.
@@ -9941,6 +10208,17 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ جسم ضخم ⇒ 413 صريح ⬇️
+        # 📌 ⬇️ (كان بيرجّع 500 والرسالة بتقول الحجم) ⬇️
+        try:
+            from werkzeug.exceptions import RequestEntityTooLarge
+            if isinstance(e, RequestEntityTooLarge):
+                return jsonify({
+                    "error": "حجم الطلب كبير أوي (الحد %d بايت)"
+                             % int(app.config.get("MAX_CONTENT_LENGTH") or 0)
+                }), 413
+        except Exception:
+            pass
         return jsonify({"error": str(e)}), 500
 
 
@@ -10444,9 +10722,20 @@ def backtest_api():
     return jsonify(result)
 
 
-@app.route("/api/backtest/snapshot")
+@app.route("/api/backtest/snapshot", methods=["POST"])
 def bt_snapshot_api():
-    """لقطة يدوية"""
+    """📸 لقطة يدوية — **بتغيّر حالة النظام** ⬇️
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
+    📌 ⬇️ ⛔ كان: GET + **بلا أي حماية** ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ أي زائر (حتى بدون جلسة) كان يقدر ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ياخد لقطة ويحرق موارد الباك ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ + GET قابل للـprefetch ⇒ قرار بتُاخد من غير قصد ⬇️ ⬇️ ⬇️
+    ✅ الحل: POST + أدمن بس ⬇️
+    """
+    _ok, _err = _require_admin()
+    if not _ok:
+        return _err
     bt_snapshot()
     return jsonify({"ok": True, "snapshots": len(BACKTEST.get("snapshots", {}))})
 
@@ -12353,7 +12642,8 @@ def _octa_warmup():
         print(f"[warmup] ipo fail {e}")
 
 
-if os.environ.get("OCTA_WARMUP", "1") == "1":
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ نسخة واحدة بس ⬇️
+if os.environ.get("OCTA_WARMUP", "1") == "1" and _bg_tasks_allowed():
     threading.Thread(target=_octa_warmup, daemon=True).start()
 
 # قيم احتياطية — Railway بيرجّع المتغيرات كقالب {{ARCHON_SECRET:NAME}}
@@ -12924,7 +13214,9 @@ def _loop():
 # ⛔ ⬇️ بقى «متظبط / مش متظبط» ⬇️ ⬇️
 print(f"[tg] enabled={TG_ON} token={'set' if TOKEN else '-'} chat={CHAT or '-'}",
       flush=True)
-if TG_ON:
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ — ⛔ نسخة واحدة بس ⬇️
+# 📌 ⬇️ ⛔ غير كده: تنبيهات تيليجرام مكرّرة ⬇️ ⬇️
+if TG_ON and _bg_tasks_allowed():
     threading.Thread(target=_loop, daemon=True).start()
 
 
@@ -13143,7 +13435,7 @@ def _boot_logos():
                 print(f"[logos] ✅ {r}")
         except Exception as e:
             print(f"[logos] thread: {e}")
-    if _LOGOS_OK:
+    if _LOGOS_OK and _bg_tasks_allowed():
         threading.Thread(target=run, daemon=True).start()
         print("[logos] boot thread started")
 
