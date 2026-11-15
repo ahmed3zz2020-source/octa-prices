@@ -8332,21 +8332,31 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: المخاطرة الناقصة = الأسوأ (0)
     #    ⇒ ما بتتوزّعش وزنها على المحاور التانية (كان بيخلي السهم
     #    الناقص يتفوّق على السهم الكامل).
-    if risk_missing:
-        scored = dict(axes)
-        scored["risk"] = 0.0
-        avail_w = {k: w[k] for k in w if scored.get(k) is not None}
-        wsum = sum(avail_w.values())
-        base = sum(scored[k] * (avail_w[k] / wsum) for k in avail_w)
+    # 📌 لما كل المحاور موجودة ⇒ نفس صيغة المحرك القديمة بالظبط
+    #    (بدون قسمة ⇒ نفس الرقم المرجعي 55.6).
+    if missing_axes:
+        if risk_missing:
+            scored = dict(axes)
+            scored["risk"] = 0.0
+            avail_w = {k: w[k] for k in w if scored.get(k) is not None}
+            wsum = sum(avail_w.values())
+            base = sum(scored[k] * (avail_w[k] / wsum) for k in avail_w)
+        else:
+            base = sum(axes[k] * (avail_w[k] / wsum) for k in avail_w)
     else:
-        base = sum(axes[k] * (avail_w[k] / wsum) for k in avail_w)
+        base = sum(axes[k] * w[k] for k in w)
 
     # خصم المخاطرة بمعامل الاستراتيجية
     if risk_missing:
         risk_pen = 100 * 0.18 * st["risk_penalty_mult"]
     else:
         risk_pen = (100 - axes["risk"]) * 0.18 * st["risk_penalty_mult"]
-    adj = base - risk_pen
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-17: الخصومات بتتحجَّم **قبل** الطرح.
+    # ⛌ العيب: `adj = base - risk_pen` كان بيطرح الخصم الخام، وبعدين
+    #    السقف بيصغّر المتغيّرات بس ⇒ الدرجة النهائية بالخصم الخام (36)
+    #    بينما الخصم المعلن 22 ⇒ الرقم المبلّغ ≠ الرقم المحسوب.
+    # 📌 الحل: نحسب الخام ⇒ نحجّم ⇒ نطرح الخصومات المجهّلة.
+    # ⚠️ عقوبات شروط الاستراتيجية (الفلاتر) **بره** السقف — منفصلة ومعلنة.
 
     # ═══ الفلاتر الخاصة بالاستراتيجية ═══
     # ⚠️ العتبات (min_liquidity · min_safety · min_div_yield) مش بتتطبع
@@ -8354,6 +8364,8 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     #    عتبات كل الاستراتيجيات ويسيب وصفة المحرك. (D-028)
     filters_passed = True
     filter_notes = []
+    # ⛔ عقوبات الفلاتر منفصلة عن سقف الـ22 (Arrangements معلنة).
+    filter_pen = 0.0
 
     liq_v = axes["liquidity"]
     if liq_v is None:
@@ -8362,14 +8374,14 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         filter_notes.append("بيانات السيولة غير متاحة — تعذّر التحقق من شرط السيولة")
         filters_passed = False
     elif liq_v < st.get("min_liquidity", 0):
-        adj -= (st["min_liquidity"] - liq_v) * 0.5
+        filter_pen += (st["min_liquidity"] - liq_v) * 0.5
         filter_notes.append(f"السيولة {liq_v:.0f} أقل من الحد المطلوب")
         filters_passed = False
 
     if st.get("min_safety"):
         safety = _f(item.get("safety_score"))
         if safety is not None and safety < st["min_safety"]:
-            adj -= (st["min_safety"] - safety) * 0.4
+            filter_pen += (st["min_safety"] - safety) * 0.4
             filter_notes.append(f"الأمان {safety:.0f} أقل من الحد المطلوب")
             filters_passed = False
 
@@ -8377,7 +8389,7 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         dy = _f(item.get("div_yield"))
         if dy is None or dy < st["min_div_yield"]:
             actual = f"{dy:.1f}%" if dy is not None else "غير متاح"
-            adj -= 8
+            filter_pen += 8.0
             filter_notes.append(f"عائد التوزيعات {actual} أقل من الحد المطلوب")
             filters_passed = False
 
@@ -8386,13 +8398,14 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     liq_pen = 0.0
     if liq_v is not None and liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً"):
         liq_pen = min(6.0, (100 - liq_v) * 0.10)
-    adj -= liq_pen
+    # ⛔ السقف 22 يخص خصم المخاطرة والسيولة فقط.
     total_penalty = risk_pen + liq_pen
     if total_penalty > 22:
         scale = 22 / total_penalty
         risk_pen *= scale
         liq_pen *= scale
-
+    # ⛔ الطرح بيحصل **بعد** التحجيم ⇒ الخصم المعلن = الخصم المطبَّق.
+    adj = base - risk_pen - liq_pen - filter_pen
     final = round(max(0, min(100, adj)), 1)
 
     # القرار بنفس المنطق
@@ -8421,6 +8434,8 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         "base": round(base, 1),
         "risk_penalty": round(-risk_pen, 1),
         "liquidity_penalty": round(-liq_pen, 1),
+        # ⛔ عقوبات الفلاتر منفصلة ومعلنة (بره سقف الـ22).
+        "filter_penalty": round(-filter_pen, 1),
         "filters_passed": filters_passed,
         "filter_notes": filter_notes,
         "decision": decision,
