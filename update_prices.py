@@ -9998,6 +9998,25 @@ def update_loop():
                     item.setdefault("strategies", {})
                     item["score_status"] = "error"
                     item["rank_eligible"] = False
+            # ═══ 🎯 محرّك الفرص الحي (OPP-002) — ٩ استراتيجيات ═══
+            # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦: كنا بنحسب الفرص من لقطة ثابتة
+            #    (data/opp_snapshot.json) ⇒ بيانات قديمة + وصفه مكشوفة.
+            # 📌 دلوقتي: الحساب من نفس دورة تحديث الأسعار ⇒ البيانات حيّة.
+            try:
+                import opp_engine as _opp
+                _meta = {
+                    "generated_at": datetime.utcnow().isoformat() + "Z",
+                    "source": "live",
+                    "freshness": phase if phase else "unknown",
+                }
+                LIVE_DATA["opp"] = _opp.build_payload(st, None, _meta)
+                print("  🎯 محرّك الفرص: "
+                      + str(len(LIVE_DATA["opp"].get("lists") or {})) + " استراتيجية (حيّة)")
+            except Exception as _oe:
+                LIVE_DATA["opp"] = {"ok": False, "error": "{}: {}".format(
+                    type(_oe).__name__, str(_oe)[:160])}
+                print(f"  ❌ opp_engine: {_oe}")
+
             # ═══ 🔬 التحليل بعد قفل السوق — أحسن 5 فرص بالمحاور الخمسة ═══
             # ⛔ بيشتغل بعد القفل بس (market_phase) — مش أثناء التداول
             # ⛔ جوّاه try/except: أي خطأ هنا ما يوقفش تحديث البيانات
@@ -10857,6 +10876,158 @@ def opportunities_all():
         "early_opportunities": early[:20],
         "all": sorted(rows, key=lambda x: -x["score"])[:20],
     })
+
+
+# ════════════════════════════════════════════════════════════
+#  🎯 محرّك الفرص الحي (OPP-002) — ١٥ نوفمبر ٢٠٢٦
+#  ⛔ قبل: المسارات دي كانت موجودة في الـworker بس وبتترجّع من لقطة
+#     ثابتة (قديمة + الأوزان مكشوفة). دلوقتي: الباك بيحسبها حيّة.
+#  ⛔ كل المسارات محمية بتسجيل الدخول (زي الأول بالظبط).
+#  ⛔ الأوزان والعتبات السرّية ما بتترجعش في أي رد (public_strategy).
+# ════════════════════════════════════════════════════════════
+
+
+def _opp_payload():
+    """payload الفرص الحيّ — من آخر دورة تحديث."""
+    d = LIVE_DATA.get("opp")
+    if not d or not d.get("ok"):
+        return None
+    return d
+
+
+def _opp_public_strategy(st):
+    """نسخة الاستراتيجية العامة (بدون الأوزان والعتبات)."""
+    import opp_engine as _opp
+    return _opp.public_strategy(st)
+
+
+@app.route("/api/opp/strategies")
+def opp_strategies():
+    """استراتيجيات الفرص — التسع، بدون كشف الأوزان."""
+    if not require_user():
+        return jsonify({"ok": False, "error": "تسجيل الدخول مطلوب",
+                        "code": "auth_required"}), 401
+    import opp_engine as _opp
+    p = _opp_payload()
+    if not p:
+        return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
+                        "code": "engine_loading"}), 503
+    defs = _opp.load_definitions()
+    out = []
+    for st in defs.get("strategies") or []:
+        pub = _opp_public_strategy(st)
+        if pub.get("pro_only"):
+            import plan_gate as _pg
+            if _pg.plan_of(require_user()) != "pro":
+                continue
+        out.append(pub)
+    return jsonify({"ok": True, "strategies": out,
+                    "model_version": p.get("model_version"),
+                    "generated_at": p.get("generated_at"),
+                    "source": p.get("source"), "freshness": p.get("freshness"),
+                    "note_ar": p.get("note_ar")})
+
+
+@app.route("/api/opp/list/<key>")
+def opp_list(key):
+    """قائمة أسهم استراتيجية واحدة."""
+    if not require_user():
+        return jsonify({"ok": False, "error": "تسجيل الدخول مطلوب",
+                        "code": "auth_required"}), 401
+    p = _opp_payload()
+    if not p:
+        return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
+                        "code": "engine_loading"}), 503
+    lst = (p.get("lists") or {}).get(key)
+    if not lst:
+        return jsonify({"ok": False, "error": "استراتيجية غير معروفة",
+                        "code": "unknown_strategy"}), 404
+    return jsonify({"ok": True, "strategy": key,
+                    "summary": {"total": lst.get("total"),
+                                "eligible": lst.get("eligible"),
+                                "excluded": lst.get("excluded"),
+                                "returned": lst.get("returned"),
+                                "excluded_codes": lst.get("excluded_codes")},
+                    "items": lst.get("items") or [],
+                    "generated_at": p.get("generated_at"),
+                    "source": p.get("source"), "freshness": p.get("freshness"),
+                    "model_version": p.get("model_version")})
+
+
+@app.route("/api/opp/detail/<key>/<code>")
+def opp_detail(key, code):
+    """تفصيل سهم داخل استراتيجية + تفسير مبسّط."""
+    if not require_user():
+        return jsonify({"ok": False, "error": "تسجيل الدخول مطلوب",
+                        "code": "auth_required"}), 401
+    p = _opp_payload()
+    if not p:
+        return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
+                        "code": "engine_loading"}), 503
+    lst = (p.get("lists") or {}).get(key)
+    if not lst:
+        return jsonify({"ok": False, "error": "استراتيجية غير معروفة",
+                        "code": "unknown_strategy"}), 404
+    code = str(code).upper().strip()
+    it = next((x for x in (lst.get("items") or [])
+               if str(x.get("code") or "").upper() == code), None)
+    if not it:
+        return jsonify({"ok": False, "error": "السهم مش في القائمة دي",
+                        "code": "not-found"}), 404
+    return jsonify({"ok": True, "strategy": key, "code": code, "item": it,
+                    "explain": it.get("criteria") or [],
+                    "generated_at": p.get("generated_at"),
+                    "source": p.get("source"), "freshness": p.get("freshness")})
+
+
+@app.route("/api/opp/explain/<key>/<code>")
+def opp_explain(key, code):
+    """تفسير المطابقة (مبسّط — من غير أوزان ولا عتبات)."""
+    if not require_user():
+        return jsonify({"ok": False, "error": "تسجيل الدخول مطلوب",
+                        "code": "auth_required"}), 401
+    p = _opp_payload()
+    if not p:
+        return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
+                        "code": "engine_loading"}), 503
+    lst = (p.get("lists") or {}).get(key)
+    if not lst:
+        return jsonify({"ok": False, "error": "استراتيجية غير معروفة",
+                        "code": "unknown_strategy"}), 404
+    code = str(code).upper().strip()
+    it = next((x for x in (lst.get("items") or [])
+               if str(x.get("code") or "").upper() == code), None)
+    if not it:
+        return jsonify({"ok": False, "error": "السهم مش في القائمة دي",
+                        "code": "not-found"}), 404
+    return jsonify({"ok": True, "strategy": key, "code": code,
+                    "criteria": it.get("criteria") or [],
+                    "missing": it.get("missing") or [],
+                    "reasons": it.get("reasons") or [],
+                    "generated_at": p.get("generated_at"),
+                    "source": p.get("source"), "freshness": p.get("freshness")})
+
+
+@app.route("/api/opp/summary")
+def opp_summary():
+    """ملخّص محرّك الفرص."""
+    if not require_user():
+        return jsonify({"ok": False, "error": "تسجيل الدخول مطلوب",
+                        "code": "auth_required"}), 401
+    p = _opp_payload()
+    if not p:
+        return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
+                        "code": "engine_loading"}), 503
+    lists = p.get("lists") or {}
+    return jsonify({"ok": True,
+                    "model_version": p.get("model_version"),
+                    "generated_at": p.get("generated_at"),
+                    "source": p.get("source"), "freshness": p.get("freshness"),
+                    "strategies": [{"key": k, "name_ar": v.get("strategy_name_ar"),
+                                    "total": v.get("total"), "eligible": v.get("eligible"),
+                                    "excluded": v.get("excluded"),
+                                    "returned": v.get("returned")}
+                                   for k, v in lists.items()]})
 
 
 @app.route("/api/strategies")
