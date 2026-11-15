@@ -89,10 +89,43 @@ def bearer(tok):
 
 
 # ══════════════════════════════════════════════════════════════════
+def reset_stage(ddir):
+    """⛔ تنظيف البيئة المعزولة قبل كل تشغيل ⬇️
+
+    📌 ⬇️ ⛔ لازم ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ عدّاد المحاولات (pinlock) + أكواد الاسترجاع اليومية (pinchal) ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ + سجلات الحسابات (signup) ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ بتتراكم **بين** التشغيلات ⇒ ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ ⇒ الفحصين «محاولات كتيرة» و«عدد الحسابات صغير» ⬇️ ⬇️ ⬇️
+    📌 ⬇️ ⛔ بيفشلوا من التشغيل التالت ⬇️ ⬇️ ⬇️
+    """
+    for fn in ("pinlock.json", "signup.json", "pinchal.json"):
+        f = Path(ddir) / fn
+        if f.exists():
+            try:
+                f.unlink()
+            except Exception:
+                pass
+    uf = Path(ddir) / "users.json"
+    if uf.exists():
+        try:
+            users = json.loads(uf.read_text(encoding="utf-8"))
+            keep = {k: v for k, v in users.items()
+                    if not (isinstance(v, dict) and v.get("deleted_email"))}
+            if len(keep) != len(users):
+                uf.write_text(json.dumps(keep, ensure_ascii=False, indent=1),
+                              encoding="utf-8")
+        except Exception:
+            pass
+
+
 def main():
     print("🛡️ دفعة الأمان ٠٢ — اختبارات Staging")
     print("   القاعدة: %s" % BASE)
     print("   ⛔ كل الحسابات وهمية · مافيش أي طلب على الإنتاج")
+
+    # ⛔ تنظيف البيئة المعزولة ⬇️ ⬇️ ⬇️ (عشان الاختبار يفضل قابل للتكرار)
+    reset_stage(Path(CFG["data_dir"]))
 
     # ─────────────────────────────────────────────────────────────
     section("١) إنشاء حساب وتأكيد البريد التجريبي")
@@ -377,6 +410,37 @@ def main():
         rr = get(p)
         ok(rr.status_code in (401, 403, 503),
            "%s ⇒ مرفوض بلا صلاحية" % p, rr.status_code)
+
+    # ─────────────────────────────────────────────────────────────
+    section("⑨) تنظيف — الحساب المؤقت اتشال (عشان الاختبار يفضل قابل للتكرار)")
+    # 📌 ⬇️ ⛔ لازم ننضّف ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ غير كده كل تشغيل بيسيب حساب جديد ⬇️ ⬇️ ⬇️
+    # 📌 ⬇️ ⛔ ⇒ الفحص «عدد الحسابات صغير» بيفشل من التشغيل الثامن ⬇️ ⬇️ ⬇️
+    if new_tok:
+        r = post("/api/auth/delete", {"pin": new_pin, "confirm": "DELETE"},
+                 headers=bearer(new_tok))
+        ok(r.status_code == 200, "الحساب المؤقت اتشال",
+           "%s %s" % (r.status_code, (r.text or "")[:120]))
+        # 📌 ⬇️ ⛔ الحذف **soft** ⇒ السطر بيفضل في الملف ⬇️ ⬇️ ⬇️
+        # 📌 ⬇️ ⛔ ⇒ كل تشغيل بيزوّد سطر ⇒ الفحص «عدد الحسابات» بيفشل ⬇️ ⬇️ ⬇️
+        # 📌 ⬇️ ⛔ ⇒ نشيل السطر من الملف عشان البيئة ترجع زي ما كانت ⬇️ ⬇️ ⬇️
+        ufile = Path(ddir) / "users.json"
+        try:
+            raw = ufile.read_text(encoding="utf-8")
+            users = json.loads(raw)
+            before = len(users)
+            for k in [k for k, v in users.items()
+                      if isinstance(v, dict) and v.get("deleted_email")]:
+                users.pop(k, None)
+            if len(users) != before:
+                ufile.write_text(json.dumps(users, ensure_ascii=False, indent=1),
+                                 encoding="utf-8")
+            ok(len(users) < before, "سطر الحساب المؤقت اتشال من users.json",
+               "%d -> %d" % (before, len(users)))
+        except Exception as e:
+            ok(False, "سطر الحساب المؤقت اتشال من users.json", e)
+    else:
+        ok(True, "مفيش حساب مؤقت يتشال")
 
     # ─────────────────────────────────────────────────────────────
     passed = sum(1 for g, _ in RESULTS if g)
