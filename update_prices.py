@@ -1095,6 +1095,20 @@ def _client_key():
     return ("%s|%d|%s" % (ip, n, first))[:96]
 
 
+# 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔ معامل حدود الطلبات ⬇️
+# 📌 ⬇️ بيئة الـStaging بتعمل مئات الطلبات في الدقيقة ⬇️ ⬇️
+# 📌 ⬇️ ⇒ من غير المعامل ده، اختبارات الأمان بتفشل بسبب 429 ⬇️ ⬇️
+# 📌 ⬇️ (وده **مش** عيب أمني — ده حد الحماية وهو شغّال صح) ⬇️ ⬇️
+# ⛔ الإنتاج: الافتراضي 1 ⇒ **مافيش أي تغيير** في السلوك ⬇️ ⬇️
+try:
+    _RATE_MULT = float(os.environ.get("OCTA_RATE_MULT") or 1)
+except Exception:
+    _RATE_MULT = 1.0
+if _RATE_MULT != 1 and _RATE_MULT > 0:
+    LIMITS = {k: [(max(1, int(m * _RATE_MULT)), w) for (m, w) in v]
+               for k, v in LIMITS.items()}
+
+
 def _route_bucket(path, method=None):
     """نحدّد المسار ده ينتمي لأنهي bucket
 
@@ -1432,6 +1446,44 @@ def _user_epoch(user_id: str):
         return None
 
 
+def _next_epoch(prev=None):
+    """⛔⛔⛔ الـepoch الجديد لازم يكون **دائماً أكبر** من القديم ⬇️
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔ سباق الإبطال ⬇️
+    ⛔ كان كل الإبطال بيكتب: `int(time.time()) * 1000` ⬇️ ⬇️
+    ⛔ ⬇️ ⇒ دقّة **ثانية** (الـms بتتفضّح صفر) ⬇️ ⬇️
+    ⛔ ⬇️ ⇒ لو الخروج حصل في **نفس ثانية** الدخول ⬇️ ⬇️
+    ⛔ ⬇️ ⇒ الـepoch الجديد = الـepoch القديم ⬇️ ⬇️
+    ⛔ ⬇️ ⇒ والتوكن القديم **فضل صالح** ⬇️ ⬇️
+    ⛔ ⬇️ ⇒ «المستخدم خرج» والتوكن لسه شغّال ⬇️ ⬇️
+    ⛔ ⬇️ (نافذة ثانية واحدة في كل جلسة ⇒ ثغرة حقيقية) ⬇️ ⬇️
+    ✅ الحل: `max(now_ms, prev + 1)` ⇒ زيادة **صارمة** دايماً ⬇️
+    ⛔ prev=None (مش معروف) ⇒ نستخدم الوقت الحالي ⬇️
+    """
+    now = int(time.time() * 1000)
+    if prev is None:
+        return now
+    try:
+        p = int(prev)
+    except Exception:
+        return now
+    return max(now, p + 1)
+
+
+def _epoch_of(rec):
+    """⛔ الـepoch الجديد من سجل مستخدم — **آمن** لو السجل None.
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔ درس من بوغ ⬇️
+    ⛔ ⬇️ ⬇️ استدعاء `rec.get` على `rec` = None ⇒ AttributeError ⇒ 500 ⬇️ ⬇️ ⬇️
+    ⛔ ⬇️ ⬇️ (ومسار إنشاء الحساب كله وقع) ⬇️ ⬇️ ⬇️
+    ✅ الحل: دالة واحدة بتاخد السجل وبتعدّي None ⬇️
+    """
+    try:
+        return _next_epoch((rec or {}).get("token_epoch"))
+    except Exception:
+        return _next_epoch(None)
+
+
 def _make_token(user_id: str, ttl=None) -> str:
     """payload.base64url(signature) — payload = «uid|exp|epoch»
 
@@ -1453,7 +1505,7 @@ def _make_token(user_id: str, ttl=None) -> str:
     return f"{p}.{_sign(p)}"
 
 
-def _set_auth_cookie(resp, uid, tok=None):
+def _set_auth_cookie(resp, uid, tok=None, max_age=None):
     """🍪 كوكي HttpOnly — التوكن بقى يوصل بالكوكي كمان.
 
     ⛔⛔⛔ ٢٠ أكتوبر ٢٠٢٦ — إضافة بعد تقرير الفحص الخارجي:
@@ -1485,9 +1537,13 @@ def _set_auth_cookie(resp, uid, tok=None):
         # 📌 ✅ ولازم Secure (دايماً على HTTPS) — Chrome بيسيب
         # 📌 ✅ SameSite=None لو Secure مش موجود.
         # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
+        # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔ عمر الكوكي ⬇️
+        # 📌 ⬇️ `max_age` اختياري ⬇️ (الأدمن بياخد ١٠ دقايق ⬇️ ⬇️
+        # 📌 ⬇️ ⇒ الكوكي ما يبقاش أطول من التوكن جواه ⬇️ ⬇️)
+        _ma = int(max_age if max_age else TOKEN_TTL)
         resp.set_cookie(
             "octa_token", tok,
-            max_age=TOKEN_TTL, httponly=True, samesite="None",
+            max_age=_ma, httponly=True, samesite="None",
             secure=True,
             path="/",
         )
@@ -1579,7 +1635,54 @@ def _session_idle_ok(uid) -> bool:
     return (int(time.time()) - seen) <= TOKEN_IDLE_TTL
 
 
+def _token_uid_even_if_expired(tok: str):
+    """⛔ يرجّع الـuid من توكن **منتهي** (بعد التأكد من صحته) ⬇️
+
+    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — لازم عند الخروج ⬇️
+    📌 السبب: لو التوكن انتهى ⬇️ ⇒ `_get_user` بيرجّع None ⬇️
+    📌 ⬇️ ⇒ مافيش uid ⬇️ ⇒ مافيش إبطال ⬇️ ⬇️
+    📌 ⬇️ ⇒ الجلسات التانية (موبايل مثلاً) بتفضل شغّالة ⬇️ ⬇️
+    📌 ⬇️ ⇒ «خرج» بس هو داخل ⬇️ ⬇️
+    ✅ الحل: نفكّ التوكن ونتحقق من التوقيع والـepoch ⬇️
+    ⛔ (نُهمل تاريخ الانتهاء بس) ⬇️ ⬇️
+    ⛔ ⬇️ ⇒ التوقيع لازم يصح ⇒ مش ممكن يتلاعب ⬇️ ⬇️
+    """
+    try:
+        if not _SECRET:
+            return None
+        parts = str(tok or "").split(".")
+        if len(parts) != 2:
+            return None
+        p, sig = parts
+        if not p or not sig:
+            return None
+        if not hmac.compare_digest(sig, _sign(p)):
+            return None
+        pad = "=" * (-len(p) % 4)
+        raw = base64.urlsafe_b64decode(p + pad).decode("utf-8", "strict")
+        if "|" not in raw:
+            return None
+        uid, _, rest = raw.partition("|")
+        exp_s, _, epoch_s = rest.partition("|")
+        if not uid or len(uid) > 64 or not uid.isascii() or not uid.isprintable():
+            return None
+        try:
+            int(exp_s)
+        except Exception:
+            return None
+        cur = _user_epoch(uid)
+        if cur is None:
+            return None
+        tok_epoch = int(epoch_s) if epoch_s else 0
+        if tok_epoch != cur:
+            return None
+        return uid
+    except Exception:
+        return None
+
+
 def _read_token(tok: str):
+
     """يرجّع user_id أو None — التوكن المنتهي زي الغلط بالظبط"""
     return _token_parts(tok)[0]
 
@@ -1701,9 +1804,22 @@ def _bearer():
     # ⛔ ⬇️ ⇒ المتصفح مش بيبعت Authorization لحجم من المواقع ⬇️ ⬇️
     # ⛔ ⬇️ ⇒ CSRF مات ⬇️ ⬇️
     # ✅ والواجهة بتبعث الـBearer على كل طلب (octa-api.js) ⇒ مافيش كسر.
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔ استثناء واحد ⬇️
+    # ⛔ ⬇️ `/api/auth/logout` ⬇️ ⬇️
+    # 📌 السبب: «تنظيف الموقع» (reset.html) بيتّصل بيه ⬇️ ⬇️
+    # 📌 ⬇️ والحالة دي: localStorage ممكن يكون اتمسح أصلاً ⬇️ ⬇️
+    # 📌 ⬇️ ⇒ مافيش Bearer ⇒ من غير الاستثناء ⇒ ما نقدرش نبطّل ⬇️ ⬇️
+    # 📌 ⬇️ الجلسة على السيرفر ⇒ «خرج» وهي داخل ⬇️ ⬇️
+    # ⛔ ⬇️ الخطر CSRF هنا = **إخراج المستخدم من جلسته** ⬇️ ⬇️
+    # ⛔ ⬇️ (إزعاج — مش سرقة بيانات) ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ المقايضة مقبولة (والواجهة بتبعت الـBearer كمان ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ فالوضع الطبيعي مافيش طلب cookie-only أصلاً) ⬇️ ⬇️
     try:
         _m = str(request.method or "GET").upper()
-        if _m in ("GET", "HEAD", "OPTIONS"):
+        _p = str(request.path or "")
+        _cookie_ok = (_m in ("GET", "HEAD", "OPTIONS")
+                      or (_m == "POST" and _p == "/api/auth/logout"))
+        if _cookie_ok:
             ck = request.cookies.get("octa_token") or ""
             if ck:
                 return ck.strip()
@@ -3386,7 +3502,7 @@ def auth_pin_change():
     #   ⛔ الواجهة (octa-gate.js) بتتوقع `token` و`sessions_revoked` ⬇️
     #   ⛔ وبتحفظهم — فالعقد بين الباك والواجهة موجود من الأصل.
     try:
-        _patch_user(uid, token_epoch=int(time.time()) * 1000)
+        _patch_user(uid, token_epoch=_next_epoch(_user_epoch(uid)))
     except Exception as e:
         print(f"  ⛔ فشل إبطال الجلسات: {type(e).__name__}", flush=True)
         return jsonify({
@@ -3789,7 +3905,7 @@ def auth_pin_chal_newpin():
                 # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
                 # 📌 ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌ ⛌
                 # 📌 ⚠️ لازم **قبل** `_make_token` في السطر اللي بعده.
-                rec["token_epoch"] = int(time.time()) * 1000
+                rec["token_epoch"] = _epoch_of(rec)
                 # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نربط الجهاز الجديد بالحساب.
                 # 📌 السبب: بعد الـchallenge (كود على الإيميل صح)،
                 # 📌 ⛌ ⛌ ⛌ المستخدم داخل من جهاز جديد ⇒ لازم الجهاز
@@ -4275,7 +4391,12 @@ def auth_signup_verify():
                 # ⬇️ من غيره ⬇️ التوكن بيتعمل بـepoch=0 ⬇️ وبعد
                 # ⬇️ الحفظ بيبقى للمستخدم epoch غير الصفر ⬇️ فالتوكن
                 # ⬇️ يموت في أول طلب ⬇️ «حسابك مش متعرّف عليه».
-                "token_epoch": int(time.time()) * 1000,
+                # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔ حساب جديد ⬇️
+                # ⛔ ⬇️ ⬇️ `rec` هنا **None** ⬇️ ⬇️ ⬇️ (الحساب لسه ما اتعملش)
+                # ⛔ ⬇️ ⬇️ ⇒ `rec.get(...)` ⇒ AttributeError ⇒ 500 ⬇️ ⬇️ ⬇️
+                # ⛔ ⬇️ ⬇️ ⇒ مسار التسجيل كله كان مكسور ⬇️ ⬇️ ⬇️
+                # ✅ الحل: `None` (مافيش epoch قديم) ⇒ الوقت الحالي ⬇️
+                "token_epoch": _next_epoch(None),
             }
             users[uid] = rec
         # ⛌ الإيميل اتأكد فعلاً
@@ -4396,7 +4517,7 @@ def auth_signup_newpin():
                 # ⛔⛔⛔ ٢٥ أكتوبر ٢٠٢٦ — ⭐ بطلان أي توكن قديم
                 # 📌 (حساب جديد — بس احتياط: لو الإيميل كان مستخدم
                 # 📌 ⛌ ⛌ ⛌ قبل كده وبسجل قديم ⇒ نطمّنه)
-                rec["token_epoch"] = int(time.time()) * 1000
+                rec["token_epoch"] = _epoch_of(rec)
                 # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ نربط الجهاز بالحساب الجديد.
                 # 📌Reason: بعد الفحص الجديد، الدخول بـPIN + device
                 # 📌 ⛌ ⛌ ⛌ مسموح بس لو الجهاز مسجّل على الحساب.
@@ -5091,7 +5212,7 @@ def auth_delete_account():
             "watch": [],
             "portfolio": [],
             # ⛔ ③ إبطال كل الجلسات ⬇️ كل التوكنات القديمة تبقى ميتة
-            "token_epoch": int(time.time()) * 1000,
+            "token_epoch": _epoch_of(rec),
         }
         _save_users(users)
 
@@ -5372,9 +5493,16 @@ def auth_logout():
     """
     uid = ""
     try:
-        _u = _get_user(_bearer())
+        _tok = _bearer()
+        _u = _get_user(_tok)
         if _u:
             uid = str(_u.get("id") or "")
+        elif _tok:
+            # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔ توكن منتهي ⬇️
+            # 📌 ⬇️ قبل: مافيش uid ⇒ مافيش إبطال ⇒ الجلسات التانية ⬇️
+            # 📌 ⬇️ بتفضل شغّالة (٢٧ يوم) بعد ما المستخدم «خرج» ⬇️ ⬇️
+            # ✅ الحل: نفكّ التوكن (بعد التأكد من التوقيع والـepoch) ⬇️
+            uid = _token_uid_even_if_expired(_tok) or ""
     except Exception:
         uid = ""
     revoked = False
@@ -5385,7 +5513,7 @@ def auth_logout():
         # ✅ الحل: لو فشل الإبطال ⇒ نرجّع خطأ صريح ⬇️
         # ⛔ (أحسن من كذبة) ⬇️ ⬇️.
         try:
-            _patch_user(uid, token_epoch=int(time.time()) * 1000)
+            _patch_user(uid, token_epoch=_next_epoch(_user_epoch(uid)))
             revoked = True
         except Exception as e:
             print(f"  ⛔ فشل إبطال الجلسة عند الخروج: {type(e).__name__}",
@@ -14166,9 +14294,14 @@ def admin_mint_session():
         pass
     _r = jsonify({"ok": True, "email": email, "uid": str(uid),
                     "token": tok, "ttl": 600})
-    # ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ الكوكي كمان (عشان نختبر المسار الكامل)
+    # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢) — ⛔⛔⛔ الكوكي ⬇️
+    # ⛔ ⬇️ قبل: `_set_auth_cookie` كان بيعمل **توكن جديد** (٣٠ يوم) ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ كوكي ٣٠ يوم مع توكن ١٠ دقايق ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ أي حد ياخد الكوكي ده = جلسة كاملة ٣٠ يوم ⬇️ ⬇️
+    # ⛔ ⬇️ ⇒ «أداة تشخيص ١٠ دقايق» بقت «جلسة كاملة» ⬇️ ⬇️
+    # ✅ الحل: نفس التوكن (١٠ دقايق) + عمر الكوكي ١٠ دقايق ⬇️
     try:
-        _set_auth_cookie(_r, str(uid))
+        _set_auth_cookie(_r, str(uid), tok, max_age=600)
     except Exception:
         pass
     return _r, 200
