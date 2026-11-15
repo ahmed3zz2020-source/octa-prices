@@ -59,7 +59,7 @@ SECTOR_STATS = {}   # وسائط القطاعات — بتتبني كل دورة
 from octa_score import (
     AXIS_WEIGHTS,
     tech_score, liquidity_score, build_sector_stats,
-    _compose_score, final_score,
+    _compose_score, final_score, _confidence_value,
 )
 def _origin_allowed(origin):
     """هل الـorigin ده مسموح؟"""
@@ -206,6 +206,9 @@ _HIDDEN_KEYS_OUTPUT = (
     "fair_value", "price_target_high", "price_target_low",
     "price_target_median", "technical_signal", "why", "conf",
     "tvRec", "tvRecCalc", "pack", "packNote",
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: حالة التقييم + الأهلية = مخرجات
+    #    المحرك ⇒ بتظهر للمستخدم المسجّل بس (المسارات المحمية).
+    "score_status", "rank_eligible",
 )
 
 # ⛔⛔⛔ اتأكدت: دي المسارات اللي **فعلاً** فيها require_user في الكود.
@@ -8268,24 +8271,81 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     st = STRATEGIES.get(strategy) or STRATEGIES["balanced"]
     axes = {}
 
-    # نفس المحاور — إعادة استخدام
-    axes["technical"] = _f(tech["score"]) if tech else 50.0
-    axes["fundamental"] = _f(fund["score"]) if fund else 50.0
-    axes["liquidity"] = _f(liq["score"]) if liq else 50.0
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-05 + F-20-04: ما بنخترعش رقم.
+    # ⛌ العيب الأول: `axes["technical"] = _f(tech["score"]) if tech else 50.0`
+    #    ⇒ لو المحرك رجّع score=None ⇒ ValueError/TypeError عند الضرب
+    #    ⇒ السهم بيضيع من التقييم كله (strategies + valuation + fair_value
+    #    + upside كانت بتضيع معاه).
+    # ⛌ العيب التاني: `axes["risk"] = _f(_all.get("risk"), 60.0)`
+    #    ⇒ غياب المخاطرة كان بيتحول لدرجة أمان مخترعة (60).
+    # 📌 السياسة: المحور الناقص = None (مش رقم مخترع) + Weight normalization.
+    # 📌 news (45) وportfolio (70) افتراضيان موثّقان في المحرك ⇒ مستمرين.
+    axes["technical"] = _f(tech["score"]) if tech else None
+    axes["fundamental"] = _f(fund["score"]) if fund else None
+    axes["liquidity"] = _f(liq["score"]) if liq else None
     axes["news"] = _f(item.get("news_score"), 45.0)
-    axes["sentiment"] = _f(sent["score"]) if sent else 50.0
+    axes["sentiment"] = _f(sent["score"]) if sent else None
     _all = item.get("all_axes") or {}
     if not isinstance(_all, dict):
         _all = {}
-    axes["risk"] = _f(_all.get("risk"), 60.0)
-    axes["portfolio"] = _f(pfit["score"]) if pfit else 70.0
+    axes["risk"] = _f(_all.get("risk"), None)          # ⛔ مش 60 (F-20-04)
+    axes["portfolio"] = _f(pfit["score"]) if pfit else None
 
-    # المحصلة بأوزان الاستراتيجية
+    # المحاور المتاحة + المحاور الناقصة
+    missing_axes = [k for k in ("technical", "fundamental", "liquidity",
+                                "news", "sentiment", "risk", "portfolio")
+                    if axes.get(k) is None]
     w = st["weights"]
-    base = sum(axes[k] * w[k] for k in w)
+    avail_w = {k: w[k] for k in w if axes.get(k) is not None}
+    wsum = sum(avail_w.values())
+
+    # ⛔⛔⛔ F-20-04: محور المخاطرة ناقص ⇒ النتيجة مش مؤهلة.
+    # 📌 نحسب الرقم التشخيصي على المتاح (زي final_score) لكن:
+    #    score_status = insufficient_risk · rank_eligible = False ·
+    #    decision = «بيانات غير كافية» (مش إشارة إيجابية).
+    risk_missing = axes.get("risk") is None
+    # 📌 لو المحورين الأساسية (الفني/الأساسي) ناقصين ⇒ الاستراتيجية
+    #    نفسها مش قابلة للحساب ⇒ score = None (مش رقم مخترع).
+    core_missing = axes.get("technical") is None or axes.get("fundamental") is None
+    if wsum <= 0 or core_missing:
+        return {
+            "strategy": strategy,
+            "strategy_name": st.get("name_ar") or st.get("name") or strategy,
+            "timeframe": st.get("timeframe", ""),
+            "focus": st.get("focus", ""),
+            "score": None,
+            "base": None,
+            "axes": axes,
+            "weights": w,
+            "risk_penalty": 0.0,
+            "liquidity_penalty": 0.0,
+            "filters_passed": False,
+            "filter_notes": ["بيانات ناقصة — strategist غير قابلة للحساب"],
+            "decision": "بيانات غير كافية",
+            "confidence": 0.0,
+            "score_status": ("insufficient_risk" if risk_missing else "insufficient_data"),
+            "rank_eligible": False,
+            "missing_axes": missing_axes,
+        }
+
+    # المحصلة بأوزان الاستراتيجية — على المحاور المتاحة فقط
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: المخاطرة الناقصة = الأسوأ (0)
+    #    ⇒ ما بتتوزّعش وزنها على المحاور التانية (كان بيخلي السهم
+    #    الناقص يتفوّق على السهم الكامل).
+    if risk_missing:
+        scored = dict(axes)
+        scored["risk"] = 0.0
+        avail_w = {k: w[k] for k in w if scored.get(k) is not None}
+        wsum = sum(avail_w.values())
+        base = sum(scored[k] * (avail_w[k] / wsum) for k in avail_w)
+    else:
+        base = sum(axes[k] * (avail_w[k] / wsum) for k in avail_w)
 
     # خصم المخاطرة بمعامل الاستراتيجية
-    risk_pen = (100 - axes["risk"]) * 0.18 * st["risk_penalty_mult"]
+    if risk_missing:
+        risk_pen = 100 * 0.18 * st["risk_penalty_mult"]
+    else:
+        risk_pen = (100 - axes["risk"]) * 0.18 * st["risk_penalty_mult"]
     adj = base - risk_pen
 
     # ═══ الفلاتر الخاصة بالاستراتيجية ═══
@@ -8296,7 +8356,12 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     filter_notes = []
 
     liq_v = axes["liquidity"]
-    if liq_v < st.get("min_liquidity", 0):
+    if liq_v is None:
+        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — سيولة غير معروفة ⇒ ما نقدرش نتحقق
+        #    من عتبة السيولة ⇒ ما نعدّيش الفلتر «م.pli» (ولا نخترع رقم).
+        filter_notes.append("بيانات السيولة غير متاحة — تعذّر التحقق من شرط السيولة")
+        filters_passed = False
+    elif liq_v < st.get("min_liquidity", 0):
         adj -= (st["min_liquidity"] - liq_v) * 0.5
         filter_notes.append(f"السيولة {liq_v:.0f} أقل من الحد المطلوب")
         filters_passed = False
@@ -8318,8 +8383,9 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
 
     # ═══ سقف إجمالي الخصومات: 22 نقطة كحد أقصى ═══
     # ⚠️ سقف إجمالي الخصومات: 22 نقطة كحد أقصى (نفس قاعدة final_score)
-    liq_pen = min(6.0, (100 - axes["liquidity"]) * 0.10) if (
-        liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً")) else 0.0
+    liq_pen = 0.0
+    if liq_v is not None and liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً"):
+        liq_pen = min(6.0, (100 - liq_v) * 0.10)
     adj -= liq_pen
     total_penalty = risk_pen + liq_pen
     if total_penalty > 22:
@@ -8330,12 +8396,19 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
     final = round(max(0, min(100, adj)), 1)
 
     # القرار بنفس المنطق
-    if axes["risk"] < 35:         decision = "إشارة سلبية"
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: مخاطرة ناقصة ⇒ مش إشارة إيجابية.
+    if risk_missing:
+        decision = "بيانات غير كافية"
+    elif axes["risk"] < 35:    decision = "إشارة سلبية"
     elif final >= 78 and filters_passed:  decision = "إشارة إيجابية"
     elif final >= 65:             decision = "إشارة إيجابية"
     elif final >= 52:             decision = "إشارة محايدة"
     elif (axes.get("fundamental") or 0) >= 65: decision = "إشارة محايدة"
     else:                         decision = "إشارة سلبية"
+
+    # ⛔⛔⛔ الأهلية: الرقم موجود (تشخيصي) بس السهم مش مؤهل للترتيب
+    #    ولا يطلع «فرصة» لحد ما تتوفر بيانات المخاطرة.
+    rank_eligible = (not risk_missing) and filters_passed and decision != "بيانات غير كافية"
 
     return {
         "strategy": strategy,
@@ -8343,7 +8416,7 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         "timeframe": st["timeframe"],
         "focus": st["focus"],
         "score": final,
-        "axes": {k: round(v, 1) for k, v in axes.items()},
+        "axes": {k: (round(v, 1) if v is not None else None) for k, v in axes.items()},
         "weights": w,
         "base": round(base, 1),
         "risk_penalty": round(-risk_pen, 1),
@@ -8352,6 +8425,9 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
         "filter_notes": filter_notes,
         "decision": decision,
         "confidence": round(min(95, _f(item.get("data_confidence"), 60) * 0.6 + 40), 1),
+        "score_status": ("insufficient_risk" if risk_missing else "ok"),
+        "rank_eligible": rank_eligible,
+        "missing_axes": missing_axes,
     }
 
 
@@ -8361,8 +8437,13 @@ def score_all_strategies(item, tech=None, fund=None, liq=None, sent=None, pfit=N
     for k in STRATEGIES:
         r = strategy_score(item, k, tech, fund, liq, sent, pfit)
         if r:
+            # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — الشكل ثابت حتى لو الاستراتيجية
+            #    مش قابلة للحساب (score=None + سبب واضح) ⇒ مافيش
+            #   _strategy تختفي_ من القاموس.
             out[k] = {"name": r["strategy_name"], "score": r["score"],
-                      "decision": r["decision"], "filters_passed": r["filters_passed"]}
+                      "decision": r["decision"], "filters_passed": r["filters_passed"],
+                      "score_status": r.get("score_status", "ok"),
+                      "rank_eligible": r.get("rank_eligible", False)}
     return out
 
 
@@ -8397,6 +8478,15 @@ def rank_stocks(all_stocks, strategy="balanced", min_score=0, max_risk=None,
 
         # ═══ الفلاتر ═══
         if score < min_score: continue
+        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: السهم غير المؤهل (بيانات
+        #    المخاطرة ناقصة) ما يدخلش الترتيب **المؤهل**. رقمه
+        #    التشخيصي ما يقدرش يتقدّم على سهم بياناتة كاملة.
+        if decisions and dec not in decisions: continue
+        eligible = item.get("rank_eligible")
+        if eligible is False:
+            # غير مؤهل ⇒ يظهر في الفلترة العامة بس ما يترفعش فوق المؤهلين
+            continue
+
         if max_risk is not None and safety is not None and safety < max_risk: continue
         if min_safety is not None and (safety is None or safety < min_safety): continue
         if min_liquidity is not None and (liq is None or liq < min_liquidity): continue
@@ -8407,7 +8497,6 @@ def rank_stocks(all_stocks, strategy="balanced", min_score=0, max_risk=None,
         if min_div_yield is not None:
             dy = _f(item.get("div_yield"))
             if dy is None or dy < min_div_yield: continue
-        if decisions and dec not in decisions: continue
 
         out.append({
             "code": item["code"],
@@ -8431,6 +8520,9 @@ def rank_stocks(all_stocks, strategy="balanced", min_score=0, max_risk=None,
             "valuation": item.get("valuation"),
             "confidence": _f(item.get("confidence")),
             "risk_level": item.get("risk_level"),
+            # ⛔⛔⛔ حالة التقييم + الأهلية (F-20-04) — بتتقرأ في الواجهة.
+            "score_status": item.get("score_status") or "ok",
+            "rank_eligible": (item.get("rank_eligible") is not False),
         })
 
     out.sort(key=lambda x: -x["score"])
@@ -9822,10 +9914,9 @@ def update_loop():
                         # ⛔ ٢٦ أكتوبر ٢٠٢٦ — كان الـrecompose من غير تمرير
                         #   الثقة ⇒ خصم الثقة كان بيموت في الرقم النهائي
                         #   (الكود يقول إنه بالظبط زي final_score ⇒ خطأ).
-                        try:
-                            _cf = float(item.get("data_confidence") or 60)
-                        except (TypeError, ValueError):
-                            _cf = 60.0
+                        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-13: الثقة 0 تبقى 0
+                        #   (مش 60 ⇒ ثقة مزيفة + خصم متفرق).
+                        _cf = _confidence_value(item.get("data_confidence"), 60.0)
                         _a2 = _compose_score(ax, _lq, None, _cf)
                         if _a2["final"] is not None:
                             fin["final_score"] = _a2["final"]
@@ -9834,11 +9925,45 @@ def update_loop():
                         item["decision"] = fin["decision"]
                         item["risk_level"] = fin["risk_level"]
                         item["all_axes"] = fin["axes"]
+                        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: حالة التقييم
+                        #    والأهلية بتتخزّن مع السهم ⇒ كل مسارات الترتيب
+                        #    تقدر تعتمد عليها.
+                        item["score_status"] = fin.get("score_status") or "ok"
+                        item["rank_eligible"] = bool(fin.get("rank_eligible"))
                         # ═══ Phase 14: الاستراتيجيات ═══
-                        item["strategies"] = score_all_strategies(item, t, f, li, se, pfit)
-                        item["valuation"] = f["valuation_status"]
-                        item["fair_value"] = f["fair_value"]
-                        item["upside"] = f["upside_pct"]
+                        # ⛔⛔⛔ F-20-05: كتابة الحقول دي **مستقلة** عن
+                        #    نجاح الاستراتيجيات — قبل كان أي استثناء
+                        #    بيمسح valuation وfair_value وupside كمان.
+                        try:
+                            item["strategies"] = score_all_strategies(item, t, f, li, se, pfit)
+                        except Exception as _se:
+                            item["strategies"] = {}
+                            item["score_status"] = "strategies_error"
+                            item["rank_eligible"] = False
+                            print(f"  ❌ strategies {_se}")
+                        try:
+                            item["valuation"] = f["valuation_status"]
+                            item["fair_value"] = f["fair_value"]
+                            item["upside"] = f["upside_pct"]
+                        except Exception as _ve:
+                            print(f"  ❌ valuation {_ve}")
+                    else:
+                        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-05: التقييم العام رجع
+                        #    «مافيش بيانات» ( fin لا يقدّر ) ⇒ الحقول
+                        #    الأساسية بتتخزّن برضه — مافيش فقد بيانات.
+                        item["score_status"] = fin.get("score_status") or "no_data"
+                        item["rank_eligible"] = False
+                        try:
+                            item["strategies"] = score_all_strategies(item, t, f, li, se, pfit)
+                        except Exception as _se:
+                            item["strategies"] = {}
+                            print(f"  ❌ strategies {_se}")
+                        try:
+                            item["valuation"] = f["valuation_status"]
+                            item["fair_value"] = f["fair_value"]
+                            item["upside"] = f["upside_pct"]
+                        except Exception as _ve:
+                            print(f"  ❌ valuation {_ve}")
                 except Exception as _e:
                     # ⛌ كان pass — الخطأ كان بيضيع وكل السهم بيطلع بلا تقييم
                     #    من غير أي أثر. دلوقتي بيتسجل.
@@ -9847,6 +9972,17 @@ def update_loop():
                         f"{type(_e).__name__}: {str(_e)[:200]}\n"
                         + "\n".join(_tb.format_exc(limit=4).split("\n")[-6:]))
                     print(f"  ❌ final_score: {_SCORE_ERROR[:200]}")
+                    # ⛔⛔⛔ F-20-05: الاستثناء ما بيضيّعش حقول التقييم
+                    #    الأساسية (valuation/fair_value/upside).
+                    try:
+                        item["valuation"] = f["valuation_status"]
+                        item["fair_value"] = f["fair_value"]
+                        item["upside"] = f["upside_pct"]
+                    except Exception:
+                        pass
+                    item.setdefault("strategies", {})
+                    item["score_status"] = "error"
+                    item["rank_eligible"] = False
             # ═══ 🔬 التحليل بعد قفل السوق — أحسن 5 فرص بالمحاور الخمسة ═══
             # ⛔ بيشتغل بعد القفل بس (market_phase) — مش أثناء التداول
             # ⛔ جوّاه try/except: أي خطأ هنا ما يوقفش تحديث البيانات
@@ -10416,6 +10552,9 @@ def intelligence(code):
         "confidence": item.get("confidence"),
         "decision": item.get("decision"),
         "risk_level": item.get("risk_level"),
+        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: حالة التقييم + الأهلية.
+        "score_status": item.get("score_status") or "ok",
+        "rank_eligible": item.get("rank_eligible") is not False,
         "axes": item.get("all_axes"),
         "technical": tech_score(item),
         "fundamental": fundamental_score(item, SECTOR_STATS),
@@ -10447,7 +10586,10 @@ def ranking():
         }), 401
 
     st = LIVE_DATA.get("egx30", [])
-    ranked = sorted([s for s in st if s.get("final_score") is not None],
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: «أفضل الأسهم» = قائمة فرص مؤهلة.
+    #    السهم غير المؤهل (بيانات المخاطرة ناقصة) ما يدخلش القائمة.
+    ranked = sorted([s for s in st if s.get("final_score") is not None
+                     and s.get("rank_eligible") is not False],
                     key=lambda x: -x["final_score"])
     return jsonify({
         "total": len(ranked),
@@ -10457,6 +10599,8 @@ def ranking():
             "score": s.get("final_score"), "confidence": s.get("confidence"),
             "decision": s.get("decision"), "risk": s.get("risk_level"),
             "upside": s.get("upside"), "fair_value": s.get("fair_value"),
+            "score_status": s.get("score_status") or "ok",
+            "rank_eligible": s.get("rank_eligible") is not False,
         } for s in ranked[:20]],
     })
 
@@ -10677,6 +10821,9 @@ def opportunities_all():
     for item in st:
         sc = item.get("opportunity_score")
         if sc is None: continue
+        # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: «الفرص» قائمة توصيات ⇒
+        #    السهم غير المؤهل (بيانات المخاطرة ناقصة) ما يدخلش.
+        if item.get("rank_eligible") is False: continue
         rows.append({
             "code": item["code"], "name": item.get("name"), "sector": item.get("sector"),
             "price": item.get("price"), "score": sc,
@@ -10685,6 +10832,8 @@ def opportunities_all():
             "final_score": item.get("final_score"),
             "decision": item.get("decision"),
             "safety": item.get("safety_score"),
+            "score_status": item.get("score_status") or "ok",
+            "rank_eligible": item.get("rank_eligible") is not False,
         })
     early = sorted([r for r in rows if "مبكرة" in (r.get("stage") or "")], key=lambda x: -x["score"])
     return jsonify({

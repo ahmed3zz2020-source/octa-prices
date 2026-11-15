@@ -16,6 +16,28 @@
         r = final_score(item, tech_score(item), fund, liq, stats)
 """
 
+
+def _confidence_value(raw, default=60.0):
+    """⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — الثقة: الصفر يبقى صفر (F-20-13).
+
+    ⛌ العيب: `float(item.get("data_confidence") or 60)` ⇒ الصفر كان
+       بيتحول لـ60 ⇒ ثقة مزيفة (٦٠٪) + خصم ثقة مش موجود أصلاً.
+    📌 السياسة المعتمدة:
+       · الحقل غائب أو فارغ ⇒ الافتراضي الموثّق (60)
+       · القيمة 0 ⇒ تبقى 0 (صفر ثقة مش هو 60!)
+       · خارج النطاق ⇒ مقصوص على 0..100
+       · قيمة غير صالحة ⇒ الافتراضي
+    """
+    if raw is None or raw == "":
+        return default
+    try:
+        v = float(raw)
+    except (TypeError, ValueError):
+        return default
+    if v != v:                       # NaN
+        return default
+    return max(0.0, min(100.0, v))
+
 AXIS_WEIGHTS = {
     # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — إعادة توزيع الأوزان بعد شيل الأرقام الثابتة
     # 📌 «محور المحفظة» كان رقم ثابت 70 لكل سهم (مفيش محفظة عامة)
@@ -305,6 +327,30 @@ def liquidity_score(item):
         try: return float(v) if v is not None else default
         except (TypeError, ValueError): return default
 
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-12: السيولة غير المعروفة ≠ السيولة الضعيفة.
+    # ⛌ العيب: مافيش بيانات سيولة خالص ⇒ الكود كان بيحسب 50 (نص الدرجة)
+    #    و«مرتفع» و0% ثقة ⇒ رقم موهم بيقول «سيولة متوسطة» من غير أي دليل.
+    # 📌 الحل: مافيش ولا مؤشر سيولة ⇒ الدرجة None + حالة صريحة.
+    # ⛔ صفر حجم التداول قيمة حقيقية (سيولة ضعيفة) — مش «ناقصة».
+    _liq_avail = sum(1 for k in ("volume", "mkt_cap", "rel_volume", "vol_5", "vol_60")
+                     if item.get(k) is not None)
+    if _liq_avail == 0:
+        return {
+            "score": None,
+            "confidence": 0.0,
+            "risk_level": "غير متاح",
+            "risk_note": "مفيش بيانات سيولة",
+            "score_status": "insufficient_liquidity_data",
+            "breakdown": {"عمق السوق": 0.0, "النشاط": 0.0,
+                          "سهولة التسييل": 0.0, "الاستقرار": 0.0},
+            "metrics": {"القيمة السوقية": None, "حجم اليوم": None,
+                        "متوسط 5 أيام": None, "متوسط 60 يوم": None,
+                        "الحجم النسبي": None, "أيام لبيع 1% من السوق": None},
+            "max_safe_position_egp": None,
+            "positives": [], "negatives": [],
+            "neutral": ["مفيش بيانات سيولة"],
+        }
+
     vol = num(item.get("volume"))         # حجم اليوم
     vol5 = num(item.get("vol_5"))         # متوسط 5 أيام
     vol60 = num(item.get("vol_60"))       # متوسط 60 يوم
@@ -384,8 +430,8 @@ def liquidity_score(item):
     total = round(max(0, min(100, depth + activity + ease + stability)), 1)
 
     # ═══ ثقة التحليل ═══
-    avail = sum(1 for k in ("volume","mkt_cap","rel_volume","vol_5","vol_60")
-                if item.get(k) is not None)
+    # 📌 نفس عدّاد المؤشرات المستخدم في فحص «مفيش بيانات سيولة» فوق.
+    avail = _liq_avail
     conf = round(min(100, (avail / 5) * 100), 1)
 
     # ═══ مستوى المخاطر ═══
@@ -521,9 +567,24 @@ def _compose_score(axes, liq=None, reasons=None, conf=None):
     if not wsum:
         return {"final": None, "base": 0.0, "risk_pen": 0.0,
                 "liq_pen": 0.0, "conf_pen": 0.0}
-    base = sum(axes[k] * (avail[k] / wsum) for k in avail)
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: محور المخاطرة الناقص بيتعامل
+    #    على أنه **الأسوأ** (0 في المحصلة + خصم كامل) بدل ما وزنه
+    #    يتوزّع على المحاور التانية.
+    # ⛌ العيب المقاس: التوزيع كان بيعطي للسهم الناقص +28.1 نقطة ⇒
+    #    كان بيتقدّم على السهم اللي بياناته كاملة وبياخد «إشارة إيجابية».
+    # 📌 القاعدة: نفس البيانات + محور ناقص ⇒ لازم يطلع أسوأ أو مساوي.
+    scored_axes = dict(axes)
+    risk_missing = axes.get("risk") is None
+    if risk_missing:
+        scored_axes["risk"] = 0.0
+        avail = {k: w for k, w in AXIS_WEIGHTS.items() if scored_axes.get(k) is not None}
+        wsum = sum(avail.values())
+    base = sum(scored_axes[k] * (avail[k] / wsum) for k in avail)
 
-    risk_pen = 0.0 if axes.get("risk") is None else min(15.0, (100 - axes["risk"]) * 0.18)
+    if risk_missing:
+        risk_pen = 15.0
+    else:
+        risk_pen = min(15.0, (100 - axes["risk"]) * 0.18)
     liq_pen = 0.0
     if liq and liq.get("risk_level") in ("مرتفع جداً", "مرتفع"):
         liq_pen = min(6.0, (100 - liq["score"]) * 0.10)
@@ -716,6 +777,8 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
             "code": item.get("code"), "name": item.get("name"),
             "score": None, "noData": True,
             "noDataNote": "مفيش بيانات كافية لحساب التقييم",
+            "score_status": "no_data",
+            "rank_eligible": False,
             "axes": {k: v for k, v in axes.items() if v is not None},
             "missing_axes": missing,
             "reasons": reasons, "decision": "غير كافٍ للقرار",
@@ -723,10 +786,8 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
 
     # ═══ المحصلة — كلها في الدالة الواحدة ═══
     # الثقة بتدخل جوه الدالة كمان عشان متبقاش زيادة برّه
-    try:
-        conf = float(item.get("data_confidence") or 60)
-    except (TypeError, ValueError):
-        conf = 60.0
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-13: الصفر يبقى صفر (مش 60).
+    conf = _confidence_value(item.get("data_confidence"), 60.0)
     adj = _compose_score(axes, liq, reasons, conf)
     final = adj["final"]
 
@@ -752,7 +813,23 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     tech_missing = axes.get("technical") is None
     risk_v = axes.get("risk")
 
-    if risk_v is not None and risk_v < 35:
+    # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: سياسة نقص البيانات (الخيار A).
+    # ⛌ العيب المقاس: محور المخاطرة الناقص كان بيوزّع_weight على
+    #    المحاور التانية ⇒ السهم الناقص بياخد +28.1 نقطة و«إشارة
+    #    إيجابية» وبيترتب فوق السهم الحقيقي.
+    # 📌 السياسة المعتمدة (الخيار A): الرقم يبقى مؤشراً تشخيصياً
+    #    محسوباً على المتاح، لكن:
+    #      · القرار = «بيانات غير كافية» (مش إشارة إيجابية)
+    #      · rank_eligible = False (ما يدخلش قوائم الفرص/الترتيب المؤهل)
+    #      · score_status = «insufficient_risk» (السبب واضح للمستخدم)
+    # ⛔ ملاحظة: قيمة المخاطرة 0 قيمة حقيقية (مخاطرة شديدة) — مش نقص.
+    risk_missing = (risk_v is None)
+    rank_eligible = not (risk_missing or fund_missing or tech_missing)
+
+    if risk_missing:
+        decision = "بيانات غير كافية"
+        decision_why = "بيانات المخاطرة غير كافية — لا يمكن الحكم على السهم"
+    elif risk_v < 35:
         decision = "إشارة سلبية"
         decision_why = "مخاطرة عالية جداً"
     elif fund_missing or tech_missing:
@@ -798,6 +875,12 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         "confidence": overall_conf,
         "axes": axes,
         "weights": AXIS_WEIGHTS,
+        # ⛔⛔⛔ حالة التقييم (F-20-04) — بتتقرأ في كل مسارات الترتيب.
+        # 📌 «ok» = البيانات الجوهرية صالحة · «insufficient_risk» =
+        # 📌 محور المخاطرة ناقص ⇒ الرقم تشخيصي بس مش مؤهل للترتيب.
+        "score_status": ("insufficient_risk" if risk_missing
+                         else ("insufficient_data" if not rank_eligible else "ok")),
+        "rank_eligible": rank_eligible,
         "adjustments": {
             "أساسي مرجّح": round(adj["base"], 1),
             "خصم المخاطرة": round(-adj["risk_pen"], 1),
