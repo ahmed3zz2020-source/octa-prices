@@ -11468,21 +11468,67 @@ def opp_summary():
                                    for k, v in lists.items()]})
 
 
+# ⛔⛔⛔ الجولة ١٦ (١٧ نوفمبر ٢٠٢٦) — السرّية: مسار الاستراتيجيات القديم
+# 📌 العيب: المسار كان **مفتوح** (من غير جلسة) ⇒ زائر مجهول ياخد
+# 📌   قائمة الاستراتيجيات **وبنية أوزانها** (STRATEGIES[key]["weights"])
+# 📌   ⇒ وصفة المحرّك مكشوفة +، الأسوأ، «المحرك الجديد نفسه بقى سري»
+# 📌   ⇒ فالمحرّك القديم بقى مسروقاً من باب جانبي.
+# ⛔ الحل — **بالظبط** زي تصميم الانتقال للمحرّك الجديد
+# 📌   (/api/opp/strategies — محمي بجلسة + public_strategy بدون أوزان):
+# 📌   ① جلسة مطلوبة ⇒ 401 للزائر المجهول.
+# 📌   ② مفتاح «weights» مش بيتبنى خالص — مش بس متخفي بالاسم بعد كده.
+# 📌 ملاحظة (فحص اعتماد الواجهة — قراءة فقط):
+# 📌   assets/js/octa-pages.js:825 (loadStrategies) و :2997
+# 📌   بيقراوا من المسار ده: key + name بس (و desc/timeframe/focus
+# 📌   في نسخة الكارت) ⇒ العرض بيفضل شغّال زي ما هو.
 @app.route("/api/strategies")
 def strategies_list():
     """قائمة الاستراتيجيات المتاحة"""
+    if not require_user():
+        return jsonify({"ok": False, "error": "تسجيل الدخول مطلوب",
+                        "code": "auth_required"}), 401
     return jsonify({
         "strategies": [{
             "key": k, "name": v["name_ar"], "desc": v["desc"],
             "timeframe": v["timeframe"], "focus": v["focus"],
-            "weights": {kk: round(vv * 100) for kk, vv in v["weights"].items()},
         } for k, v in STRATEGIES.items()]
     })
 
 
+# ⛔⛔⛔ الجولة ١٦ (١٧ نوفمبر ٢٠٢٦) — الحقول المسموحة في نتيجة
+# 📌 الاستراتيجية القديمة. قائمة **صريحة** (whitelist) مش blacklist:
+# 📌 أي حقل جديد في المحرك ما يتسرّبش بالصدفة.
+# 📌 «weights» مش في القائمة من الأصل ⇒ مافيش فرصة تتسرّب.
+_STRATEGY_PUBLIC_KEYS = (
+    "strategy", "strategy_name", "timeframe", "focus",
+    "score", "axes", "base",
+    "risk_penalty", "liquidity_penalty", "filter_penalty",
+    "filters_passed", "filter_notes", "decision", "confidence",
+    "missing_axes",
+)
+
+
+def _public_strategy_result(res):
+    """نسخة عامة من نتيجة الاستراتيجية — من غير الوصفة (الأوزان)."""
+    if not isinstance(res, dict):
+        return res
+    return {k: res[k] for k in _STRATEGY_PUBLIC_KEYS if k in res}
+
+
+# ⛔⛔⛔ الجولة ١٦ (١٧ نوفمبر ٢٠٢٦) — نفس قفل المسار الأول:
+# 📌 كان مفتوح (من غير جلسة) ⇒ زائر مجهول ياخد نتيجة التقييم كاملة
+# 📌 (المحاور + المجموع قبل الخصم + خصم المخاطرة) ⇒ استنتاج بنية
+# 📌 الأوزان من ردود متعددة لنفس الاستراتيجية.
+# 📌 الحل: جلسة مطلوبة (زي /api/opp/*) + whitelist بلا «weights».
+# 📌 الواجهة بتقرأ: strategy_name · timeframe · focus · score · axes ·
+# 📌   base · risk_penalty · filter_notes · confidence
+# 📌   (assets/js/octa-pages.js:840-880) ⇒ العرض بيفضل شغّال.
 @app.route("/api/strategy/<code>/<strategy>")
 def strategy_api(code, strategy):
     """تقييم السهم حسب استراتيجية محددة"""
+    if not require_user():
+        return jsonify({"ok": False, "error": "تسجيل الدخول مطلوب",
+                        "code": "auth_required"}), 401
     code = code.upper().strip()
     strategy = strategy.lower().strip()
     if strategy not in STRATEGIES:
@@ -11499,7 +11545,8 @@ def strategy_api(code, strategy):
         pf = portfolio_fit(item, PORTFOLIO)
         return jsonify({
             "code": code, "name": item.get("name"), "price": item.get("price"),
-            "strategy": strategy_score(item, strategy, t, f, li, se, pf),
+            "strategy": _public_strategy_result(
+                strategy_score(item, strategy, t, f, li, se, pf)),
             "all_strategies": score_all_strategies(item, t, f, li, se, pf),
         })
     except Exception as _e:
