@@ -99,12 +99,25 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
             **_cov_info}
 
 
-def price_label_for(market_phase="unknown", stale=False, data_state=None):
+def price_label_for(market_phase="unknown", stale=False, data_state=None,
+                     price_time_source="source"):
     """⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — وصف السعر المناسب.
 
     📌 «سعر التداول أثناء الجلسة» ما ينفعش يتسمّى «سعر إغلاق».
     📌 والبيانات من الكاش ⇒ «آخر سعر معروف» (مش سعر لحظي).
+
+    ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٥ · ملاحظة المالك) — **ممنوع الجزم
+       بلحظية بلا دليل**:
+       · «وقت استلام البيانات» (data_received_at) **مش** دليل على
+         وقت آخر تداول ⇒ ما ينفعش نسمّي السعر «الآن» بناءً عليه.
+       · ⇒ لازم يكون في **توقيت موثوق من المصدر نفسه** (price_ts).
+       · لو مافيش ⇒ «آخر سعر متاح» (مع وقت تحديث البيانات在旁边).
+       ⛔ الاختبار السالب: سوق مفتوح + سعر بلا price_ts ⇒
+          التسمية **ما ينفعش** تكون «سعر التداول الآن».
     """
+    # ⛔ مافيش توقيت موثوق من المصدر ⇒ ممنوع أي ادعاء لحظية
+    if str(price_time_source or "") != "source":
+        return "آخر سعر متاح"
     if stale or data_state == "stale":
         return "آخر سعر معروف"
     ph = str(market_phase or "unknown").lower()
@@ -766,19 +779,21 @@ def build_payload(stocks, definitions=None, meta=None):
             _src_ts = item.get("stale_ts") if _stale else (item.get("ts") or "")
             _phase = meta.get("market_phase") or "unknown"
             _price_ts = item.get("price_ts") or None
+            _price_time_source = ("source" if _price_ts else "not_provided")
             row = {
                 "code": item.get("code"),
                 "name": item.get("name"),
                 "sector": item.get("sector") or "—",
                 "price": item.get("price"),
-                "price_label": price_label_for(_phase, _stale),
+                "price_label": price_label_for(_phase, _stale,
+                                               price_time_source=_price_time_source),
                 "session_date": str(item.get("session_date") or item.get("ts") or "")[:10],
                 "change": item.get("change"),
                 "data_state": ("stale" if _stale else "live"),
                 "source_as_of": _src_ts,
                 "data_received_at": (item.get("ts") or "") if not _stale else None,
                 "price_as_of": _price_ts,
-                "price_time_source": ("source" if _price_ts else "not_provided"),
+                "price_time_source": _price_time_source,
                 "market_phase": _phase,
                 "score": ev["score"],
                 "coverage": ev["coverage"],
