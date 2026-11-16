@@ -85,12 +85,20 @@ class TestMixedCoverage(unittest.TestCase):
         for it in fresh:
             self.assertTrue(it.get("data_received_at"))
 
-    def test_coverage_90_is_acceptable_not_partial(self):
-        """⛔ ٩٠٪ = مقبولة (مش partial)."""
+    def test_coverage_90_is_acceptable_not_complete(self):
+        """⛔ ٩٠٪ = **مقبولة** (فوق العتبة) بس **مش كاملة** (في ناقص).
+
+        📌 الجولة ١٧ (R16-N2): قبل كنا بنقول «complete» و«التغطية كاملة»
+        مع وجود صفوف ناقصة ⇒ ادعاء كاذب. دلوقتي:
+          · `coverage_acceptable` = True (فوق عتبة الـ٩٠٪)
+          · `coverage_status` = partial (لأن في ناقص)
+        """
         st = oe.freshness_state(last_success_at=1700000000, market_phase="open",
                                 coverage=90.0, requested=10, updated=9)
-        self.assertNotEqual(st["coverage_status"], "partial")
-        self.assertEqual(st["coverage_status"], "complete")
+        self.assertTrue(st.get("coverage_acceptable"),
+                        "٩٠٪ فوق العتبة ⇒ لازم تكون مقبولة")
+        self.assertEqual(st["coverage_status"], "partial",
+                         "في صف ناقص ⇒ ممنوع تقول «كاملة»")
         self.assertEqual(st["updated"], 9)
         self.assertEqual(st["missing"], 1)
 
