@@ -48,7 +48,13 @@ up.PIN_CHAL_FILE = Path(TMP) / "pinchal.json"
 up.PIN_PEPPER_FILE = Path(TMP) / "pin_pepper.txt"
 up.OTP_FILE = Path(TMP) / "otp.json"
 up.SIGNUP_FILE = Path(TMP) / "signup.json"
-up.MAIL_ON = False                      # ⛔ متبعثش إيميل حقيقي
+up.MAIL_ON = True               # ⛔ ⛌ الخدمة «شغّالة» في الاختبار
+                                #    (الإرسال نفسه متمسّك — مفيش بريد
+                                #    حقيقي بيمشي). السبب: مسار الكود
+                                #    بيرجّع 503 «خدمة الإيميل مش شغّالة»
+                                #    لما MAIL_ON مطفّي — وده رد
+                                #    **مختلف** عن رد الإيميل الغريب (200)
+                                #    ⇒ يبقى تعداد على وجود الحساب.
 
 MAILS = []          # 📬 كل إيميل «اتبعت» في الاختبار
 
@@ -109,6 +115,15 @@ REFRESH = "/api/auth/refresh"
 A_PIN, A_EMAIL = "7314", "amina@example.com"
 B_PIN, B_EMAIL = "4826", "karim@example.com"
 NEW_PIN = "9907"
+
+# ⛌⛔⛔ ⭐ ٢٤ أكتوبر ٢٠٢٦ — ملكية الجهاز:
+#    الباسورد لوحده ما يفتحش حساب — لازم الجهاز يكون مسجّل
+#    على الحساب. جهاز جديد ⇒ 401 + need_code ⇒ كود إيميل.
+# ⬜️ بصمة الجهاز — مفيش أرقام متتالية (٤ أرقام) عشان ما
+#    تتلخبطش مع فحص «مافيش باسورد خام في الملفات».
+A_DEV = "device-challenge-amina-tabla"
+B_DEV = "device-challenge-karim-tabla"
+NEW_DEV = "device-challenge-newdev-tabla"
 GHOST = "ghost@example.com"
 
 _pass = _fail = 0
@@ -139,6 +154,14 @@ def call(path, method="POST", body=None, ip="10.1.0.1", token=None):
     if token:
         h["Authorization"] = "Bearer " + token
     return app.dispatch(path, method=method, body=body, headers=h)
+
+
+def login(pin, ip="10.1.0.1", device=A_DEV):
+    """⛌ دخول بالباسورد — ومعاه بصمة الجهاز (شرط التصميم الحالي)"""
+    body = {"pin": pin}
+    if device:
+        body["device"] = device
+    return call(LOG, body=body, ip=ip)
 
 
 def jbody(r):
@@ -180,7 +203,9 @@ def signup(pin, email, ip="10.1.0.1", name="تجربة"):
                                                             jbody(r)))
     unlock = (r.get_json() or {}).get("unlock")
     ok(unlock, "⛔ مافيش unlock")
-    r = call(SIGNUP_NEWPIN, body={"new_pin": pin}, ip=ip, token=unlock)
+    # ⛌ بصمة الجهاز — الحساب بيتسجّل عليه من أول لحظة
+    r = call(SIGNUP_NEWPIN, body={"new_pin": pin, "device": A_DEV},
+             ip=ip, token=unlock)
     ok(r.status_code == 200, "signup/newpin فشل: %s %s" % (r.status_code,
                                                            jbody(r)))
     return (r.get_json() or {}).get("token")
@@ -223,32 +248,38 @@ print("   (ملف المستخدمين: %s)" % up.USERS_FILE)
 
 # ══════════════════════════════════════════════════════════════
 def t_three_in_window():
-    """⛔⛔ ٣ غلط ورا بعض جوّه ٦٠ ثانية → الرد يطلب كود إيميل
+    """⛔⛔ ٤ غلط ورا بعض جوّه ٦٠ ثانية → الرد يطلب كود إيميل
        (مش قفل ١٥ دقيقة: القفل ده اسمه القاعدة ② وواحد تاني)"""
     ip = "10.3.0.3"
     up._pinlock_reset(lock_keys(ip=ip))
     up._pin_window_reset(lock_keys(ip=ip))
     codes = []
-    for i in range(3):
+    bodies = []
+    for i in range(4):
         r = call(LOG, body={"pin": "1357"}, ip=ip)
         b = jbody(r)
         codes.append((r.status_code, b.get("attempts_left"), b.get("why")))
-    ok(codes[0] == (401, 2, "bad_pin"), "المحاولة ١ %s" % (codes[0],))
-    ok(codes[1] == (401, 1, "bad_pin"), "المحاولة ٢ %s" % (codes[1],))
-    ok(codes[2][0] == 401 and codes[2][2] == "need_code",
-       "المحاولة ٣ %s — المفروض need_code" % (codes[2],))
-    r3 = call(LOG, body={"pin": "1357"}, ip=ip)
-    b3 = jbody(r3)
-    ok(b3.get("need_code") is True, "need_code مش true")
-    ok(b3.get("next") == "challenge/send", "المسار التالي %s" % b3.get("next"))
-    ok(b3.get("window") == 60, "النافذة %s — المفروض ٦٠" % b3.get("window"))
+        bodies.append(b)
+    ok(codes[0] == (401, 3, "bad_pin"), "المحاولة ١ %s" % (codes[0],))
+    ok(codes[1] == (401, 2, "bad_pin"), "المحاولة ٢ %s" % (codes[1],))
+    ok(codes[2] == (401, 1, "bad_pin"), "المحاولة ٣ %s" % (codes[2],))
+    ok(codes[3][0] == 401 and codes[3][2] == "need_code",
+       "المحاولة ٤ %s — المفروض need_code" % (codes[3],))
+    b4 = bodies[3]
+    ok(b4.get("need_code") is True, "need_code مش true")
+    ok(b4.get("next") == "challenge/send", "المسار التالي %s" % b4.get("next"))
+    ok(b4.get("window") == 60, "النافذة %s — المفروض ٦٠" % b4.get("window"))
     # ⛔⛔ مافيش قفل ١٥ دقيقة — دي القاعدة ② وواحد تاني
     locked, retry = up._pin_locked(lock_keys(ip=ip))
     ok(locked is False, "⛔ اتقفل ١٥ دقيقة ودي المفروض القاعدة ①")
     ok(all(c[0] == 401 for c in codes), "في رد مش 401: %s" % (codes,))
-
-
-t("٣ غلط جوّه ٦٠ ثانية → يطلب كود إيميل (مش قفل ١٥ دقيقة)",
+    # ⛔⛌ والقاعدة ② (القفل) فاضل شغّال: المحاولة الخامسة ⇒ 429
+    r5 = call(LOG, body={"pin": "1357"}, ip=ip)
+    ok(r5.status_code == 429,
+       "المحاولة الخامسة رجعت %s — المفروض 429 (القاعدة ٢)"
+       % r5.status_code)
+    ok(jbody(r5).get("why") == "locked", "السبب %s" % jbody(r5).get("why"))
+t("٤ غلط جوّه ٦٠ ثانية → يطلب كود إيميل (مش قفل ١٥ دقيقة)",
   t_three_in_window)
 
 
@@ -256,7 +287,7 @@ def t_window_is_60():
     """⛌⛌ النافذة ٦٠ ثانية بالظبط — لا أكتر ولا أقل"""
     ok(up.PIN_WINDOW_SECONDS == 60,
        "PIN_WINDOW_SECONDS=%s" % up.PIN_WINDOW_SECONDS)
-    ok(up.PIN_WINDOW_FAILS == 3, "PIN_WINDOW_FAILS=%s" % up.PIN_WINDOW_FAILS)
+    ok(up.PIN_WINDOW_FAILS == 4, "PIN_WINDOW_FAILS=%s" % up.PIN_WINDOW_FAILS)
     # ⛔ مفيش نافذة طويلة تانية في الملف: أي ثابت أكبر من ٦٠
     #    في سكربت القفل =Regression
     import re as _re
@@ -265,54 +296,48 @@ def t_window_is_60():
         name, val = m.group(1), int(m.group(2))
         if name.startswith("PIN_WINDOW"):
             ok(val <= 60, "⛔ %s=%d أكبر من ٦٠" % (name, val))
-
-
 t("النافذة ٦٠ ثانية بالظبط (مفيش نافذة طويلة)", t_window_is_60)
 
 
 def t_three_spread():
-    """⛔⛔ ٣ غلط متباعدين (٣٠ ثانية بين كل واحد) → مفيش كود،
-       والعدّاد يفضل ١"""
+    """⛔⛔ ٤ غلط متباعدين (٣٠ ثانية بين كل واحد) → مفيش كود،
+       والعدّاد يفضل ٢ (النافذة سلايدر — ما بتجمّعش أكتر من ٢)"""
     ip = "10.3.0.4"
     with clock():
         up._pinlock_reset(lock_keys(ip=ip))
         up._pin_window_reset(lock_keys(ip=ip))
         t0 = FAKE.t
         got = []
-        for i in range(3):
+        for i in range(4):
             FAKE.t = t0 + 30 * i
             r = call(LOG, body={"pin": "2468"}, ip=ip)
             b = jbody(r)
             got.append((b.get("attempts_left"), b.get("need_code")))
     ok(got[-1][1] is not True,
        "⛔ متباعدين ورا بعض وطلّع كود إيميل: %s" % (got,))
-    ok(got[-1][0] == 1,
-       "العدّاد %s بعد ٣ محاولات متباعدة — المفروض يفضل ١" % (got[-1][0],))
-
-
-t("٣ غلط متباعدين (٣٠ ثانية) → مفيش كود، العدّاد يفضل ١",
+    ok(got[-1][0] == 2,
+       "العدّاد %s بعد ٤ محاولات متباعدة — المفروض يفضل ٢" % (got[-1][0],))
+t("٤ غلط متباعدين (٣٠ ثانية) → مفيش كود، العدّاد يفضل ٢",
   t_three_spread)
 
 
 def t_window_slides():
-    """⛌ نافذة سلايدر: ٣ محاولات على ١١٠ ثانية = مفيش كود"""
+    """⛌ نافذة سلايدر: ٤ محاولات على ١٦٥ ثانية = مفيش كود"""
     ip = "10.3.0.5"
     with clock():
         up._pinlock_reset(lock_keys(ip=ip))
         up._pin_window_reset(lock_keys(ip=ip))
         t0 = FAKE.t
         got = []
-        for i in range(3):
-            FAKE.t = t0 + 55 * i          # 0 / 55 / 110
+        for i in range(4):
+            FAKE.t = t0 + 55 * i          # 0 / 55 / 110 / 165
             got.append(jbody(call(LOG, body={"pin": "8642"}, ip=ip)))
     ok(got[-1].get("need_code") is not True,
-       "⛔ ٣ محاولات على ١١٠ ثانية طلّعوا كود: %s" % got[-1])
-    ok(got[-1].get("attempts_left") == 1,
-       "العدّاد %s بعد ٣ محاولات متباعدة — المفروض ١"
+       "⛔ ٤ محاولات على ١٦٥ ثانية طلّعوا كود: %s" % got[-1])
+    ok(got[-1].get("attempts_left") == 2,
+       "العدّاد %s بعد ٤ محاولات متباعدة — المفروض ٢"
        % got[-1].get("attempts_left"))
-
-
-t("النافذة سلايدر: ٣ محاولات على ١١٠ ثانية → مفيش كود",
+t("النافذة سلايدر: ٤ محاولات على ١٦٥ ثانية → مفيش كود",
   t_window_slides)
 
 
@@ -426,7 +451,7 @@ t("الكود من secrets.randbelow + صلاحية ١٠ دقايق + ٥ غلط"
 
 
 def t_daily_limit():
-    """⛔ ٤ أكواد في اليوم لنفس الإيميل → ٤٢٩"""
+    """⛔ ١١ كود في اليوم لنفس الإيميل → 429 (الحد ١٠ لكل إيميل)"""
     em = "daili@example.com"
     up._pin_by_email(em)
     st = chal_state()
@@ -434,17 +459,19 @@ def t_daily_limit():
     up.PIN_CHAL_FILE.write_text(json.dumps(st, ensure_ascii=False),
                                 encoding="utf-8")
     codes = []
-    for i in range(4):
+    for i in range(11):
         # ⛌ كل نداء من IP مختلف: يثبت إن الحد **لكل إيميل**
         r = call(SEND, body={"email": em}, ip="10.4.1.%d" % i)
         codes.append((r.status_code, (r.get_json() or {}).get("why")))
-    ok([c[0] for c in codes[:3]] == [200] * 3, "أول ٣ %s" % codes[:3])
-    ok(codes[3][0] == 429, "الرابع %s — المفروض 429" % (codes[3],))
-    ok(codes[3][1] == "daily_limit", "السبب %s" % codes[3][1])
-    ok(up.PIN_CHAL_PER_DAY == 3, "الحد اليومي %s" % up.PIN_CHAL_PER_DAY)
-
-
-t("٤ أكواد في اليوم لنفس الإيميل → 429 (الحد ٣ لكل إيميل)",
+    ok([c[0] for c in codes[:10]] == [200] * 10, "أول ١٠ %s" % codes[:10])
+    ok(codes[10][0] == 429, "الحادي عشر %s — المفروض 429" % (codes[10],))
+    ok(codes[10][1] == "daily_limit", "السبب %s" % codes[10][1])
+    ok(up.PIN_CHAL_PER_DAY == 10, "الحد اليومي %s" % up.PIN_CHAL_PER_DAY)
+    # ⛌⛔ والرد فيه retry_after لحد نص الليل (مش 900 ثانية)
+    st2 = chal_state()
+    rec = (st2.get("c") or {}).get(em) or {}
+    ok(int(rec.get("n") or 0) == 10, "عدّاد اليوم %s" % rec.get("n"))
+t("١١ كود في اليوم لنفس الإيميل → 429 (الحد ١٠ لكل إيميل)",
   t_daily_limit)
 
 
@@ -583,18 +610,72 @@ t("الباسورد الجديد اتقبل → توكن جلسة صالح", t_n
 def t_old_pin_dead():
     """⛔⛔⛔ الباسورد القديم مات خالص"""
     em, old_pin, unl = globals()["OPEN1"]
-    r = call(LOG, body={"pin": old_pin}, ip="10.5.0.2")
+    r = login(old_pin, ip="10.5.0.2")
     ok(r.status_code == 401, "⛔⛔ الباسورد القديم لسه بيفتح: %s"
        % r.status_code)
-    r = call(LOG, body={"pin": NEW_PIN}, ip="10.5.0.2")
+    ok(jbody(r).get("why") == "bad_pin",
+       "السبب %s" % jbody(r).get("why"))
+    r = login(NEW_PIN, ip="10.5.0.2")
     ok(r.status_code == 200, "⛔ الباسورد الجديد مش بيفتح: %s — %s"
        % (r.status_code, jbody(r)))
     # ⛌ والتوكن القديم (قبل الفتح) مابقىش صالح
     ok(call(REFRESH, token=unl).status_code == 401,
        "⛔ توكن الفتح اتقبل مرتين!")
-
-
 t("الباسورد القديم مات بعد التغيير (الجديد شغال)", t_old_pin_dead)
+
+
+def t_new_device_flow():
+    """⛔⛔⛔ المسار الكامل للتصميم الحالي (٢٤ أكتوبر ٢٠٢٦):
+
+       ⛌ ① الباسورد الصح من جهاز **مش مسجّل** ⇒ 401 + need_code
+       ⛌ ② challenge/send ⇒ 200 (نفس الرد بالظبط زي أي إيميل)
+       ⛌ ③ challenge/verify ⇒ 200 + توكن فتح (مش توكن دخول)
+       ⛌ ④ challenge/newpin (مع بصمة الجهاز) ⇒ 200 + توكن جلسة
+       ⛌ ⑤ الدخول من نفس الجهاز الجديد ⇒ 200 (الجهاز اتسجّل)
+       ⛌ ⑥ والباسورد القديم ⇒ 401 «الباسورد غلط»
+    """
+    em = "newdev@example.com"
+    old_pin = "4040"
+    new_pin = "4041"
+    new_dev = NEW_DEV
+    new_user(old_pin, em, ip="10.7.0.1")
+    # ⛌ ① الباسورد صح من جهاز مش مسجّل ⇒ لازم كود إيميل
+    r1 = call(LOG, body={"pin": old_pin, "device": new_dev}, ip="10.7.0.2")
+    ok(r1.status_code == 401, "جهاز جديد → %s مش 401" % r1.status_code)
+    b1 = jbody(r1)
+    ok(b1.get("why") == "new_device", "السبب %s" % b1.get("why"))
+    ok(b1.get("need_code") is True, "need_code مش true")
+    ok(b1.get("next") == "challenge/send", "المسار %s" % b1.get("next"))
+    ok("token" not in b1, "⛔ رجّع توكن من جهاز مش مسجّل!")
+    # ⛌ ② طلب الكود
+    r2 = call(SEND, body={"email": em}, ip="10.7.0.3")
+    ok(r2.status_code == 200, "challenge/send → %s" % r2.status_code)
+    code = last_code(em)
+    ok(code, "مافيش كود في الإيميل")
+    # ⛌ ③ التحقق من الكود (توكن فتح — مش توكن دخول)
+    r3 = call(VERIFY, body={"email": em, "code": code}, ip="10.7.0.4")
+    ok(r3.status_code == 200, "challenge/verify → %s" % r3.status_code)
+    b3 = jbody(r3)
+    ok(b3.get("token") is None, "⛔ challenge/verify رجّع توكن دخول")
+    ok(b3.get("need_pin") is True, "need_pin مش true")
+    unlock = b3.get("unlock")
+    ok(unlock, "مافيش توكن فتح")
+    # ⛌ ④ اختيار الباسورد الجديد + تسجيل الجهاز
+    r4 = call(NEWPIN, body={"new_pin": new_pin, "device": new_dev},
+              token=unlock, ip="10.7.0.5")
+    ok(r4.status_code == 200,
+       "challenge/newpin → %s %s" % (r4.status_code, jbody(r4)))
+    ok(jbody(r4).get("token"), "مافيش توكن جلسة")
+    # ⛌ ⑤ الدخول من نفس الجهاز الجديد ⇒ 200 (الجهاز بقى معروف)
+    r5 = call(LOG, body={"pin": new_pin, "device": new_dev}, ip="10.7.0.6")
+    ok(r5.status_code == 200,
+       "الدخول من الجهاز الجديد → %s %s" % (r5.status_code, jbody(r5)))
+    # ⛌ ⑥ والباسورد القديم مات
+    r6 = call(LOG, body={"pin": old_pin, "device": new_dev}, ip="10.7.0.7")
+    ok(r6.status_code == 401, "⛔⛔ الباسورد القديم لسه بيفتح: %s"
+       % r6.status_code)
+    ok(jbody(r6).get("why") == "bad_pin", "السبب %s" % jbody(r6).get("why"))
+t("جهاز جديد ⇒ كود إيميل ⇒ الحساب ينفتح والجهاز يتسجّل", t_new_device_flow)
 
 
 def t_unlock_single_use():
@@ -637,7 +718,9 @@ def t_refresh_ok():
     ok(r.status_code == 200, "الحالة %s — %s" % (r.status_code, jbody(r)))
     b = r.get_json() or {}
     ok(b.get("token"), "مافيش توكن جديد")
-    ok(b.get("expires_in") == 7200, "expires_in=%s" % b.get("expires_in"))
+    ok(b.get("expires_in") == up.TOKEN_TTL,
+       "expires_in=%s (المفروض %s = ٣٠ يوم)"
+       % (b.get("expires_in"), up.TOKEN_TTL))
     ok(call("/api/auth/me", "GET", token=b["token"],
             ip="10.6.0.1").status_code == 200, "التوكن الجديد مش صالح")
     globals()["REFRESHED"] = b.get("token")
@@ -648,12 +731,14 @@ t("توكن صالح + refresh → 200 + توكن جديد صالح على /api/
 
 
 def t_token_ttl():
-    """⛔ عمر التوكن = ٧٢٠٠ ثانية بالظبط"""
-    ok(up.TOKEN_TTL == 7200, "TOKEN_TTL=%s" % up.TOKEN_TTL)
+    """⛔ عمر التوكن = ٣٠ يوم (مطلق) + سياسة خمول ١٤ يوم"""
+    ok(up.TOKEN_TTL == 30 * 86400, "TOKEN_TTL=%s" % up.TOKEN_TTL)
+    ok(up.TOKEN_IDLE_TTL == 14 * 86400,
+       "TOKEN_IDLE_TTL=%s" % up.TOKEN_IDLE_TTL)
     r = call(REFRESH, token=A_TOKEN, ip="10.6.0.2")
     ok(jbody(r).get("expires_in") == up.TOKEN_TTL,
        "expires_in مش مساوي للـTTL")
-    # ⛔ التوكن المولّد فعلاً فيه وقت انتهاء = دلوقتي + ٧٢٠٠
+    # ⛔ التوكن المولّد فعلاً فيه وقت انتهاء = دلوقتي + ٣٠ يوم
     # ⛌ الشكل الجديد: «uid|exp|epoch» ⬇️ الـepoch في الآخر
     #    (إبطال الجلسات ⬇️ تغيير الباسورد بيموت كل التوكنات)
     import base64 as _b64
@@ -662,12 +747,29 @@ def t_token_ttl():
     uid, _, rest = raw.partition("|")
     exp_s, _, epoch_s = rest.partition("|")
     delta = int(exp_s) - int(FAKE.t)
-    ok(7190 <= delta <= 7200, "الانتهاء بعد %s ثانية" % delta)
+    ok(up.TOKEN_TTL - 10 <= delta <= up.TOKEN_TTL,
+       "الانتهاء بعد %s ثانية" % delta)
     # ⛔ والـepoch موجود ⬇️ وإلا إبطال الجلسات مش هيشتغل
     ok(epoch_s != "", "مافيش epoch في التوكن ⬇️ إبطال الجلسات مكسور")
 
 
-t("عمر التوكن = ٧٢٠٠ ثانية بالظبط", t_token_ttl)
+t("عمر التوكن = ٣٠ يوم (مطلق) + خمول ١٤ يوم", t_token_ttl)
+
+
+def t_session_idle_dies():
+    """⛔⛔ سياسة الخمول: جلسة ساكتة ١٥ يوم ⇒ التوكن يموت
+
+       ⛌ عمر التوكن المطلق ٣٠ يوم بس — من غير سياسة الخمول،
+          جلسة مسروقة كانت هتفضل شغّالة لحد ٣٠ يوم.
+    """
+    with clock():
+        FAKE.t = FAKE.t + 15 * 86400
+        r = call("/api/auth/me", "GET", token=A_TOKEN, ip="10.6.0.7")
+    ok(r.status_code == 401,
+       "⛔⛔ الجلسة الساكتة لسه شغّالة بعد ١٥ يوم: %s" % r.status_code)
+
+
+t("جلسة ساكتة ١٥ يوم ⇒ التوكن يموت (سياسة الخمول)", t_session_idle_dies)
 
 
 def t_refresh_no_auth():
@@ -713,23 +815,27 @@ t("refresh ما بيقبلش باسورد ولا إيميل ولا كود (401)"
 
 
 def t_two_hours_idle_ok():
-    """⛔ بعد ساعتين بالظبط من الاستخدام: المستخدم لسه داخل بصمت"""
+    """⛔ بعد ساعتين بالظبط: المستخدم لسه داخل بصمت (التجديد ماشي)
+
+       ⛌ عمر التوكن المطلق = ٣٠ يوم (مش ساعتين) — والواجهة
+          بتجدّد كل ساعتين ⇒ المستخدم مش بيخرج وعمري ما يشيل.
+    """
     with clock():
         t0 = FAKE.t
-        FAKE.t = t0 + 7199               # ثانية قبل الانتهاء
+        FAKE.t = t0 + 7199               # قبل ساعتين
         r = call(REFRESH, token=A_TOKEN, ip="10.6.0.6")
         ok(r.status_code == 200, "قبل الانتهاء رجّع %s" % r.status_code)
         tok = jbody(r).get("token")
+        ok(tok, "مافيش توكن جديد")
         ok(call("/api/auth/me", "GET", token=tok,
                 ip="10.6.0.6").status_code == 200, "التجديد ماقعدش جوا")
-        FAKE.t = t0 + 7200               # اللحظة اللي التوكن بيموت بيها
+        FAKE.t = t0 + 7200               # بعد ساعتين بالظبط
         ok(call("/api/auth/me", "GET", token=A_TOKEN,
-                ip="10.6.0.6").status_code == 401, "التوكن القديم لسه شغال")
+                ip="10.6.0.6").status_code == 200,
+           "⛔ التوكن القديم مات قبل ما يبقى مدّته ٣٠ يوم")
         ok(call("/api/auth/me", "GET", token=tok,
                 ip="10.6.0.6").status_code == 200,
            "⛔ التوكن المجدّد مات قبل ما يتجدد تاني")
-
-
 t("بعد ٢ ساعة: المستخدم لسه داخل بصمت (تجديد ماشي)",
   t_two_hours_idle_ok)
 
