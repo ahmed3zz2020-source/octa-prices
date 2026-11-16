@@ -11330,6 +11330,31 @@ def _opp_tiered(payload, user=None):
     return _opp.apply_tier(payload, _opp_plan(user))
 
 
+def _opp_contract(p=None, *lists):
+    """⛔⛔⛔ الجولة ١٧ (١٨ نوفمبر ٢٠٢٦) — **عقد الحداثة/التغطية الموحّد**.
+
+    📌 نفس الحقول بنفس الأسماء ونفس الدلالات في كل مسارات /api/opp/* :
+       coverage_status · data_state · freshness_summary_ar · current_session_date
+    📌 الأولوية: القائمة (lst) ⇒ الباك (p) — زي /api/opp/list بالظبط.
+    📌 مافيش تفسير ولا تقدير — نفس قيم المحرّك زي ما هي.
+    ⛔ الهدف: الواجهة تقرا الحقل من مكان واحد في كل المسارات.
+    """
+    p = p or {}
+
+    def _pick(field):
+        for lst in lists:
+            if lst and lst.get(field):
+                return lst.get(field)
+        return p.get(field)
+
+    return {
+        "coverage_status": _pick("coverage_status"),
+        "data_state": _pick("data_state"),
+        "freshness_summary_ar": _pick("freshness_summary_ar"),
+        "current_session_date": _pick("current_session_date"),
+    }
+
+
 
 
 
@@ -11448,6 +11473,9 @@ def opp_detail(key, code):
                     "market_phase": p.get("market_phase"),
                     "age_seconds": p.get("age_seconds"),
                     "data_freshness": p.get("data_freshness"),
+                    # ⛔⛔⛔ الجولة ١٧ — **عقد الحداثة/التغطية في المستوى الرئيسي**
+                    # (زي /api/opp/strategies بالظبط — الواجهة بتقراها هنا)
+                    **_opp_contract(p, lst),
                     "sources": p.get("sources") or []})
 
 
@@ -11482,6 +11510,9 @@ def opp_explain(key, code):
                     "market_phase": p.get("market_phase"),
                     "age_seconds": p.get("age_seconds"),
                     "data_freshness": p.get("data_freshness"),
+                    # ⛔⛔⛔ الجولة ١٧ — **عقد الحداثة/التغطية في المستوى الرئيسي**
+                    # (زي /api/opp/strategies بالظبط — الواجهة بتقراها هنا)
+                    **_opp_contract(p, lst),
                     "sources": p.get("sources") or []})
 
 
@@ -11504,6 +11535,9 @@ def opp_summary():
                     "market_phase": p.get("market_phase"),
                     "age_seconds": p.get("age_seconds"),
                     "data_freshness": p.get("data_freshness"),
+                    # ⛔⛔⛔ الجولة ١٧ — **عقد الحداثة/التغطية في المستوى الرئيسي**
+                    # (زي /api/opp/strategies بالظبط — الواجهة بتقراها هنا)
+                    **_opp_contract(p, *lists.values()),
                     "sources": p.get("sources") or [],
                     "plan": _pt.get("plan"),
                     "limit_per_strategy": _pt.get("limit_per_strategy"),
