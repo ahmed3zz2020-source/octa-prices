@@ -75,7 +75,19 @@ class _Response(Resp):
 #  request
 # ══════════════════════════════════════════════════════════
 class _Request:
-    """request عالمي — بيتبدّل قبل كل نداء"""
+    """request عالمي — بيتبدّل قبل كل نداء
+
+    ⛔⛔⛔ الجولة ١٦ (١٧ نوفمبر ٢٠٢٦) — الستب بقى **محاكي لـ Werkzeug**
+    في حقلين أساسيين:
+      ① `environ` — في Flask/Werkzeug **دايمًا** موجود (dict).
+         كان ناقص ⇒ `_apply_clean_query` بيرجع False (fail-closed)
+         ⇒ كل طلب في بيئة الاختبار كان بيرجع 400 ⇒ ارتجاع سلوكي.
+      ② `args` — في Werkzeug **ملكية محسوبة** من `QUERY_STRING`
+         ⇒ بعد التنظيف (كتابة environ + إبطال الكاش) بتتحدّث لوحدها.
+         قبل كنا `args` dict عادي ⇒ ما كانش بيتحدّث ⇒ قيم قديمة.
+    ⛔ الاستبدال ده بيخلّي بيئة الاختبار **بتنفّذ نفس مسار الإنتاج**
+       (بما فيه fail-closed) بدل مسار احتياطي ميت.
+    """
 
     def __init__(self):
         self.reset()
@@ -83,11 +95,36 @@ class _Request:
     def reset(self):
         self.method = "GET"
         self.path = "/"
-        self.args = {}
+        self.environ = {}
         self.form = {}
         self.headers = {}
         self.json = None
         self.remote_addr = "127.0.0.1"
+        self._args = {}
+
+    @property
+    def args(self):
+        """زي Werkzeug: مبني من QUERY_STRING (لما يكون موجود)."""
+        try:
+            if "QUERY_STRING" in self.environ:
+                from urllib.parse import parse_qsl as _parse_qsl
+                out = {}
+                for _k, _v in _parse_qsl(self.environ.get("QUERY_STRING") or "",
+                                         keep_blank_values=True):
+                    out.setdefault(_k, _v)
+                return out
+        except Exception:
+            pass
+        return dict(getattr(self, "_args", {}) or {})
+
+    @args.setter
+    def args(self, value):
+        self._args = dict(value or {})
+        try:
+            from urllib.parse import urlencode as _urlencode
+            self.environ["QUERY_STRING"] = _urlencode(self._args, doseq=False)
+        except Exception:
+            pass
 
     def get_json(self, silent=False, force=False):
         return self.json
