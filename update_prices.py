@@ -500,6 +500,19 @@ def hide_recipe(resp):
             clean = dict(clean)
             clean["why"] = body["why"]
 
+    # ⛔⛔⛔ الجولة ١٦ — أسباب رفض الـquery (حارس الحدود) ⬇️
+    # 📌 "why" متخفي افتراضياً لأنه مفتاح **مخرجات المحرك** ⬇️
+    # 📌 بس أكواد حارس الـquery = **سبب رفض الطلب** (مش مخرجات) ⬇️
+    # 📌 ⇒ بتوصل للمستخدم زي ما هي (القائمة محدّدة بالاسم) ⬇️
+    # 📌 ⇒ مافيش أي مخرج محرك بيتسرب (شرط: نص من القائمة بالظبط) ⬇️
+    if isinstance(clean, dict) and isinstance(body, dict):
+        _guard_why = body.get("why")
+        if (isinstance(_guard_why, str)
+                and _guard_why in QUERY_WHY_CODES
+                and "why" not in clean):
+            clean = dict(clean)
+            clean["why"] = _guard_why
+
     # ونحط رقم النسخة في كل رد dict
     snap = LIVE_DATA.get("snapshot_id")
     if snap and isinstance(clean, dict) and "snapshot_id" not in clean:
@@ -858,175 +871,291 @@ except Exception:
     app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024
 
 
+# ══════════════════════════════════════════════════════════════
+#  ⛔⛔⛔ الجولة ١٦ — حدود الـquery (كل الثوابت في مكان واحد) ⬇️
+# ══════════════════════════════════════════════════════════════
+# 📌 ⬇️ القاعدة: **رفض آمن (fail-closed) قبل أي تحليل للمعاملات** ⬇️
+# 📌 ⬇️ ⛔ يعني: قبل parse_qsl وقبل ما أي قيمة تُستخدم في أي مكان ⬇️
+# 📌 ⬇️ ⛔ ⇒ مفيش قيمة خام واحدة بتمشي لحد الـroute ⬇️
+# 📌 ⬇️ ⛔ والرد بيكون ٤٠٠ صريح + كود سبب (`why`) — مش ٢٠٠ 📌
+#
+# 📌 ⬇️ ليش السقوف بالشكل ده؟ ⬇️
+# 📌 ⬇️ عقد الجولة ١٥ (test_round15_query_guard.py) بيقول إن قيمة ⬇️
+# 📌 ⬇️ ٥٠٠٠ محرف **تترد (200) وتتقصّ** لحد ٣٠٠ — مش ترفض ⬇️
+# 📌 ⬇️ ⇒ سقف القيمة لازم يكون أعلى من ٥٠٠٠ ⇒ اخترنا ٨١٩٢ ⬇️
+# 📌 ⬇️ (والسقف الفعلي اللي بيوصل للـroute لسه ٣٠٠ محرف) ⬇️
+QUERY_MAX_TOTAL_BYTES = 16384      # ⛔ طول الـquery كله (بايت)
+QUERY_MAX_PARAMS = 64              # ⛔ عدد المعاملات في الطلب
+QUERY_MAX_NAME_CHARS = 128         # ⛔ طول اسم المعاملة
+QUERY_MAX_VALUE_CHARS = 8192       # ⛔ طول قيمة المعاملة الواحدة
+
+# ⛔ أكواد أسباب الرفض (ثوابت — عشان الرد والاختبارات يتكلموا نفس اللغة)
+QUERY_WHY_TOO_LONG = "query_too_long"
+QUERY_WHY_TOO_MANY_PARAMS = "too_many_params"
+QUERY_WHY_NAME_TOO_LONG = "param_name_too_long"
+QUERY_WHY_VALUE_TOO_LONG = "param_value_too_long"
+QUERY_WHY_SANITIZE_FAILED = "query_sanitize_failed"
+
+# ⛔ أكواد أسباب رفض الـquery — دي **سبب رفض** مش مخرجات محرك ⬇️
+# 📌 ⬇️ ⇒ بتوصل للمستخدم (شظر hide_recipe — الشُرطة بالاسم) ⬇️
+QUERY_WHY_CODES = (
+    QUERY_WHY_TOO_LONG,
+    QUERY_WHY_TOO_MANY_PARAMS,
+    QUERY_WHY_NAME_TOO_LONG,
+    QUERY_WHY_VALUE_TOO_LONG,
+    QUERY_WHY_SANITIZE_FAILED,
+)
+
+
+def _query_raw_string():
+    """⛔ يقرأ الـquery **الخام** (نص) من بيئة الطلب — من غير أي تحليل.
+
+    📌 الغرض: حدود الجولة ١٦ بتتفحص على النص الخام ده قبل أي parse.
+    """
+    _qs = ""
+    try:
+        _qs = request.environ.get("QUERY_STRING", "") or ""
+    except Exception:
+        _qs = ""
+    if not isinstance(_qs, str):
+        try:
+            _qs = _qs.decode("latin1", "replace")
+        except Exception:
+            _qs = ""
+    return _qs
+
+
+def _query_limits_check(qs):
+    """⛔⛔⛔ يفحص حدود الـquery **قبل** أي تحليل ⬇️
+
+    ⏎ يرجّع (ok, why):
+      · ok=True  ⇒ كله تمام (why=None)
+      · ok=False ⇒ فيه خرق ⇒ why = كود السبب (يترد ٤٠٠ صريح)
+
+    ⛔ مافيش أي قيمة بتتباع هنا: ولا فك ترميز ولا تنظيف.
+    ⛔ الطول المقاس بالبايت زي ما werkzeug شايفه (latin1).
+    ⛔ طول الاسم/القيمة الخام = حدّ أعلى من الطول بعد فك الترميز
+       (الترميز السداسي بيكبّر النص ⇒.Raw دايماً ≥decoded).
+    """
+    if not isinstance(qs, str):
+        return False, QUERY_WHY_TOO_LONG
+    # ① الطول الكلي (بايت)
+    try:
+        _total = len(qs.encode("latin1", "replace"))
+    except Exception:
+        _total = len(qs)
+    if _total > QUERY_MAX_TOTAL_BYTES:
+        return False, QUERY_WHY_TOO_LONG
+    # ② عدد المعاملات — عدّ لأجزاء الـquery من غير فك ترميز
+    _pairs = [p for p in qs.split("&") if p]
+    if len(_pairs) > QUERY_MAX_PARAMS:
+        return False, QUERY_WHY_TOO_MANY_PARAMS
+    # ③ طول اسم المعاملة  ④ طول قيمة المعاملة
+    for _pair in _pairs:
+        _name, _sep, _value = _pair.partition("=")
+        if len(_name) > QUERY_MAX_NAME_CHARS:
+            return False, QUERY_WHY_NAME_TOO_LONG
+        if len(_value) > QUERY_MAX_VALUE_CHARS:
+            return False, QUERY_WHY_VALUE_TOO_LONG
+    return True, None
+
+
+def _build_clean_query(qs):
+    """⛔ المعالج الأساسي: يحوّل الـquery الخام لـdict نظيف.
+
+    📌 نفس قواعد الجولة ١٣/١٤/١٥ (تطهير · سقوف · تكرار).
+    """
+    try:
+        from urllib.parse import parse_qsl as _parse_qsl
+    except Exception:
+        from urlparse import parse_qsl as _parse_qsl
+    raw = {}
+    for _k, _v in _parse_qsl(qs, keep_blank_values=True):
+        raw.setdefault(_k, _v)
+    if not raw:
+        # ⛔ الاحتياط: نقرأ الـargs إذا القوسترينك مش في البيئة
+        try:
+            for _k, _v in request.args.items():
+                raw.setdefault(str(_k), _v)
+        except Exception:
+            pass
+    clean = {}
+    for k, v in raw.items():
+        kl = str(k).lower()
+        if kl in ("code", "symbol", "codes"):
+            # ⛔ ⛔ مهم: التوكن بيتنقل كـquery في بعض الـendpoints
+            #   وهو base64 مش ticker — التنظيف هنا كان بيكسر التوقيع
+            #   فكل توكنIssued بيترفض فوراً (401).
+            #   ⛌ التوكن بيتشال من التنضيف خالص — مش هننضفه أبداً.
+            if "token" in kl or "." in str(v):
+                clean[k] = clean_text(v, 400)
+            else:
+                clean[k] = clean_code(v) or ""
+        elif kl in ("limit", "count", "days", "n", "top", "periods"):
+            clean[k] = clean_num(v, 1, 2000, 20)
+        elif kl in ("min_score", "min_safety", "min_liquidity", "max_risk",
+                    "max_pe", "min_div_yield"):
+            clean[k] = clean_num(v, 0, 1000, None)
+        else:
+            clean[k] = clean_text(v, 300)
+    return clean
+
+
+def _strict_safe_query(qs):
+    """⛔ التنظيف الاحتياطي (الجولة ١٤): حروف مسموحة فقط + سقف ٦٠.
+
+    📌 بيستخدم كمان لما التطبيق الرئيسي يبقى فشل (fail-closed).
+    """
+    _safe = {}
+    for _pair in qs.split("&"):
+        if not _pair:
+            continue
+        _k, _, _v = _pair.partition("=")
+        _k = "".join(ch for ch in _k if ch.isalnum() or ch in "._-")[:60]
+        if not _k:
+            continue
+        _v = "".join(ch for ch in _v if ch.isalnum() or ch in "._-:")[:60]
+        _safe[_k] = _v
+    return _safe
+
+
+def _apply_clean_query(qs_text):
+    """⛔⛔⛔ يطبّق الـquery المنقّى على الـrequest ⬇️
+
+    ⏎ True = اتطبّق · False = فشل ⇒ لازم fail-closed (رفض ٤٠٠).
+
+    🐞🛡️ الجولة ١٦ — التلات خطوات **كلهم مطلوبين** ⬇️
+    📌 ⬇️ ① كتابة environ["QUERY_STRING"] ⬇️
+    📌 ⬇️ ② كتابة request.query_string (bytes) ⬇️
+    📌 ⬇️ ③ إبطال كاش request.args / request.url ⬇️
+    ⛔ لو واحدة فيهم وقعت ⇒ الـroute ممكن يشوف القيم الخام ⬇️
+    ⛔ ⇒ considered فشل ⇒ بنرفض الطلب (مش نكمّل في حالة ملتبسة) ⬇️
+    """
+    _ok = True
+    try:
+        request.environ["QUERY_STRING"] = qs_text
+    except Exception:
+        _ok = False
+    try:
+        request.query_string = qs_text.encode("latin1", "replace")
+    except Exception:
+        _ok = False
+    try:
+        request.__dict__.pop("args", None)
+        request.__dict__.pop("url", None)
+    except Exception:
+        _ok = False
+    return _ok
+
+
+def _clear_request_query():
+    """⛔⛔⛔ يفرّغ الـquery من الـrequest (fail-closed) ⬇️
+
+    ⛔ الخطأ هنا مش مهم — المهم نتفشّل نتفرّغ.
+    ⛔ الهدف: مافيش handler بعدنا يقدر يعكس الـquery الخام.
+    """
+    try:
+        request.environ["QUERY_STRING"] = ""
+    except Exception:
+        pass
+    try:
+        request.query_string = b""
+    except Exception:
+        pass
+    try:
+        request.__dict__.pop("args", None)
+        request.__dict__.pop("url", None)
+    except Exception:
+        pass
+
+
+def _reject_query(why, error_text):
+    """⛔⛔⛔ رفض ٤٠٠ صريح — بعد تفريغ الـquery ⬇️
+
+    ⛔ الرد **مالوش** أي جزء من الـquery الخام:
+       رسالة ثابتة + كود السبب (`why`) بس.
+    """
+    _clear_request_query()
+    try:
+        return jsonify({
+            "ok": False,
+            "error": error_text,
+            "why": why,
+        }), 400
+    except Exception:
+        try:
+            return jsonify({
+                "ok": False,
+                "error": "bad request",
+                "why": why,
+            }), 400
+        except Exception:
+            return "bad request", 400
+
+
+def _safe_log_text(err):
+    """⛔ نص الخطأ في اللوج — بدون أي حرف من الـquery الخام."""
+    try:
+        _txt = str(err)
+    except Exception:
+        return "unknown"
+    _out = "".join(ch for ch in _txt
+                   if ch.isascii() and (ch.isalnum() or ch in "._-:"))
+    return _out[:120] or "unknown"
+
+
 @app.before_request
 def _sanitize_request():
     """بيتنضف كل طلب قبل أي route يلمسها.
-    ⛌ مش بنرمي 400 هنا — الـroutes نفسها بترجع 400 لو محتاجة.
-       الغرض إن الـroute يشوف قيمة نظيفة أو فاضية، مش نص مبتور.
 
-    🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔⛔⛔ ⬇️
-    📌 ⬇️ ⛔ كان: `request.args[k] = <value>` ⬇️ ⬇️ ⬇️
-    📌 ⬇️ ⛔ ⛔ و`request.args` في Flask = ImmutableMultiDict ⬇️ ⬇️ ⬇️
-    📌 ⬇️ ⛔ ⛔ ⇒ أول سطر بيعمل TypeError ⬇️ ⬇️ ⬇️
-    📌 ⬇️ ⛔ ⛔ ⇒ و`except: pass` كان بيبلعها ⬇️ ⬇️ ⬇️
-    📌 ⬇️ ⛔ ⛔ ⇒ **التنظيف كله ما كانش بيحصل** ⬇️ ⬇️ ⬇️
-    📌 ⬇️ ⛔ ⛔ ⇒ أي query مفتوح (طويل / فيه سكربت / رقم مفتوح) ⬇️ ⬇️ ⬇️
-    ✅ الحل: نبني نسخة **جديدة** من الـquery ونمثّلها في الـenviron ⬇️
-    ✅ + نمسح الكاش (args/url) + **نطبع الخطأ** (مافيش بلع صامت) ⬇️
+    🐞🛡️ الجولة ١٦ — ثلاث طبقات، كلها **fail-closed** ⬇️
+      ⓪ حدود الـquery (قبل أي parse) ⇒ رفض ٤٠٠ صريح (query_too_long
+        · too_many_params · param_name_too_long · param_value_too_long)
+      ① التنظيف الأساسي ⇒ query نظيف داخل الـrequest
+      ② تنظيف احتياطي صارم (الجولة ١٤) ⇒ لو الأساسي وقع
+      ③ لو الاتنين وقعوا ⇒ رفض ٤٠٠ صريح (query_sanitize_failed)
+
+    📌 ⬇️ ⓪ هي الأهم: بتتحقق **قبل** أي parse وقبل ما أي قيمة ⬇️
+    📌 ⬇️ تُستخدم ⇒ مفيش قيمة خام واحدة بتمشي لحد الـroute ⬇️
+
+    📌 ⬇️ سبب الرفض (fail-closed) راجع للجولة ١٤/١٥: ⬇️
+    📌 ⬇️ كان: لو التنظيف وقع ⇒ الـquery بيتفرّغ والطلب بيكمل (200) ⬇️
+    📌 ⬇️ ⇒ دلوقتي: لو مقدرش نضمن تنظيف ⇒ **نرفض الطلب بوضوح** ⬇️
     """
+    # ── ⓪ حدود آمنة قبل أي تحليل (fail-closed مبكر) ──
+    _qs = _query_raw_string()
+    _ok, _why = _query_limits_check(_qs)
+    if not _ok:
+        print("  ⛔ رفض الطلب (%s): الـquery تجاوز الحدود المسموحة" % _why,
+              flush=True)
+        return _reject_query(
+            _why, "الطلب مرفوض — الـquery تجاوز الحدود المسموحة")
+
     try:
-        # ⛔⛔⛔ 16 نوفمبر 2026 — التنظيف: نقرأ القوسترينك
-        # يقرأ متعفل أوقل فيكرب (dict عادي مقابل نوعيوني)
-        # ⇒ `request.args.to_dict()` كانت ستعطل باتعاد والتنظيف مااشش بالفايل.
-        # ⛔ الحل: نقرأ القوسترينك من الّبيئة ونحلّلها بنفسها.
-        try:
-            from urllib.parse import parse_qsl as _parse_qsl
-        except Exception:
-            from urlparse import parse_qsl as _parse_qsl
-        _qs = ""
-        try:
-            _qs = request.environ.get("QUERY_STRING", "") or ""
-        except Exception:
-            _qs = ""
-        raw = {}
-        for _k, _v in _parse_qsl(_qs, keep_blank_values=True):
-            raw.setdefault(_k, _v)
-        if not raw:
-            # ⛔ الاحتياط: نقرأ القوسترينك إذا متعمل في البيئة
-            try:
-                for _k, _v in request.args.items():
-                    raw.setdefault(str(_k), _v)
-            except Exception:
-                pass
-        if not raw:
-            return
-        clean = {}
-        for k, v in raw.items():
-            kl = str(k).lower()
-            if kl in ("code", "symbol", "codes"):
-                # ⛔ ⛔ مهم: التوكن بيتنقل كـquery في بعض الـendpoints
-                #   وهو base64 مش ticker — التنظيف هنا كان بيكسر التوقيع
-                #   فكل توكنIssued بيترفض فوراً (401).
-                #   ⛌ التوكن بيتشال من التنضيف خالص — مش هننضفه أبداً.
-                if "token" in kl or "." in str(v):
-                    clean[k] = clean_text(v, 400)
-                else:
-                    clean[k] = clean_code(v) or ""
-            elif kl in ("limit", "count", "days", "n", "top", "periods"):
-                clean[k] = clean_num(v, 1, 2000, 20)
-            elif kl in ("min_score", "min_safety", "min_liquidity", "max_risk",
-                        "max_pe", "min_div_yield"):
-                clean[k] = clean_num(v, 0, 1000, None)
-            else:
-                clean[k] = clean_text(v, 300)
-        # ⛔⛔⛔ method ImmutableMultiDict مش بيقبل التعديل ⬇️
-        # 📌 ⬇️ الحل: نكتب الـquery الجديد في الـenviron ⬇️
-        # 📌 ⬇️ ونمسح الكاش (args/url) عشان يُعاد بناؤه ⬇️
-        _clean_qs = _urlencode(clean, doseq=False)
-        # ⬜️ 17 نوفمبر 2026 (الجولة 15) — التنظيف يشتغل تكميلات:
-        # ⬜️ إذا القوسترينك الحقيقي مافيش فيها environ
-        # (الستاب الحقيقي) ⇒ نكتب هناك على القوسترينك مباشرة أصل.
-        _has_env = False
-        try:
-            request.environ["QUERY_STRING"] = _clean_qs
-            _has_env = True
-        except Exception:
-            try:
-                request.args = dict(clean)
-                _has_env = False
-            except Exception:
-                pass
-        # ⬜️ 17 نوفمبر 2026 (الجولة 15) — ⬜️ التنظيف كان ميتأثر:
-        # Werkzeug >= 2.3 بيخذ نسخة من القوسترينك وقت بناء الريسط
-        # (werkzeug/wrappers/request.py) ⇒ تعديل `environ` وحده مابيشّ صورة.
-        # ⬜️ الحل: نكتب النسخة معقولة نقرأنا نقرأها منفصلة.
-        if _has_env:
-            try:
-                request.query_string = _clean_qs.encode("latin1", "replace")
-            except Exception:
-                pass
-            try:
-                request.__dict__.pop("args", None)
-                request.__dict__.pop("url", None)
-            except Exception:
-                pass
+        _clean = _build_clean_query(_qs)
+        if not _clean:
+            return None            # ⛌ مافيش query ⇒ مافيش شغل
+        _clean_qs = _urlencode(_clean, doseq=False)
+        if not _apply_clean_query(_clean_qs):
+            raise RuntimeError("apply_clean_query_failed")
     except Exception as e:
-        _has_env = True   # ⬜️ البيئة الحقيقية · الرفض بواسط يقابل
-        # ⛔⛔⛔ **مافيش بلع صامت**مافيش بلع صامت** ⬇️ (كان `pass` وبس ⬇️)
+        # ⛔⛔⛔ **مافيش بلع صامت** (كان `pass` وبس) ⬇️
         print("  ⛔ فشل تنضيف الطلب (%s): %s"
-              % (type(e).__name__, str(e)[:120]), flush=True)
-        # ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — fail-closed:
-        #   ⛔ لو التنظيف وقع ⇒ **ممنوع** يمرّ مدخل خطير زي ما هو.
-        #   ⇒ تنظيف احتياطي صارم (حروف مسموحة فقط + سقف ٦٠ محرف)
-        #     وبيسجّل الخطأ. لو حتى هو وقع ⇒ الـquery بيتفرّغ.
+              % (type(e).__name__, _safe_log_text(e)), flush=True)
+        # ── ② التنظيف الاحتياطي الصارم (الجولة ١٤) ──
         try:
-            _qs2 = ""
-            try:
-                _qs2 = request.environ.get("QUERY_STRING", "") or ""
-            except Exception:
-                _qs2 = ""
-            _safe = {}
-            for _pair in _qs2.split("&"):
-                if not _pair:
-                    continue
-                _k, _, _v = _pair.partition("=")
-                _k = "".join(ch for ch in _k if ch.isalnum() or ch in "._-")[:60]
-                if not _k:
-                    continue
-                _v = "".join(ch for ch in _v if ch.isalnum() or ch in "._-:")[:60]
-                _safe[_k] = _v
+            _safe = _strict_safe_query(_query_raw_string())
             _safe_qs = _urlencode(_safe, doseq=False)
-            try:
-                request.environ["QUERY_STRING"] = _safe_qs
-            except Exception:
-                try:
-                    request.args = dict(_safe)
-                except Exception:
-                    pass
-            try:
-                _has_env2 = True
-                request.environ["QUERY_STRING"] = _safe_qs
-            except Exception:
-                _has_env2 = False
-                try:
-                    request.args = dict(_safe)
-                except Exception:
-                    pass
-            if _has_env2:
-                try:
-                    request.query_string = _safe_qs.encode("latin1", "replace")
-                except Exception:
-                    pass
-                try:
-                    request.__dict__.pop("args", None)
-                    request.__dict__.pop("url", None)
-                except Exception:
-                    pass
-        except Exception:
-            # ⬜️ 17 نوفمبر 2026 (الجولة 15 · بند المالك) — تعذًر التنظيف:
-            # ⬜️ مافيش ضمان تنظيف تمام ⇒ نرفض الطلب بوضح — مش إكمال في حالة ملتبسة.
-            try:
-                request.environ["QUERY_STRING"] = ""
-                try:
-                    request.query_string = b""
-                except Exception:
-                    pass
-                request.__dict__.pop("args", None)
-                request.__dict__.pop("url", None)
-            except Exception:
-                pass
-            try:
-                # ⬜️ الرفض بواسط بالقوسترينك الحقيقي:
-                # ⛔️ في البيئة الحقيقية بسبين مامون التطييق إلى مابيوت معاولة.
-                if not _has_env:
-                    return None
-                return jsonify({
-                    "ok": False,
-                    "error": "الطلب ممون منفص — إعد الطلب واستأنه",
-                    "why": "query_sanitize_failed",
-                }), 400
-            except Exception:
-                return "bad request", 400
+            if not _apply_clean_query(_safe_qs):
+                raise RuntimeError("apply_safe_query_failed")
+        except Exception as e2:
+            print("  ⛔ فشل التنظيف الاحتياطي (%s): %s"
+                  % (type(e2).__name__, _safe_log_text(e2)), flush=True)
+            # ── ③ fail-closed: مافيش ضمان تنظيف ⇒ رفض صريح ──
+            return _reject_query(
+                QUERY_WHY_SANITIZE_FAILED,
+                "الطلب مرفوض — تعذّر تنضيف الـquery")
+    return None
 
 
 
