@@ -115,11 +115,13 @@ def price_label_for(market_phase="unknown", stale=False, data_state=None,
        ⛔ الاختبار السالب: سوق مفتوح + سعر بلا price_ts ⇒
           التسمية **ما ينفعش** تكون «سعر التداول الآن».
     """
+    # ⛔⛔ ترتيب الأسبقية: «قديم» أقوى من «مافيش توقيت» ⇒
+    #    السهم من الكاش (قديم) يُوصف قديم حتى لو مافيش توقيت من المصدر.
+    if stale or data_state == "stale":
+        return "آخر سعر معروف"
     # ⛔ مافيش توقيت موثوق من المصدر ⇒ ممنوع أي ادعاء لحظية
     if str(price_time_source or "") != "source":
         return "آخر سعر متاح"
-    if stale or data_state == "stale":
-        return "آخر سعر معروف"
     ph = str(market_phase or "unknown").lower()
     if ph == "open":
         return "سعر التداول الآن"
