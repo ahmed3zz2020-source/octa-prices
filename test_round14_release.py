@@ -218,11 +218,32 @@ class TestPriceDescription(unittest.TestCase):
                 if it.get("code") == "AAA":
                     item = it
         self.assertIsNotNone(item)
-        self.assertEqual(item.get("price_label"), "سعر التداول الآن")
+        # ⬜️ الجولة 15 (ملاحظة المالك) — مافيش توقيت من المصدر ⇒ ممنوع ادعاء لحظية
+        self.assertEqual(item.get("price_label"), "آخر سعر متاح")
+        self.assertNotIn("الآن", item.get("price_label") or "")
         self.assertEqual(item.get("data_received_at"), "2026-11-17T10:00:00Z")
         # ⛔ المصدر مابيعطيش وقت السعر ⇒ null + تعلن إن المصدر مابقّدش
         self.assertIsNone(item.get("price_as_of"))
         self.assertEqual(item.get("price_time_source"), "not_provided")
+
+    def test_item_with_source_price_time_claims_current(self):
+        """\u26d4\u26d4 \u0628\u062a\u0648\u0642\u064a\u062a \u0645\u0646 \u0627\u0644\u0645\u0635\u062f\u0631 \u21d2 \u062a\u0633\u0645\u064a \u00ab\u0633\u0639\u0631 \u0627\u0644\u062a\u062f\u0627\u0648\u0644 \u0627\u0644\u0622\u0646\u00bb
+        (\u0627\u0644\u0645\u0633\u0627\u0631 \u0627\u0644\u0633\u0644\u064a\u0645 \u0644\u0627 \u064a\u062f\u0639\u0649 \u0648\u0642\u062a\u0627\u064b \u0644\u0644\u0633\u0639\u0631\u0629 \u21d2 \u0627\u0644\u0645\u0633\u062a\u062d\u0642\u064a \u0627\u0644\u0627\u062f\u0639\u0627\u0621 \u0645\u062d\u0642\u064a\u0642\u064a\u0629).
+        """
+        st = _stock("BBB", price_ts="2026-11-17T09:59:00Z")
+        meta = {"generated_at": "2026-11-17T10:00:00Z", "source": "live",
+                "market_phase": "open"}
+        p = oe.build_payload([st], None, meta)
+        item = None
+        for lst in (p.get("lists") or {}).values():
+            for it in (lst.get("items") or []):
+                if it.get("code") == "BBB":
+                    item = it
+        self.assertIsNotNone(item)
+        self.assertEqual(item.get("price_label"), "سعر التداول الآن")
+        self.assertEqual(item.get("price_time_source"), "source")
+        self.assertEqual(item.get("price_as_of"), "2026-11-17T09:59:00Z")
+
 
     def test_cached_item_label_is_not_closing_price(self):
         st = _stock("CACHE1", stale=True, stale_ts="2026-11-16T22:00:00Z")

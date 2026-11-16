@@ -923,22 +923,36 @@ def _sanitize_request():
         # 📌 ⬇️ الحل: نكتب الـquery الجديد في الـenviron ⬇️
         # 📌 ⬇️ ونمسح الكاش (args/url) عشان يُعاد بناؤه ⬇️
         _clean_qs = _urlencode(clean, doseq=False)
-        request.environ["QUERY_STRING"] = _clean_qs
+        # \u2b1c\ufe0f 17 \u0646\u0648\u0641\u0645\u0628\u0631 2026 (\u0627\u0644\u062c\u0648\u0644\u0629 15) \u2014 \u0627\u0644\u062a\u0646\u0638\u064a\u0641 \u064a\u0634\u062a\u063a\u0644 \u062a\u0643\u0645\u064a\u0644\u0627\u062a:
+        # \u2b1c\ufe0f \u0625\u0630\u0627 \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643 \u0627\u0644\u062d\u0642\u064a\u0642\u064a \u0645\u0627\u0641\u064a\u0634 \u0641\u064a\u0647\u0627 environ
+        # (\u0627\u0644\u0633\u062a\u0627\u0628 \u0627\u0644\u062d\u0642\u064a\u0642\u064a) \u21d2 \u0646\u0643\u062a\u0628 \u0647\u0646\u0627\u0643 \u0639\u0644\u0649 \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643 \u0645\u0628\u0627\u0634\u0631\u0629 \u0623\u0635\u0644.
+        _has_env = False
+        try:
+            request.environ["QUERY_STRING"] = _clean_qs
+            _has_env = True
+        except Exception:
+            try:
+                request.args = dict(clean)
+                _has_env = False
+            except Exception:
+                pass
         # \u2b1c\ufe0f 17 \u0646\u0648\u0641\u0645\u0628\u0631 2026 (\u0627\u0644\u062c\u0648\u0644\u0629 15) \u2014 \u2b1c\ufe0f \u0627\u0644\u062a\u0646\u0638\u064a\u0641 \u0643\u0627\u0646 \u0645\u064a\u062a\u0623\u062b\u0631:
         # Werkzeug >= 2.3 \u0628\u064a\u062e\u0630 \u0646\u0633\u062e\u0629 \u0645\u0646 \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643 \u0648\u0642\u062a \u0628\u0646\u0627\u0621 \u0627\u0644\u0631\u064a\u0633\u0637
         # (werkzeug/wrappers/request.py) \u21d2 \u062a\u0639\u062f\u064a\u0644 `environ` \u0648\u062d\u062f\u0647 \u0645\u0627\u0628\u064a\u0634\u0651 \u0635\u0648\u0631\u0629.
         # \u2b1c\ufe0f \u0627\u0644\u062d\u0644: \u0646\u0643\u062a\u0628 \u0627\u0644\u0646\u0633\u062e\u0629 \u0645\u0639\u0642\u0648\u0644\u0629 \u0646\u0642\u0631\u0623\u0646\u0627 \u0646\u0642\u0631\u0623\u0647\u0627 \u0645\u0646\u0641\u0635\u0644\u0629.
-        try:
-            request.query_string = _clean_qs.encode("latin1", "replace")
-        except Exception:
-            pass
-        try:
-            request.__dict__.pop("args", None)
-            request.__dict__.pop("url", None)
-        except Exception:
-            pass
+        if _has_env:
+            try:
+                request.query_string = _clean_qs.encode("latin1", "replace")
+            except Exception:
+                pass
+            try:
+                request.__dict__.pop("args", None)
+                request.__dict__.pop("url", None)
+            except Exception:
+                pass
     except Exception as e:
-        # ⛔⛔⛔ **مافيش بلع صامت** ⬇️ (كان `pass` وبس ⬇️)
+        _has_env = True   # ⬜️ البيئة الحقيقية · الرفض بواسط يقابل
+        # ⛔⛔⛔ **مافيش بلع صامت**مافيش بلع صامت** ⬇️ (كان `pass` وبس ⬇️)
         print("  ⛔ فشل تنضيف الطلب (%s): %s"
               % (type(e).__name__, str(e)[:120]), flush=True)
         # ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — fail-closed:
@@ -962,16 +976,32 @@ def _sanitize_request():
                 _v = "".join(ch for ch in _v if ch.isalnum() or ch in "._-:")[:60]
                 _safe[_k] = _v
             _safe_qs = _urlencode(_safe, doseq=False)
-            request.environ["QUERY_STRING"] = _safe_qs
             try:
-                request.query_string = _safe_qs.encode("latin1", "replace")
+                request.environ["QUERY_STRING"] = _safe_qs
             except Exception:
-                pass
+                try:
+                    request.args = dict(_safe)
+                except Exception:
+                    pass
             try:
-                request.__dict__.pop("args", None)
-                request.__dict__.pop("url", None)
+                _has_env2 = True
+                request.environ["QUERY_STRING"] = _safe_qs
             except Exception:
-                pass
+                _has_env2 = False
+                try:
+                    request.args = dict(_safe)
+                except Exception:
+                    pass
+            if _has_env2:
+                try:
+                    request.query_string = _safe_qs.encode("latin1", "replace")
+                except Exception:
+                    pass
+                try:
+                    request.__dict__.pop("args", None)
+                    request.__dict__.pop("url", None)
+                except Exception:
+                    pass
         except Exception:
             # \u2b1c\ufe0f 17 \u0646\u0648\u0641\u0645\u0628\u0631 2026 (\u0627\u0644\u062c\u0648\u0644\u0629 15 \u00b7 \u0628\u0646\u062f \u0627\u0644\u0645\u0627\u0644\u0643) \u2014 \u062a\u0639\u0630\u064b\u0631 \u0627\u0644\u062a\u0646\u0638\u064a\u0641:
             # \u2b1c\ufe0f \u0645\u0627\u0641\u064a\u0634 \u0636\u0645\u0627\u0646 \u062a\u0646\u0638\u064a\u0641 \u062a\u0645\u0627\u0645 \u21d2 \u0646\u0631\u0641\u0636 \u0627\u0644\u0637\u0644\u0628 \u0628\u0648\u0636\u062d \u2014 \u0645\u0634 \u0625\u0643\u0645\u0627\u0644 \u0641\u064a \u062d\u0627\u0644\u0629 \u0645\u0644\u062a\u0628\u0633\u0629.
@@ -986,6 +1016,10 @@ def _sanitize_request():
             except Exception:
                 pass
             try:
+                # \u2b1c\ufe0f \u0627\u0644\u0631\u0641\u0636 \u0628\u0648\u0627\u0633\u0637 \u0628\u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643 \u0627\u0644\u062d\u0642\u064a\u0642\u064a:
+                # \u26d4\ufe0f \u0641\u064a \u0627\u0644\u0628\u064a\u0626\u0629 \u0627\u0644\u062d\u0642\u064a\u0642\u064a\u0629 \u0628\u0633\u0628\u064a\u0646 \u0645\u0627\u0645\u0648\u0646 \u0627\u0644\u062a\u0637\u064a\u064a\u0642 \u0625\u0644\u0649 \u0645\u0627\u0628\u064a\u0648\u062a \u0645\u0639\u0627\u0648\u0644\u0629.
+                if not _has_env:
+                    return None
                 return jsonify({
                     "ok": False,
                     "error": "\u0627\u0644\u0637\u0644\u0628 \u0645\u0645\u0648\u0646 \u0645\u0646\u0641\u0635 \u2014 \u0625\u0639\u062f \u0627\u0644\u0637\u0644\u0628 \u0648\u0627\u0633\u062a\u0623\u0646\u0647",

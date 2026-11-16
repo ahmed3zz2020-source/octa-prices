@@ -119,13 +119,17 @@ def call(path, method="POST", body=None, ip="10.0.0.1", token=None):
     return app.dispatch(path, method=method, body=body, headers=h)
 
 
-def login(pin, ip="10.0.0.1", device=A_DEV):
+def login(pin, ip="10.0.0.1", device=None):
     """⛌ دخول بالباسورد — ومعاه بصمة الجهاز.
 
        ⛔⛔⛔ بصمة الجهاز **شرط** في التصميم الحالي (٢٤ أكتوبر ٢٠٢٦):
           الجهاز لازم يكون مسجّل على الحساب. من غيرها (أو من جهاز
           تاني) ⇒ 401 «جهازك مش معروف» + need_code — مش قفل.
+
+       ⛌ device = "" ⇒ طلب من غير بصمة (للاختبار).
     """
+    if device is None:
+        device = A_DEV
     body = {"pin": pin}
     if device:
         body["device"] = device
@@ -136,6 +140,18 @@ def login(pin, ip="10.0.0.1", device=A_DEV):
 #    الباسورد **لوحده** ما يفتحش حساب. لازم الجهاز يكون **مسجّل**
 #    على الحساب (bio_hash). جهاز جديد ⇒ 401 + need_code ⇒ كود إيميل.
 #    ⛌ الأرقام دي **للاختبار** بس — ماشيطة في أي ملف بالمشروع
+def _rl_body(r):
+    """📄 جسم رد **سقف الطلبات**.
+
+       ⛌ في Flask بيرجع الرد عادي (dict) — وفي الـstub بيرجع
+          (الرد، 429) كـtuple. الاختبار بيفحص المحتوى مش الشكل.
+    """
+    b = r.get_json()
+    if isinstance(b, tuple):
+        b = b[0].get_json() if hasattr(b[0], "get_json") else b[0]
+    return b or {}
+
+
 A_PIN, A_EMAIL = "7314", "amina@example.com"
 B_PIN, B_EMAIL = "4826", "karim@example.com"
 # ⬜️ بصمة الجهاز — ١٦..٢٠٠ حرف، ومفيش أرقام متتالية (٤ أرقام)
@@ -155,6 +171,11 @@ def code_of(html):
 def canon(r):
     """الرد كملف نصي — للمقارنة حرف بحرف"""
     return json.dumps(r.get_json() or {}, ensure_ascii=False, sort_keys=True)
+
+
+def _lock_state():
+    """📄 حالة ملف القفل على القرص — زي ما السيرفر شايفها"""
+    return json.loads(up.PINLOCK_FILE.read_text(encoding="utf-8"))
 
 
 def start_signup(email, name="تجربة", ip="10.0.0.1"):
@@ -183,15 +204,19 @@ def unlock_for(email, name="تجربة", ip="10.0.0.1"):
     return u
 
 
-def signup(pin, email, name="تجربة", ip="10.0.0.1"):
+def signup(pin, email, name="تجربة", ip="10.0.0.1", device=A_DEV):
     """
     ⛔⛔ تسجيل كامل بالمسار الجديد: ① ← ② ← ③.
 
     بيرجّع (توكن الجلسة، رد ③). الكود بيتقرا من الإيميل
     himself — مش من متغير في السيرفر.
+
+    ⛌ الخطوة ③ (newpin) بتبعت بصمة الجهاز — عشان الحساب يتسجّل
+       عليه الجهاز من أول لحظة (تصميم ٢٤ أكتوبر ٢٠٢٦). من غيرها
+       الحساب يبقى «مفيش جهاز معروف» ⇒ كل دخول يطلب كود إيميل.
     """
     u = unlock_for(email, name, ip)
-    r = call(NEWPIN, body={"new_pin": pin}, ip=ip, token=u)
+    r = call(NEWPIN, body={"new_pin": pin, "device": device}, ip=ip, token=u)
     ok(r.status_code == 200, "newpin %s → %s %s" % (email, r.status_code,
                                                     canon(r)))
     return (r.get_json() or {}).get("token"), r
@@ -302,7 +327,8 @@ print("\n▸ ②  الدخول")
 
 
 def t_login_ok():
-    r = call(LOG, body={"pin": A_PIN})
+    """⛔ الدخول من **الجهاز المسجّل على الحساب** → 200 + توكن صالح"""
+    r = login(A_PIN)
     ok(r.status_code == 200, "الحالة %s — %s" % (r.status_code, r.get_json()))
     b = r.get_json()
     ok(b.get("token") and b["user"]["id"] == A_UID, "الرد غلط: %s" % b)
@@ -310,13 +336,69 @@ def t_login_ok():
     ok(r2.status_code == 200, "التوكن مش صالح على /me")
 
 
-t("دخول بـpin صح → 200 + توكن صالح", t_login_ok)
+t("دخول بـpin صح (من جهاز مسجّل) → 200 + توكن صالح", t_login_ok)
+
+
+def t_login_needs_device():
+    """⛔⛔⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ ملكية الجهاز.
+
+       ⛌ الباسورد **لوحده** ما يفتحش حساب: لازم الجهاز يكون
+          مسجّل على الحساب (bio_hash). من غير بصمة ⇒ 401
+          «محتاج كود على الإيميل» + need_code — **مش** قفل.
+       ⛌ ومن جهاز **مش مسجّل** ⇒ نفس الرد بالظبط.
+       ⛌⛔⛔⛔ الأهم: «جهاز غير معروف» **مش** خطأ باسورد ⇒
+          ما يتحسبش في عدّاد المحاولات الخاطئة إطلاقًا
+          (لو اتحسب، المستخدم بيتقفل من غير سبب).
+    """
+    # ⛌ ① من غير بصمة device خالص
+    r = call(LOG, body={"pin": A_PIN}, ip="10.0.0.8")
+    ok(r.status_code == 401, "من غير device → %s مش 401" % r.status_code)
+    b = r.get_json() or {}
+    ok(b.get("why") == "new_device", "السبب %s" % b.get("why"))
+    ok(b.get("need_code") is True, "need_code مش true")
+    ok(b.get("next") == "challenge/send", "المسار %s" % b.get("next"))
+    ok(b.get("attempts_left") == 0, "attempts_left %s" % b.get("attempts_left"))
+    ok("token" not in b, "⛔ رجّع توكن من غير جهاز مسجّل!")
+    # ⛌ ② من جهاز مش مسجّل على الحساب
+    r2 = login(A_PIN, ip="10.0.0.9", device=GUEST_DEV)
+    ok(r2.status_code == 401, "جهاز غريب → %s مش 401" % r2.status_code)
+    b2 = r2.get_json() or {}
+    ok(b2.get("why") == "new_device", "السبب %s" % b2.get("why"))
+    ok(b2.get("need_code") is True, "need_code مش true")
+    ok("token" not in b2, "⛔ رجّع توكن من جهاز غريب!")
+    # ⛌⛔⛔ ③ العدّاد ما يتحسبش — «جهاز غير معروف» مش محاولة فاشلة
+    st = _lock_state()
+    k_ip = "i:" + __import__("hashlib").sha256(
+        b"ip|10.0.0.9").hexdigest()[:16]
+    rec = (st.get("k") or {}).get(k_ip) or {}
+    ok(not rec.get("f"),
+       "⛔⛔ «جهاز غير معروف» اتحسب محاولة فاشلة: %s" % rec)
+    ok(up._pin_window_peek(up._pin_keys(ip="10.0.0.9")) == 0,
+       "⛔⛔ «جهاز غير معروف» اتحسب في نافذة الـ٦٠ ثانية")
+    # ⛌ ④ والباسورد **الغلط** لسه بيرجع «الباسورد غلط» (مش new_device)
+    r3 = login("4444", ip="10.0.0.9", device=A_DEV)
+    ok(r3.status_code == 401, "باسورد غلط → %s" % r3.status_code)
+    ok((r3.get_json() or {}).get("why") == "bad_pin",
+       "السبب %s" % (r3.get_json() or {}).get("why"))
+
+
+t("دخول من جهاز مش مسجّل → 401 + need_code (ومافيش عدّاد)", t_login_needs_device)
 
 
 def t_login_bad():
-    r = call(LOG, body={"pin": "1111"})
+    """⛌ الباسورد الغلط ⇒ 401 «الباسورد غلط» + عدّاد النافذة"""
+    ip = "10.43.0.1"
+    up._pinlock_reset(up._pin_keys(pin="5554", ip=ip))
+    up._pin_window_reset(up._pin_keys(pin="5554", ip=ip))
+    r = call(LOG, body={"pin": "5554", "device": A_DEV}, ip=ip)
     ok(r.status_code == 401, "الحالة %s مش 401" % r.status_code)
     ok((r.get_json() or {}).get("why") == "bad_pin", "السبب غلط")
+    # ⛌ عدّاد النافذة (القاعدة ①): بعد أول محاولة فاشلة
+    #    يفضل ٣ فرص (الحد ٤ محاولات في ٦٠ ثانية)
+    ok((r.get_json() or {}).get("attempts_left") == 3,
+       "attempts_left %s" % (r.get_json() or {}).get("attempts_left"))
+    ok((r.get_json() or {}).get("window") == 60,
+       "النافذة %s" % (r.get_json() or {}).get("window"))
 
 
 t("دخول بـpin غلط → 401", t_login_bad)
@@ -326,6 +408,7 @@ def t_no_enumeration():
     """⛔⛔ الرد لازم يكون واحد: وجود الإيميل عندنا ولا لأ
        ما ينعكسش على الرد ولا على التوقيت."""
     import time as _t
+    ip = "10.43.0.2"
     bodies = []
     times = []
     for body in ({"pin": "1111"},
@@ -336,10 +419,10 @@ def t_no_enumeration():
         #    محاولات. عشان المقارنة تبقى عن نفس العمق، بنصفّر
         #    نافذة الـ٦٠ ثانية قبل كل نداء: التلات ردود لازم
         #    يطلعوا متطابقين حرف بحرف.
-        up._pin_window_reset(up._pin_keys(pin="1111", ip="10.0.0.1"))
-        up._pin_window_reset(up._pin_keys(pin="2222", ip="10.0.0.1"))
+        up._pin_window_reset(up._pin_keys(pin="1111", ip=ip))
+        up._pin_window_reset(up._pin_keys(pin="2222", ip=ip))
         t0 = _t.time()
-        r = call(LOG, body=body)
+        r = call(LOG, body=body, ip=ip)
         times.append(_t.time() - t0)
         b = dict(r.get_json() or {})
         bodies.append((r.status_code, b))
@@ -347,7 +430,7 @@ def t_no_enumeration():
        "⛔ الرد بيختلف حسب الإيميل: %s" % bodies)
     # ⛔ التوقيت: PBKDF2 وهمي لازم يخلي الفشل ياخد نفس وقت النجاح
     t0 = _t.time()
-    call(LOG, body={"pin": A_PIN})
+    login(A_PIN, ip=ip)
     good_t = _t.time() - t0
     ok(good_t > 0.005, "⛔ النجاح رجع في %sث — مفيش PBKDF2 خالص" % good_t)
     slow = max(times)
@@ -360,16 +443,31 @@ t("مافيش تسريب «الإيميل مسجّل ولا لأ» (رد + تو�
 
 print("\n▸ ③  القفل الذكي")
 
-
-def _lock_state():
-    return json.loads(up.PINLOCK_FILE.read_text(encoding="utf-8"))
+# ⛌ الـIP والباسورد المخصوصين باختبار القفل — عشان الاختبار
+#    ما يتلخبطش بعدّاد اختبار تاني (كل اختبار ليه عدّاده).
+LOCK_IP = "10.41.0.1"
+LOCK_PIN = "5555"
 
 
 def t_five_wrong():
+    """⛔⛔ القاعدة ② (القفل): ٥ محاولات غلط ⇒ 429 في الخامسة.
+
+       ⛌ والقاعدة ① (نافذة ٦٠ ثانية) شغّالة معاها: المحاولة
+          الرابعة جوه النافذة ⇒ 401 «محتاج كود إيميل» (مش قفل)،
+          والخامسة ⇒ القفل (١٥ دقيقة) — القاعدتين مع بعض.
+    """
+    up._pinlock_reset(up._pin_keys(pin=LOCK_PIN, ip=LOCK_IP))
+    up._pin_window_reset(up._pin_keys(pin=LOCK_PIN, ip=LOCK_IP))
     codes = []
+    whys = []
     for i in range(5):
-        codes.append(call(LOG, body={"pin": "5555"}).status_code)
+        r = call(LOG, body={"pin": LOCK_PIN}, ip=LOCK_IP)
+        codes.append(r.status_code)
+        whys.append((r.get_json() or {}).get("why"))
     ok(codes[:4] == [401] * 4, "المحاولات ١-٤ %s" % codes)
+    ok(whys[:3] == ["bad_pin"] * 3, "الأسباب ١-٣ %s" % whys[:3])
+    ok(whys[3] == "need_code",
+       "المحاولة الرابعة %s — المفروض need_code" % whys[3])
     ok(codes[4] == 429, "المحاولة ٥ رجّع %s مش 429" % codes[4])
     globals()["_codes"] = codes
 
@@ -378,7 +476,7 @@ t("٥ محاولات غلط → 429 في الخامسة", t_five_wrong)
 
 
 def t_retry_after():
-    r = call(LOG, body={"pin": "5555"})
+    r = call(LOG, body={"pin": LOCK_PIN}, ip=LOCK_IP)
     ok(r.status_code == 429, "بعد القفل: %s" % r.status_code)
     b = r.get_json()
     ra = b.get("retry_after")
@@ -407,7 +505,7 @@ t("العدّاد محفوظ على القرص (بيقاوم إعادة التش
 
 def t_correct_locked():
     """⛔ حتى الباسورد **الصحيح** مرفوض أثناء القفل"""
-    r = call(LOG, body={"pin": A_PIN})
+    r = login(A_PIN, ip=LOCK_IP)
     ok(r.status_code == 429,
        "الباسورد الصح دخل والقفل مفتوح — %s" % r.status_code)
 
@@ -422,8 +520,9 @@ def t_after_15():
     for k, v in (st.get("k") or {}).items():
         if float((v or {}).get("u") or 0):
             v["u"] = float(v["u"]) - 900 - 5
-    up.PINLOCK_FILE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
-    r = call(LOG, body={"pin": A_PIN})
+    up.PINLOCK_FILE.write_text(json.dumps(st, ensure_ascii=False),
+                               encoding="utf-8")
+    r = login(A_PIN, ip=LOCK_IP)
     ok(r.status_code == 200,
        "بعد ١٥ دقيقة الدخول رجع %s (المفروض 200) — %s"
        % (r.status_code, r.get_json()))
@@ -435,14 +534,18 @@ t("بعد ١٥ دقيقة الباسورد الصح يدخل تاني", t_after_
 def t_ip_lock():
     """⛔⛔ القفل على مستوى الـIP: ٥ باسوردات مختلفة من نفس الجهاز
        = قفل، حتى لو كل واحد منهم غلط مختلف."""
-    codes = [call(LOG, body={"pin": "66%02d" % i}, ip="10.9.9.9").status_code
+    ip = "10.9.9.9"
+    up._pinlock_reset(up._pin_keys(ip=ip))
+    up._pin_window_reset(up._pin_keys(ip=ip))
+    codes = [call(LOG, body={"pin": "66%02d" % i}, ip=ip).status_code
              for i in range(5)]
+    ok(codes[:4] == [401] * 4, "المحاولات ١-٤: %s" % codes)
     ok(codes[4] == 429, "٥ باسوردات مختلفة من نفس IP: %s" % codes)
     # ⛔ والباسورد الصح كمان مقفول من نفس الـIP
-    r = call(LOG, body={"pin": B_PIN}, ip="10.9.9.9")
+    r = login(B_PIN, ip=ip)
     ok(r.status_code == 429, "الباسورد الصح من IP مقفول → %s" % r.status_code)
     # ⛌ بس من IP تاني: الباسورد الصح عادي
-    r2 = call(LOG, body={"pin": B_PIN}, ip="10.9.9.10")
+    r2 = login(B_PIN, ip="10.9.9.10")
     ok(r2.status_code == 200, "من IP تاني → %s" % r2.status_code)
 
 
@@ -453,6 +556,8 @@ def t_pin_lock_across_ips():
     """⛔ العكس: **نفس** الباسورد الغلط من ٥ أجهزة مختلفة = قفل برضه.
        (يعني: ٥ محاولات من كل بلد لوحده = ٥ دول)
     """
+    up._pinlock_reset(up._pin_keys(pin="7700"))
+    up._pin_window_reset(up._pin_keys(pin="7700"))
     codes = [call(LOG, body={"pin": "7700"}, ip="10.8.8.%d" % i).status_code
              for i in range(5)]
     ok(codes[:4] == [401] * 4, "المحاولات ١-٤: %s" % codes)
@@ -461,8 +566,9 @@ def t_pin_lock_across_ips():
     r = call(LOG, body={"pin": "7700"}, ip="10.8.8.99")
     ok(r.status_code == 429, "من IP سادس → %s" % r.status_code)
     # ⛌ بس الباسورد الصح من جهاز سادس: الـpin مقفول، بس الـIP جديد
-    r2 = call(LOG, body={"pin": A_PIN}, ip="10.8.8.99")
-    ok(r2.status_code == 200, "الباسورد الصح من جهاز نظيف → %s" % r2.status_code)
+    r2 = login(A_PIN, ip="10.8.8.99")
+    ok(r2.status_code == 200,
+       "الباسورد الصح من جهاز نظيف → %s" % r2.status_code)
 
 
 t("القفل على الباسورد عبر أجهزة مختلفة", t_pin_lock_across_ips)
@@ -505,20 +611,26 @@ t("بعد أول قفل، القفل الجاي = ساعة", t_escalation)
 
 
 def t_counter_reset():
-    """⛌ المحاولة الصح تصفّر العدّاد"""
-    st = _lock_state()
-    for k, v in (st.get("k") or {}).items():
-        if float((v or {}).get("u") or 0):
-            v["u"] = 0
-    up.PINLOCK_FILE.write_text(json.dumps(st, ensure_ascii=False), encoding="utf-8")
-    ok(call(LOG, body={"pin": A_PIN}, ip="10.5.5.5").status_code == 200, "دخول")
-    st2 = _lock_state()
+    """⛌ المحاولة الصح تصفّر عدّاد الـIP (وعدّاد الباسورد كمان)"""
+    ip = "10.5.5.5"
+    up._pinlock_reset(up._pin_keys(ip=ip))
+    up._pin_window_reset(up._pin_keys(ip=ip))
+    # ⛌ ① محاولة غلط واحدة — العدّاد لازم يتحسب
+    bad = call(LOG, body={"pin": "1212", "device": A_DEV}, ip=ip)
+    ok(bad.status_code == 401, "المحاولة الغلط → %s" % bad.status_code)
     key = "i:" + __import__("hashlib").sha256(
         b"ip|10.5.5.5").hexdigest()[:16]
-    rec = (st2.get("k") or {}).get(key) or {}
-    ok(not rec.get("f"), "العدّاد لسه شغّال: %s" % rec)
-
-
+    rec = (_lock_state().get("k") or {}).get(key) or {}
+    ok(int(rec.get("f") or 0) >= 1,
+       "العدّاد ما اتحسبش أصلاً: %s" % rec)
+    # ⛌ ② المحاولة الصح ⇒ العدّاد يتصفّر
+    ok(login(A_PIN, ip=ip).status_code == 200, "دخول")
+    rec2 = (_lock_state().get("k") or {}).get(key) or {}
+    ok(not rec2.get("f"), "العدّاد لسه شغّال: %s" % rec2)
+    # ⛌ ③ وعدّاد الباسورد كمان اتمسح
+    pkey = "p:" + up._pin_index(A_PIN)
+    rec3 = (_lock_state().get("k") or {}).get(pkey) or {}
+    ok(not rec3.get("f"), "عدّاد الباسورد لسه شغّال: %s" % rec3)
 t("المحاولة الصح تصفّر عدّاد الـIP", t_counter_reset)
 
 # ══════════════════════════════════════════════════════════════════
@@ -531,21 +643,22 @@ print("\n▸ ③-ب  قفل قناة الـ409 (ثقب الفحص)")
 
 def t_dup_pin_locked():
     """⛔⛔ ٥ محاولات «الباسورد ده مستخدم من قبل» = قفل زي أي غلط"""
+    ip = "10.30.0.1"
+    up._pinlock_reset(up._pin_keys(pin=A_PIN, ip=ip))
+    up._pin_window_reset(up._pin_keys(pin=A_PIN, ip=ip))
     codes = []
     for i in range(5):
         em = "probe%d@example.com" % i
-        u = unlock_for(em, "x", ip="10.30.0.1")
-        r = call(NEWPIN, body={"new_pin": A_PIN}, token=u, ip="10.30.0.1")
+        u = unlock_for(em, "x", ip=ip)
+        r = call(NEWPIN, body={"new_pin": A_PIN}, token=u, ip=ip)
         codes.append(r.status_code)
     ok(codes[:4] == [409] * 4, "أول ٤: %s" % codes)
     ok(codes[4] == 429,
        "⛔⛔ المحاولة الخامسة رجعت %s مش 429 — القناة مفتوحة" % codes[4])
-    u9 = unlock_for("p9@example.com", "x", ip="10.30.0.1")
+    u9 = unlock_for("p9@example.com", "x", ip=ip)
     ra = (call(NEWPIN, body={"new_pin": A_PIN}, token=u9,
-               ip="10.30.0.1").get_json() or {}).get("retry_after")
+               ip=ip).get_json() or {}).get("retry_after")
     ok(isinstance(ra, int) and 600 < ra <= 900, "retry_after=%s" % ra)
-
-
 t("«الباسورد مستخدم من قبل» ٥ مرات → 429", t_dup_pin_locked)
 
 
@@ -578,9 +691,10 @@ def t_email_taken_no_pin_dos():
     """
     ip = "10.32.0.1"
     victim, vpin = "victim@example.com", "2121"
-    signup(vpin, victim, "ضحية", ip="10.32.7.7")
-    # ⛌ الحد اليومي ٣ أكواد لكل إيميل — فالتكرار بياخد ٣
-    #    بالظبط وبعدين 429. المهم إن مافيش 409 ولا عدّاد على الباسورد.
+    signup(vpin, victim, "ضحية", ip="10.32.7.7", device=VICTIM_DEV)
+    # ⛌ الحد اليومي ٥ أكواد لكل إيميل — المهم إن مافيش 409
+    #    ولا عدّاد على الباسورد (الحد اليومي على التسجيل مش
+    #    على الكود اللي بيفتح الحساب).
     codes = [call(START, body={"name": "x", "email": victim},
                   ip=ip).status_code for _ in range(5)]
     ok(all(c in (200, 429) for c in codes),
@@ -595,11 +709,10 @@ def t_email_taken_no_pin_dos():
                         ip="10.32.0.3").get_json() or {}, ensure_ascii=False)
     ok("مسجّل" not in j and "taken" not in j, "⛔ الرد بيسرّب حالة الحساب")
     # ⛔⛔ وضحية «الإيميل المسجّل» لسه تقدر تدخل
-    r = call(LOG, body={"pin": vpin}, ip="10.32.9.9")
+    #    (بصمة الجهاز المسجّل على حسابها)
+    r = login(vpin, ip="10.32.9.9", device=VICTIM_DEV)
     ok(r.status_code == 200,
        "⛔⛔ باسورد الضحية اتقفل بسبب إيميل حد تاني (%s)" % r.status_code)
-
-
 t("تعداد الإيميلات مافيشش فيه قفل الباسورد (DoS)", t_email_taken_no_pin_dos)
 
 
@@ -674,6 +787,9 @@ def t_hourly_cap():
           شغال عليه — عشان مافيش حد يسكّر عليه بلا فايدة.
        ⛌ والمسار الجديد لكل خطوة سقفها: ٣/٥ دقايق للإرسال،
           ١٠/٥ دقايق للتحقق ولاختيار الباسورد.
+
+       ⛌ الدليل إن السقف شغّال: الطلب المرفوض **ما يتسجّلش**
+          في عدّاد السقف (اتمنع قبل ما يوصل المسار).
     """
     ok(len(up.LIMITS["pin_register"]) == 2,
        "النوافذ=%s" % up.LIMITS["pin_register"])
@@ -684,41 +800,60 @@ def t_hourly_cap():
     r = app.dispatch(REG, method="POST",
                      body={"name": "x", "email": "h@example.com", "pin": "4242"},
                      headers={"X-Forwarded-For": ip})
+    n_hour = len(up._HITS[ip]["pin_register#1"])
     up._HITS.clear()
-    ok(r.status_code == 429, "بعد ٢٠/ساعة → %s" % r.status_code)
-    ok((r.get_json() or {}).get("bucket") == "pin_register",
-       "الbucket=%s" % (r.get_json() or {}).get("bucket"))
+    ok(n_hour == 20, "⛔ الطلب اتسجّل في العدّاد: %s" % n_hour)
+    b = _rl_body(r)
+    ok(b.get("bucket") == "pin_register",
+       "الbucket=%s" % b.get("bucket"))
 
     # ⛌ والمسار الجديد: ٣ محاولات إرسال في ٥ دقايق
     ok(up._route_bucket(START) == "pin_signup_start", "bucket start")
     ok(up._route_bucket(VERIFY) == "pin_signup_verify", "bucket verify")
     ok(up._route_bucket(NEWPIN) == "pin_signup_newpin", "bucket newpin")
     up._HITS.clear()
-    codes = [app.dispatch(START, method="POST",
-                          body={"name": "x", "email": "hc%d@example.com" % i},
-                          headers={"X-Forwarded-For": "10.36.0.2"}).status_code
-             for i in range(4)]
+    ip2 = "10.36.0.2"
+    rs = [app.dispatch(START, method="POST",
+                       body={"name": "x", "email": "hc%d@example.com" % i},
+                       headers={"X-Forwarded-For": ip2}) for i in range(4)]
+    n_start = len(up._HITS[ip2]["pin_signup_start#0"])
     up._HITS.clear()
-    ok(codes == [200, 200, 200, 429], "السقف الجديد مش شغال: %s" % codes)
+    ok([x.status_code for x in rs[:3]] == [200, 200, 200],
+       "أول ٣: %s" % [x.status_code for x in rs[:3]])
+    ok(n_start == 3, "⛔ الطلب الرابع اتسجّل: %s" % n_start)
+    b4 = _rl_body(rs[3])
+    ok(b4.get("bucket") == "pin_signup_start",
+       "الbucket=%s" % b4.get("bucket"))
+
+
+t("سقوف مسارات التسجيل شغّالة", t_hourly_cap)
 
 
 print("\n▸ ④  تغيير الباسورد")
 
 
 def t_change_bad():
-    r = call(CHG, body={"old_pin": A_PIN, "new_pin": "12"}, token=A_TOKEN)
+    ip = "10.42.0.1"
+    # ⛌ عدّادات نظيفة — عشان الاختبار ما يتلخبطش بعدّاد تاني
+    up._pinlock_reset(up._pin_keys(pin=A_PIN, ip=ip))
+    up._pinlock_reset(up._pin_keys(pin=B_PIN, ip=ip))
+    up._pinlock_reset(up._pin_keys(pin="7777", ip=ip))
+    up._pin_window_reset(up._pin_keys(ip=ip))
+    r = call(CHG, body={"old_pin": A_PIN, "new_pin": "12"}, token=A_TOKEN,
+             ip=ip)
     ok(r.status_code == 400, "pin جديد ٣ أرقام → %s" % r.status_code)
     ok((r.get_json() or {}).get("why") == "bad_pin", "السبب غلط")
-    r = call(CHG, body={"old_pin": A_PIN, "new_pin": "51515"}, token=A_TOKEN)
+    r = call(CHG, body={"old_pin": A_PIN, "new_pin": "51515"}, token=A_TOKEN,
+             ip=ip)
     ok(r.status_code == 400, "pin جديد ٥ أرقام → %s" % r.status_code)
-    r = call(CHG, body={"old_pin": "1111", "new_pin": "5151"}, token=A_TOKEN)
+    r = call(CHG, body={"old_pin": "7777", "new_pin": "5151"}, token=A_TOKEN,
+             ip=ip)
     ok(r.status_code == 401, "قديم غلط → %s" % r.status_code)
     ok((r.get_json() or {}).get("why") == "bad_old_pin", "السبب غلط")
-    r = call(CHG, body={"old_pin": A_PIN, "new_pin": B_PIN}, token=A_TOKEN)
+    r = call(CHG, body={"old_pin": A_PIN, "new_pin": B_PIN}, token=A_TOKEN,
+             ip=ip)
     ok(r.status_code == 409, "جديد مستخدم من قبل → %s" % r.status_code)
     ok((r.get_json() or {}).get("why") == "pin_taken", "السبب غلط")
-
-
 t("change: تنسيق غلط / قديم غلط / مستخدم من قبل", t_change_bad)
 
 
@@ -737,11 +872,13 @@ def t_change_ok():
     globals()["A_HASH_OLD"] = _before["pin_hash"]
     r = call(CHG, body={"old_pin": A_PIN, "new_pin": "6060"}, token=A_TOKEN)
     ok(r.status_code == 200, "الحالة %s — %s" % (r.status_code, r.get_json()))
-    ok(call(LOG, body={"pin": "6060"}).status_code == 200, "الجديد مش شغّال")
-    ok(call(LOG, body={"pin": A_PIN}).status_code == 401, "⛔ القديم لسه شغّال!")
+    # ⛌ تغيير الباسورد بيبطل كل الجلسات القديمة (token_epoch)
+    #    ⇒ التوكن الجديد هو اللي يفضل صالح
+    globals()["A_TOKEN2"] = (r.get_json() or {}).get("token")
+    ok(A_TOKEN2, "⛔ مافيش توكن جديد بعد تغيير الباسورد")
+    ok(login("6060").status_code == 200, "الجديد مش شغّال")
+    ok(login(A_PIN).status_code == 401, "⛔ القديم لسه شغّال!")
     globals()["A_PIN"] = "6060"
-
-
 t("تغيير الباسورد → الجديد شغّال والقديم مات", t_change_ok)
 
 print("\n▸ ⑤  الهاش والأمان")
@@ -750,8 +887,13 @@ print("\n▸ ⑤  الهاش والأمان")
 def t_no_raw_pin():
     raw = up.USERS_FILE.read_text(encoding="utf-8")
     # ⛔⛔⛔ أهم فحص: مافيش باسورد خام (٤ أرقام) في أي مكان
+    # ⛌ 📌 البحث بـحدود الرقم: الهاشات (hex) بتحوي ٤ أرقام
+    #    بالصدفة — فلو بحثنا بسلسلة عادية، الفحص كان هيفشل على
+    #    hash مش فيه باسورد خام. الباسورد الخام بيبقى ٤ أرقام
+    #    **لوحدها** في الملف (مش جوّه هاش ولا جوّه رقم أكبر).
     for p in (A_PIN, B_PIN, "6060", "1111", "5555", "9999"):
-        ok(p not in raw, "⛔⛔ الباسورد %s موجود خام في users.json" % p)
+        ok(not re.search(r"(?<![0-9A-Za-z])%s(?![0-9A-Za-z])" % p, raw),
+           "⛔⛔ الباسورد %s موجود خام في users.json" % p)
     hits = re.findall(r"(?<![0-9A-Za-z])\d{4}(?![0-9A-Za-z])", raw)
     ok(not hits, "⛔⛔ أرقام ٤ خام في users.json: %s" % hits[:10])
     # ⛌ ولا في ملف القفل
@@ -779,8 +921,10 @@ def t_hash_shape():
     ok(rec["pin_salt"] != up._load_users()[B_UID]["pin_salt"],
        "⛔ salt مشترك بين مستخدمين — ملح متبادل!")
     ok("pin" not in json.dumps(rec.get("pin") or ""), "⛔ في حقل pin خام")
-    # ⛌ رد الـme ما فيهوش أي بصمة
-    r = call("/api/auth/me", "GET", token=A_TOKEN)
+    # ⛌ رد الـme ما فيهوش أي بصمة (بتوكن **صالح** — التوكن
+    #    القديم بطل بعد تغيير الباسورد)
+    r = call("/api/auth/me", "GET", token=A_TOKEN2)
+    ok(r.status_code == 200, "التوكن الجديد مش صالح: %s" % r.status_code)
     txt = json.dumps(r.get_json(), ensure_ascii=False)
     for k in ("pin_hash", "pin_salt", "pin_idx", A_PIN):
         ok(k not in txt, "⛔ اتسرّب %s في الرد" % k)
@@ -895,8 +1039,12 @@ t("الاستثناء في أي مسار PIN → JSON فيه why", t_exception_j
 
 def t_buckets():
     b = up._route_bucket
-    ok(b("/api/auth/pin/login") == "write",
+    # ⛔⛔ دخول الباسورد ليه سقفه (١٠/دقيقة) — مش "write" (٥/دقيقة):
+    #    «جهاز جديد» + «كود إيميل» = محاولات طبيعية كتير
+    ok(b("/api/auth/pin/login") == "pin_login",
        "login bucket=%s" % b("/api/auth/pin/login"))
+    ok(up.LIMITS["pin_login"][0] == (10, 60),
+       "سقف الدخول=%s" % (up.LIMITS["pin_login"][0],))
     ok(b("/api/auth/pin/change") == "write",
        "change bucket=%s" % b("/api/auth/pin/change"))
     # ⛔⛔ التسجيل أضيق: نفس حد الكتابة + سقف ساعي
@@ -907,29 +1055,57 @@ def t_buckets():
     ok(up.LIMITS["pin_register"][1] == (20, 3600),
        "السقف الساعي=%s" % (up.LIMITS["pin_register"][1],))
     ok(up.LIMITS["write"][0] == (5, 60), "حد write اتغيّر")
+    # ⛌ ومسار كود الإيميل (challenge/*) ليه سقوفه
+    ok(b("/api/auth/pin/challenge/send") == "pin_chal_send",
+       "challenge/send اتغيّر")
+    ok(up.LIMITS["pin_chal_send"][0] == (5, 300),
+       "سقف challenge/send=%s" % (up.LIMITS["pin_chal_send"][0],))
+    ok(b("/api/auth/pin/challenge/verify") == "pin_chal_verify",
+       "challenge/verify اتغيّر")
+    ok(b("/api/auth/pin/challenge/newpin") == "pin_chal_newpin",
+       "challenge/newpin اتغيّر")
     # ⛌ والـOTP لسه شغال زي ما هو
-    ok(up._route_bucket("/api/auth/otp/send") == "otp_send", "otp_send اتغير")
-    ok(up._route_bucket("/api/auth/otp/verify") == "otp_verify", "otp_verify اتغير")
-    ok(up._route_bucket("/api/auth/register") == "otp_send", "register اتغير")
-    ok(up._route_bucket("/api/auth/me") == "default", "me اتغير")
-    ok(up._route_bucket("/api/portfolio") == "write", "portfolio اتغير")
-    ok(up._route_bucket("/api/analyze") == "expensive", "analyze اتغير")
-
-
-t("bucket المسارات الجديدة = write، والقديم زي ما هو", t_buckets)
+    ok(b("/api/auth/otp/send") == "otp_send", "otp_send اتغير")
+    ok(b("/api/auth/otp/verify") == "otp_verify", "otp_verify اتغير")
+    ok(b("/api/auth/register") == "otp_send", "register اتغير")
+    ok(b("/api/auth/me") == "default", "me اتغير")
+    ok(b("/api/portfolio") == "write", "portfolio اتغير")
+    ok(b("/api/analyze") == "expensive", "analyze اتغير")
+t("bucket الدخول = pin_login · التسجيل أضيق · والقديم زي ما هو", t_buckets)
 
 
 def t_rate_limit_real():
-    """⛔ الحد الحقيقي شغّال: ٦ طلبات في الدقيقة → آخر واحدة 429"""
-    up._HITS.clear()
-    codes = [app.dispatch(LOG, method="POST", body={"pin": "3333"},
-                          headers={"X-Forwarded-For": "10.4.4.4"}).status_code
-             for _ in range(6)]
-    ok(429 in codes, "مافيش 429 بعد ٦ طلبات: %s" % codes)
-    up._HITS.clear()
+    """⛔ السقف الحقيقي شغّال على دخول الباسورد: ١٠/دقيقة
 
-
-t("حد الـrate limit (٥/دقيقة) شغّال", t_rate_limit_real)
+       ⛌ سقف الدخول = ١٠/دقيقة (مش ٥) — عشان «جهاز جديد» + «كود
+          إيميل» ما يقفلش المستخدم في نص الطريق.
+       ⛌ عشان نفحص **سقف الطلبات** نفسه (مش قفل الباسورد) بنرفع
+          حد القفل مؤقتًا — ونرجّعه فورًا بعد الاختبار.
+    """
+    ip = "10.4.4.4"
+    saved = up.PIN_FAIL_LIMIT
+    up.PIN_FAIL_LIMIT = 999
+    try:
+        up._HITS.clear()
+        codes = [app.dispatch(LOG, method="POST", body={"pin": "3333"},
+                              headers={"X-Forwarded-For": ip}).status_code
+                 for _ in range(10)]
+        r11 = app.dispatch(LOG, method="POST", body={"pin": "3333"},
+                           headers={"X-Forwarded-For": ip})
+        n_hits = len(up._HITS[ip]["pin_login#0"])
+    finally:
+        up.PIN_FAIL_LIMIT = saved
+        up._HITS.clear()
+    # ⛌ العشرة الأولى وصلوا المسار (رد «باسورد غلط»)
+    ok(codes == [401] * 10, "أول ١٠: %s" % codes)
+    # ⛌⛔ الحادي عشر اترفض بسقف الطلبات — الدليل: مابيكملش
+    #    تسجيله في عدّاد السقف (يعني اتمنع قبل المسار)
+    ok(n_hits == 10, "⛔ الطلب اتسجّل في عدّاد السقف: %s" % n_hits)
+    b = _rl_body(r11)
+    ok(b.get("bucket") == "pin_login", "الbucket=%s" % b.get("bucket"))
+    ok("طلبات كتير" in (b.get("error") or ""),
+       "الرد مش رد السقف: %s" % b)
+t("حد الـrate limit على الدخول (١٠/دقيقة) شغّال", t_rate_limit_real)
 
 
 def t_stale_index_dup_pin():
@@ -937,7 +1113,11 @@ def t_stale_index_dup_pin():
        لازم يشتغل بالهاش الحقيقي كمان — مش يسيب حد يسجّل بالباسورد
        بتاع حد تاني."""
     import hashlib as _h
-    real_pin = A_PIN
+    # ⛌ حساب مخصوص بالباسورد ده — عشان ما يتلخبطش مع أي تغيير
+    #    باسورد في الاختبارات التانية
+    em_owner = "staleowner@example.com"
+    real_pin = "8080"
+    signup(real_pin, em_owner, "مالك", ip="10.3.3.9", device=A_DEV)
     saved = (up._PIN_PEPPER, up._PIN_PEPPER_ID)
     up._PIN_PEPPER = "TEST-ONLY-pepper-stale-2"
     up._PIN_PEPPER_ID = _h.sha256(up._PIN_PEPPER.encode()).hexdigest()[:12]
@@ -952,12 +1132,10 @@ def t_stale_index_dup_pin():
         ok(up._pin_by_email(em)[1] is None,
            "⛔ اتعمل حساب بالباسورد المكرر")
         # ⛌ والدخول بالباسورد الصح برضه شغّال (بحث بطيء + تصليح الفهرس)
-        r2 = call(LOG, body={"pin": real_pin}, ip="10.3.3.4")
+        r2 = login(real_pin, ip="10.3.3.4")
         ok(r2.status_code == 200, "الدخول %s" % r2.status_code)
     finally:
         up._PIN_PEPPER, up._PIN_PEPPER_ID = saved
-
-
 t("فحص التكرار يشتغل حتى والفهرس ميت", t_stale_index_dup_pin)
 
 
@@ -967,17 +1145,15 @@ def t_pepper_rotation():
     up._PIN_PEPPER = "TEST-ONLY-pepper-rotated"
     up._PIN_PEPPER_ID = __import__("hashlib").sha256(
         up._PIN_PEPPER.encode()).hexdigest()[:12]
-    r = call(LOG, body={"pin": A_PIN})
+    r = login(A_PIN)
     ok(r.status_code == 200, "بعد تدوير الـpepper الدخول %s" % r.status_code)
     ok(up._load_users()[A_UID]["pin_idx_id"] == up._PIN_PEPPER_ID,
        "الفهرس اتصلّح؟")
     up._PIN_PEPPER = "TEST-ONLY-pin-pepper"
     up._PIN_PEPPER_ID = __import__("hashlib").sha256(
         up._PIN_PEPPER.encode()).hexdigest()[:12]
-    r2 = call(LOG, body={"pin": A_PIN})
+    r2 = login(A_PIN)
     ok(r2.status_code == 200, "رجوع للـpepper الأصلي %s" % r2.status_code)
-
-
 t("تدوير الـpepper ما بيكسرش الباسوردات", t_pepper_rotation)
 
 
