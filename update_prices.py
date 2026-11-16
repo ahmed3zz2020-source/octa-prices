@@ -864,7 +864,29 @@ def _sanitize_request():
     ✅ + نمسح الكاش (args/url) + **نطبع الخطأ** (مافيش بلع صامت) ⬇️
     """
     try:
-        raw = request.args.to_dict(flat=True)
+        # \u26d4\u26d4\u26d4 16 \u0646\u0648\u0641\u0645\u0628\u0631 2026 \u2014 \u0627\u0644\u062a\u0646\u0638\u064a\u0641: \u0646\u0642\u0631\u0623 \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643
+        # \u064a\u0642\u0631\u0623 \u0645\u062a\u0639\u0641\u0644 \u0623\u0648\u0642\u0644 \u0641\u064a\u0643\u0631\u0628 (dict \u0639\u0627\u062f\u064a \u0645\u0642\u0627\u0628\u0644 \u0646\u0648\u0639\u064a\u0648\u0646\u064a)
+        # \u21d2 `request.args.to_dict()` \u0643\u0627\u0646\u062a \u0633\u062a\u0639\u0637\u0644 \u0628\u0627\u062a\u0639\u0627\u062f \u0648\u0627\u0644\u062a\u0646\u0638\u064a\u0641 \u0645\u0627\u0627\u0634\u0634 \u0628\u0627\u0644\u0641\u0627\u064a\u0644.
+        # \u26d4 \u0627\u0644\u062d\u0644: \u0646\u0642\u0631\u0623 \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643 \u0645\u0646 \u0627\u0644\u0651\u0628\u064a\u0626\u0629 \u0648\u0646\u062d\u0644\u0651\u0644\u0647\u0627 \u0628\u0646\u0641\u0633\u0647\u0627.
+        try:
+            from urllib.parse import parse_qsl as _parse_qsl
+        except Exception:
+            from urlparse import parse_qsl as _parse_qsl
+        _qs = ""
+        try:
+            _qs = request.environ.get("QUERY_STRING", "") or ""
+        except Exception:
+            _qs = ""
+        raw = {}
+        for _k, _v in _parse_qsl(_qs, keep_blank_values=True):
+            raw.setdefault(_k, _v)
+        if not raw:
+            # \u26d4 \u0627\u0644\u0627\u062d\u062a\u064a\u0627\u0637: \u0646\u0642\u0631\u0623 \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643 \u0625\u0630\u0627 \u0645\u062a\u0639\u0645\u0644 \u0641\u064a \u0627\u0644\u0628\u064a\u0626\u0629
+            try:
+                for _k, _v in request.args.items():
+                    raw.setdefault(str(_k), _v)
+            except Exception:
+                pass
         if not raw:
             return
         clean = {}
