@@ -15,8 +15,10 @@
 
 ⛔ مافيش شبكة · مافيش فلاس · الملف ده مستقل ⇒ يتختبر لوحده.
 """
+import datetime
 import json
 import os
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -37,35 +39,141 @@ OPP_PRO_LIMIT_PER_STRATEGY = 20     # ⛔ أفضل ٢٠ (مش «كل المؤه�
 # ⛔ حدود التشغيل (اختيارية) — الافتراضي: كل الأسهم
 OPP_LIMIT_PER_STRATEGY = 20
 
-# ⛔⛔⛔ عقد الحداثة (١٦ نوفمبر ٢٠٢٦):
+# ⛔⛔⛔ عقد الحداثة (١٦ نوفمبر ٢٠٢٦ · معدّل الجولة ١٦):
 #    «السوق مغلق» ⇏ «البيانات حديثة». الاتنين منفصلين.
-#    · source_as_of  = توقيت بيانات المصدر نفسها
+#    · source_as_of   = توقيت بيانات المصدر نفسها
 #    · last_success_at = آخر جلب **ناجح** (ما بيتحدّثش لو الجلب فشل)
-#    · age_seconds   = الفرق بين دلوقتي وآخر جلب ناجح
-#    · freshness     = fresh | partial | stale | unavailable
-#      (⛔ partial = الجولة ١٤: جلب ناقص — تغطية أقل من العتبة)
+#    · age_seconds     = الفرق بين دلوقتي وآخر جلب ناجح (⛔ بيتحسب **دايماً**)
+#    · freshness       = fresh | stale | unavailable
+#      (⛔ الحداثة = **عمر آخر جلب ناجح** — مش التغطية)
+#    · coverage_status = complete | partial | unavailable
+#      (⛔ التغطية = **نسبة السهم اللي اتجلب** — مش الحداثة)
+#    ⛔⛔⛔ الجولة ١٦: قبل كنا بنخلط التغطية بالحداثة — تغطية أقل من ٩٠٪
+#       كانت بتعمل freshness="partial" وبتصفّر age_seconds ⇒ المستخدم ماعرفش
+#       إن البيانات قديمة **و** إن التغطية ناقصة في نفس الوقت.
 FRESH_MAX_AGE_OPEN = 900             # ١٥ دقيقة وقت السوق
 FRESH_MAX_AGE_CLOSED = 86400         # يوم وقت الإغلاق
 FRESH_MIN_COVERAGE = 90.0            # ⛔ عتبة التغطية (الجولة ١٤)
+
+# ⛔⛔⛔ الجولة ١٦ — حدود **عمر السعر نفسه** (مش عمر آخر جلب):
+#    · PRICE_MAX_AGE_OPEN   = أقصى عمر سعر مسموح بوسمه «سعر التداول الآن»
+#    · PRICE_MAX_AGE_CLOSED = أقصى عمر سعر يفضل «سعر الإغلاق»
+PRICE_MAX_AGE_OPEN = 900             # ١٥ دقيقة — نفس حدّ حداثة البيانات
+PRICE_MAX_AGE_CLOSED = 86400         # يوم — بعده ⇒ «آخر سعر معروف»
+
+
+def _parse_timestamp(value):
+    """⛔ يحوّل توقيت (ISO8601 أو epoch) ⇒ ثوانٍ بعد الحقبة (أو None).
+
+    📌 بنقبل ISO8601 (مع Z أو +00:00 أو من غير منطقة) و epoch (رقم أو نص).
+    ⛔ مافيش شبكة · مافيش افتراضات على المنطقة ⇒ أي توقيت بلا منطقة
+       بيتقري UTC (توقيت البورصة المصرية بتتحوّل وقت المصدر).
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    s = str(value).strip()
+    if not s:
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        pass
+    txt = s.replace("Z", "+00:00").replace("z", "+00:00")
+    dt = None
+    try:
+        dt = datetime.datetime.fromisoformat(txt)
+    except ValueError:
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d"):
+            try:
+                dt = datetime.datetime.strptime(s, fmt)
+                break
+            except ValueError:
+                continue
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+    return dt.timestamp()
+
+
+def price_age_seconds_from(price_ts, now=None):
+    """⛔⛔⛔ الجولة ١٦ — **عمر السعر نفسه** (مش عمر آخر جلب).
+
+    📌 price_age_seconds = now - price_ts
+    ⛔ توقيت في المستقبل ⇒ ساعة المصدر مش موثوقة ⇒ العمر **غير معروف**
+       (مش «الآن»!) — حماية من انحراف الساعة.
+    ⛔ مافيش price_ts ⇒ None (مش 0) ⇒ مافيش ادعاء لحظية.
+    """
+    ts = _parse_timestamp(price_ts)
+    if ts is None:
+        return None
+    if now is None:
+        now = time.time()
+    try:
+        now = float(now)
+    except (TypeError, ValueError):
+        return None
+    if ts > now + 60:
+        return None
+    return int(max(0.0, now - ts))
+
+
+def session_date_of(value):
+    """⛔ تاريخ الجلسة (YYYY-MM-DD) من توقيت أو من نص تاريخ."""
+    if value is None:
+        return None
+    ts = _parse_timestamp(value)
+    if ts is None:
+        s = str(value).strip()
+        return s[:10] if len(s) >= 10 else None
+    return datetime.datetime.fromtimestamp(
+        ts, datetime.timezone.utc).strftime("%Y-%m-%d")
+
+
+def format_age_ar(seconds):
+    """⛔ نص عربي لعمر البيانات (ثواني · دقائق · ساعات · أيام)."""
+    if seconds is None:
+        return "غير معروف"
+    try:
+        s = int(seconds)
+    except (TypeError, ValueError):
+        return "غير معروف"
+    if s < 0:
+        s = 0
+    if s < 60:
+        return "منذ ثوانٍ"
+    if s < 3600:
+        return "منذ %d دقيقة" % (s // 60)
+    if s < 86400:
+        return "منذ %d ساعة" % (s // 3600)
+    return "منذ %d يوم" % (s // 86400)
 
 
 def freshness_state(last_success_at, market_phase="unknown", now=None,
                     max_age_open=None, max_age_closed=None,
                     coverage=None, requested=None, updated=None):
-    """⛔⛔⛔ ١٦ نوفمبر ٢٠٢٦ — عقد الحداثة.
+    """⛔⛔⛔ ١٦/١٨ نوفمبر ٢٠٢٦ — عقد الحداثة (**مفهومين منفصلين**).
 
+    📌 **الحداثة** (freshness) = عمر آخر جلب **ناجح**:
+         fresh | stale | unavailable
+    📌 **التغطية** (coverage_status) = نسبة السهم اللي اتجلب:
+         complete | partial | unavailable
+    ⛔⛔⛔ الجولة ١٦: قبل كنا بنخلط التغطية بالحداثة — تغطية أقل من ٩٠٪
+       كانت بتعمل freshness="partial" وبتصفّر age_seconds ⇒ المستخدم ماعرفش
+       إن البيانات قديمة **و** إن التغطية ناقصة في نفس الوقت.
     📌 القواعد:
-      · «السوق مغلق» ⇏ «البيانات قديمة» — الاتنين منفصلين.
+      · «السوق مغلق» ⇏ «البيانات حديثة» — الاتنين منفصلين.
       · last_success_at ما بيتحدّثش إلا بعد جلب **ناجح**.
-      · مافيش جلب ناجح أصلاً ⇒ unavailable (مش «حالي»).
+      · age_seconds بيتحسب **دايماً** من آخر جلب ناجح (حتى مع تغطية جزئية).
+      · مافيش جلب ناجح أصلاً ⇒ unavailable (مش «حالي») + age_seconds=None.
       · السوق مفتوح والبيانات أقدم من الحد ⇒ stale.
       · السوق مغلق والبيانات أقدم من يوم ⇒ stale.
-    ⛔ مافيش بيانات من الكاش بتتعرض كأنها لحظية.
     """
-    import time as _t
     max_age_open = FRESH_MAX_AGE_OPEN if max_age_open is None else max_age_open
     max_age_closed = FRESH_MAX_AGE_CLOSED if max_age_closed is None else max_age_closed
-    now = now if now is not None else _t.time()
+    now = now if now is not None else time.time()
     _cov_info = {
         "coverage_pct": (round(float(coverage), 2)
                          if coverage is not None else None),
@@ -74,47 +182,103 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
         "missing": (int(requested) - int(updated)
                     if (requested is not None and updated is not None) else None),
     }
-    # ⛔⛔⛔ الجولة ١٤: مافيش أي جلب ناجح ⇒ «غير متاح» (مش «جزئي»)
-    if not last_success_at:
-        return {"freshness": "unavailable", "age_seconds": None,
-                "last_success_at": None, "market_phase": market_phase,
-                **_cov_info}
-    # ⛔⛔⛔ الجولة ١٤: التغطية الجزئية أوضح من «fresh» المضلِّل
-    #   («نجاح سهم واحد» ⇏ «نجاح كامل لمجموعة السوق»)
-    if coverage is not None and float(coverage) < FRESH_MIN_COVERAGE:
-        return {"freshness": "partial", "age_seconds": None,
-                "last_success_at": last_success_at,
-                "market_phase": market_phase, **_cov_info}
-    try:
-        ts = float(last_success_at)
-    except (TypeError, ValueError):
-        return {"freshness": "unavailable", "age_seconds": None,
-                "last_success_at": None, "market_phase": market_phase,
-                **_cov_info}
-    age = max(0.0, now - ts)
-    limit = max_age_open if str(market_phase) == "open" else max_age_closed
-    state = "fresh" if age <= limit else "stale"
-    return {"freshness": state, "age_seconds": int(age),
-            "last_success_at": last_success_at, "market_phase": market_phase,
-            **_cov_info}
+    # ⛔⛔⛔ مفهوم ١ — التغطية (مستقلّة تماماً عن الحداثة)
+    if coverage is None:
+        coverage_status = "unavailable"
+    elif float(coverage) < FRESH_MIN_COVERAGE:
+        coverage_status = "partial"
+    else:
+        coverage_status = "complete"
+    # ⛔⛔⛔ مفهوم ٢ — الحداثة (عمر آخر جلب ناجح · مستقلّ عن التغطية)
+    ts = _parse_timestamp(last_success_at) if last_success_at else None
+    if ts is None:
+        freshness = "unavailable"
+        age = None
+    else:
+        age = int(max(0.0, float(now) - ts))
+        limit = max_age_open if str(market_phase) == "open" else max_age_closed
+        freshness = "fresh" if age <= limit else "stale"
+    return {
+        # ⛔ الحداثة (مش التغطية)
+        "freshness": freshness,
+        # ⛔ التغطية (مش الحداثة)
+        "coverage_status": coverage_status,
+        # ⛔ data_state = الحداثة — مافيش خلط مع التغطية
+        "data_state": freshness,
+        "is_fresh": freshness == "fresh",
+        "is_stale": freshness == "stale",
+        "age_seconds": age,
+        "last_success_at": (last_success_at if ts is not None else None),
+        "market_phase": market_phase,
+        **_cov_info,
+    }
+
+
+def freshness_source(fresh_state=None):
+    """⛔ مصدر البيانات كما بتظهر للمستخدم.
+
+    📌 live       = بيانات محدّثة + تغطية كاملة
+    📌 partial    = بيانات محدّثة + تغطية ناقصة (مش كل السوق)
+    📌 cache      = البيانات قديمة (من كاش)
+    📌 unavailable = مافيش بيانات صالحة
+    """
+    st = fresh_state or {}
+    fr = str(st.get("freshness") or "unknown")
+    cov = str(st.get("coverage_status") or "unknown")
+    if fr == "fresh":
+        return "live" if cov == "complete" else "partial"
+    if fr == "stale":
+        return "cache"
+    return "unavailable"
+
+
+def freshness_summary_ar(fresh_state=None):
+    """⛔ جملة واحدة بتوضّح **الحداثة** و**التغطية** مع بعض."""
+    st = fresh_state or {}
+    fr = str(st.get("freshness") or "unknown")
+    cov = str(st.get("coverage_status") or "unknown")
+    age = st.get("age_seconds")
+    if fr == "unavailable":
+        return "البيانات غير متاحة"
+    parts = ["البيانات حديثة" if fr == "fresh" else "البيانات قديمة"]
+    if cov == "complete":
+        parts.append("التغطية كاملة")
+    elif cov == "partial":
+        pct = st.get("coverage_pct")
+        parts.append("التغطية جزئية%s" % (" (%s%%)" % pct if pct is not None else ""))
+    else:
+        parts.append("التغطية غير معروفة")
+    if age is not None:
+        parts.append("عمر البيانات %s" % format_age_ar(age))
+    return " · ".join(parts)
 
 
 def price_label_for(market_phase="unknown", stale=False, data_state=None,
-                     price_time_source="source"):
-    """⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — وصف السعر المناسب.
+                     price_time_source="source", price_age_seconds=None,
+                     price_session_date=None, session_date=None,
+                     price_ts=None, now=None,
+                     max_price_age_open=None, max_price_age_closed=None):
+    """⛔⛔⛔ ١٧/١٨ نوفمبر ٢٠٢٦ (الجولة ١٦) — وصف السعر **الصادق**.
 
-    📌 «سعر التداول أثناء الجلسة» ما ينفعش يتسمّى «سعر إغلاق».
-    📌 والبيانات من الكاش ⇒ «آخر سعر معروف» (مش سعر لحظي).
-
-    ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٥ · ملاحظة المالك) — **ممنوع الجزم
-       بلحظية بلا دليل**:
-       · «وقت استلام البيانات» (data_received_at) **مش** دليل على
-         وقت آخر تداول ⇒ ما ينفعش نسمّي السعر «الآن» بناءً عليه.
-       · ⇒ لازم يكون في **توقيت موثوق من المصدر نفسه** (price_ts).
-       · لو مافيش ⇒ «آخر سعر متاح» (مع وقت تحديث البياناتبجانبه).
-       ⛔ الاختبار السالب: سوق مفتوح + سعر بلا price_ts ⇒
-          التسمية **ما ينفعش** تكون «سعر التداول الآن».
+    📌 «سعر التداول الآن» = **ادعاء لحظي** ⇒ لازم **تلات** أدلة:
+       ① السوق مفتوح
+       ② سعر من **نفس الجلسة الحالية** (مش جلسة سابقة)
+       ③ عمر السعر (`price_age_seconds`) ≤ `PRICE_MAX_AGE_OPEN`
+    ⛔⛔⛔ `stale=False` **لوحده** ما بيخليش السعر لحظي (الجولة ١٦).
+    ⛔⛔⛔ وجود `price_ts` **لوحده** كمان ما بيخليش السعر لحظي — لازم نعرف
+       **عمره** (والا كان من جلسة سابقة).
+    ⛔⛔⛔ عمر السعر المجهول (مافيش price_ts) ⇒ ممنوع أي ادعاء لحظية.
+    📌 «سعر الإغلاق» = ادعاء عن **آخر جلسة** ⇒ بننقّصه بس لما يكون عندنا
+       دليل إنه مش من آخر جلسة (عمره أكبر من يوم أو جلسة مختلفة).
+    📌 «وقت استلام البيانات» (data_received_at) **مش** دليل على وقت آخر
+       تداول ⇒ ما ينفعش نسمّي السعر «الآن» بناءً عليه.
     """
+    max_price_age_open = (PRICE_MAX_AGE_OPEN if max_price_age_open is None
+                          else max_price_age_open)
+    max_price_age_closed = (PRICE_MAX_AGE_CLOSED if max_price_age_closed is None
+                            else max_price_age_closed)
+    if price_age_seconds is None and price_ts:
+        price_age_seconds = price_age_seconds_from(price_ts, now)
     # ⛔⛔ ترتيب الأسبقية: «قديم» أقوى من «مافيش توقيت» ⇒
     #    السهم من الكاش (قديم) يُوصف قديم حتى لو مافيش توقيت من المصدر.
     if stale or data_state == "stale":
@@ -123,9 +287,25 @@ def price_label_for(market_phase="unknown", stale=False, data_state=None,
     if str(price_time_source or "") != "source":
         return "آخر سعر متاح"
     ph = str(market_phase or "unknown").lower()
+    # ⛔⛔ الجولة ١٦: لو السعر من **جلسة تانية** ⇒ ممنوع أي وسم لحظي
+    _ps = str(price_session_date or "")[:10]
+    _cs = str(session_date or "")[:10]
+    _other_session = bool(_ps and _cs and _ps != _cs)
     if ph == "open":
+        # ⛔⛔⛔ ادعاء لحظي ⇒ لازم **عمر معروف** وحديث ونفس الجلسة
+        if price_age_seconds is None:
+            return "آخر سعر متاح"
+        if _other_session:
+            return "آخر سعر معروف"
+        if float(price_age_seconds) > float(max_price_age_open):
+            return "آخر سعر معروف"
         return "سعر التداول الآن"
     if ph == "closed":
+        if _other_session:
+            return "آخر سعر معروف"
+        if (price_age_seconds is not None
+                and float(price_age_seconds) > float(max_price_age_closed)):
+            return "آخر سعر معروف"
         return "سعر الإغلاق"
     if ph == "pre":
         return "سعر الإغلاق السابق"
@@ -757,6 +937,24 @@ def build_payload(stocks, definitions=None, meta=None):
     defs = definitions or load_definitions()
     strategies = defs.get("strategies") or []
     meta = meta or {}
+    # ⛔⛔⛔ الجولة ١٦ — الوقت المرجعي + **فصل الحداثة عن التغطية**
+    _now = meta.get("now")
+    if _now is None:
+        _now = time.time()
+    _fresh = meta.get("data_freshness") or {}
+    _freshness_val = (meta.get("freshness")
+                      or _fresh.get("freshness") or "unknown")
+    _coverage_status = (meta.get("coverage_status")
+                        or _fresh.get("coverage_status") or "unknown")
+    # ⛔ data_state = الحداثة (مش التغطية)
+    _data_state = (_fresh.get("data_state") or _freshness_val)
+    _state_ar = freshness_summary_ar(
+        _fresh or {"freshness": _freshness_val,
+                   "coverage_status": _coverage_status})
+    _current_session_date = (str(meta.get("session_date") or "")[:10]
+                              or (str(meta.get("trading_day") or "")[:10])
+                              or (session_date_of(meta.get("generated_at")) or "")
+                              or "")
     lists = {}
     for st in strategies:
         key = st.get("key")
@@ -782,13 +980,33 @@ def build_payload(stocks, definitions=None, meta=None):
             _phase = meta.get("market_phase") or "unknown"
             _price_ts = item.get("price_ts") or None
             _price_time_source = ("source" if _price_ts else "not_provided")
+            # ⛔⛔⛔ الجولة ١٦ — **عمر السعر نفسه** (مش عمر آخر جلب)
+            _price_age = (price_age_seconds_from(_price_ts, _now)
+                          if _price_ts else None)
+            # ⛔ جلسة السعر (المصدر) — عشان نعرف: نفس الجلسة ولا جلسة سابقة؟
+            _price_session = (str(item.get("price_session_date") or "")[:10]
+                              or (session_date_of(_price_ts) or "")
+                              or "")
+            # ⛔ الجلسة الحالية (من meta أو من وقت استلام البيانات)
+            _current_session = (str(meta.get("session_date") or "")[:10]
+                                or (str(meta.get("trading_day") or "")[:10])
+                                or (session_date_of(meta.get("generated_at")) or "")
+                                or (session_date_of(item.get("ts") if not _stale
+                                                   else item.get("stale_ts")) or "")
+                                or "")
             row = {
                 "code": item.get("code"),
                 "name": item.get("name"),
                 "sector": item.get("sector") or "—",
                 "price": item.get("price"),
-                "price_label": price_label_for(_phase, _stale,
-                                               price_time_source=_price_time_source),
+                # ⛔⛔⛔ الجولة ١٦ — الوصف محسوب من **عمر السعر** وجلسة السعر
+                "price_label": price_label_for(
+                    _phase, _stale,
+                    data_state=("stale" if _stale else None),
+                    price_time_source=_price_time_source,
+                    price_age_seconds=_price_age,
+                    price_session_date=(_price_session or None),
+                    session_date=(_current_session or None)),
                 "session_date": str(item.get("session_date") or item.get("ts") or "")[:10],
                 "change": item.get("change"),
                 "data_state": ("stale" if _stale else "live"),
@@ -796,6 +1014,13 @@ def build_payload(stocks, definitions=None, meta=None):
                 "data_received_at": (item.get("ts") or "") if not _stale else None,
                 "price_as_of": _price_ts,
                 "price_time_source": _price_time_source,
+                # ⛔⛔⛔ الجولة ١٦ — **عمر السعر لازم يبان للمستخدم** (مش بس جوا)
+                "price_age_seconds": _price_age,
+                "price_age_minutes": (round(_price_age / 60.0, 1)
+                                      if _price_age is not None else None),
+                "price_age_label_ar": format_age_ar(_price_age),
+                "price_session_date": (_price_session or None),
+                "current_session_date": (_current_session or None),
                 "market_phase": _phase,
                 "score": ev["score"],
                 "coverage": ev["coverage"],
@@ -833,24 +1058,29 @@ def build_payload(stocks, definitions=None, meta=None):
             "items": rows[:limit],
             "generated_at": meta.get("generated_at"),
             "source": meta.get("source") or "live",
-            "freshness": (meta.get("freshness")
-                          or (meta.get("data_freshness") or {}).get("freshness")
-                          or "unknown"),
+            "freshness": _freshness_val,
+            # ⛔⛔⛔ الجولة ١٦ — التغطية **منفصلة** عن الحداثة (في كل قائمة)
+            "coverage_status": _coverage_status,
+            "data_state": _data_state,
+            "freshness_summary_ar": _state_ar,
             # ⛔ مصادر البيانات وتواخيها (الواجهة بتقراها)
             "sources": meta.get("sources") or [],
             # ⛔ عقد الحداثة
             "data_freshness": meta.get("data_freshness") or {},
         }
-    _fresh = meta.get("data_freshness") or {}
     return {
         "ok": True,
         "model_version": defs.get("model_version"),
         "generated_at": meta.get("generated_at"),
         "source": meta.get("source") or "live",
         # ⛔ ⛔⛔ ماينشر الحداثة أصل من عقد الحداثة (ولا من قيمة أخرى)
-        "freshness": (meta.get("freshness")
-                      or (meta.get("data_freshness") or {}).get("freshness")
-                      or "unknown"),
+        "freshness": _freshness_val,
+        # ⛔⛔⛔ الجولة ١٦ — **التغطية منفصلة عن الحداثة**
+        "coverage_status": _coverage_status,
+        # ⛔ data_state = الحداثة (مش التغطية)
+        "data_state": _data_state,
+        "freshness_summary_ar": _state_ar,
+        "current_session_date": (_current_session_date or None),
         # ⛔⛔⛔ عقد الحداثة — «السوق مغلق» ≠ «البيانات حديثة»
         "market_phase": meta.get("market_phase") or "unknown",
         "source_as_of": meta.get("source_as_of"),

@@ -10227,11 +10227,12 @@ def update_loop():
                         _src_as_of = _t
                 _meta = {
                     "generated_at": datetime.utcnow().isoformat() + "Z",
-                    "source": ("live" if _fresh["freshness"] == "fresh"
-                               else ("cache" if _fresh["freshness"] == "stale"
-                                     else ("partial" if _fresh["freshness"] == "partial"
-                                           else "unavailable"))),
+                    # ⛔⛔⛔ الجولة ١٦ — المصدر من عقد الحداثة
+                    # (لا يخلط التغطية مع الحداثة — التغطية منفصلة)
+                    "source": _opp.freshness_source(_fresh),
                     "freshness": _fresh["freshness"],
+                    # ⛔ التغطية مفهوم منفصل عن الحداثة
+                    "coverage_status": _fresh["coverage_status"],
                     "market_phase": phase,
                     "source_as_of": _src_as_of,
                     "last_success_at": (_LAST_SCAN_OK_AT if _LAST_SCAN_OK_AT
@@ -10244,6 +10245,8 @@ def update_loop():
                     "missing_count": max(0, _LAST_SCAN_REQUESTED
                                           - _LAST_SCAN_RETURNED),
                     "data_freshness": _fresh,
+                    # ⛔ الجولة ١٦ — الوقت المرجعي لحساب أعمار السعر
+                    "now": _now,
                     "sources": [{"source": "TradingView Scanner",
                                  "as_of": _src_as_of,
                                  "last_success_at": (_LAST_SCAN_OK_AT if _LAST_SCAN_OK_AT else None),
