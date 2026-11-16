@@ -11349,6 +11349,8 @@ def _opp_contract(p=None, *lists):
 
     return {
         "coverage_status": _pick("coverage_status"),
+        # ⛔⛔⛔ الجولة ١٧ (R16-N2) — «مقبولة» (فوق عتبة ٩٠٪) ≠ «كاملة»
+        "coverage_acceptable": _pick("coverage_acceptable"),
         "data_state": _pick("data_state"),
         "freshness_summary_ar": _pick("freshness_summary_ar"),
         "current_session_date": _pick("current_session_date"),
@@ -11389,10 +11391,8 @@ def opp_strategies():
                     "data_freshness": p.get("data_freshness"),
                     # ⛔⛔⛔ الجولة ١٦ — **التغطية منفصلة عن الحداثة**
                     # (من غيرها ⇒ الواجهة مش هتعرف «تغطية جزئية»)
-                    "coverage_status": p.get("coverage_status"),
-                    "data_state": p.get("data_state"),
-                    "freshness_summary_ar": p.get("freshness_summary_ar"),
-                    "current_session_date": p.get("current_session_date"),
+                    # ⛔⛔⛔ الجولة ١٧ — نفس العقد في كل المسارات الخمسة
+                    **_opp_contract(p),
                     "sources": p.get("sources") or [],
                     "plan": _pt.get("plan"),
                     "limit_per_strategy": _pt.get("limit_per_strategy"),
@@ -11431,15 +11431,10 @@ def opp_list(key):
                     "market_phase": p.get("market_phase"),
                     "age_seconds": p.get("age_seconds"),
                     "data_freshness": p.get("data_freshness"),
-                    # ⛔⛔⛔ الجولة ١٦ — **التغطية منفصلة عن الحداثة**
+                    # ⛔⛔⛔ الجولة ١٦ — التغطية منفصلة عن الحداثة
                     # (المستوى ده هو اللي بتقراه الواجهة ⇒ لازم ينشر)
-                    "coverage_status": (lst.get("coverage_status")
-                                        or p.get("coverage_status")),
-                    "data_state": (lst.get("data_state")
-                                   or p.get("data_state")),
-                    "freshness_summary_ar": (lst.get("freshness_summary_ar")
-                                             or p.get("freshness_summary_ar")),
-                    "current_session_date": p.get("current_session_date"),
+                    # ⛔⛔⛔ الجولة ١٧ — نفس العقد في كل المسارات الخمسة
+                    **_opp_contract(p, lst),
                     "sources": lst.get("sources") or p.get("sources") or [],
                     "model_version": p.get("model_version")})
 
