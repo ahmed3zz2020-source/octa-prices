@@ -22,15 +22,16 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 DEF_FILE = HERE / "data" / "opp_definitions.json"
 
-# ⛔ سياسات الباقات (قرار المالك — ١٦ نوفمبر ٢٠٢٦):
+# ⛔ سياسات الباقات (قرار المالك — ١٦/١٧ نوفمبر ٢٠٢٦):
 #    · الاستراتيجيات التسع **كلها** ظاهرة لـFree وPro.
-#    · Free ⇒ عدد محدود من الفرص في كل استراتيجية + أسباب مختصرة.
-#    · Pro  ⇒ القائمة الكاملة + تفاصيل التحليل والمخاطر الأوسع.
+#    · Free ⇒ أفضل ٥ فرص في كل استراتيجية + أسباب مختصرة.
+#    · Pro  ⇒ أفضل ٢٠ فرصة في كل استراتيجية + تفاصيل أوسع.
 #    · ⛔ مافيش اختلاف في دقة الحساب أو معايير الأهلية بين الباقتين.
-#    · ⛔ العدد قابل للضبط (قرار المالك لسه نهائيش) ⇒  constant.
+#    · ⛔ ⛔ السعر التجاري **مش مفعّل ومش معتمد** ⇒ بره منطق حساب الفرص.
+#    · ⛔ العدد قابل للضبط (قرار المالك لسه نهائيش) ⇒ constant في ملف واحد.
 OPP_PRO_STRATEGIES = ()
 OPP_FREE_LIMIT_PER_STRATEGY = 5      # ⛔ قابل للضبط — قرار المالك
-OPP_PRO_LIMIT_PER_STRATEGY = 20     # ⛔ = سقف المحرّك · القائمة كاملة
+OPP_PRO_LIMIT_PER_STRATEGY = 20     # ⛔ أفضل ٢٠ (مش «كل المؤهل») — قابل للضبط
                                      # ⛔ رفعه = payload أكبر ⇒ يتقاس بعد التغيير
 
 # ⛔ حدود التشغيل (اختيارية) — الافتراضي: كل الأسهم
@@ -41,13 +42,16 @@ OPP_LIMIT_PER_STRATEGY = 20
 #    · source_as_of  = توقيت بيانات المصدر نفسها
 #    · last_success_at = آخر جلب **ناجح** (ما بيتحدّثش لو الجلب فشل)
 #    · age_seconds   = الفرق بين دلوقتي وآخر جلب ناجح
-#    · freshness     = fresh | stale | unavailable
+#    · freshness     = fresh | partial | stale | unavailable
+#      (⛔ partial = الجولة ١٤: جلب ناقص — تغطية أقل من العتبة)
 FRESH_MAX_AGE_OPEN = 900             # ١٥ دقيقة وقت السوق
 FRESH_MAX_AGE_CLOSED = 86400         # يوم وقت الإغلاق
+FRESH_MIN_COVERAGE = 90.0            # ⛔ عتبة التغطية (الجولة ١٤)
 
 
 def freshness_state(last_success_at, market_phase="unknown", now=None,
-                    max_age_open=None, max_age_closed=None):
+                    max_age_open=None, max_age_closed=None,
+                    coverage=None, requested=None, updated=None):
     """⛔⛔⛔ ١٦ نوفمبر ٢٠٢٦ — عقد الحداثة.
 
     📌 القواعد:
@@ -62,19 +66,55 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
     max_age_open = FRESH_MAX_AGE_OPEN if max_age_open is None else max_age_open
     max_age_closed = FRESH_MAX_AGE_CLOSED if max_age_closed is None else max_age_closed
     now = now if now is not None else _t.time()
+    _cov_info = {
+        "coverage_pct": (round(float(coverage), 2)
+                         if coverage is not None else None),
+        "requested": requested,
+        "updated": updated,
+        "missing": (int(requested) - int(updated)
+                    if (requested is not None and updated is not None) else None),
+    }
+    # ⛔⛔⛔ الجولة ١٤: مافيش أي جلب ناجح ⇒ «غير متاح» (مش «جزئي»)
     if not last_success_at:
         return {"freshness": "unavailable", "age_seconds": None,
-                "last_success_at": None, "market_phase": market_phase}
+                "last_success_at": None, "market_phase": market_phase,
+                **_cov_info}
+    # ⛔⛔⛔ الجولة ١٤: التغطية الجزئية أوضح من «fresh» المضلِّل
+    #   («نجاح سهم واحد» ⇏ «نجاح كامل لمجموعة السوق»)
+    if coverage is not None and float(coverage) < FRESH_MIN_COVERAGE:
+        return {"freshness": "partial", "age_seconds": None,
+                "last_success_at": last_success_at,
+                "market_phase": market_phase, **_cov_info}
     try:
         ts = float(last_success_at)
     except (TypeError, ValueError):
         return {"freshness": "unavailable", "age_seconds": None,
-                "last_success_at": None, "market_phase": market_phase}
+                "last_success_at": None, "market_phase": market_phase,
+                **_cov_info}
     age = max(0.0, now - ts)
     limit = max_age_open if str(market_phase) == "open" else max_age_closed
     state = "fresh" if age <= limit else "stale"
     return {"freshness": state, "age_seconds": int(age),
-            "last_success_at": last_success_at, "market_phase": market_phase}
+            "last_success_at": last_success_at, "market_phase": market_phase,
+            **_cov_info}
+
+
+def price_label_for(market_phase="unknown", stale=False, data_state=None):
+    """⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — وصف السعر المناسب.
+
+    📌 «سعر التداول أثناء الجلسة» ما ينفعش يتسمّى «سعر إغلاق».
+    📌 والبيانات من الكاش ⇒ «آخر سعر معروف» (مش سعر لحظي).
+    """
+    if stale or data_state == "stale":
+        return "آخر سعر معروف"
+    ph = str(market_phase or "unknown").lower()
+    if ph == "open":
+        return "سعر التداول الآن"
+    if ph == "closed":
+        return "سعر الإغلاق"
+    if ph == "pre":
+        return "سعر الإغلاق السابق"
+    return "السعر الحالي"
 
 
 def _f(v, d=None):
@@ -716,18 +756,30 @@ def build_payload(stocks, definitions=None, meta=None):
             # ⛔⛔⛔ 16 نوفمبر 2026 — حالة بيانات السهم:
             #    «live» = اتجلب دلوقتي · «stale» = آخر سعر معروف
             #    (من الكاش) ⇒ ما يتحضرش كأنه لحظي.
+            # ⛔⛔⛔ 17 نوفمبر 2026 (الجولة 14) — وصف السعر + فصل الأوقات:
+            #    · price_label حسب حالة السوق (مافيش «سعر إغلاق» وسعر
+            #      التداول أثناء الجلسة).
+            #    · data_received_at = وقت استلام البيانات.
+            #    · price_as_of = وقت السعر الفعلي من المصدر (أو null
+            #      + price_time_source=not_provided ⇒ المصدر مابيعطيش وقت).
             _stale = bool(item.get("stale"))
             _src_ts = item.get("stale_ts") if _stale else (item.get("ts") or "")
+            _phase = meta.get("market_phase") or "unknown"
+            _price_ts = item.get("price_ts") or None
             row = {
                 "code": item.get("code"),
                 "name": item.get("name"),
                 "sector": item.get("sector") or "—",
                 "price": item.get("price"),
-                "price_label": ("آخر سعر معروف" if _stale else "سعر إغلاق"),
+                "price_label": price_label_for(_phase, _stale),
                 "session_date": str(item.get("session_date") or item.get("ts") or "")[:10],
                 "change": item.get("change"),
                 "data_state": ("stale" if _stale else "live"),
                 "source_as_of": _src_ts,
+                "data_received_at": (item.get("ts") or "") if not _stale else None,
+                "price_as_of": _price_ts,
+                "price_time_source": ("source" if _price_ts else "not_provided"),
+                "market_phase": _phase,
                 "score": ev["score"],
                 "coverage": ev["coverage"],
                 "available_weight": ev["available_weight"],
@@ -794,11 +846,12 @@ def build_payload(stocks, definitions=None, meta=None):
 
 
 def apply_tier(payload, plan="free"):
-    """⛔ تطبيق حدود الباقة **من الباك** (قرار المالك — 16 نوفمبر 2026).
+    """⛔ تطبيق حدود الباقة **من الباك** (قرار المالك — 16/17 نوفمبر 2026).
 
-    ґ Free: عدد محدود من الفرص في كل استراتيجية + تفاصيل مختصرة.
-    ґ Pro : القائمة الكاملة + تفاصيل التحليل والمخاطر الأوسع.
+    📌 Free: أفضل 5 فرص في كل استراتيجية + تفاصيل مختصرة.
+    📌 Pro : أفضل 20 فرصة في كل استراتيجية + تفاصيل أوسع.
     ⛔ مافيش اختلاف في دقة الحساب ولا في معايير الأهلية.
+    ⛔ ⛔ السعر التجاري غير مفعّل ⇒ بره منطق حساب الفرص.
     """
     if not payload:
         return payload
@@ -807,6 +860,8 @@ def apply_tier(payload, plan="free"):
     out = dict(payload)
     out["plan"] = "pro" if pro else "free"
     out["limit_per_strategy"] = limit
+    out["limit_label_ar"] = ("أفضل %s فرصة لكل استراتيجية" % limit
+                              if limit is not None else "كل الفرص المؤهلة")
     lists = {}
     for key, lst in (payload.get("lists") or {}).items():
         l = dict(lst)

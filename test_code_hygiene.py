@@ -25,16 +25,21 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 
 FILES = [
     "update_prices.py",
+    "opp_engine.py",
     "test_security_batch01.py",
     "test_security_batch02.py",
     "test_security_p0.py",
     "test_security_bgstore.py",
     "test_pin_auth.py",
+    "test_opp_freshness13.py",
+    "test_round14_release.py",
+    "_stub_env.py",
     "tools/staging/run_staging.py",
     "tools/staging/run_all.sh",
     "doc/GITHUB-DATA-CONTAINMENT.md",
     "docs/WEBAUTHN-DESIGN.md",
     "docs/WEBAUTHN-DESIGN.md",
+    "docs/REVIEW-LOG.md",
 ]
 
 # ⛔ النمط مكتوب كرموز سداسية عشان الـguard نفسه مايفحصش نفسه
@@ -149,6 +154,23 @@ for rel in sorted(set(FILES)):
         if "\ufffd" in line:
             bad4.append("%s:%d" % (rel, i))
 ok(not bad4, "مافيش محارف تالفة (U+FFFD) في ملفات الدفعة", bad4[:6])
+
+# ---- ④ب حروف سيلانية متلخطة جوّه نص عربي (الجولة ١٤) ⬇️ ⬇️ ⬇️
+# ⛔ اكتُشف في الجولة ١٤: كلمات سيلانية («всё» · «внутри») جوه تعليقات
+#    عربية ⇒ بتظهر سليمة بالعين ومختبّرة بالأدوات.
+CYR = re.compile("[" + "".join([
+    "\\u0400-\\u04FF", "\\u0500-\\u052F",
+]) + "]")
+bad5 = []
+for rel in sorted(set(FILES)):
+    p = os.path.join(ROOT, rel)
+    if not os.path.exists(p):
+        continue
+    text = io.open(p, "r", encoding="utf-8", errors="replace").read()
+    for i, line in enumerate(text.splitlines(), 1):
+        if CYR.search(line):
+            bad5.append("%s:%d" % (rel, i))
+ok(not bad5, "مافيش حروف سيلانية متلخطة في ملفات الدفعة", bad5[:6])
 
 # ---- ⑤ الملفات موجودة فعلاً ------------------------------------------------
 missing = [f for f in sorted(set(FILES)) if not os.path.exists(os.path.join(ROOT, f))]

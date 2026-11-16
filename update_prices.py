@@ -813,12 +813,19 @@ def clean_code(v, maxlen=12):
 
 
 def clean_text(v, maxlen=200):
-    """نص حرّ — بيشيل المحارف التحكم وبيلصق سطر واحد."""
+    """نص حرّ — بيشيل المحارف التحكم وبيلصق سطر واحد.
+
+    ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — تقوية: العلامات Angle
+    بتتشال كمان ⇒ مدخل فيه HTML ما يعدّياش كـ«نص نظيف».
+    """
     if v is None:
         return ""
     s = str(v)
     s = _re_guard.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", s)
     s = s.replace("\n", " ").replace("\r", " ")
+    # ⛔ HTML/JS محايد — القيم دي كلها (كود · تاريخ · رقم · بحث)
+    #    ما تحتاجش angle brackets أبداً.
+    s = s.replace("<", "").replace(">", "")
     return s.strip()[:maxlen]
 
 
@@ -921,6 +928,39 @@ def _sanitize_request():
         # ⛔⛔⛔ **مافيش بلع صامت** ⬇️ (كان `pass` وبس ⬇️)
         print("  ⛔ فشل تنضيف الطلب (%s): %s"
               % (type(e).__name__, str(e)[:120]), flush=True)
+        # ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — fail-closed:
+        #   ⛔ لو التنظيف وقع ⇒ **ممنوع** يمرّ مدخل خطير زي ما هو.
+        #   ⇒ تنظيف احتياطي صارم (حروف مسموحة فقط + سقف ٦٠ محرف)
+        #     وبيسجّل الخطأ. لو حتى هو وقع ⇒ الـquery بيتفرّغ.
+        try:
+            _qs2 = ""
+            try:
+                _qs2 = request.environ.get("QUERY_STRING", "") or ""
+            except Exception:
+                _qs2 = ""
+            _safe = {}
+            for _pair in _qs2.split("&"):
+                if not _pair:
+                    continue
+                _k, _, _v = _pair.partition("=")
+                _k = "".join(ch for ch in _k if ch.isalnum() or ch in "._-")[:60]
+                if not _k:
+                    continue
+                _v = "".join(ch for ch in _v if ch.isalnum() or ch in "._-:")[:60]
+                _safe[_k] = _v
+            request.environ["QUERY_STRING"] = _urlencode(_safe, doseq=False)
+            try:
+                request.__dict__.pop("args", None)
+                request.__dict__.pop("url", None)
+            except Exception:
+                pass
+        except Exception:
+            try:
+                request.environ["QUERY_STRING"] = ""
+                request.__dict__.pop("args", None)
+                request.__dict__.pop("url", None)
+            except Exception:
+                pass
 
 
 
@@ -1556,7 +1596,7 @@ def _user_epoch(user_id: str):
        ⛌ القراءة من غير القفل ⬇️ لأن دوال التوكن ممكن
        تُستدعى **جوه** USERS_LOCK ⬇️ لو قفلنا تاني ⬇️ deadlock.
 
-       القراءة دي من ملف JSON آمنة ⬇️ و_kh всё بيستخدم
+       القراءة دي من ملف JSON آمنة ⬇️ و_kh كله بيستخدم
        نفس الملف ⬇️ لو حصل تعارض ⬇️ القراءة القديمة ⬇️
        والتواقيع بتتخزّن في الذاكرة ⬇️ ارفعها هناك.
     """
@@ -5704,7 +5744,7 @@ def auth_bio():
         # ⭐ الأساس ⬇️ اللي بيثبّت إنت إنت ⬇️ هو **الباسورد**
         # ⬇️ مش البصمة ⬇️ البصمة ⬇️ راحة ⬇️ وخلاص.
         # ⛌ فبنسمح ⬇️ بإعادة التعيين ⬇️ من أي جهاز ⬇️ طالما
-        # ⬇️ внутри ⬇️ ⬇️ وبيبقى كل تغيير ⬇️ متسجّل ⬇️ بإيميل.
+        # ⬇️ داخل ⬇️ ⬇️ وبيبقى كل تغيير ⬇️ متسجّل ⬇️ بإيميل.
         _trust_device(users[uid], _device_key_hash(dev))
         if not _save_users(users):
             return _users_write_failed_resp()
@@ -8489,7 +8529,7 @@ def score_all_strategies(item, tech=None, fund=None, liq=None, sent=None, pfit=N
 # PHASE 13: الترتيب والفلاتر المتقدمة
 # ════════════════════════════════════════════════════════════
 
-def rank_stocks(all_stocks, strategy="balanced", min_score=0, max_risk=None,
+def rank_stocks(all_stocks, strategy=None, min_score=0, max_risk=None,
                 min_safety=None, min_liquidity=None, sectors=None, max_pe=None,
                 min_div_yield=None, decisions=None, limit=20):
     """
@@ -8508,18 +8548,17 @@ def rank_stocks(all_stocks, strategy="balanced", min_score=0, max_risk=None,
         # نحسب النتيجة حسب الاستراتيجية المطلوبة
         st = item.get("strategies") or {}
         strat_res = st.get(strategy)
-        # ⛔⛔⛔ 16 نوفمبر 2026 — أهلية الترتيب على مستوى
-        #    الاستراتيجة:
-        #    ⛔ مافيش fallback إلى final_score (كان السهم غير المؤهل
-        #    يدخل ترتيب الاستراتيجة بدرجته العامة).
-        #    ⛔ الاستراتيجة لازم تكون محسوبة وقابلة لللترتيب.
-        # ⛔⛔⛔ 16 نوفمبر 2026 — أهلية الترتيب على مستوى
-        #    الاستراتيجة:
-        #    · لو السهم له نتيجة في الاستراتيجة ⇒ الدرجة منها
-        #      (مافيش fallback) + لازم يكون مؤهل (rank_eligible مش False).
-        #    · لو السهم مالوش نتيجة مابا⇒ المسار العام (نتيجة الدرجة
-        #      العامة) — هذا العقد القديم.
-        if strat_res is not None:
+        # ⛔⛔⛔ ١٦ نوفمبر ٢٠٢٦ — أهلية الترتيب على مستوى الاستراتيجية
+        # ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — تقسيم صريح بين مسارين:
+        #   · مسار الاستراتيجية (strategy محدّد) ⇒ لازم نتيجة محسوبة
+        #     + مؤهلة (rank_eligible مش False) + درجة رقمية.
+        #     ⛔ ومافيش fallback إلى final_score (كان السهم غير المؤهل
+        #       يدخل ترتيب الاستراتيجية بدرجته العامة).
+        #   · المسار العام للترتيب (strategy=None) ⇒ الدرجة العامة
+        #     final_score — العقد القديم، في مساره المخصص.
+        if strategy:
+            if strat_res is None:
+                continue
             if strat_res.get("rank_eligible") is False:
                 continue
             score = _f(strat_res.get("score"))
@@ -9654,14 +9693,28 @@ def validate_value(field, value, price=None):
 
 
 # ⛔⛔⛔ 16 نوفمبر 2026 — عقد الحداثة:
-# ґ أخر جلب ناجح — بيتحدّث **فقط** عندما النجاح.
+# 📌 أخر جلب ناجح — بيتحدّث **فقط** عندما النجاح.
 # ⛔ مايتحدّثش ملقب الجلب الفاشل → البيانات تُعدّم وتبقى stale.
 _LAST_SCAN_OK_AT = None
 _LAST_SCAN_COUNT = 0
+# ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — تغطية الجلب:
+#   «نجاح سهم واحد» ⇏ «نجاح كامل لمجموعة السوق».
+#   آخر محاولة (وقت + تغطية) + آخر جلب ناجح (وقت) + الناقص.
+_LAST_SCAN_ATTEMPT_AT = None
+_LAST_SCAN_ATTEMPT_COVERAGE = None
+_LAST_SCAN_REQUESTED = 0
+_LAST_SCAN_RETURNED = 0
+_LAST_SCAN_MISSING = []
+# ⛔ عتبة التغطية المقبولة (المعايرة الحقيقية: ٢٨٦/٢٨٦ = ١٠٠٪)
+_FRESH_MIN_COVERAGE = 90.0
 
 
 def tv_scan_all(symbols=None):
     """يجيب كل الأسعار + البيانات الأساسية في طلب واحد"""
+    # ⛔⛔⛔ الجولة ١٤ — تتبّع التغطية (globals في مكان واحد)
+    global _LAST_SCAN_OK_AT, _LAST_SCAN_COUNT
+    global _LAST_SCAN_ATTEMPT_AT, _LAST_SCAN_ATTEMPT_COVERAGE
+    global _LAST_SCAN_REQUESTED, _LAST_SCAN_RETURNED, _LAST_SCAN_MISSING
     tickers = symbols if symbols else [f"EGX:{c}" for c, _, _ in EGX]
     # ندمج كل الأعمدة: الأساسية + الفنية
     all_cols = TV_COLUMNS + TV_TECH_COLUMNS
@@ -9718,16 +9771,36 @@ def tv_scan_all(symbols=None):
         print(f"  🔍 DIAG: rows={got}/{len(tickers)} | cols_req={len(cols)} | "
               f"cols_recv={len(all_data[0]['d']) if all_data else 0} | "
               f"rsi={first.get('rsi')} | pe={first.get('pe')} | ema20={first.get('ema20')}")
-        # ⛔⛔⛔ جلب ناجح ⇒التوقيت تتحدّث (16 نوفمبر 2026)
-        global _LAST_SCAN_OK_AT, _LAST_SCAN_COUNT
-        if out:
+        # ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٤) — تغطية الجلب:
+        #   · جلب كامل (تغطية ≥ العتبة) ⇒ التوقيت يتحدّث + الحالة fresh.
+        #   · جلب ناقص ⇒ التوقيت **لا** يتحدّث (البيانات تفضل stale)
+        #     والحالة «تغطية جزئية» بتوضح كام اتحدّث وكام ناقص.
+        _requested = len(tickers)
+        _returned = len(out)
+        _coverage = (round(_returned * 100.0 / _requested, 2) if _requested else 0.0)
+        _missing = [c.replace("EGX:", "") for c in tickers
+                    if c.replace("EGX:", "") not in out]
+        _LAST_SCAN_ATTEMPT_AT = time.time()
+        _LAST_SCAN_ATTEMPT_COVERAGE = _coverage
+        _LAST_SCAN_REQUESTED = _requested
+        _LAST_SCAN_RETURNED = _returned
+        _LAST_SCAN_MISSING = _missing[:80]
+        if out and _coverage >= _FRESH_MIN_COVERAGE:
             _LAST_SCAN_OK_AT = time.time()
             _LAST_SCAN_COUNT = len(out)
+        elif out:
+            print("  ⛔ جلب ناقص: %d/%d (%.1f%%) — الحالة: تغطية جزئية"
+                  % (_returned, _requested, _coverage))
         return out
     except Exception as e:
         print(f"  TV Scanner error: {e}")
         # ⛔ الجلب الفاشل → مابيتحدّشش التوقيت
         # ⛔ (البياناتبهي تفتر بحالة stale — ولا تُعدّم لحظية)
+        _LAST_SCAN_ATTEMPT_AT = time.time()
+        _LAST_SCAN_ATTEMPT_COVERAGE = 0.0
+        _LAST_SCAN_REQUESTED = len(symbols) if symbols else 0
+        _LAST_SCAN_RETURNED = 0
+        _LAST_SCAN_MISSING = []
         return out
 
 
@@ -10059,10 +10132,14 @@ def update_loop():
             try:
                 import opp_engine as _opp
                 # ⛔⛔⛔ 16 نوفمبر 2026 — عقد الحداثة:
-                # ґ «السوق مغلق» ≠ «البيانات حديثة»
-                # ґ التوقيت تتحدّث فقط عندما جلب ناجح.
+                # 📌 «السوق مغلق» ≠ «البيانات حديثة»
+                # 📌 التوقيت تتحدّث فقط عندما جلب ناجح.
                 _now = time.time()
-                _fresh = _opp.freshness_state(_LAST_SCAN_OK_AT, phase, _now)
+                _fresh = _opp.freshness_state(
+                    _LAST_SCAN_OK_AT, phase, _now,
+                    coverage=_LAST_SCAN_ATTEMPT_COVERAGE,
+                    requested=_LAST_SCAN_REQUESTED,
+                    updated=_LAST_SCAN_RETURNED)
                 _src_as_of = None
                 for _it in st:
                     _t = _it.get("ts") or _it.get("stale_ts")
@@ -10071,17 +10148,29 @@ def update_loop():
                 _meta = {
                     "generated_at": datetime.utcnow().isoformat() + "Z",
                     "source": ("live" if _fresh["freshness"] == "fresh"
-                               else ("cache" if _fresh["freshness"] == "stale" else "unavailable")),
+                               else ("cache" if _fresh["freshness"] == "stale"
+                                     else ("partial" if _fresh["freshness"] == "partial"
+                                           else "unavailable"))),
                     "freshness": _fresh["freshness"],
                     "market_phase": phase,
                     "source_as_of": _src_as_of,
                     "last_success_at": (_LAST_SCAN_OK_AT if _LAST_SCAN_OK_AT
                                         else None),
+                    "last_attempt_at": (_LAST_SCAN_ATTEMPT_AT
+                                        if _LAST_SCAN_ATTEMPT_AT else None),
+                    "coverage_pct": _LAST_SCAN_ATTEMPT_COVERAGE,
+                    "requested": _LAST_SCAN_REQUESTED,
+                    "updated": _LAST_SCAN_RETURNED,
+                    "missing_count": max(0, _LAST_SCAN_REQUESTED
+                                          - _LAST_SCAN_RETURNED),
                     "data_freshness": _fresh,
                     "sources": [{"source": "TradingView Scanner",
                                  "as_of": _src_as_of,
                                  "last_success_at": (_LAST_SCAN_OK_AT if _LAST_SCAN_OK_AT else None),
                                  "status": _fresh["freshness"],
+                                 "coverage_pct": _LAST_SCAN_ATTEMPT_COVERAGE,
+                                 "requested": _LAST_SCAN_REQUESTED,
+                                 "updated": _LAST_SCAN_RETURNED,
                                  "symbols": _LAST_SCAN_COUNT}],
                 }
                 LIVE_DATA["opp"] = _opp.build_payload(st, None, _meta)
@@ -11032,6 +11121,7 @@ def opp_strategies():
                     "sources": p.get("sources") or [],
                     "plan": _pt.get("plan"),
                     "limit_per_strategy": _pt.get("limit_per_strategy"),
+                    "limit_label_ar": _pt.get("limit_label_ar"),
                     "note_ar": p.get("note_ar")})
 
 
@@ -11060,6 +11150,7 @@ def opp_list(key):
                     "items": lst.get("items") or [],
                     "plan": _pt.get("plan"),
                     "limit_per_strategy": _pt.get("limit_per_strategy"),
+                    "limit_label_ar": _pt.get("limit_label_ar"),
                     "generated_at": p.get("generated_at"),
                     "source": p.get("source"), "freshness": p.get("freshness"),
                     "market_phase": p.get("market_phase"),
@@ -11157,6 +11248,7 @@ def opp_summary():
                     "sources": p.get("sources") or [],
                     "plan": _pt.get("plan"),
                     "limit_per_strategy": _pt.get("limit_per_strategy"),
+                    "limit_label_ar": _pt.get("limit_label_ar"),
                     "strategies": [{"key": k, "name_ar": v.get("strategy_name_ar"),
                                     "total": v.get("total"), "eligible": v.get("eligible"),
                                     "excluded": v.get("excluded"),
@@ -11252,9 +11344,15 @@ def rank_api():
     if a.get("decision"):
         decisions = [s.strip() for s in a.get("decision").split(",") if s.strip()]
 
+    # ⛔⛔⛔ الجولة ١٤: مافيش strategy ⇒ المسار العام (العقد القديم)
+    _strategy = (a.get("strategy") or "").strip() or None
+    if _strategy and _strategy not in STRATEGIES:
+        return jsonify({"ok": False, "error": "استراتيجية غير معروفة",
+                        "code": "unknown_strategy",
+                        "known": sorted(STRATEGIES.keys())}), 400
     results = rank_stocks(
         st,
-        strategy=a.get("strategy", "balanced"),
+        strategy=_strategy,
         min_score=num("min_score") or 0,
         max_risk=num("max_risk"),
         min_safety=num("min_safety"),
