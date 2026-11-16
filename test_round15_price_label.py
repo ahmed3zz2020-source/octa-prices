@@ -209,12 +209,17 @@ class TestFreshnessStates(unittest.TestCase):
         self.assertEqual(st["coverage_status"], "complete")
 
     def test_acceptable_but_incomplete_coverage(self):
-        """⛔ 90% بالظبط = مقبول (مش partial) — والحد موثّق في الكود."""
+        """⛔ 90% بالظبط = **مقبول** (فوق العتبة) و**مش كامل** (29 ناقص).
+
+        📌 الجولة ١٧ (R16-N2) — التمييز بين «مقبولة» و«كاملة» بقى صريح.
+        """
         st = oe.freshness_state(last_success_at=1700000000,
                                 market_phase="open", coverage=90.0,
                                 requested=286, updated=257)
-        self.assertNotEqual(st["coverage_status"], "partial",
-                            "90% بالظبط لازم يعدّي (الحد 90)")
+        self.assertTrue(st.get("coverage_acceptable"),
+                        "90% فوق العتبة ⇒ مقبولة")
+        self.assertEqual(st["coverage_status"], "partial",
+                         "في 29 ناقص ⇒ ممنوع تقول «كاملة»")
         self.assertEqual(st["missing"], 29)
 
     def test_partial_coverage(self):

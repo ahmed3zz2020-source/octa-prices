@@ -183,12 +183,22 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
                     if (requested is not None and updated is not None) else None),
     }
     # ⛔⛔⛔ مفهوم ١ — التغطية (مستقلّة تماماً عن الحداثة)
+    # ⛔⛔⛔ الجولة ١٧ (R16-N2) — **«مقبولة» ≠ «كاملة»**:
+    #    عتبة القبول (٩٠٪) اتفضلت زي ما هي، بس:
+    #      · coverage_status = complete ⇔ مفيش سطر ناقص **اصلاً** (١٠٠٪)
+    #      · coverage_acceptable = التغطية فوق عتبة القبول (٩٠٪)
+    #    ⇒ ٩٠٪ من ١٠٠ = «مقبولة» مش «كاملة» ⇒ النصّ بيبقى صادق.
+    _missing = _cov_info.get("missing")
     if coverage is None:
         coverage_status = "unavailable"
-    elif float(coverage) < FRESH_MIN_COVERAGE:
-        coverage_status = "partial"
+        coverage_acceptable = False
     else:
-        coverage_status = "complete"
+        _cov = float(coverage)
+        coverage_acceptable = bool(_cov >= FRESH_MIN_COVERAGE)
+        if _missing is not None:
+            coverage_status = "complete" if int(_missing) <= 0 else "partial"
+        else:
+            coverage_status = "complete" if _cov >= 100.0 else "partial"
     # ⛔⛔⛔ مفهوم ٢ — الحداثة (عمر آخر جلب ناجح · مستقلّ عن التغطية)
     ts = _parse_timestamp(last_success_at) if last_success_at else None
     if ts is None:
@@ -203,6 +213,10 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
         "freshness": freshness,
         # ⛔ التغطية (مش الحداثة)
         "coverage_status": coverage_status,
+        # ⛔⛔⛔ الجولة ١٧ (R16-N2) — التغطية **مقبولة** (فوق عتبة القبول)
+        #    بس **مش كاملة** ⇒ لازم التمييز يكون صريح في العقد.
+        "coverage_acceptable": coverage_acceptable,
+        "coverage_min_pct": FRESH_MIN_COVERAGE,
         # ⛔ data_state = الحداثة — مافيش خلط مع التغطية
         "data_state": freshness,
         "is_fresh": freshness == "fresh",
@@ -245,7 +259,18 @@ def freshness_summary_ar(fresh_state=None):
         parts.append("التغطية كاملة")
     elif cov == "partial":
         pct = st.get("coverage_pct")
-        parts.append("التغطية جزئية%s" % (" (%s%%)" % pct if pct is not None else ""))
+        # ⛔⛔⛔ الجولة ١٧ (R16-N2) — **«مقبولة» مش «كاملة»**:
+        #    فوق عتبة القبول (٩٠٪) بس مش ١٠٠٪ ⇒ نصّ صريح مختلف.
+        ok = st.get("coverage_acceptable")
+        if ok is None:
+            ok = (pct is not None
+                  and float(pct) >= FRESH_MIN_COVERAGE)
+        if ok:
+            parts.append("التغطية مقبولة%s"
+                         % ((" (%s%%)" % pct) if pct is not None else ""))
+        else:
+            parts.append("التغطية جزئية%s"
+                         % ((" (%s%%)" % pct) if pct is not None else ""))
     else:
         parts.append("التغطية غير معروفة")
     if age is not None:
@@ -946,11 +971,23 @@ def build_payload(stocks, definitions=None, meta=None):
                       or _fresh.get("freshness") or "unknown")
     _coverage_status = (meta.get("coverage_status")
                         or _fresh.get("coverage_status") or "unknown")
+    # ⛔⛔⛔ الجولة ١٧ (R16-N2) — «مقبولة» (فوق العتبة) ≠ «كاملة»
+    _coverage_acceptable = meta.get("coverage_acceptable")
+    if _coverage_acceptable is None:
+        _coverage_acceptable = _fresh.get("coverage_acceptable")
+    if _coverage_acceptable is None:
+        _coverage_acceptable = False
+    _coverage_acceptable = bool(_coverage_acceptable)
     # ⛔ data_state = الحداثة (مش التغطية)
     _data_state = (_fresh.get("data_state") or _freshness_val)
-    _state_ar = freshness_summary_ar(
-        _fresh or {"freshness": _freshness_val,
-                   "coverage_status": _coverage_status})
+    # ⛔ الجولة ١٧ (R16-N2) — النصّ بيتحسب من **الحالة المدمجة**
+    #    (عشان «مقبولة» و«كاملة» يبانوا صح في كل الحالات).
+    _merged_fresh = dict(_fresh)
+    _merged_fresh["freshness"] = _freshness_val
+    _merged_fresh["coverage_status"] = _coverage_status
+    if _merged_fresh.get("coverage_acceptable") is None:
+        _merged_fresh["coverage_acceptable"] = _coverage_acceptable
+    _state_ar = freshness_summary_ar(_merged_fresh)
     _current_session_date = (str(meta.get("session_date") or "")[:10]
                               or (str(meta.get("trading_day") or "")[:10])
                               or (session_date_of(meta.get("generated_at")) or "")
@@ -1077,6 +1114,8 @@ def build_payload(stocks, definitions=None, meta=None):
             "freshness": _freshness_val,
             # ⛔⛔⛔ الجولة ١٦ — التغطية **منفصلة** عن الحداثة (في كل قائمة)
             "coverage_status": _coverage_status,
+            # ⛔⛔⛔ الجولة ١٧ (R16-N2) — «مقبولة» ≠ «كاملة»
+            "coverage_acceptable": _coverage_acceptable,
             "data_state": _data_state,
             "freshness_summary_ar": _state_ar,
             # ⛔ مصادر البيانات وتواخيها (الواجهة بتقراها)
@@ -1093,6 +1132,8 @@ def build_payload(stocks, definitions=None, meta=None):
         "freshness": _freshness_val,
         # ⛔⛔⛔ الجولة ١٦ — **التغطية منفصلة عن الحداثة**
         "coverage_status": _coverage_status,
+        # ⛔⛔⛔ الجولة ١٧ (R16-N2) — «مقبولة» (فوق عتبة القبول) ≠ «كاملة»
+        "coverage_acceptable": _coverage_acceptable,
         # ⛔ data_state = الحداثة (مش التغطية)
         "data_state": _data_state,
         "freshness_summary_ar": _state_ar,
