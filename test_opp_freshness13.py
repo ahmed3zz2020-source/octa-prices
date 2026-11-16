@@ -353,13 +353,47 @@ class TestStrategyRankEligibility(unittest.TestCase):
                          "سهم غير مؤهل دخل بالـfallback")
 
     def test_legacy_general_ranking_still_works(self):
-        """⛔⛔⛔ المسار العام (من غير نتائج استراتيجيات) ما انكسرش."""
+        """⛔⛔⛔ المسار العام (من غير نتائج استراتيجيات) ما انكسرش.
+
+        📌 الجولة ١٤ (١٧ نوفمبر ٢٠٢٦): المساران اتفصلوا صراحةً:
+           · strategy=None  ⇒ المسار العام المخصص (العقد القديم: final_score)
+           · strategy=<key>  ⇒ مسار استراتيجية **بلا fallback** إطلاقاً
+        ⇒ الاختبار ده بقى على المسار العام (ده هو اللي «ما انكسرش»).
+        """
         item = _stock("GEN1", final_score=55.0)
         item["rank_eligible"] = True
         item["strategies"] = {}
-        res = up.rank_stocks([item], strategy="balanced")
+        res = up.rank_stocks([item], strategy=None)
         self.assertEqual([r["code"] for r in res], ["GEN1"],
                          "الترتيب العام انكسر")
+
+    def test_strategy_path_has_no_fallback_at_all(self):
+        """⛔⛔⛔ الجولة ١٤: مسار الاستراتيجية **مافيش فيه fallback**.
+
+        📌 السهم بلا نتيجة في الاستراتيجية ⇒ ما يدخلش (حتى لو final_score موجود).
+        ⇒ ده بالظبط العيب اللي الجولة ١٣ كان بيسمح بيه.
+        """
+        item = _stock("NOFALL", final_score=88.0)
+        item["rank_eligible"] = True
+        item["strategies"] = {}
+        res = up.rank_stocks([item], strategy="balanced")
+        self.assertEqual([r["code"] for r in res], [],
+                         "السهم دخل مسار الاستراتيجية بالـfallback")
+
+    def test_general_path_keeps_legacy_score(self):
+        """⛔⛔⛔ المسار العام بيستخدم final_score زي الأول (العقد القديم)."""
+        item = _stock("GEN2", final_score=61.5)
+        item["rank_eligible"] = True
+        item["strategies"] = {
+            "balanced": {"name": "متوازن", "score": 12.0,
+                         "decision": "بيانات شائعة",
+                         "filters_passed": True, "score_status": "ok",
+                         "rank_eligible": True},
+        }
+        res = up.rank_stocks([item], strategy=None)
+        self.assertEqual([r["code"] for r in res], ["GEN2"])
+        self.assertEqual(float(res[0]["final_score"]), 61.5,
+                         "المسار العام بقى يحسب من الاستراتيجية")
 
 
 if __name__ == "__main__":

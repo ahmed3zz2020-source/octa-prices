@@ -182,13 +182,42 @@ class TestRankingEligibility(unittest.TestCase):
         self.assertIn("GOOD", codes)
 
     def test_rank_stocks_skips_ineligible(self):
+        """⛔ السهم غير المؤهل (بيانات ناقصة) ما يدخلش ترتيب الاستراتيجية.
+
+        📌 الجولة ١٤ (١٧ نوفمبر ٢٠٢٦): مسار الاستراتيجية **بلا fallback**
+           ⇒ لازم كل سهم يكون عنده نتيجة في الاستراتيجية.
+           ⇒ الاختبار اتحدّث يعكس العقد الجديد (مش سلوك جديد).
+        """
+        stocks = [
+            {"code": "GOOD", "final_score": 50.0, "decision": "إشارة محايدة",
+             "rank_eligible": True,
+             "strategies": {"balanced": {"name": "متوازن", "score": 50.0,
+                                         "decision": "إشارة محايدة",
+                                         "filters_passed": True,
+                                         "score_status": "ok",
+                                         "rank_eligible": True}}},
+            {"code": "NODATA", "final_score": 95.0, "decision": "بيانات غير كافية",
+             "rank_eligible": False,
+             "strategies": {"balanced": {"name": "متوازن", "score": 95.0,
+                                         "decision": "بيانات غير كافية",
+                                         "filters_passed": True,
+                                         "score_status": "ok",
+                                         "rank_eligible": False}}},
+        ]
+        out = up.rank_stocks(stocks, strategy="balanced", limit=10)
+        codes = [r["code"] for r in out]
+        self.assertIn("GOOD", codes)
+        self.assertNotIn("NODATA", codes)
+
+    def test_general_rank_stocks_skips_ineligible(self):
+        """⛔ نفس العقد في المسار العام (strategy=None)."""
         stocks = [
             {"code": "GOOD", "final_score": 50.0, "decision": "إشارة محايدة",
              "rank_eligible": True},
             {"code": "NODATA", "final_score": 95.0, "decision": "بيانات غير كافية",
              "rank_eligible": False},
         ]
-        out = up.rank_stocks(stocks, strategy="balanced", limit=10)
+        out = up.rank_stocks(stocks, strategy=None, limit=10)
         codes = [r["code"] for r in out]
         self.assertIn("GOOD", codes)
         self.assertNotIn("NODATA", codes)
