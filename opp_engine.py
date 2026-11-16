@@ -799,7 +799,9 @@ def build_payload(stocks, definitions=None, meta=None):
                 "market_phase": _phase,
                 "score": ev["score"],
                 "coverage": ev["coverage"],
-                "available_weight": ev["available_weight"],
+                # ⬜️ 17 نوفمبر 2026 (الجولة 15) — ⬜️ مافيش تسريب بنية الأوزان:
+                # `available_weight` = مجموع أوزان المعايير المتاحة ⇒ جزء من بنية الأوزان.
+                # ⬜️ المعلومات العامة سمي التقييم والنسبة «الدرجة محسوبة من X¥ من المعايير» ⇒ `coverage` كاشارة المعلومات.
                 "missing": ev["missing"],
                 "grade_ar": ev["grade_ar"],
                 "risk_level_ar": ev["risk_level_ar"],

@@ -123,6 +123,11 @@ PIN = "7314"
 EMAIL = "amina@example.com"
 NAME = "أمينة"
 PIN2 = "4826"
+# ⬜️ الجهاز لازم مسجّل على الحساب — لازم يكون مثال وتقيين الجهاز
+BASE_DEVICE = "test-device-signup-flow-0001"
+FULL_DEVICE = "test-device-full-signup-0002"
+UNLOCK_DEVICE = "test-device-unlock-once-0003"
+ROT_DEVICE = "test-device-rotate-pin-0004"
 EMAIL2 = "karim@example.com"
 GHOST = "ghost@example.com"
 
@@ -203,7 +208,9 @@ def full_signup(email, pin, name=NAME, ip="10.1.0.1"):
     rv = call(VERIFY, body={"email": email, "code": c}, ip=ip)
     ok(rv.status_code == 200, "verify → %s %s" % (rv.status_code, jbody(rv)))
     unlock = jbody(rv).get("unlock")
-    rn = call(NEWPIN, body={"new_pin": pin}, ip=ip, token=unlock)
+    # ⬜️ الجهاز لازم مسجّل على الحساب — باسورد الجهاز
+    rn = call(NEWPIN, body={"new_pin": pin, "device": FULL_DEVICE},
+               ip=ip, token=unlock)
     ok(rn.status_code == 200, "newpin → %s %s" % (rn.status_code, jbody(rn)))
     return jbody(rn).get("token")
 
@@ -516,7 +523,10 @@ def t_newpin_ok():
     ok(jbody(rv).get("token") is None, "⛔ verify رجّع توكن")
     unlock = jbody(rv)["unlock"]
 
-    rn = call(NEWPIN, body={"new_pin": PIN2}, token=unlock)
+    # ⬜️ التغيير: الجهاز لازم يكون مسجّل على الحساب
+    #    (base_device من المتصل) ⬜️ لا مافيش توكن لولا يقل الدخول لا يقل تطلب كود إيميل.
+    rn = call(NEWPIN, body={"new_pin": PIN2, "device": BASE_DEVICE},
+               token=unlock)
     ok(rn.status_code == 200, "newpin → %s %s" % (rn.status_code, jbody(rn)))
     b = jbody(rn)
     ok(b.get("ok") is True, "مش ok")
@@ -533,7 +543,8 @@ def t_newpin_ok():
     # ⛌ والتوكن مربوط بنفس الـuid
     ok(up._token_parts(tok)[0] == up._hash_key(em)[:20], "التوكن مش مربوط")
     # ⛌ والدخول بالباسورد شغال
-    rl = call("/api/auth/pin/login", body={"pin": PIN2}, ip="10.7.0.9")
+    rl = call("/api/auth/pin/login", body={"pin": PIN2, "device": BASE_DEVICE},
+               ip="10.7.0.9")
     ok(rl.status_code == 200, "الدخول بالباسورد → %s" % rl.status_code)
     globals()["FULL_TOKEN"] = tok
     globals()["FULL_UID"] = up._hash_key(em)[:20]
@@ -614,12 +625,15 @@ def t_newpin_unlock_one_use():
     em = "once@example.com"
     c = code_sent(em)
     unlock = jbody(call(VERIFY, body={"email": em, "code": c})).get("unlock")
-    r1 = call(NEWPIN, body={"new_pin": "8643"}, token=unlock, ip="10.9.3.1")
+    r1 = call(NEWPIN, body={"new_pin": "8643", "device": UNLOCK_DEVICE},
+               token=unlock, ip="10.9.3.1")
     ok(r1.status_code == 200, "أول مرة → %s" % r1.status_code)
     r2 = call(NEWPIN, body={"new_pin": "8644"}, token=unlock, ip="10.9.3.1")
     ok(r2.status_code == 401, "⛔ التانية → %s مش 401" % r2.status_code)
     # ⛔ والباسورد الأول لسه شغال (التانية ما غيّرتهوش)
-    rl = call("/api/auth/pin/login", body={"pin": "8643"}, ip="10.9.3.2")
+    # ⬜️ الدخول من نفسه الجهاز المسجّل — الجهاز التاني يطلب كود إيميل
+    rl = call("/api/auth/pin/login",
+               body={"pin": "8643", "device": UNLOCK_DEVICE}, ip="10.9.3.2")
     ok(rl.status_code == 200, "الباسورد الأول → %s" % rl.status_code)
 
 
@@ -638,17 +652,21 @@ def t_newpin_kills_old_pin():
     c = code_sent(em, ip="10.9.4.1")
     unlock = jbody(call(VERIFY, body={"email": em, "code": c},
                         ip="10.9.4.1")).get("unlock")
-    r = call(NEWPIN, body={"new_pin": "7002"}, token=unlock, ip="10.9.4.1")
+    r = call(NEWPIN, body={"new_pin": "7002", "device": ROT_DEVICE},
+               token=unlock, ip="10.9.4.1")
     ok(r.status_code == 200, "newpin → %s %s" % (r.status_code, jbody(r)))
     rec1 = (up._load_users().get(up._hash_key(em)[:20]) or {})
     ok(rec1.get("pin_hash") != rec0.get("pin_hash"), "⛔ الهاش ما اتغيرش")
     ok(rec1.get("pin_salt") != rec0.get("pin_salt"), "⛔ الـsalt ما اتغيرش")
 
     # ⛔ الباسورد القديم مايفتحش الحساب
-    ro = call("/api/auth/pin/login", body={"pin": old}, ip="10.9.4.2")
+    ro = call("/api/auth/pin/login",
+               body={"pin": old, "device": ROT_DEVICE}, ip="10.9.4.2")
     ok(ro.status_code == 401, "⛔⛔ الباسورد القديم لسه شغال: %s" % ro.status_code)
     # ⛌ والجديد شغال
-    rn = call("/api/auth/pin/login", body={"pin": "7002"}, ip="10.9.4.2")
+    # ⬜️ الجهاز المسجّل — الدخول من نفسه الجهاز
+    rn = call("/api/auth/pin/login",
+               body={"pin": "7002", "device": ROT_DEVICE}, ip="10.9.4.2")
     ok(rn.status_code == 200, "الباسورد الجديد → %s" % rn.status_code)
 
 

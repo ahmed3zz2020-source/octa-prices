@@ -15,7 +15,23 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "update_prices.py")
-FE = os.path.join(os.path.dirname(HERE), "octa5", "data_full.json")
+# \u2b1c\ufe0f 17 \u0646\u0648\u0641\u0645\u0628\u0631 2026 (\u0627\u0644\u062c\u0648\u0644\u0629 15) \u2014 \u0645\u0633\u0627\u0631 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0642\u062f\u064a\u0645:
+# \u0643\u0627\u0646 \u0627\u0644\u0631\u064a\u0628\u0648 \u0627\u0644\u0645\u062c\u0627\u0648\u0631 \u0628\u0627\u0633\u0645 \u00abocta5\u00bb (\u0627\u0644\u0623\u0633\u0645 \u0627\u0644\u0642\u062f\u064a\u0645)
+# \u2b1c\ufe0f \u0627\u0644\u0628\u0646\u0627 \u0627\u0644\u0645\u0631\u0634\u062d\u0627\u062a \u0627\u0644\u0645\u0639\u0642\u0648\u0644\u0629 \u0648\u0628\u0645\u0639\u0631\u0641 \u0627\u0644\u0645\u0633\u0627\u0631 \u0627\u0644\u0642\u062f\u064a\u0645.
+def _find_fe():
+    parent = os.path.dirname(HERE)
+    cands = [
+        os.path.join(parent, "octa", "data_full.json"),
+        os.path.join(parent, "octa5", "data_full.json"),
+        os.path.join(HERE, "data_full.json"),
+    ]
+    for c in cands:
+        if os.path.isfile(c):
+            return c
+    return cands[0]
+
+
+FE = _find_fe()
 
 _pass = _fail = 0
 
@@ -109,6 +125,10 @@ _lo = open(SRC, encoding="utf-8").read()
 exec(_lo[_lo.index('_DATA_FULL = {"mtime"'):_lo.index('@app.route("/api/data_full")')], ns)
 pay = ns["_data_full_payload"]()
 
+if not os.path.isfile(FE):
+    print("\u2b1c\ufe0f 2b1c\ufe0f file data_full.json not found in candidates: %s" % FE)
+    print("   \u0627\u0644\u062a\u062d\u0642\u064a\u0642 \u0645\u0633\u062a\u0637\u0644\u0628 \u0627\u0644\u0645\u0644\u0641 \u2014 \u0647\u0630\u0647 \u0627\u062e\u062a\u0628\u0627\u0631 \u0628\u064a\u0626\u064a\u0629 \u0648\u0644\u0627 \u0639\u064a\u0628 \u0645\u0646 \u0627\u0644\u0643\u0648\u062f")
+    sys.exit(1)
 ref = json.load(open(FE, encoding="utf-8"))
 rs, ps = ref["stocks"], pay["stocks"]
 

@@ -16,7 +16,9 @@ import json
 import shutil
 import tempfile
 
-HERE = "/workspace/octa-prices"
+# ⛌ مسار الملف نفسه — مش مسار ثابت: عشان الملف يشتغل من أي نسخة
+#    من المستودع (ومسار الـworktree المؤقت كمان).
+HERE = os.path.dirname(os.path.abspath(__file__))
 TMP = tempfile.mkdtemp(prefix="pintest_", dir="/tmp")
 sys.path.insert(0, HERE)
 
@@ -117,9 +119,31 @@ def call(path, method="POST", body=None, ip="10.0.0.1", token=None):
     return app.dispatch(path, method=method, body=body, headers=h)
 
 
-# الأرقام دي **للاختبار** بس — ماشيطة في أي ملف بالمشروع
+def login(pin, ip="10.0.0.1", device=A_DEV):
+    """⛌ دخول بالباسورد — ومعاه بصمة الجهاز.
+
+       ⛔⛔⛔ بصمة الجهاز **شرط** في التصميم الحالي (٢٤ أكتوبر ٢٠٢٦):
+          الجهاز لازم يكون مسجّل على الحساب. من غيرها (أو من جهاز
+          تاني) ⇒ 401 «جهازك مش معروف» + need_code — مش قفل.
+    """
+    body = {"pin": pin}
+    if device:
+        body["device"] = device
+    return call(LOG, body=body, ip=ip)
+
+
+# ⛔⛔⛔ ٢٤ أكتوبر ٢٠٢٦ — ⭐ ملكية الجهاز:
+#    الباسورد **لوحده** ما يفتحش حساب. لازم الجهاز يكون **مسجّل**
+#    على الحساب (bio_hash). جهاز جديد ⇒ 401 + need_code ⇒ كود إيميل.
+#    ⛌ الأرقام دي **للاختبار** بس — ماشيطة في أي ملف بالمشروع
 A_PIN, A_EMAIL = "7314", "amina@example.com"
 B_PIN, B_EMAIL = "4826", "karim@example.com"
+# ⬜️ بصمة الجهاز — ١٦..٢٠٠ حرف، ومفيش أرقام متتالية (٤ أرقام)
+#    كانت هتتلخبط مع فحص «مافيش باسورد خام في users.json».
+A_DEV = "device-pin-auth-amina-tabla"
+B_DEV = "device-pin-auth-karim-tabla"
+VICTIM_DEV = "device-pin-auth-victim-tabla"
+GUEST_DEV = "device-pin-auth-guest-tabla"
 
 
 def code_of(html):

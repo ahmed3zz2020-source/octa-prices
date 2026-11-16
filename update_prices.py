@@ -841,6 +841,10 @@ def clean_num(v, lo=None, hi=None, default=None):
         return default
     if hi is not None and n > hi:
         return default
+    # \u2b1c\ufe0f 17 \u0646\u0648\u0641\u0645\u0628\u0631 2026 (\u0627\u0644\u062c\u0648\u0644\u0629 15) \u2014 \u0625\u064a\u0642\u0627\u0633 \u0639\u062f\u0627\u062d\u064a \u0645\u062b\u0644 \u064a\u0643\u0648\u0646 \u0639\u062f\u062f \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643:
+    # (\u0643\u0627\u0646 float \u21d2 int(...) \u0628\u064a\u0631\u0645\u064a \u21d2 500)
+    if isinstance(n, float) and n.is_integer():
+        return int(n)
     return n
 
 
@@ -918,7 +922,16 @@ def _sanitize_request():
         # ⛔⛔⛔ method ImmutableMultiDict مش بيقبل التعديل ⬇️
         # 📌 ⬇️ الحل: نكتب الـquery الجديد في الـenviron ⬇️
         # 📌 ⬇️ ونمسح الكاش (args/url) عشان يُعاد بناؤه ⬇️
-        request.environ["QUERY_STRING"] = _urlencode(clean, doseq=False)
+        _clean_qs = _urlencode(clean, doseq=False)
+        request.environ["QUERY_STRING"] = _clean_qs
+        # \u2b1c\ufe0f 17 \u0646\u0648\u0641\u0645\u0628\u0631 2026 (\u0627\u0644\u062c\u0648\u0644\u0629 15) \u2014 \u2b1c\ufe0f \u0627\u0644\u062a\u0646\u0638\u064a\u0641 \u0643\u0627\u0646 \u0645\u064a\u062a\u0623\u062b\u0631:
+        # Werkzeug >= 2.3 \u0628\u064a\u062e\u0630 \u0646\u0633\u062e\u0629 \u0645\u0646 \u0627\u0644\u0642\u0648\u0633\u062a\u0631\u064a\u0646\u0643 \u0648\u0642\u062a \u0628\u0646\u0627\u0621 \u0627\u0644\u0631\u064a\u0633\u0637
+        # (werkzeug/wrappers/request.py) \u21d2 \u062a\u0639\u062f\u064a\u0644 `environ` \u0648\u062d\u062f\u0647 \u0645\u0627\u0628\u064a\u0634\u0651 \u0635\u0648\u0631\u0629.
+        # \u2b1c\ufe0f \u0627\u0644\u062d\u0644: \u0646\u0643\u062a\u0628 \u0627\u0644\u0646\u0633\u062e\u0629 \u0645\u0639\u0642\u0648\u0644\u0629 \u0646\u0642\u0631\u0623\u0646\u0627 \u0646\u0642\u0631\u0623\u0647\u0627 \u0645\u0646\u0641\u0635\u0644\u0629.
+        try:
+            request.query_string = _clean_qs.encode("latin1", "replace")
+        except Exception:
+            pass
         try:
             request.__dict__.pop("args", None)
             request.__dict__.pop("url", None)
@@ -948,19 +961,38 @@ def _sanitize_request():
                     continue
                 _v = "".join(ch for ch in _v if ch.isalnum() or ch in "._-:")[:60]
                 _safe[_k] = _v
-            request.environ["QUERY_STRING"] = _urlencode(_safe, doseq=False)
+            _safe_qs = _urlencode(_safe, doseq=False)
+            request.environ["QUERY_STRING"] = _safe_qs
+            try:
+                request.query_string = _safe_qs.encode("latin1", "replace")
+            except Exception:
+                pass
             try:
                 request.__dict__.pop("args", None)
                 request.__dict__.pop("url", None)
             except Exception:
                 pass
         except Exception:
+            # \u2b1c\ufe0f 17 \u0646\u0648\u0641\u0645\u0628\u0631 2026 (\u0627\u0644\u062c\u0648\u0644\u0629 15 \u00b7 \u0628\u0646\u062f \u0627\u0644\u0645\u0627\u0644\u0643) \u2014 \u062a\u0639\u0630\u064b\u0631 \u0627\u0644\u062a\u0646\u0638\u064a\u0641:
+            # \u2b1c\ufe0f \u0645\u0627\u0641\u064a\u0634 \u0636\u0645\u0627\u0646 \u062a\u0646\u0638\u064a\u0641 \u062a\u0645\u0627\u0645 \u21d2 \u0646\u0631\u0641\u0636 \u0627\u0644\u0637\u0644\u0628 \u0628\u0648\u0636\u062d \u2014 \u0645\u0634 \u0625\u0643\u0645\u0627\u0644 \u0641\u064a \u062d\u0627\u0644\u0629 \u0645\u0644\u062a\u0628\u0633\u0629.
             try:
                 request.environ["QUERY_STRING"] = ""
+                try:
+                    request.query_string = b""
+                except Exception:
+                    pass
                 request.__dict__.pop("args", None)
                 request.__dict__.pop("url", None)
             except Exception:
                 pass
+            try:
+                return jsonify({
+                    "ok": False,
+                    "error": "\u0627\u0644\u0637\u0644\u0628 \u0645\u0645\u0648\u0646 \u0645\u0646\u0641\u0635 \u2014 \u0625\u0639\u062f \u0627\u0644\u0637\u0644\u0628 \u0648\u0627\u0633\u062a\u0623\u0646\u0647",
+                    "why": "query_sanitize_failed",
+                }), 400
+            except Exception:
+                return "bad request", 400
 
 
 
@@ -14529,7 +14561,10 @@ def charts_list_alias():
     📌 ✅ الحل: `require_user()`.
     """
     if not require_user():
-        return jsonify({"ok": False, "error": "محمي", "charts": []}), 401
+        # ⬜️ 17 نوفمبر 2026 (الجولة 15) — وحد الرسالة:
+        # السبق المستعار يرجّع رسالة مختلفة «محمي»
+        # بسباق المسارات — لا أعماد على المستقبل حتى يوحد رسالة واحدة.
+        return _chart_denied()
     return charts_list()
 
 
