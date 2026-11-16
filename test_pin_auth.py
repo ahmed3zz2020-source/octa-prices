@@ -367,14 +367,20 @@ def t_login_needs_device():
     ok(b2.get("need_code") is True, "need_code مش true")
     ok("token" not in b2, "⛔ رجّع توكن من جهاز غريب!")
     # ⛌⛔⛔ ③ العدّاد ما يتحسبش — «جهاز غير معروف» مش محاولة فاشلة
+    #    (الموروث من التصميم: من غير بصمة ① ومن جهاز غريب ② — الاتنين)
     st = _lock_state()
-    k_ip = "i:" + __import__("hashlib").sha256(
-        b"ip|10.0.0.9").hexdigest()[:16]
-    rec = (st.get("k") or {}).get(k_ip) or {}
-    ok(not rec.get("f"),
-       "⛔⛔ «جهاز غير معروف» اتحسب محاولة فاشلة: %s" % rec)
-    ok(up._pin_window_peek(up._pin_keys(ip="10.0.0.9")) == 0,
-       "⛔⛔ «جهاز غير معروف» اتحسب في نافذة الـ٦٠ ثانية")
+    for ip in ("10.0.0.8", "10.0.0.9"):
+        k_ip = "i:" + __import__("hashlib").sha256(
+            ("ip|" + ip).encode()).hexdigest()[:16]
+        rec = (st.get("k") or {}).get(k_ip) or {}
+        ok(not rec.get("f"),
+           "⛔⛔ «جهاز غير معروف» اتحسب محاولة فاشلة (%s): %s" % (ip, rec))
+        ok(up._pin_window_peek(up._pin_keys(ip=ip)) == 0,
+           "⛔⛔ «جهاز غير معروف» اتحسب في نافذة الـ٦٠ ثانية (%s)" % ip)
+    # ⛌⛔ وعدّاد الباسورد نفسه كمان ما اتحسبش
+    kp = "p:" + up._pin_index(A_PIN)
+    ok(not ((st.get("k") or {}).get(kp) or {}).get("f"),
+       "⛔⛔ «جهاز غير معروف» اتحسب على عدّاد الباسورد")
     # ⛌ ④ والباسورد **الغلط** لسه بيرجع «الباسورد غلط» (مش new_device)
     r3 = login("4444", ip="10.0.0.9", device=A_DEV)
     ok(r3.status_code == 401, "باسورد غلط → %s" % r3.status_code)
