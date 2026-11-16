@@ -8486,7 +8486,25 @@ def rank_stocks(all_stocks, strategy="balanced", min_score=0, max_risk=None,
         # نحسب النتيجة حسب الاستراتيجية المطلوبة
         st = item.get("strategies") or {}
         strat_res = st.get(strategy)
-        score = _f(strat_res.get("score"), fs) if strat_res else fs
+        # ⛔⛔⛔ 16 نوفمبر 2026 — أهلية الترتيب على مستوى
+        #    الاستراتيجة:
+        #    ⛔ مافيش fallback إلى final_score (كان السهم غير المؤهل
+        #    يدخل ترتيب الاستراتيجة بدرجته العامة).
+        #    ⛔ الاستراتيجة لازم تكون محسوبة وقابلة لللترتيب.
+        # ⛔⛔⛔ 16 نوفمبر 2026 — أهلية الترتيب على مستوى
+        #    الاستراتيجة:
+        #    · لو السهم له نتيجة في الاستراتيجة ⇒ الدرجة منها
+        #      (مافيش fallback) + لازم يكون مؤهل (rank_eligible مش False).
+        #    · لو السهم مالوش نتيجة مابا⇒ المسار العام (نتيجة الدرجة
+        #      العامة) — هذا العقد القديم.
+        if strat_res is not None:
+            if strat_res.get("rank_eligible") is False:
+                continue
+            score = _f(strat_res.get("score"))
+            if score is None:
+                continue
+        else:
+            score = fs
         dec = (strat_res or {}).get("decision") or item.get("decision")
         safety = _f(item.get("safety_score"))
         liq = _f(item.get("liquidity_score"))
@@ -9613,6 +9631,13 @@ def validate_value(field, value, price=None):
     return v, None
 
 
+# ⛔⛔⛔ 16 نوفمبر 2026 — عقد الحداثة:
+# ґ أخر جلب ناجح — بيتحدّث **فقط** عندما النجاح.
+# ⛔ مايتحدّثش ملقب الجلب الفاشل → البيانات تُعدّم وتبقى stale.
+_LAST_SCAN_OK_AT = None
+_LAST_SCAN_COUNT = 0
+
+
 def tv_scan_all(symbols=None):
     """يجيب كل الأسعار + البيانات الأساسية في طلب واحد"""
     tickers = symbols if symbols else [f"EGX:{c}" for c, _, _ in EGX]
@@ -9671,9 +9696,16 @@ def tv_scan_all(symbols=None):
         print(f"  🔍 DIAG: rows={got}/{len(tickers)} | cols_req={len(cols)} | "
               f"cols_recv={len(all_data[0]['d']) if all_data else 0} | "
               f"rsi={first.get('rsi')} | pe={first.get('pe')} | ema20={first.get('ema20')}")
+        # ⛔⛔⛔ جلب ناجح ⇒التوقيت تتحدّث (16 نوفمبر 2026)
+        global _LAST_SCAN_OK_AT, _LAST_SCAN_COUNT
+        if out:
+            _LAST_SCAN_OK_AT = time.time()
+            _LAST_SCAN_COUNT = len(out)
         return out
     except Exception as e:
         print(f"  TV Scanner error: {e}")
+        # ⛔ الجلب الفاشل → مابيتحدّشش التوقيت
+        # ⛔ (البياناتبهي تفتر بحالة stale — ولا تُعدّم لحظية)
         return out
 
 
@@ -10004,14 +10036,37 @@ def update_loop():
             # 📌 دلوقتي: الحساب من نفس دورة تحديث الأسعار ⇒ البيانات حيّة.
             try:
                 import opp_engine as _opp
+                # ⛔⛔⛔ 16 نوفمبر 2026 — عقد الحداثة:
+                # ґ «السوق مغلق» ≠ «البيانات حديثة»
+                # ґ التوقيت تتحدّث فقط عندما جلب ناجح.
+                _now = time.time()
+                _fresh = _opp.freshness_state(_LAST_SCAN_OK_AT, phase, _now)
+                _src_as_of = None
+                for _it in st:
+                    _t = _it.get("ts") or _it.get("stale_ts")
+                    if _t and (_src_as_of is None or str(_t) > str(_src_as_of)):
+                        _src_as_of = _t
                 _meta = {
                     "generated_at": datetime.utcnow().isoformat() + "Z",
-                    "source": "live",
-                    "freshness": phase if phase else "unknown",
+                    "source": ("live" if _fresh["freshness"] == "fresh"
+                               else ("cache" if _fresh["freshness"] == "stale" else "unavailable")),
+                    "freshness": _fresh["freshness"],
+                    "market_phase": phase,
+                    "source_as_of": _src_as_of,
+                    "last_success_at": (_LAST_SCAN_OK_AT if _LAST_SCAN_OK_AT
+                                        else None),
+                    "data_freshness": _fresh,
+                    "sources": [{"source": "TradingView Scanner",
+                                 "as_of": _src_as_of,
+                                 "last_success_at": (_LAST_SCAN_OK_AT if _LAST_SCAN_OK_AT else None),
+                                 "status": _fresh["freshness"],
+                                 "symbols": _LAST_SCAN_COUNT}],
                 }
                 LIVE_DATA["opp"] = _opp.build_payload(st, None, _meta)
                 print("  🎯 محرّك الفرص: "
-                      + str(len(LIVE_DATA["opp"].get("lists") or {})) + " استراتيجية (حيّة)")
+                      + str(len(LIVE_DATA["opp"].get("lists") or {})) + " استراتيجية"
+                      + " | الحداثة: " + str(_fresh["freshness"])
+                      + " | عمر السوق: " + str(phase))
             except Exception as _oe:
                 LIVE_DATA["opp"] = {"ok": False, "error": "{}: {}".format(
                     type(_oe).__name__, str(_oe)[:160])}
@@ -10901,6 +10956,29 @@ def _opp_public_strategy(st):
     return _opp.public_strategy(st)
 
 
+def _opp_plan(user=None):
+    """باقة المستخدم (Free/Pro) — مصدرها plan_gate (مصدر واحد للحقيقة)."""
+    try:
+        import plan_gate as _pg
+        return _pg.plan_of(user) if user else "free"
+    except Exception:
+        return "free"
+
+
+def _opp_tiered(payload, user=None):
+    """⛔⛔⛔ 16 نوفمبر 2026 — حدود الباقة من الباك:
+    Free ⇒ عدد محدود + تفاصيل مختصرة
+    Pro  ⇒ القائمة الكاملة + تفاصيل أوسع.
+    ⛔ مافيش اختلاف في الحساب أو معايير الأهلية.
+    """
+    import opp_engine as _opp
+    return _opp.apply_tier(payload, _opp_plan(user))
+
+
+
+
+
+
 @app.route("/api/opp/strategies")
 def opp_strategies():
     """استراتيجيات الفرص — التسع، بدون كشف الأوزان."""
@@ -10921,10 +10999,17 @@ def opp_strategies():
             if _pg.plan_of(require_user()) != "pro":
                 continue
         out.append(pub)
+    _pt = _opp_tiered(p, require_user()) or {}
     return jsonify({"ok": True, "strategies": out,
                     "model_version": p.get("model_version"),
                     "generated_at": p.get("generated_at"),
                     "source": p.get("source"), "freshness": p.get("freshness"),
+                    "market_phase": p.get("market_phase"),
+                    "age_seconds": p.get("age_seconds"),
+                    "data_freshness": p.get("data_freshness"),
+                    "sources": p.get("sources") or [],
+                    "plan": _pt.get("plan"),
+                    "limit_per_strategy": _pt.get("limit_per_strategy"),
                     "note_ar": p.get("note_ar")})
 
 
@@ -10938,19 +11023,27 @@ def opp_list(key):
     if not p:
         return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
                         "code": "engine_loading"}), 503
-    lst = (p.get("lists") or {}).get(key)
+    _pt = _opp_tiered(p, require_user()) or {}
+    lst = (_pt.get("lists") or {}).get(key)
     if not lst:
         return jsonify({"ok": False, "error": "استراتيجية غير معروفة",
                         "code": "unknown_strategy"}), 404
     return jsonify({"ok": True, "strategy": key,
                     "summary": {"total": lst.get("total"),
                                 "eligible": lst.get("eligible"),
+                                "eligible_total": lst.get("eligible_total"),
                                 "excluded": lst.get("excluded"),
                                 "returned": lst.get("returned"),
                                 "excluded_codes": lst.get("excluded_codes")},
                     "items": lst.get("items") or [],
+                    "plan": _pt.get("plan"),
+                    "limit_per_strategy": _pt.get("limit_per_strategy"),
                     "generated_at": p.get("generated_at"),
                     "source": p.get("source"), "freshness": p.get("freshness"),
+                    "market_phase": p.get("market_phase"),
+                    "age_seconds": p.get("age_seconds"),
+                    "data_freshness": p.get("data_freshness"),
+                    "sources": lst.get("sources") or p.get("sources") or [],
                     "model_version": p.get("model_version")})
 
 
@@ -10964,7 +11057,8 @@ def opp_detail(key, code):
     if not p:
         return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
                         "code": "engine_loading"}), 503
-    lst = (p.get("lists") or {}).get(key)
+    _pt = _opp_tiered(p, require_user()) or {}
+    lst = (_pt.get("lists") or {}).get(key)
     if not lst:
         return jsonify({"ok": False, "error": "استراتيجية غير معروفة",
                         "code": "unknown_strategy"}), 404
@@ -10976,8 +11070,13 @@ def opp_detail(key, code):
                         "code": "not-found"}), 404
     return jsonify({"ok": True, "strategy": key, "code": code, "item": it,
                     "explain": it.get("criteria") or [],
+                    "plan": _pt.get("plan"),
                     "generated_at": p.get("generated_at"),
-                    "source": p.get("source"), "freshness": p.get("freshness")})
+                    "source": p.get("source"), "freshness": p.get("freshness"),
+                    "market_phase": p.get("market_phase"),
+                    "age_seconds": p.get("age_seconds"),
+                    "data_freshness": p.get("data_freshness"),
+                    "sources": p.get("sources") or []})
 
 
 @app.route("/api/opp/explain/<key>/<code>")
@@ -10990,7 +11089,8 @@ def opp_explain(key, code):
     if not p:
         return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
                         "code": "engine_loading"}), 503
-    lst = (p.get("lists") or {}).get(key)
+    _pt = _opp_tiered(p, require_user()) or {}
+    lst = (_pt.get("lists") or {}).get(key)
     if not lst:
         return jsonify({"ok": False, "error": "استراتيجية غير معروفة",
                         "code": "unknown_strategy"}), 404
@@ -11004,8 +11104,13 @@ def opp_explain(key, code):
                     "criteria": it.get("criteria") or [],
                     "missing": it.get("missing") or [],
                     "reasons": it.get("reasons") or [],
+                    "plan": _pt.get("plan"),
                     "generated_at": p.get("generated_at"),
-                    "source": p.get("source"), "freshness": p.get("freshness")})
+                    "source": p.get("source"), "freshness": p.get("freshness"),
+                    "market_phase": p.get("market_phase"),
+                    "age_seconds": p.get("age_seconds"),
+                    "data_freshness": p.get("data_freshness"),
+                    "sources": p.get("sources") or []})
 
 
 @app.route("/api/opp/summary")
@@ -11018,11 +11123,18 @@ def opp_summary():
     if not p:
         return jsonify({"ok": False, "error": "محرّك الفرص لسه بيحضّر البيانات",
                         "code": "engine_loading"}), 503
-    lists = p.get("lists") or {}
+    _pt = _opp_tiered(p, require_user()) or {}
+    lists = _pt.get("lists") or {}
     return jsonify({"ok": True,
                     "model_version": p.get("model_version"),
                     "generated_at": p.get("generated_at"),
                     "source": p.get("source"), "freshness": p.get("freshness"),
+                    "market_phase": p.get("market_phase"),
+                    "age_seconds": p.get("age_seconds"),
+                    "data_freshness": p.get("data_freshness"),
+                    "sources": p.get("sources") or [],
+                    "plan": _pt.get("plan"),
+                    "limit_per_strategy": _pt.get("limit_per_strategy"),
                     "strategies": [{"key": k, "name_ar": v.get("strategy_name_ar"),
                                     "total": v.get("total"), "eligible": v.get("eligible"),
                                     "excluded": v.get("excluded"),

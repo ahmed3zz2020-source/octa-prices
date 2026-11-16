@@ -22,13 +22,59 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 DEF_FILE = HERE / "data" / "opp_definitions.json"
 
-# ⛔ سياسات الصلاحيات المعتمدة (٢٠٢٦):
-#    كل مسارات محرّك الفرص متاحة لكل مستخدم **مسجّل**.
-#    لو المالك يريد حصر استراتيجيات Pro ⇒ حدّد المفاتيح هنا.
+# ⛔ سياسات الباقات (قرار المالك — ١٦ نوفمبر ٢٠٢٦):
+#    · الاستراتيجيات التسع **كلها** ظاهرة لـFree وPro.
+#    · Free ⇒ عدد محدود من الفرص في كل استراتيجية + أسباب مختصرة.
+#    · Pro  ⇒ القائمة الكاملة + تفاصيل التحليل والمخاطر الأوسع.
+#    · ⛔ مافيش اختلاف في دقة الحساب أو معايير الأهلية بين الباقتين.
+#    · ⛔ العدد قابل للضبط (قرار المالك لسه نهائيش) ⇒  constant.
 OPP_PRO_STRATEGIES = ()
+OPP_FREE_LIMIT_PER_STRATEGY = 5      # ⛔ قابل للضبط — قرار المالك
+OPP_PRO_LIMIT_PER_STRATEGY = 20     # ⛔ = سقف المحرّك · القائمة كاملة
+                                     # ⛔ رفعه = payload أكبر ⇒ يتقاس بعد التغيير
 
 # ⛔ حدود التشغيل (اختيارية) — الافتراضي: كل الأسهم
 OPP_LIMIT_PER_STRATEGY = 20
+
+# ⛔⛔⛔ عقد الحداثة (١٦ نوفمبر ٢٠٢٦):
+#    «السوق مغلق» ⇏ «البيانات حديثة». الاتنين منفصلين.
+#    · source_as_of  = توقيت بيانات المصدر نفسها
+#    · last_success_at = آخر جلب **ناجح** (ما بيتحدّثش لو الجلب فشل)
+#    · age_seconds   = الفرق بين دلوقتي وآخر جلب ناجح
+#    · freshness     = fresh | stale | unavailable
+FRESH_MAX_AGE_OPEN = 900             # ١٥ دقيقة وقت السوق
+FRESH_MAX_AGE_CLOSED = 86400         # يوم وقت الإغلاق
+
+
+def freshness_state(last_success_at, market_phase="unknown", now=None,
+                    max_age_open=None, max_age_closed=None):
+    """⛔⛔⛔ ١٦ نوفمبر ٢٠٢٦ — عقد الحداثة.
+
+    📌 القواعد:
+      · «السوق مغلق» ⇏ «البيانات قديمة» — الاتنين منفصلين.
+      · last_success_at ما بيتحدّثش إلا بعد جلب **ناجح**.
+      · مافيش جلب ناجح أصلاً ⇒ unavailable (مش «حالي»).
+      · السوق مفتوح والبيانات أقدم من الحد ⇒ stale.
+      · السوق مغلق والبيانات أقدم من يوم ⇒ stale.
+    ⛔ مافيش بيانات من الكاش بتتعرض كأنها لحظية.
+    """
+    import time as _t
+    max_age_open = FRESH_MAX_AGE_OPEN if max_age_open is None else max_age_open
+    max_age_closed = FRESH_MAX_AGE_CLOSED if max_age_closed is None else max_age_closed
+    now = now if now is not None else _t.time()
+    if not last_success_at:
+        return {"freshness": "unavailable", "age_seconds": None,
+                "last_success_at": None, "market_phase": market_phase}
+    try:
+        ts = float(last_success_at)
+    except (TypeError, ValueError):
+        return {"freshness": "unavailable", "age_seconds": None,
+                "last_success_at": None, "market_phase": market_phase}
+    age = max(0.0, now - ts)
+    limit = max_age_open if str(market_phase) == "open" else max_age_closed
+    state = "fresh" if age <= limit else "stale"
+    return {"freshness": state, "age_seconds": int(age),
+            "last_success_at": last_success_at, "market_phase": market_phase}
 
 
 def _f(v, d=None):
@@ -667,14 +713,21 @@ def build_payload(stocks, definitions=None, meta=None):
                 crit = evaluate_item(item)
                 item["_opp_criteria"] = crit
             ev = evaluate_strategy(item, st, crit)
+            # ⛔⛔⛔ 16 نوفمبر 2026 — حالة بيانات السهم:
+            #    «live» = اتجلب دلوقتي · «stale» = آخر سعر معروف
+            #    (من الكاش) ⇒ ما يتحضرش كأنه لحظي.
+            _stale = bool(item.get("stale"))
+            _src_ts = item.get("stale_ts") if _stale else (item.get("ts") or "")
             row = {
                 "code": item.get("code"),
                 "name": item.get("name"),
                 "sector": item.get("sector") or "—",
                 "price": item.get("price"),
-                "price_label": "سعر إغلاق",
+                "price_label": ("آخر سعر معروف" if _stale else "سعر إغلاق"),
                 "session_date": str(item.get("session_date") or item.get("ts") or "")[:10],
                 "change": item.get("change"),
+                "data_state": ("stale" if _stale else "live"),
+                "source_as_of": _src_ts,
                 "score": ev["score"],
                 "coverage": ev["coverage"],
                 "available_weight": ev["available_weight"],
@@ -709,15 +762,69 @@ def build_payload(stocks, definitions=None, meta=None):
             "items": rows[:limit],
             "generated_at": meta.get("generated_at"),
             "source": meta.get("source") or "live",
-            "freshness": meta.get("freshness") or "unknown",
+            "freshness": (meta.get("freshness")
+                          or (meta.get("data_freshness") or {}).get("freshness")
+                          or "unknown"),
+            # ⛔ مصادر البيانات وتواخيها (الواجهة بتقراها)
+            "sources": meta.get("sources") or [],
+            # ⛔ عقد الحداثة
+            "data_freshness": meta.get("data_freshness") or {},
         }
+    _fresh = meta.get("data_freshness") or {}
     return {
         "ok": True,
         "model_version": defs.get("model_version"),
         "generated_at": meta.get("generated_at"),
         "source": meta.get("source") or "live",
-        "freshness": meta.get("freshness") or "unknown",
+        # ⛔ ⛔⛔ ماينشر الحداثة أصل من عقد الحداثة (ولا من قيمة أخرى)
+        "freshness": (meta.get("freshness")
+                      or (meta.get("data_freshness") or {}).get("freshness")
+                      or "unknown"),
+        # ⛔⛔⛔ عقد الحداثة — «السوق مغلق» ≠ «البيانات حديثة»
+        "market_phase": meta.get("market_phase") or "unknown",
+        "source_as_of": meta.get("source_as_of"),
+        "last_success_at": meta.get("last_success_at"),
+        "age_seconds": _fresh.get("age_seconds"),
+        "data_freshness": _fresh,
+        "sources": meta.get("sources") or [],
         "note_ar": "محسوبة من البيانات الحيّة — بتتحدّث مع كل دورة تحديث.",
         "strategies": [public_strategy(s) for s in strategies],
         "lists": lists,
     }
+
+
+def apply_tier(payload, plan="free"):
+    """⛔ تطبيق حدود الباقة **من الباك** (قرار المالك — 16 نوفمبر 2026).
+
+    ґ Free: عدد محدود من الفرص في كل استراتيجية + تفاصيل مختصرة.
+    ґ Pro : القائمة الكاملة + تفاصيل التحليل والمخاطر الأوسع.
+    ⛔ مافيش اختلاف في دقة الحساب ولا في معايير الأهلية.
+    """
+    if not payload:
+        return payload
+    pro = str(plan or "free").lower() == "pro"
+    limit = OPP_PRO_LIMIT_PER_STRATEGY if pro else OPP_FREE_LIMIT_PER_STRATEGY
+    out = dict(payload)
+    out["plan"] = "pro" if pro else "free"
+    out["limit_per_strategy"] = limit
+    lists = {}
+    for key, lst in (payload.get("lists") or {}).items():
+        l = dict(lst)
+        items = list(l.get("items") or [])
+        if limit is not None:
+            items = items[:limit]
+        out_items = []
+        for it in items:
+            if pro:
+                out_items.append(it)
+                continue
+            # ⛔ Free: تفاصيل مختصرة (بلا تحليل معياري تفصيلي ولا مخاطر)
+            brief = {k: v for k, v in it.items()
+                     if k not in ("criteria", "risks", "plan", "refs", "exclusions")}
+            out_items.append(brief)
+        l["items"] = out_items
+        l["returned"] = len(out_items)
+        l["eligible_total"] = lst.get("eligible")
+        lists[key] = l
+    out["lists"] = lists
+    return out
