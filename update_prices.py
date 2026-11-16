@@ -755,6 +755,38 @@ def _proxy_secret_ok():
                                PROXY_SECRET.encode("utf-8", "replace"))
 
 
+# ══════════════════════════════════════════════════════════════════
+#  🛡️ البوابة على مستوى الباك نفسه — مش الـWorker بس
+# ══════════════════════════════════════════════════════════════════
+# ⛔⛔⛔ الجولة ١٦ — **حدود الـquery تتفحص قبل المصادقة** ⬇️
+# 📌 ⬇️ السبب: حدّ الحجم/العدد فحص رخيص (طول نص + عدّ معاملات) ⬇️
+# 📌 ⬇️ والمصادقة بحث توكن (hash + قراءة من القرص) ⬇️
+# 📌 ⬇️ ⇒ أي request كبير لازم يترفض **قبل** أي شغل ⬇️
+# 📌 ⬇️ (ده معنى «حماية DoS قبل التحليل») ⬇️
+# 📌 ⬇️ ⛔ الرد = ٤٠٠ + كود سبب ثابت — مافيش تسريب لقيم ⬇️
+# ⛔ ملاحظة: الدالة نفسها متعرفة **أبعد** في الملف — لكن الاستدعاء
+#   بيحصل وقت الطلب (فتح أسماء globals) ⇒ الترتيب هنا آمن.
+@app.before_request
+def _query_limits_first():
+    """⛔ حدود الـquery — قبل أي parse وقبل المصادقة (الجولة ١٦)."""
+    try:
+        path = request.path or ""
+        if not path.startswith("/api/"):
+            return None
+        if request.method == "OPTIONS":
+            return None
+        _ok, _why = _query_limits_check(_query_raw_string())
+        if _ok:
+            return None
+        return _reject_query(_why, "طلب مرفوض")
+    except Exception:
+        # ⛔⛔⛔ fail-closed: لو الفحص نفسه وقع ⇒ رفض (مش نكمّل)
+        try:
+            return _reject_query(QUERY_WHY_SANITIZE_FAILED, "طلب مرفوض")
+        except Exception:
+            return "bad request", 400
+
+
 @app.before_request
 def api_deny_by_default():
     """🛡️ البوابة على مستوى الباك نفسه — مش الـWorker بس."""
@@ -11330,6 +11362,12 @@ def opp_strategies():
                     "market_phase": p.get("market_phase"),
                     "age_seconds": p.get("age_seconds"),
                     "data_freshness": p.get("data_freshness"),
+                    # ⛔⛔⛔ الجولة ١٦ — **التغطية منفصلة عن الحداثة**
+                    # (من غيرها ⇒ الواجهة مش هتعرف «تغطية جزئية»)
+                    "coverage_status": p.get("coverage_status"),
+                    "data_state": p.get("data_state"),
+                    "freshness_summary_ar": p.get("freshness_summary_ar"),
+                    "current_session_date": p.get("current_session_date"),
                     "sources": p.get("sources") or [],
                     "plan": _pt.get("plan"),
                     "limit_per_strategy": _pt.get("limit_per_strategy"),
@@ -11368,6 +11406,15 @@ def opp_list(key):
                     "market_phase": p.get("market_phase"),
                     "age_seconds": p.get("age_seconds"),
                     "data_freshness": p.get("data_freshness"),
+                    # ⛔⛔⛔ الجولة ١٦ — **التغطية منفصلة عن الحداثة**
+                    # (المستوى ده هو اللي بتقراه الواجهة ⇒ لازم ينشر)
+                    "coverage_status": (lst.get("coverage_status")
+                                        or p.get("coverage_status")),
+                    "data_state": (lst.get("data_state")
+                                   or p.get("data_state")),
+                    "freshness_summary_ar": (lst.get("freshness_summary_ar")
+                                             or p.get("freshness_summary_ar")),
+                    "current_session_date": p.get("current_session_date"),
                     "sources": lst.get("sources") or p.get("sources") or [],
                     "model_version": p.get("model_version")})
 
