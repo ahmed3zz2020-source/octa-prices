@@ -290,6 +290,8 @@ def price_label_for(market_phase="unknown", stale=False, data_state=None,
        ② سعر من **نفس الجلسة الحالية** (مش جلسة سابقة)
        ③ عمر السعر (`price_age_seconds`) ≤ `PRICE_MAX_AGE_OPEN`
     ⛔⛔⛔ `stale=False` **لوحده** ما بيخليش السعر لحظي (الجولة ١٦).
+    ⛔⛔⛔ الجولة ١٧ (R16-N4): «الآن» محتاج **الجلسة الحالية + جلسة السعر**
+       موجودين **ومتساويين** — لو أي واحد فيهم ناقص ⇒ مفيش دليل ⇒ ممنوع.
     ⛔⛔⛔ وجود `price_ts` **لوحده** كمان ما بيخليش السعر لحظي — لازم نعرف
        **عمره** (والا كان من جلسة سابقة).
     ⛔⛔⛔ عمر السعر المجهول (مافيش price_ts) ⇒ ممنوع أي ادعاء لحظية.
@@ -321,6 +323,11 @@ def price_label_for(market_phase="unknown", stale=False, data_state=None,
         if price_age_seconds is None:
             return "آخر سعر متاح"
         if _other_session:
+            return "آخر سعر معروف"
+        # ⛔⛔⛔ الجولة ١٧ (R16-N4) — «الآن» محتاج **دليل تطابق الجلسات**:
+        #    لازم تاريخ الجلسة الحالية **موجود** + تاريخ جلسة السعر **موجود**
+        #    + **متساويين**. لو أي واحد ناقص ⇒ مفيش دليل ⇒ ممنوع «الآن».
+        if not (_ps and _cs and _ps == _cs):
             return "آخر سعر معروف"
         if float(price_age_seconds) > float(max_price_age_open):
             return "آخر سعر معروف"
