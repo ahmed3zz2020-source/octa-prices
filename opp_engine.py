@@ -976,6 +976,18 @@ def build_payload(stocks, definitions=None, meta=None):
             #    · price_as_of = وقت السعر الفعلي من المصدر (أو null
             #      + price_time_source=not_provided ⇒ المصدر مابيعطيش وقت).
             _stale = bool(item.get("stale"))
+            # ⛔⛔⛔ الجولة ١٧ (R16-N1) — **اتساق الحداثة**: صف «live» لازم
+            #    يتagree مع الحداثة العامة على مستوى الدفعة.
+            #    «بيانات قديمة» على مستوى الدفعة ⇒ مفيش صف يقدر يقول «live»
+            #    (وإلا المستخدم يشوف «بيانات حديثة» و«سعر التداول الآن» مع
+            #    إن آخر جلب ناجح من يومين ⇒ ادعاء كاذب).
+            _dataset_state = str(_data_state or "unknown")
+            _dataset_stale = _dataset_state in ("stale", "unavailable")
+            _row_stale = bool(_stale) or _dataset_stale
+            _stale_reason = ("item_cache" if _stale else
+                             ("dataset_stale" if _dataset_state == "stale"
+                              else ("dataset_unavailable"
+                                    if _dataset_state == "unavailable" else "")))
             _src_ts = item.get("stale_ts") if _stale else (item.get("ts") or "")
             _phase = meta.get("market_phase") or "unknown"
             _price_ts = item.get("price_ts") or None
@@ -1001,15 +1013,19 @@ def build_payload(stocks, definitions=None, meta=None):
                 "price": item.get("price"),
                 # ⛔⛔⛔ الجولة ١٦ — الوصف محسوب من **عمر السعر** وجلسة السعر
                 "price_label": price_label_for(
-                    _phase, _stale,
-                    data_state=("stale" if _stale else None),
+                    _phase, _row_stale,
+                    data_state=("stale" if _row_stale else None),
                     price_time_source=_price_time_source,
                     price_age_seconds=_price_age,
                     price_session_date=(_price_session or None),
                     session_date=(_current_session or None)),
                 "session_date": str(item.get("session_date") or item.get("ts") or "")[:10],
                 "change": item.get("change"),
-                "data_state": ("stale" if _stale else "live"),
+                "data_state": ("stale" if _row_stale else "live"),
+                # ⛔⛔⛔ الجولة ١٧ (R16-N1) — **ليه** الصف مش حيّ
+                # (item_cache = السهم من الكاش · dataset_stale = آخر جلب
+                #  ناجح قديم · dataset_unavailable = مافيش جلب ناجح أصلاً).
+                "stale_reason": (_stale_reason or None),
                 "source_as_of": _src_ts,
                 "data_received_at": (item.get("ts") or "") if not _stale else None,
                 "price_as_of": _price_ts,
