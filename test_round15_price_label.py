@@ -19,6 +19,15 @@
    ⑥ فشل المصدر بعد نجاح سابق ⇒ `last_success_at` **ما بيتصفّرش**
       (العمر بيزيد) ⇒ freshness stale مش fresh.
 
+⛔⛔⛔ تعديل الجولة ١٦ (عقد الحداثة اتغيّر — موضّح تحت):
+   · «سعر التداول الآن» بقى محتاج **تلات** أدلة: السوق مفتوح + سعر من
+     **نفس الجلسة** + **عمر السعر** ≤ ١٥ دقيقة.
+     ⛔ `price_ts` لوحده (من غير عمر) مش دليل ⇒ التسمية «آخر سعر متاح».
+   · `freshness` بقى = **الحداثة** (عمر آخر جلب ناجح) بس.
+     `coverage_status` = **التغطية** (نسبة الجلب) — مفهومين منفصلين.
+     ⛔ `freshness` مبقاش بياخد قيمة "partial" (الحدالة موجودة في
+       `coverage_status`).
+
 📌 التشغيل: python test_round15_price_label.py
 """
 import os
@@ -37,6 +46,10 @@ os.environ["OCTA_BG_TASKS"] = "off"
 
 import opp_engine as oe  # noqa: E402
 
+# ⛔ الجولة ١٦ — هذه المعاملات جديدة (عمر السعر + الجلسة)
+NEW_KWARGS = ("price_age_seconds", "price_session_date", "session_date",
+              "price_ts", "now", "max_price_age_open", "max_price_age_closed")
+
 
 def _label(phase="open", **kw):
     """Calling helper — compatible with the old signature.
@@ -46,12 +59,16 @@ def _label(phase="open", **kw):
        price_time_source. To make the negative proof a **behavioral**
        failure (not just a TypeError), we fall back to the old call
        when the new keyword is not accepted.
+    ⛔ الجولة ١٦: نفس القاعدة اتوسّعت لكل المعاملات الجديدة
+       (عمر السعر + تاريخ الجلسة) ⇒ الفشل يبقى **سلوكي** مش TypeError.
     """
     try:
         return oe.price_label_for(phase, **kw)
     except TypeError:
         old = dict(kw)
         old.pop("price_time_source", None)
+        for _k in NEW_KWARGS:
+            old.pop(_k, None)
         return oe.price_label_for(phase, **old)
 
 
@@ -92,9 +109,33 @@ class TestPriceLabelTruth(unittest.TestCase):
         self.assertEqual(lab, "آخر سعر متاح")
 
     def test_open_market_with_price_ts_is_now(self):
-        """✅ المسار السليم: في توقيت موثوق ⇒ «سعر التداول الآن»."""
-        lab = _label("open", price_time_source="source")
+        """✅ المسار السليم: سعر **حديث** من **نفس الجلسة** ⇒ «الآن».
+
+        ⛔ الجولة ١٦: بقى لازم **عمر السعر** + **نفس الجلسة** — مش
+        وجود `price_ts` بس.
+        """
+        lab = _label("open", price_time_source="source",
+                     price_age_seconds=30,
+                     price_session_date="2026-11-17",
+                     session_date="2026-11-17")
         self.assertEqual(lab, "سعر التداول الآن")
+
+    def test_open_market_without_age_evidence_is_not_now(self):
+        """⛔ الجولة ١٦: `price_ts` من غير عمر ⇒ ممنوع ادعاء لحظي."""
+        lab = _label("open", price_time_source="source")
+        self.assertNotEqual(lab, "سعر التداول الآن",
+                            "ادّعاء لحظية من غير دليل على حداثة السعر")
+        self.assertNotIn("الآن", lab)
+
+    def test_open_market_with_previous_session_price_is_not_now(self):
+        """⛔ الجولة ١٦: سعر من **جلسة سابقة** ⇒ ممنوع «الآن»."""
+        lab = _label("open", price_time_source="source",
+                     price_age_seconds=30,
+                     price_session_date="2026-11-16",
+                     session_date="2026-11-17")
+        self.assertNotEqual(lab, "سعر التداول الآن",
+                            "ادّعاء لحظية لسعر من جلسة سابقة")
+        self.assertEqual(lab, "آخر سعر معروف")
 
     def test_closed_and_pre_labels(self):
         self.assertEqual(_label("closed", price_time_source="source"),
@@ -107,7 +148,7 @@ class TestPriceLabelTruth(unittest.TestCase):
         self.assertEqual(lab, "آخر سعر معروف")
 
     def test_missing_source_beats_phase(self):
-        """⛔ في كل الحالات (مفتوح/مغلق/مسبق) ⇒ مافيش ادعاء لحظية."""
+        """⛔ في كل الحالات (مفتوح/مغلق/سابق) ⇒ مافيش ادعاء لحظية."""
         for ph in ("open", "closed", "pre", "unknown"):
             lab = _label(ph, price_time_source="not_provided")
             self.assertNotIn("الآن", lab, ph)
@@ -134,9 +175,13 @@ class TestPayloadPriceTruth(unittest.TestCase):
             self.assertTrue(it.get("data_received_at"))
 
     def test_payload_item_with_price_ts(self):
+        """✅ سعر من نفس الجلسة وبعمر معروف ⇒ «الآن» + العمر يبان."""
         payload = oe.build_payload(
             [_stock("BBB", price_ts="2026-11-17T09:59:00Z")], None,
-            {"market_phase": "open", "source": "live"})
+            {"market_phase": "open", "source": "live",
+             # ⛔ الجولة ١٦ — وقت مرجعي ثابت (عشان الحساب يبقى حتمي)
+             "now": _epoch("2026-11-17T10:00:00Z"),
+             "session_date": "2026-11-17"})
         items = []
         for lst in (payload.get("lists") or {}).values():
             items += (lst.get("items") or [])
@@ -145,6 +190,9 @@ class TestPayloadPriceTruth(unittest.TestCase):
         self.assertEqual(hit[0].get("price_time_source"), "source")
         self.assertEqual(hit[0].get("price_label"), "سعر التداول الآن")
         self.assertEqual(hit[0].get("price_as_of"), "2026-11-17T09:59:00Z")
+        # ⛔ الجولة ١٦ — عمر السعر لازم يبان في الصف
+        self.assertEqual(hit[0].get("price_age_seconds"), 60)
+        self.assertEqual(hit[0].get("price_age_minutes"), 1.0)
 
 
 class TestFreshnessStates(unittest.TestCase):
@@ -157,21 +205,30 @@ class TestFreshnessStates(unittest.TestCase):
         self.assertIn(st["freshness"], ("fresh", "stale"))
         self.assertEqual(st["coverage_pct"], 100.0)
         self.assertEqual(st["missing"], 0)
+        # ⛔ الجولة ١٦ — التغطية مفهوم مستقل
+        self.assertEqual(st["coverage_status"], "complete")
 
     def test_acceptable_but_incomplete_coverage(self):
         """⛔ 90% بالظبط = مقبول (مش partial) — والحد موثّق في الكود."""
         st = oe.freshness_state(last_success_at=1700000000,
                                 market_phase="open", coverage=90.0,
                                 requested=286, updated=257)
-        self.assertNotEqual(st["freshness"], "partial",
+        self.assertNotEqual(st["coverage_status"], "partial",
                             "90% بالظبط لازم يعدّي (الحد 90)")
         self.assertEqual(st["missing"], 29)
 
     def test_partial_coverage(self):
+        """⛔ الجولة ١٦ — التغطية الجزئية بقت `coverage_status` مستقلّة.
+
+        📌 قبل الجولة ١٦ كانت `freshness` بتاخد "partial" وبتصفّر
+        `age_seconds` ⇒ المستخدم ماعرفش إن البيانات قديمة.
+        """
         st = oe.freshness_state(last_success_at=1700000000,
                                 market_phase="open", coverage=1.05,
                                 requested=286, updated=3)
-        self.assertEqual(st["freshness"], "partial")
+        self.assertEqual(st["coverage_status"], "partial")
+        self.assertNotEqual(st["freshness"], "partial",
+                            "الحداثة مبقاش بتاخد قيمة التغطية")
         self.assertEqual(st["updated"], 3)
         self.assertEqual(st["missing"], 283)
 
@@ -205,6 +262,13 @@ class TestFreshnessStates(unittest.TestCase):
                          "الفشل مسح التوقيت — مينفعش")
         self.assertEqual(st_fail["freshness"], "stale")
         self.assertGreater(st_fail["age_seconds"], 0)
+
+
+def _epoch(iso):
+    """⛔ تحويل ISO ⇒ epoch (توقيت ثابت للاختبارات)."""
+    import datetime
+    return datetime.datetime.fromisoformat(
+        iso.replace("Z", "+00:00")).timestamp()
 
 
 if __name__ == "__main__":

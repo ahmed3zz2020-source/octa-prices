@@ -89,14 +89,20 @@ class TestMixedCoverage(unittest.TestCase):
         """⛔ ٩٠٪ = مقبولة (مش partial)."""
         st = oe.freshness_state(last_success_at=1700000000, market_phase="open",
                                 coverage=90.0, requested=10, updated=9)
-        self.assertNotEqual(st["freshness"], "partial")
+        self.assertNotEqual(st["coverage_status"], "partial")
+        self.assertEqual(st["coverage_status"], "complete")
         self.assertEqual(st["updated"], 9)
         self.assertEqual(st["missing"], 1)
 
     def test_partial_coverage_is_partial(self):
+        """⛔ الجولة ١٦ — التغطية الجزئية بقت `coverage_status` مستقلّة.
+
+        📌 قبل الجولة ١٦ كانت `freshness` = "partial" وبتصفّر العمر.
+        """
         st = oe.freshness_state(last_success_at=1700000000, market_phase="open",
                                 coverage=10.0, requested=10, updated=1)
-        self.assertEqual(st["freshness"], "partial")
+        self.assertEqual(st["coverage_status"], "partial")
+        self.assertNotEqual(st["freshness"], "partial")
         self.assertEqual(st["missing"], 9)
 
     def test_unavailable_wins_over_partial(self):
