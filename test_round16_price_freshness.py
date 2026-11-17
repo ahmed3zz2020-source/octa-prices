@@ -111,7 +111,10 @@ def _stock(code, **kw):
 def _payload(stocks, phase="open", now=None, session=SESSION):
     meta = {"market_phase": phase, "source": "live",
             "generated_at": NOW_ISO, "now": now if now is not None
-            else _epoch(NOW_ISO), "session_date": session}
+            else _epoch(NOW_ISO), "session_date": session,
+            # ⛔⛔⛔ مراجعة الجولة يا (R17-P1) — الدلة لازم تعلن إن الدفاتة حديثة
+            # — مفيش دليل ⇒ الصف يكون «unknown» (من عيشه ليقول «سعر التداول الآن»).
+            "data_freshness": {"freshness": "fresh", "data_state": "fresh"}}
     p = oe.build_payload(stocks, None, meta)
     items = {}
     for lst in (p.get("lists") or {}).values():

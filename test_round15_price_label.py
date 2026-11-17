@@ -181,7 +181,10 @@ class TestPayloadPriceTruth(unittest.TestCase):
             {"market_phase": "open", "source": "live",
              # ⛔ الجولة ١٦ — وقت مرجعي ثابت (عشان الحساب يبقى حتمي)
              "now": _epoch("2026-11-17T10:00:00Z"),
-             "session_date": "2026-11-17"})
+             "session_date": "2026-11-17",
+             # ⛔⛔⛔ مراجعة الجولة يا (R17-P1) — الدلة لازم تعلن إن الدفاتة حديثة
+             # — مفيش دليل ⇒ الصف يكون «unknown» (من عيشه ليقول «سعر التداول الآن»).
+             "data_freshness": {"freshness": "fresh", "data_state": "fresh"},})
         items = []
         for lst in (payload.get("lists") or {}).values():
             items += (lst.get("items") or [])

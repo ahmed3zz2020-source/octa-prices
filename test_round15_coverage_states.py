@@ -57,7 +57,11 @@ def _stock(code, **kw):
 
 
 def _payload(stocks, phase="open"):
-    p = oe.build_payload(stocks, None, {"market_phase": phase, "source": "live"})
+    p = oe.build_payload(stocks, None, {
+        "market_phase": phase, "source": "live",
+        # ⛔⛔⛔ مراجعة الجولة يا (R17-P1) — الدلة لازم تعلن إن الدفاتة حديثة
+                # — مفيش دليل ⇒ الصف يكون «unknown» (من عيشه ليقول «سعر التداول الآن»).
+                "data_freshness": {"freshness": "fresh", "data_state": "fresh"},})
     items = {}
     for k, lst in (p.get("lists") or {}).items():
         for it in (lst.get("items") or []):

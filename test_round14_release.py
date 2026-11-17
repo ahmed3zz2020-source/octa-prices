@@ -248,7 +248,10 @@ class TestPriceDescription(unittest.TestCase):
     def test_item_separates_received_time_from_price_time(self):
         st = _stock("AAA")
         meta = {"generated_at": "2026-11-17T10:00:00Z", "source": "live",
-                "market_phase": "open"}
+                "market_phase": "open",
+                # ⛔⛔⛔ مراجعة الجولة يا (R17-P1) — الدلة لازم تعلن إن الدفاتة حديثة
+                # — مفيش دليل ⇒ الصف يكون «unknown» (من عيشه ليقول «سعر التداول الآن»).
+                "data_freshness": {"freshness": "fresh", "data_state": "fresh"},}
         p = oe.build_payload([st], None, meta)
         item = None
         for lst in (p.get("lists") or {}).values():
@@ -275,7 +278,10 @@ class TestPriceDescription(unittest.TestCase):
                 "market_phase": "open",
                 # ⛔ الجولة ١٦ — وقت مرجعي ثابت (حتمي) + تاريخ الجلسة
                 "now": _epoch("2026-11-17T10:00:00Z"),
-                "session_date": "2026-11-17"}
+                "session_date": "2026-11-17",
+                # ⛔⛔⛔ مراجعة الجولة يا (R17-P1) — الدلة لازم تعلن إن الدفاتة حديثة
+                # — مفيش دليل ⇒ الصف يكون «unknown» (من عيشه ليقول «سعر التداول الآن»).
+                "data_freshness": {"freshness": "fresh", "data_state": "fresh"},}
         p = oe.build_payload([st], None, meta)
         item = None
         for lst in (p.get("lists") or {}).values():
