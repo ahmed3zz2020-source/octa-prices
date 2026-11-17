@@ -429,8 +429,16 @@ def main():
             raw = ufile.read_text(encoding="utf-8")
             users = json.loads(raw)
             before = len(users)
+            # 🛡️ الجولة ٢٠ (R20 · AZ35-DELETE-CLAIM) — ⛔ تغيير **ال detector**
+            #   مش الـassertion ⭐
+            # 📌 قبل كده: الكاشف كان `v.get("deleted_email")` ⭐ ⇒ أيقونة
+            #  Presence الحقل اللي اتشال في الجولة ٢٠ (لأسباب صحّة ⭐:
+            #   ⛔ الإيميل النصي ما staysش بعد الحذف ⭐) ⇒ ⭐ الكاشف بقى
+            #   مايلقاش السطر ⇒ التنظيف ما بيحصلش ⇒ الاختبار بيفشل ⭐.
+            # ✅ الحل: نكشف سطر القفل بـ`deleted_at` ⭐ (العلامة اللي
+            #   مستحضراها ⭐ — بتحدد القفل ⭐) ⭐ ⇒ نفس النية ⭐.
             for k in [k for k, v in users.items()
-                      if isinstance(v, dict) and v.get("deleted_email")]:
+                      if isinstance(v, dict) and v.get("deleted_at")]:
                 users.pop(k, None)
             if len(users) != before:
                 ufile.write_text(json.dumps(users, ensure_ascii=False, indent=1),

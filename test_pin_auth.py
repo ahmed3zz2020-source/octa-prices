@@ -417,27 +417,62 @@ def t_no_enumeration():
     ip = "10.43.0.2"
     bodies = []
     times = []
-    for body in ({"pin": "1111"},
-                 {"pin": "1111", "email": A_EMAIL},      # ⛔ الإيميل مسجّل
-                 {"pin": "2222", "email": "ghost@x.com"}):  # ⛔ مش موجود
-        # 📌 القاعدة ① (نافذة ٦٠ ثانية) بتخلي الرد الثالث
-        #    «محتاج كود إيميل» — وده **مش** تعداد، ده عدّاد
-        #    محاولات. عشان المقارنة تبقى عن نفس العمق، بنصفّر
-        #    نافذة الـ٦٠ ثانية قبل كل نداء: التلات ردود لازم
-        #    يطلعوا متطابقين حرف بحرف.
-        up._pin_window_reset(up._pin_keys(pin="1111", ip=ip))
-        up._pin_window_reset(up._pin_keys(pin="2222", ip=ip))
-        t0 = _t.time()
-        r = call(LOG, body=body, ip=ip)
-        times.append(_t.time() - t0)
-        b = dict(r.get_json() or {})
-        bodies.append((r.status_code, b))
+    # 🛡️ الجولة ٢٠ (R20) — ⛔ الدليل بقى **حتمي** ⬇️
+    # 📌 قبل كده كان في تأكيد واحد **قائم على التوقيت** ⬇️
+    #   ⛔ أي انشغال في المعالج (تشغيل اختبار تاني · CI) كان
+    #      بيكبّر قياس «النجاح» ⇒ الحدّ (٥٠٪) بيبقى مستحيل ⭐
+    #   ⭐ ⇒ **إنذار كاذب** (فشل مش بسبب عيب) ⭐.
+    # ✅ الحل (إصلاح صحيح مش تغطية): ⭐
+    #   ① تأكيد **حتمي**: مسار الفشل لازم ينادي `_pin_timing_pad`
+    #      (حشو PBKDF2) ⇒ ده **ضمان بالمُنشأ** مش بالقياس ⭐
+    #   ② القياس الزمني يفضل كفحص إضافي ⭐ بس بمُقدِّر متين ⭐
+    #      (أقل قيمة من ٣ قراءات للنجاح · أعلى قيمة من قراءات الفشل) ⭐
+    # ⛔ الحدّ (٥٠٪) **ما اتغيّرش** ⛔ والشرط **ما اتخفّفش** ⭐
+    pad_calls = {"n": 0}
+    _orig_pad = getattr(up, "_pin_timing_pad", None)
+
+    def _counting_pad(pin):
+        pad_calls["n"] += 1
+        if _orig_pad:
+            try:
+                return _orig_pad(pin)
+            except Exception:
+                return None
+        return None
+
+    up._pin_timing_pad = _counting_pad
+    try:
+        for body in ({"pin": "1111"},
+                     {"pin": "1111", "email": A_EMAIL},      # ⛔ الإيميل مسجّل
+                     {"pin": "2222", "email": "ghost@x.com"}):  # ⛔ مش موجود
+            # 📌 القاعدة ① (نافذة ٦٠ ثانية) بتخلي الرد الثالث
+            #    «محتاج كود إيميل» — وده **مش** تعداد، ده عدّاد
+            #    محاولات. عشان المقارنة تبقى عن نفس العمق، بنصفّر
+            #    نافذة الـ٦٠ ثانية قبل كل نداء: التلات ردود لازم
+            #    يطلعوا متطابقين حرف بحرف.
+            up._pin_window_reset(up._pin_keys(pin="1111", ip=ip))
+            up._pin_window_reset(up._pin_keys(pin="2222", ip=ip))
+            t0 = _t.time()
+            r = call(LOG, body=body, ip=ip)
+            times.append(_t.time() - t0)
+            b = dict(r.get_json() or {})
+            bodies.append((r.status_code, b))
+    finally:
+        up._pin_timing_pad = _orig_pad
     ok(len(set(map(str, bodies))) == 1,
        "⛔ الرد بيختلف حسب الإيميل: %s" % bodies)
+    # ⭐⭐ الدليل الحتمي: كل مسارات الفشل لازم تعمل حشو PBKDF2 ⬇️
+    ok(pad_calls["n"] >= 3,
+       "⛔ مسار الفشل ما عملش حشو PBKDF2 (العدّاد %d) — تسريب توقيت مؤكد"
+       % pad_calls["n"])
     # ⛔ التوقيت: PBKDF2 وهمي لازم يخلي الفشل ياخد نفس وقت النجاح
-    t0 = _t.time()
-    login(A_PIN, ip=ip)
-    good_t = _t.time() - t0
+    # ⭐ (R20) أقل قيمة من ٣ قراءات ⇒ القياس لا يتضخم بعشوائي ⭐
+    goods = []
+    for _ in range(3):
+        t0 = _t.time()
+        login(A_PIN, ip=ip)
+        goods.append(_t.time() - t0)
+    good_t = min(goods)
     ok(good_t > 0.005, "⛔ النجاح رجع في %sث — مفيش PBKDF2 خالص" % good_t)
     slow = max(times)
     ok(slow >= good_t * 0.5,

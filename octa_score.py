@@ -64,14 +64,24 @@ def tech_score(item):
     """
     if not item or not item.get("price"):
         return None
-    price = item["price"]
+    # 🛡️ الجولة ٢٠ (R20) — ⛔ حماية من القيم غير الصالحة ⬇️
+    # 📌 العيب المقاس: `rsi` (وغيره) كان بيتقرا **خام** ⬇️
+    #   ⛔ لو القيمة جت نصًّا ("abc") ⇒ `rsi > 70` ⇒ TypeError ⬇️
+    #   ⛔⇒ 500 على صفحة السهم كله ⭐ (مش كل السهم) ⭐
+    # ✅ الحل: كل رقم بيعدّي على `_n()` ⇒ النص/الـNaN يبقى None ⭐
+    #   ⭐ والمنطق كله (الأوزان · الحدود) ما اتغيّرش ⭐
+    price = _n(item.get("price"), None)
+    if price is None:
+        return None
     facts = {"positives": [], "negatives": [], "neutral": []}
 
     # ─────────── 1) الاتجاه (35 نقطة) ───────────
     trend = 0.0
     # ترتيب المتوسطات: Golden alignment؟
-    ema20, ema50, ema200 = item.get("ema20"), item.get("ema50"), item.get("ema200")
-    sma50 = item.get("sma50")
+    ema20 = _n(item.get("ema20"), None)
+    ema50 = _n(item.get("ema50"), None)
+    ema200 = _n(item.get("ema200"), None)
+    sma50 = _n(item.get("sma50"), None)
 
     ma_above = 0  # كام متوسط تحت السعر
     for name, v in (("EMA20", ema20), ("EMA50", ema50), ("EMA200", ema200), ("SMA50", sma50)):
@@ -96,7 +106,9 @@ def tech_score(item):
             facts["neutral"].append("المتوسطات متشابكة — اتجاه عرضي")
 
     # قوة الاتجاه (ADX) — فوق 25 = اتجاه قوي
-    adx, di_p, di_m = item.get("adx"), item.get("di_plus"), item.get("di_minus")
+    adx = _n(item.get("adx"), None)
+    di_p = _n(item.get("di_plus"), None)
+    di_m = _n(item.get("di_minus"), None)
     if adx is not None:
         if adx > 40:
             trend += 5
@@ -115,7 +127,8 @@ def tech_score(item):
 
     # ─────────── 2) الزخم (25 نقطة) ───────────
     mom = 0.0
-    rsi, rsi_prev = item.get("rsi"), item.get("rsi_prev")
+    rsi = _n(item.get("rsi"), None)
+    rsi_prev = _n(item.get("rsi_prev"), None)
     if rsi is not None:
         if rsi > 70:
             mom += 8
@@ -141,7 +154,8 @@ def tech_score(item):
                 facts["negatives"].append("الزخم بيتباطأ")
 
     # التقارب والانحراف
-    macd, sig = item.get("macd"), item.get("macd_signal")
+    macd = _n(item.get("macd"), None)
+    sig = _n(item.get("macd_signal"), None)
     if macd is not None and sig is not None:
         if macd > sig:
             mom += 8
@@ -154,7 +168,8 @@ def tech_score(item):
             facts["positives"].append("التقارب موجب")
 
     # ستوكاستك
-    k, d = item.get("stoch_k"), item.get("stoch_d")
+    k = _n(item.get("stoch_k"), None)
+    d = _n(item.get("stoch_d"), None)
     if k is not None and d is not None:
         if k > d and k < 80:
             mom += 5
@@ -164,10 +179,10 @@ def tech_score(item):
             facts["negatives"].append("الستوكاستك هابط")
 
     # التذبذبurzugs (momentum oscillator)
-    mo = item.get("momentum")
+    mo = _n(item.get("momentum"), None)
     if mo is not None:
         mom += max(-3, min(3, mo / 3))
-    ao = item.get("awesome")
+    ao = _n(item.get("awesome"), None)
     if ao is not None:
         mom += 3 if ao > 0 else -2
 
@@ -175,7 +190,8 @@ def tech_score(item):
 
     # ─────────── 3) الموقع من النطاق (20 نقطة) ───────────
     pos_score = 10.0
-    hi1m, lo1m = item.get("high_1m"), item.get("low_1m")
+    hi1m = _n(item.get("high_1m"), None)
+    lo1m = _n(item.get("low_1m"), None)
     if hi1m and lo1m and hi1m > lo1m:
         where = (price - lo1m) / (hi1m - lo1m) * 100  # 0 = قاع الشهر، 100 = قمته
         if where > 85:
@@ -195,7 +211,8 @@ def tech_score(item):
             facts["positives"].append(f"السهم قرب قاع الشهر ({where:.0f}%)")
 
     # نطاقات بولنجر
-    bbu, bbl = item.get("bb_upper"), item.get("bb_lower")
+    bbu = _n(item.get("bb_upper"), None)
+    bbl = _n(item.get("bb_lower"), None)
     if bbu and bbl and bbu > bbl:
         bw = (bbu - bbl) / price * 100
         pos_score = max(0, min(20, pos_score + 2))
@@ -205,7 +222,7 @@ def tech_score(item):
 
     # ─────────── 4) الحجم والتأكيد (10 نقاط) ───────────
     vol_score = 5.0
-    rv = item.get("rel_volume")
+    rv = _n(item.get("rel_volume"), None)
     if rv is not None:
         if rv > 1.5:
             vol_score = 9
@@ -216,7 +233,7 @@ def tech_score(item):
             vol_score = 3
             facts["neutral"].append(f"حجم تداول ضعيف ({rv:.1f}×) — مفيش تأكيد")
     # تأكيد الاتجاه بالحجم: لو السعر طالع والحجم عالي = مؤكد
-    perf1m = item.get("perf_1m")
+    perf1m = _n(item.get("perf_1m"), None)
     if perf1m is not None and rv is not None:
         if perf1m > 3 and rv > 1.2:
             vol_score = min(10, vol_score + 3)
@@ -226,7 +243,9 @@ def tech_score(item):
             facts["negatives"].append("الهبوط مؤكّد بحجم تداول")
 
     # ─────────── 5) تقييم المصدر الفني (10 نقاط) ───────────
-    tv_all, tv_ma, tv_osc = item.get("tv_all"), item.get("tv_ma"), item.get("tv_osc")
+    tv_all = _n(item.get("tv_all"), None)
+    tv_ma = _n(item.get("tv_ma"), None)
+    tv_osc = _n(item.get("tv_osc"), None)
     tv_score = 5.0
     if tv_all is not None:
         tv_score = max(0, min(10, 5 + tv_all * 10))
@@ -240,7 +259,7 @@ def tech_score(item):
             facts["neutral"].append(f"التقييم الفني محايد ({tv_all:+.2f})")
 
     # ─────────── 6) المخاطرة الفنية (الخصم) ───────────
-    atr = item.get("atr")
+    atr = _n(item.get("atr"), None)
     atr_pct = 0.0
     if atr and price:
         atr_pct = atr / price * 100

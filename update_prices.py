@@ -611,6 +611,9 @@ def protect_admin_routes():
         "/api/diagnostic",
         "/api/audit/redundancy",
         "/api/ai-status",
+        # ⛔⛔ AZ34 (الجولة ٢٠) — التشخيص الكامل بقى هنا ⬇️
+        # ⛔ (مش في /api/health اللي مفتوح للعموم) ⭐
+        "/api/diagnostics",
     }
     if request.path not in ADMIN_PATHS:
         return None
@@ -736,6 +739,7 @@ PROXY_SECRET_CONFIGURED = bool(PROXY_SECRET)
 # ⛔ المسارات العامة — قائمة **محددة** (مش "كل حاجة برا القائمة")
 PUBLIC_API_EXACT = {
     "/api/health",        # ⛌ مراقبة Railway + العامل
+    "/api/ready",         # ⛌ AZ34 — readiness (من غير مصادقة)
     "/api/quotes",        # ⛌ صفحة السوق العامة (market.html)
     "/api/prices",        # ⛌ صفحة السوق العامة
     "/api/track",         # ⛌ التتبع (حدث واحد)
@@ -1522,6 +1526,18 @@ def _ai_cost_take(key):
 # تخزين: {ip: {bucket: deque(timestamps)}}
 _HITS = defaultdict(lambda: defaultdict(deque))
 _HITS_LOCK = threading.Lock()
+# ⛔⛔ AZ32 (الجولة ٢٠) — سقف الذاكرة + عمر المفاتيح ⬇️
+# 📌 المشكلة: التنظيف القديم كان بيمسح **المفاتيح الفاضية بس** ⬇️
+#   ⭐ ومفتاح الـdeque بتاعه **مش بيبقى فاضي** (الطوابع الزمنية بتنزل
+#   غير لما نفس المفتاح يتستدعى تاني) ⇒ التنظيف **شبه معطّل** ⬇️
+#   ⭐⇒ المفاتيح بتتراكم لحد 5000 ومابترمش ⭐ (استهلاك ذاكرة ثابت).
+# ✅ الحل: ⛔ عمر (TTL) حقيقي ⬇️ — أي مفتاح أقدم من أطول نافذة ⬇️
+#   ⭐⇒ مش يقدر يعدّي أي حد ⇒ يتشال ⭐ (والحدود بتفضل زي ما هي).
+RATE_MAX_KEYS = max(100, int(os.environ.get("OCTA_RATE_MAX_KEYS", "5000")
+                             or 5000))
+RATE_SWEEP_EVERY = max(5, int(os.environ.get("OCTA_RATE_SWEEP_SEC", "60")
+                               or 60))
+_RATE_LAST_SWEEP = 0.0
 
 
 def _client_key():
@@ -1706,11 +1722,30 @@ def _rate_check():
         for wi in range(len(windows)):
             _HITS[key]["%s#%d" % (bucket, wi)].append(now)
 
-        # تنظيف عشان ما نكبرش بلا حدود
-        if len(_HITS) > 5000:
-            for k in list(_HITS.keys()):
-                if not any(_HITS[k][b] for b in _HITS[k]):
-                    del _HITS[k]
+        # ⛔⛔ AZ32 — تنظيف حقيقي بعمر (TTL) ⬇️
+        # ⛔ القديم: كان بيمسح المفاتيح الفاضية بس ⬇️ ⇒ مستحيل تتحذف ⬇️
+        # ⭐ الجديد: أي مفتاح أقدم من **أطول نافذة** ⬇️ ⇒ طوابعه
+        #   بره كل النوافذ ⇒ مش able يعدّي أي حد ⇒ يتشال بأمان ⬇️
+        # ⛔+| سقف الذاكرة (RATE_MAX_KEYS) متاح من متغير البيئة ⬇️
+        _now_s = time.time()
+        global _RATE_LAST_SWEEP
+        if (len(_HITS) > RATE_MAX_KEYS
+                or (_now_s - _RATE_LAST_SWEEP) >= RATE_SWEEP_EVERY):
+            _RATE_LAST_SWEEP = _now_s
+            _max_window = 0.0
+            for _wins in LIMITS.values():
+                for _mh, _w in _wins:
+                    if _w > _max_window:
+                        _max_window = _w
+            for _k in list(_HITS.keys()):
+                _buckets = _HITS[_k]
+                _oldest = None
+                for _q in _buckets.values():
+                    if _q:
+                        _t = _q[0]
+                        _oldest = _t if _oldest is None else min(_oldest, _t)
+                if _oldest is None or (_now_s - _oldest) > _max_window:
+                    del _HITS[_k]
 
     return True, 0, bucket
 
@@ -1719,7 +1754,7 @@ def _rate_check():
 def rate_limit_guard():
     """بيشتغل قبل أي route — ويرجّع 429 لو اتجاوز الحد"""
     # الـhealth check matدارfhaeshlimit (Railway بي-poll دايماً)
-    if request.path in ("/", "/api/health"):
+    if request.path in ("/", "/api/health", "/api/ready"):
         return None
     # assets الستاتيك مابيحتاجش
     if request.method == "OPTIONS":
@@ -5876,12 +5911,15 @@ def auth_delete_account():
 
         # ⛌ حذف ناعم: نسجّل البصمة والوقت ⬇️ لو حبينا نرجّع
         #    الحساب، مش بنرجّع الباسورد (ما بقيناش عارفينه).
+        #    ⛔⛔ AZ35-DELETE-CLAIM (الجولة ٢٠): ⛔ **مافيش بريد ولا اسم
+        #    بعد الحذف** ⇒ اللي بنحتفظ بيه = uid (هاش) + هاش الإيميل
+        #    + وقت الحذف + إبطال الجلسات ⇒ **مافيش بيانات شخصية مقروءة**.
+        #    ⛔ (قبل كده: `deleted_email` كان فاضي الإيميل كامل ⬇️ وميتقريش
+        #       في أي مكان ⬇️ يعني احتفاظ صامت ببيانات شخصية ⬇️ ومافيش فايدة منه.)
         users[uid] = {
             "id": uid,
-            "name": str(rec.get("name") or "")[:80],
             "email_hash": str(rec.get("email_hash") or "")[:64],
             "deleted_at": int(time.time()),
-            "deleted_email": str(rec.get("email") or "")[:160],
             "pin_hash": "",          # ⛔ الباسورد بيموت مع الحساب
             "pin_salt": "",
             "pin_set": False,
@@ -5896,13 +5934,29 @@ def auth_delete_account():
 
     _send_mail(
         str(rec.get("email") or ""),
-        "تم حذف حسابك من OCTA",
-        "حسابك اتمسح بناءً على طلبك. "
-        "لو مش أنت ⬇️ ده الإيميل بتأكدلك إن حسابك اتقفل من حد تاني.",
+        "تم إغلاق حسابك في OCTA",
+        "حسابك اتقفل بناءً على طلبك، والبيانات الشخصية اتشالت "
+        "(الباسورد · المحفظة · المتابعات · الاسم · الإيميل). "
+        "⇦ قفّلنا لك سجلّ قفل بالدخول من غير بيانات شخصية مقروءة. "
+        "لو مش أنت ⬇️ ده الإيميل بيأكدلك إن حسابك اتقفل من حد تاني.",
     )
 
-    print(f"  🗑 اتمسح حساب: {uid}")
-    return jsonify({"ok": True, "msg": "اتمسح الحساب بالكامل"}), 200
+    print(f"  🗑 اتقفل حساب: {uid}")
+    # ⛔⛔ AZ35-DELETE-CLAIM (الجولة ٢٠): ⛔⛔ **ممنوع** ن claiming
+    #   «الحساب اتمسح بالكامل» — لسه في **سجلّ قفل** (uid + هاش الإيميل
+    #   + وقت القفل) ⇒ ده اتنين. ⛔ الرد بيقول بالظبط إيه اللي حصل.
+    return jsonify({
+        "ok": True,
+        "msg": "اتقفل الحساب والبيانات الشخصية اتشالت",
+        "deleted": True,
+        "retention": {
+            "personal_data_removed": True,
+            "kept": ["uid_hash", "email_hash", "deleted_at",
+                     "token_epoch"],
+            "kept_reason": "سجلّ قفل غير مقروء (يمنع إعادة التسجيل "
+                           "ويأ invalidate الجلسات) — ⛔ مافيش بريد ولا اسم",
+        },
+    }), 200
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -10795,6 +10849,71 @@ def _app_writable():
 @app.route("/")
 @app.route("/api/health")
 def health():
+    """💓 liveness — نقطة "الخدمة شغالة" (public endpoint).
+
+    ⛔⛔ AZ34 (الجولة ٢٠) — ⛔⛔ **مينفعش** الرد العام يكشف بيانات داخلية ⬇️
+    📌 قبل كده كان الرد بيرجّع: عدد المستخدمين · عدد حسابات الباسورد ·
+       معرّف اللقطة · حجم البيانات · حالة الإيميل · حالة مفتاح AI ·
+       حالة التخزين · وضع المصادقة ⬇️ ⬇️
+    ⛔ كل دي **معلومات داخلية** بتتسرّب لأي حد بيفتح /api/health ⬇️
+    ✅ الحل: الرد العام بقى **liveness بس** (هل الخدمة موجودة وشغالة؟) ⬇️
+       ⭐ + التوافق: `market_phase` فضل موجود (الواجهة بتقراه) ⬇️
+       ⭐ + كل التفاصيل ⇒ `/api/diagnostics` (أدمن فقط) ⬇️
+    """
+    return jsonify({
+        "status": "ok",
+        "service": "octa-prices",
+        "version": "v3-gemini-3.5-flash",
+        # ⛔⛌ الـUI بتقرأ market_phase من هنا عشان تقول «مفتوح» ولا «مغلق».
+        #    ⭐ الحقل ده **مش** بيانات داخلية ⇒ فضل في الرد العام.
+        "market_phase": market_phase(),
+        "cairo_time": cairo_now_str(),
+    })
+
+
+@app.route("/api/ready")
+def ready():
+    """🩺 readiness — هل الخدمة **تقدر تخدم** دلوقتي؟
+
+    ⛔ AZ34: liveness ≠ readiness ⬇️
+    ⭐ liveness  = «العملية شغالة» (/api/health) ⬇️
+    ⭐ readiness = «البيانات محمّلة والتخزين شغال» (/api/ready) ⬇️
+    ⛔ الرد **مينفعش** يكشف تفاصيل ⇒ booleans بس ⬇️
+    ⛔ 503 لو مش جاهز ⇒ الـorchestrator يوقّف يوجّه له ⬇️
+    """
+    try:
+        data_ok = bool(_DATA_FULL["payload"] is not None)
+    except Exception:
+        data_ok = False
+    try:
+        store_ok = not _users_store_broken()
+    except Exception:
+        store_ok = False
+    try:
+        writable = bool(_app_writable())
+    except Exception:
+        writable = False
+    secret_ok = bool(TOKEN_SECRET_CONFIGURED)
+    ready_ok = bool(data_ok and store_ok and writable and secret_ok)
+    return jsonify({
+        "ready": ready_ok,
+        "service": "octa-prices",
+        "checks": {
+            "data": data_ok,
+            "store": store_ok,
+            "writable": writable,
+            "secret": secret_ok,
+        },
+    }), (200 if ready_ok else 503)
+
+
+@app.route("/api/diagnostics")
+def diagnostics():
+    """🩺🔒 التشخيص الكامل — **أدمن فقط** (يتحقق قبل الطلب).
+
+    ⛔ AZ34: الردود دي اتنقلت من /api/health (العام) هنا ⬇️
+    ⛔ ⇒ /api/health ما عادش يكشف أي رقم داخلي ⬇️
+    """
     return jsonify({
         "status": "ok",
         "service": "octa-prices",
@@ -16352,18 +16471,25 @@ try:
     def _subs_status(user):
         return _pg.status_of(user)
 
-    def _subs_activate(who, plan, days, price, method, note):
+    def _subs_activate(who, plan, days, price, method, note, idem=""):
         """تفعيل/تجديد: يمدّد من تاريخ الانتهاء الحالي (لو لسه ساري).
 
         ⛔ SEC-012 — ترتيب ذرّي ⬇️ **السجل الأول** ثم تغيير الخطة ⬇️
         ⛔ ① فشل السجل ⇒ مافيش أي تغيير في الحساب (الحالة زي ما كانت).
         ⛔ ② فشل تغيير الخطة ⇒ **تراجع عن السجل** ⇒ اتساق دائم:
            مافيش «Pro من غير سجل» ولا «سجل من غير Pro».
+        ⛔⛔ AZ36 (الجولة ٢٠) — منع **التفعيل المكرر** ⬇️
+        ⛔ نفس الدفعة اتبععت مرتين (إعادة محاولة · دبل كليك · كرتونة
+           اتبعتت مرتين) ⇒ ما ينفعش الباقة تتظdouble ⬇️
+        ⭐ الحل: **مفتاح تفرّد** (idempotency key) ⬇️ بيتخزّن مع الحساب ⬇️
+           ⇒ نفس المفتاح ⇒ نفس النتيجة بالظبط و**من غير** تمديد تاني ⬇️
+        ⛔⇦ المفتاح بيتخزّن **في الحساب** (مش في الذاكرة) ⇒ بيفضل
+           شغّال حتى بعد إعادة تشغيل الخادم ⬇️
         """
         try:
             users = _load_users() or {}
             if _users_store_broken():
-                return _users_broken_resp()
+                return False, "تخزين الحسابات تالف", None
         except Exception:
             users = {}
         key = str(who or "").strip()
@@ -16376,6 +16502,13 @@ try:
                     break
         if rec is None:
             return False, "مفيش حساب بالإيميل أو الـuid ده", None
+        # ⛔⛔ AZ36 — نفس مفتاح التفرّد ⇒ نفس النتيجة، من غير تمديد تاني ⬇️
+        idem = str(idem or "").strip()[:80]
+        if idem:
+            _prev = rec.get("sub_idem")
+            if isinstance(_prev, dict) and str(_prev.get("key") or "") == idem:
+                _old = _prev.get("result") or {}
+                return True, None, _old
         now = int(time.time())
         cur_until = int(rec.get("plan_until") or 0)
         base = cur_until if cur_until > now else now
@@ -16386,21 +16519,44 @@ try:
         if err:
             return False, err, None
         # ⛔ ② بعدين الخطة — ولو فشلنا نتراجع عن السجل ⬇️
-        if _patch_user(key, plan=plan, plan_until=until) is None:
+        _result = {"uid": key, "email": rec.get("email"),
+                   "plan": plan, "until": until,
+                   "until_date": time.strftime("%Y-%m-%d",
+                                               time.gmtime(until)),
+                   "days": days, "price": price}
+        _fields = {"plan": plan, "plan_until": until}
+        if idem:
+            _fields["sub_idem"] = {"key": idem, "at": now,
+                                   "result": _result}
+        if _patch_user(key, **_fields) is None:
             try:
                 _pg.rollback_subscription(lg)
             except Exception:
                 pass
+            # ⛔ AZ36 — فشل التخزين = **503** ⬇️ (مش 404 «الحساب مش موجود») ⬇️
+            # ⛔ كمان: مفيش نجاح وهمي ⬇️ — الرد رجع false ⬇️
             return False, "فشل تحديث الحساب — من غير أي تعديل اتحفظ", None
-        return True, None, {"uid": key, "email": rec.get("email"),
-                            "plan": plan, "until": until,
-                            "until_date": time.strftime("%Y-%m-%d",
-                                                        time.gmtime(until)),
-                            "days": days, "price": price}
+        return True, None, _result
+
+    def _subs_err_status(msg):
+        """🛡️ الجولة ٢٠ (R20 · AZ36) — ⛔ ترجمة نوع الخطأ ⇐ حالة HTTP ⭐
+
+        📌 قبل كده: أي فشل في التفعيل كان بيرجع **404** ⭐ ⇒ ⛔ فشل
+        التخزين (مشكلة مؤقتة) كان بيطلع كأنه «الحساب مش موجود» ⭐ ⇒
+        ⛔ العميل كان بيعيد المحاولة على UID غلط ⭐.
+        ⭐ الحل: الترجمة ساكنة هنا (المعرفة هنا ⭐) ⇐ plan_api عام ⭐.
+        """
+        _m = str(msg or "")
+        if "فشل تحديث الحساب" in _m or "تخزين الحسابات تالف" in _m:
+            return 503          # ⛔ مشكلة تخزين ⇐ مؤقتة ⭐
+        if "مفيش حساب" in _m:
+            return 404          # ⛔ الحساب مش موجود ⭐
+        return 500
 
     try:
         _plan_api.register(app, require_user=require_user,
                            status_fn=_subs_status, activate_fn=_subs_activate,
+                           err_status_fn=_subs_err_status,
                            log_fn=_pg.subscription_log)
     except TypeError:
         _plan_api.register(app, require_user=require_user)
