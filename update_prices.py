@@ -11298,11 +11298,24 @@ def opportunities_all():
 
 
 def _opp_payload():
-    """payload الفرص الحيّ — من آخر دورة تحديث."""
+    """payload الفرص الحيّ — من آخر دورة تحديث.
+
+    ⛔⛔⛔ R17-V2-04 (مراجعة الجولة ١٧) — **صلاحية وقت الرد**:
+       النسخة المخزّنة كانت بتُقدَّم بحالة «fresh» طالما ما اتحدّثتش ⇒
+       لو الدورة توقفت ⇒ ادعاء «بيانات حديثة» كاذب.
+       ⇒ بقى بنعيد تقييم الحداثة **وقت تقديم النسخة**
+         (`opp_engine.revalidate_payload`) والنسخة المشتركة ما بتتعدّلش.
+    """
     d = LIVE_DATA.get("opp")
     if not d or not d.get("ok"):
         return None
-    return d
+    try:
+        import opp_engine as _opp
+        return _opp.revalidate_payload(d)
+    except Exception as _e:
+        # ⛔ fail-closed: ما نقدّمش نسخة «حديثة» من غير إعادة تقييم صادق
+        print("⚠️ opp payload revalidate failed: %s" % _e)
+        return None
 
 
 def _opp_public_strategy(st):

@@ -1236,6 +1236,97 @@ def build_payload(stocks, definitions=None, meta=None):
     }
 
 
+def revalidate_payload(payload, now=None):
+    """⛔⛔⛔ R17-V2-04 (مراجعة الجولة ١٧) — **صلاحية وقت الرد** (مش وقت الإنشاء).
+
+    ⛔ المشكلة: النسخة المخزّنة كانت بتُقدَّم بحالة «fresh» طالما ما
+       اتحدّثتش ⇒ لو دورة التحديث توقفت ⇒ الواجهة بتقول «بيانات حديثة»
+       و«سعر التداول الآن» وبتار ساعات ⇒ **ادعاء كاذب للمستخدم**.
+
+    ⛔ الإصلاح: إعادة تقييم الحداثة **وقت تقديم النسخة**:
+       · بنحسب عمر آخر جلب ناجح (`last_success_at`) مقابل الوقت الحالي.
+       · «fresh» ⇒ نرجّع النسخة كما هي (⛔ من غير ما نعمل نسخة).
+       · «stale»/«unavailable» ⇒ **نسخة مشتقة** (⛔ الأصل ما بيتمسّش):
+         `freshness` · `data_state` · `age_seconds` · وسم كل صف
+         (`data_state` + `stale_reason`) · وصف السعر · ملخّص الحداثة.
+
+    📌 النسخة المشتركة في الذاكرة (LIVE_DATA) ما بتتعدّلش أبداً.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    _now = float(now) if now is not None else time.time()
+    _df = dict(payload.get("data_freshness") or {})
+    _phase = str(payload.get("market_phase")
+                 or _df.get("market_phase") or "unknown")
+    _ts = payload.get("last_success_at")
+    if _ts is None:
+        _ts = _df.get("last_success_at")
+    try:
+        _ts = float(_ts) if _ts is not None else None
+    except (TypeError, ValueError):
+        _ts = None
+    _limit = (FRESH_MAX_AGE_OPEN if _phase == "open"
+              else FRESH_MAX_AGE_CLOSED)
+    if _ts is None:
+        _state = "unavailable"
+        _age = None
+    else:
+        _age = int(max(0.0, _now - _ts))
+        _state = "fresh" if _age <= _limit else "stale"
+    _cur = str(payload.get("freshness") or _df.get("freshness") or "unknown")
+    if _state == "fresh" and _cur == "fresh":
+        return payload          # ⛔ النسخة سليمة — من غير تعديل
+    # ⛔ نسخة مشتقة — الأصل (المشترك) ما بيتمسّش
+    out = dict(payload)
+    out["freshness"] = _state
+    out["data_state"] = _state
+    out["age_seconds"] = _age
+    _df2 = dict(_df)
+    _df2["freshness"] = _state
+    _df2["data_state"] = _state
+    _df2["is_fresh"] = bool(_state == "fresh")
+    _df2["is_stale"] = bool(_state == "stale")
+    _df2["age_seconds"] = _age
+    if _state != "fresh":
+        _df2["stale_reason"] = ("dataset_unavailable"
+                                if _state == "unavailable"
+                                else "dataset_stale")
+    out["data_freshness"] = _df2
+    _lists = {}
+    for _k, _v in (payload.get("lists") or {}).items():
+        _items = []
+        for _row in ((_v or {}).get("items") or []):
+            _r = dict(_row)
+            if str(_r.get("data_state") or "") == "live":
+                _r["data_state"] = "stale"
+                _r["stale_reason"] = "dataset_stale"
+                # ⛔ عمر السعر بيتحسب **وقت الرد** (النسخة بقت أقدم)
+                _pa = None
+                if _r.get("price_as_of"):
+                    try:
+                        _pa = price_age_seconds_from(_r.get("price_as_of"), _now)
+                    except Exception:
+                        _pa = None
+                if _pa is not None:
+                    _r["price_age_seconds"] = _pa
+                    _r["price_age_minutes"] = round(_pa / 60.0, 1)
+                    _r["price_age_label_ar"] = format_age_ar(_pa)
+                _r["price_label"] = price_label_for(
+                    _phase, True, data_state="stale",
+                    price_time_source=(_r.get("price_time_source")
+                                       or "not_provided"),
+                    price_age_seconds=_r.get("price_age_seconds"),
+                    price_session_date=_r.get("price_session_date"),
+                    session_date=_r.get("current_session_date"))
+            _items.append(_r)
+        _lv = dict(_v or {})
+        _lv["items"] = _items
+        _lists[_k] = _lv
+    out["lists"] = _lists
+    out["freshness_summary_ar"] = freshness_summary_ar(_df2)
+    return out
+
+
 def apply_tier(payload, plan="free"):
     """⛔ تطبيق حدود الباقة **من الباك** (قرار المالك — 16/17 نوفمبر 2026).
 
