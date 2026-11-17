@@ -566,7 +566,7 @@ def _compose_score(axes, liq=None, reasons=None, conf=None):
     wsum = sum(avail.values())
     if not wsum:
         return {"final": None, "base": 0.0, "risk_pen": 0.0,
-                "liq_pen": 0.0, "conf_pen": 0.0}
+                "liq_pen": 0.0, "conf_pen": 0.0, "contributions": []}
     # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: محور المخاطرة الناقص بيتعامل
     #    على أنه **الأسوأ** (0 في المحصلة + خصم كامل) بدل ما وزنه
     #    يتوزّع على المحاور التانية.
@@ -580,6 +580,24 @@ def _compose_score(axes, liq=None, reasons=None, conf=None):
         avail = {k: w for k, w in AXIS_WEIGHTS.items() if scored_axes.get(k) is not None}
         wsum = sum(avail.values())
     base = sum(scored_axes[k] * (avail[k] / wsum) for k in avail)
+
+    # 📌 المساهمات الفعلية (نفس الأرقام اللي بتتوزن في النتيجة).
+    # ⛔ MD-052 / AZ22-EXPLAIN-DIVERGES: الشرح كان بيعيد حساب المساهمات
+    #    بإيده (أوزان غير موزّعة + 50 مخترع للمحاور الناقصة) ⇒ المجموع
+    #    50.9 والرقم المنشور 75. 📌 المساهمة دي بتطلع من المحرك نفسه
+    #    ⇒ إعادة تركيب الشرح = الرقم المنشور بالظبط.
+    # 📌 إضافة فقط — مافيش تغيير في أي وزن أو عتبة أو رقم.
+    contributions = []
+    for k in avail:
+        contrib = scored_axes[k] * (avail[k] / wsum)
+        contributions.append({
+            "axis": k,
+            "score": round(scored_axes[k], 1),
+            # الوزن **الفعلي** بعد التوزيع على المحاور المتاحة
+            "axis_weight": round(avail[k] / wsum * 100, 1),
+            "contribution": round(contrib, 1),
+        })
+    contributions.sort(key=lambda c: -c["contribution"])
 
     if risk_missing:
         risk_pen = 15.0
@@ -607,7 +625,8 @@ def _compose_score(axes, liq=None, reasons=None, conf=None):
 
     final = round(max(0, min(100, base - risk_pen - liq_pen - conf_pen)), 1)
     return {"final": final, "base": base, "risk_pen": risk_pen,
-            "liq_pen": liq_pen, "conf_pen": conf_pen}
+            "liq_pen": liq_pen, "conf_pen": conf_pen,
+            "contributions": contributions}
 
 
 def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):

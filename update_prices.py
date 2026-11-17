@@ -7815,7 +7815,11 @@ def sentiment_engine(item, all_stocks=None):
         if len(peers) >= 3 and p3m is not None:
             avg3 = sum(_f(s["perf_3m"]) for s in peers) / len(peers)
             if p3m > avg3 * 1.5:
-                stock_sent += 10; pos.append(f"أفضل من متوسط قطاعه ({(avg3*100):.0f}% مقابل {p3m:.0f}%)")
+                # ⛔ MD-050 / AZ21-SENT-PCT: perf_3m **نسبة مئوية أصلاً**
+                #    (٢٪ معناها 2 مش 0.02) ⇒ الضرب في 100 كان بيعرض
+                #    «200% مقابل 5%» لو متوسط القطاع +2٪.
+                # 📌 الوحدة صح: نعرض النسبة زي ما هي (من غير ×100).
+                stock_sent += 10; pos.append(f"أفضل من متوسط قطاعه ({avg3:.0f}% مقابل {p3m:.0f}%)")
             elif p3m < avg3 * 0.5:
                 stock_sent -= 8; neg.append(f"أضعف من متوسط قطاعه")
     stock_score = max(0, min(100, stock_sent))
@@ -8018,6 +8022,55 @@ def risk_engine(item, sector_stats=None):
     risks = []      # قائمة المخاطر مرتبة بالخطورة
     notes = []
 
+    # ═══ 0) تغطية مدخلات المخاطرة (MD-049 / AZ21-RISK-UNKNOWN) ═══
+    # ⛔⛔⛔ العيب المقاس: سهم صناعي **بلا أي مؤشر مخاطرة** ⇒ كل الفئات
+    #    بصفر ⇒ مجموع المخاطر = 5 (ثابت الأحداث بس) ⇒ safety_score = 95
+    #    و risk_level = «منخفض» ⇒ **وصف أمان عالي بلا أي دليل**.
+    # 📌 القاعدة (نفس اصطلاح المستودع في octa_score: liquidity_score و
+    #    final_score): درجة غير معروفة = **None** + `score_status` صريح
+    #    + `risk_level` = «غير متاح» — ومفيش ولا رقم مخترع.
+    # ⛔ ممنوع تغيير الأوزان أو العتبات — ده تغيير **الحالة والوصف** بس.
+    _RISK_INPUT_KEYS = ("volatility", "atr", "beta", "de_ratio", "net_margin",
+                        "mkt_cap", "tv_all", "perf_3m", "pe")
+    _RISK_INPUT_LABELS = {
+        "volatility": "التقلب", "atr": "المدى الحقيقي", "beta": "معامل المخاطرة",
+        "de_ratio": "نسبة الدين", "net_margin": "هامش الربح",
+        "mkt_cap": "القيمة السوقية", "tv_all": "التقييم الفني",
+        "perf_3m": "أداء ٣ شهور", "pe": "مضاعف الربحية",
+    }
+    _risk_avail = [k for k in _RISK_INPUT_KEYS if item.get(k) is not None]
+    # ⛔ نفس قاعدة octa_score.final_score (MIN_RISK_PARTS = 2): أقل من
+    #    مؤشرين ⇒ المحور **مش متاح** (مش «آمن»).
+    MIN_RISK_INPUTS = 2
+    _risk_missing_labels = [_RISK_INPUT_LABELS[k] for k in _RISK_INPUT_KEYS
+                            if k not in _risk_avail]
+    if len(_risk_avail) < MIN_RISK_INPUTS:
+        return {
+            # ⛔ الدرجة مش معروفة ⇒ None (مش 95 ولا 0 ولا أي رقم مخترع)
+            "safety_score": None,
+            "risk_score": None,
+            "risk_level": "غير متاح",
+            "risk_status": "insufficient_data",
+            "risk_inputs_count": len(_risk_avail),
+            "risk_inputs_required": MIN_RISK_INPUTS,
+            "risk_inputs_available": [_RISK_INPUT_LABELS[k] for k in _risk_avail],
+            "missing_inputs": _risk_missing_labels,
+            "breakdown": {
+                "التقلب": None, "حساسية السوق": None, "مالية": None,
+                "السيولة": None, "الاتجاه": None, "التقييم": None,
+                "الأحداث": None,
+            },
+            "top_risks": [],
+            "risk_adjusted_opportunity": None,
+            "notes": [
+                "⛔ بيانات المخاطرة ناقصة ({} من {} مؤشرات) — درجة الأمان **غير معروفة** "
+                "(مش «منخفض» ومفيش رقم)".format(len(_risk_avail), MIN_RISK_INPUTS),
+                "⛔ مافيش وصف أمان بلا دليل — المحور مستبعد لحد ما تتوفر بيانات",
+                "⚠️ مخاطر الأحداث غير مقيّمة — لا يوجد مصدر أخبار",
+            ],
+            "missing_data": _risk_missing_labels,
+        }
+
     px = _f(item.get("price")) or 1
     beta = _f(item.get("beta"))
     vola = _f(item.get("volatility"))
@@ -8119,6 +8172,13 @@ def risk_engine(item, sector_stats=None):
         "safety_score": safety,
         "risk_score": round(total_risk, 1),   # أعلى = أخطر
         "risk_level": level,
+        # 📌 حالة التقييم: «ok» = بيانات مخاطرة كافية · «insufficient_data»
+        #    = المدخلات ناقصة ⇒ الدرجة غير معروفة (مش «آمن»).
+        "risk_status": "ok",
+        "risk_inputs_count": len(_risk_avail),
+        "risk_inputs_required": MIN_RISK_INPUTS,
+        "risk_inputs_available": [_RISK_INPUT_LABELS[k] for k in _risk_avail],
+        "missing_inputs": _risk_missing_labels,
         "breakdown": {
             "التقلب": round(r_vol, 1),
             "حساسية السوق": round(r_mkt, 1),
@@ -8272,10 +8332,22 @@ def news_engine(item, sector_name=None):
 # PHASE 11: محرك التفسير — ليه الـ Score ده؟
 # ════════════════════════════════════════════════════════════
 
-def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, risk=None, pfit=None, final=None):
+def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, risk=None, pfit=None, final=None, axes=None):
     """
     كل نتيجة لازم تكون قابلة للتفسير. المستخدم يضغط على أي رقم
     ويعرف: كم له، وكم بيساهم، وليه.
+
+    ⛔⛔⛔ MD-052 / AZ22-EXPLAIN-DIVERGES (P1):
+       الدالة كانت بتعمل **حسابها الخاص**:
+         · محور ناقص ⇒ 50 مخترع (والمحرك بيستبعد المحور أصلاً)
+         · أوزان غير موزّعة على المحاور المتاحة
+         · خصومات من غير سقوف (المحرك: ١٥ للمخاطرة · ٦ للسيولة · ٢٢ إجمالاً)
+       ⇒ المجموع الظاهر 50.9 والرقم المنشور 75 ⇒ **الشرح بيقول رقم
+         مش هو الرقم المنشور** (وعندنا خصومات ومكافآت بتبتعد أكتر).
+    📌 القاعدة: الشرح بيستعمل **نفس** `_compose_score` (المصدر الوحيد
+       للحقيقة) + **نفس** المحاور اللي اشتغلت عليها النتيجة ⇒
+       إعادة تركيب المساهمات = الرقم المنشور في كل حالة.
+    ⛔ ممنوع إعادة كتابة المحرك — ده استخدام ليه، مش نسخة منه.
     """
     if not item: return None
 
@@ -8283,11 +8355,12 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
         try: return float(v) if v is not None else d
         except (TypeError, ValueError): return d
 
-    W = AXIS_WEIGHTS
-    axes = (final or {}).get("axes", {})
+    # ⛔ نفس المحرك — المصدر الوحيد للحقيقة.
+    # 📌 استيراد محلي: يخلّي الدالة تشتغل لوحدها في الاختبار المعزول
+    #    (استخراج AST) من غير ما تفقد ربطها بالمحرك الحقيقي.
+    from octa_score import _compose_score as _cs, _confidence_value as _cv
 
-    # ═══ 1) جدول المساهمة ═══
-    contributions = []
+    W = AXIS_WEIGHTS
     names = {
         "technical": "التحليل الفني",
         "fundamental": "التحليل الأساسي",
@@ -8297,47 +8370,83 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
         "risk": "أمان المخاطرة",
         "portfolio": "ملاءمة المحفظة",
     }
-    for k, w in W.items():
-        v = _f(axes.get(k), 50)
-        contrib = round(v * w, 1)
+
+    # ═══ 1) المحاور اللي اشتغلت عليها النتيجة ═══
+    # ⛔ المحور الناقص = None (مش 50 مخترع) — زي final_score بالظبط.
+    # 📌 `axes` (اختياري): المحاور الأصلية قبل أي تعديل للعرض.
+    axes_pub = (final or {}).get("axes") or {}
+    src_axes = axes if axes is not None else axes_pub
+    axes_full = {}
+    for k in list(W.keys()) + [k for k in src_axes if k not in W]:
+        v = src_axes.get(k)
+        axes_full[k] = None if v is None else _f(v, None)
+
+    conf = _cv(item.get("data_confidence"), 60.0)
+    _reasons = []
+    adj = _cs(axes_full, liq, _reasons, conf)
+    engine_final = adj.get("final")
+
+    # ═══ 2) جدول المساهمة (من المحرك نفسه) ═══
+    contributions = []
+    for c in (adj.get("contributions") or []):
+        k = c.get("axis")
         contributions.append({
             "axis": k,
-            "name": names[k],
-            "score": round(v, 1),
-            "axis_weight": round(w * 100, 1),
-            "contribution": contrib,
+            "name": names.get(k, k),
+            "score": c.get("score"),
+            # الوزن الفعلي بعد التوزيع (متخفي في الرد العام — وصفة المحرك)
+            "axis_weight": c.get("axis_weight"),
+            "contribution": c.get("contribution"),
         })
-    contributions.sort(key=lambda x: -x["contribution"])
-
-    # ═══ 2) التعديلات (الخصومات) ═══
     base = round(sum(c["contribution"] for c in contributions), 1)
-    final_v = _f((final or {}).get("final_score"), base)
 
+    # ═══ 3) التعديلات (الخصومات والمكافآت — من المحرك) ═══
     adjustments = []
-    risk_pen = round((100 - _f(axes.get("risk"), 60)) * 0.18, 1)
-    if risk_pen > 0.5:
+    if adj.get("risk_pen"):
         adjustments.append({
             "type": "خصم المخاطرة",
-            "value": -risk_pen,
+            "value": -round(adj["risk_pen"], 2),
             "why": "كل ما الأمان يقل، النتيجة تقل",
         })
-    dc = _f(item.get("data_confidence"), 60)
-    if dc < 50:
-        conf_pen = round((50 - dc) * 0.25, 1)
-        adjustments.append({
-            "type": "خصم ضعف البيانات",
-            "value": -conf_pen,
-            "why": "البيانات ناقصة ({:.0f}/100) — النتيجة أقل موثوقية".format(dc),
-        })
-    if liq and liq.get("risk_level") in ("مرتفع", "مرتفع جداً"):
-        lq_pen = round((100 - _f(liq.get("score"), 50)) * 0.10, 1)
+    if adj.get("liq_pen"):
         adjustments.append({
             "type": "خصم السيولة",
-            "value": -lq_pen,
+            "value": -round(adj["liq_pen"], 2),
             "why": "سيولة ضعيفة — قد لا تقدر تبيع بسرعة",
         })
+    if adj.get("conf_pen"):
+        if adj["conf_pen"] > 0:
+            adjustments.append({
+                "type": "خصم ضعف البيانات",
+                "value": -round(adj["conf_pen"], 2),
+                "why": "البيانات ناقصة ({:.0f}/100) — النتيجة أقل موثوقية".format(conf),
+            })
+        else:
+            adjustments.append({
+                "type": "مكافأة الثقة",
+                "value": round(-adj["conf_pen"], 2),
+                "why": "بيانات ممتازة ({:.0f}/100) — النتيجة أعلى موثوقية".format(conf),
+            })
 
-    # ═══ 3) أكبر 3 إيجابيات وسلبيات ═══
+    # ⛔ إعادة التركيب لازم تطلع = الرقم المنشور بالظبط.
+    # 📌 فرق التقريب العشري (≤ ٠٫٠٥) بيتعلن صراحةً بدل ما يتخبى.
+    total = round(sum(a["value"] for a in adjustments), 2)
+    if engine_final is not None:
+        diff = round(engine_final - (base + total), 2)
+        if abs(diff) >= 0.005:
+            adjustments.append({
+                "type": "فرق تقريب",
+                "value": diff,
+                "why": "تقريب عشري بين مجموع المساهمات ورقم المحرك",
+            })
+            total = round(sum(a["value"] for a in adjustments), 2)
+
+    published_v = _f((final or {}).get("final_score"), None)
+    consistent = None
+    if published_v is not None and engine_final is not None:
+        consistent = abs(published_v - engine_final) <= 0.15
+
+    # ═══ 4) أكبر 3 إيجابيات وسلبيات ═══
     all_pos, all_neg = [], []
 
     def collect(engine, kind):
@@ -8354,7 +8463,7 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
     collect(sent, "sentiment")
     collect(risk, "risk")
 
-    # ═══ 4) البيانات الناقصة ═══
+    # ═══ 5) البيانات الناقصة ═══
     missing = []
     critical_fields = {
         "pe": "مضاعف الربحية", "pb": "مضاعف الكتاب", "roe": "العائد على الملكية",
@@ -8366,7 +8475,7 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
         if item.get(f) is None:
             missing.append(label)
 
-    # ═══ 5) إيه اللي ممكن يغيّر النتيجة ═══
+    # ═══ 6) إيه اللي ممكن يغيّر النتيجة ═══
     what_changes = []
     rsi = _f(item.get("rsi"), None)
     if rsi is not None:
@@ -8374,14 +8483,16 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
             what_changes.append("لو القوة النسبية عدّت 50 فوق — الزخم يتحسّن والنتيجة ترتفع ٥-١٠ نقاط")
         elif rsi > 70:
             what_changes.append("لو القوة النسبية نزلت تحت 70 — خطر التشبع ينقص والنتيجة تتحسن")
-    if _f(axes.get("risk"), 60) < 60:
+    if axes_full.get("risk") is None:
+        what_changes.append("لو اتوفرت بيانات المخاطرة (بيتا · تقلب · دين) — المحور بيرجع للنتيجة والخصم بيقل")
+    elif _f(axes_full.get("risk"), 60) < 60:
         what_changes.append("لو Beta نزل تحت 1.0 أو التقلّب قلّ — الخصم يقل والنتيجة ترتفع")
     if liq and liq.get("score", 0) < 50:
         what_changes.append("لو حجم التداول زاد — خصم السيولة يروح والنتيجة تتحسّن")
-    if dc < 60:
+    if conf < 60:
         what_changes.append("لو البيانات المالية اتحدّثت — خصم ضعف البيانات يروح")
 
-    # ═══ 6) إيه اللي يفسد الفكرة ═══
+    # ═══ 7) إيه اللي يفسد الفكرة ═══
     invalidation = []
     pe = _f(item.get("pe"), None)
     if pe is not None and pe > 0:
@@ -8392,14 +8503,21 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
     if tv is not None and tv < -0.4:
         invalidation.append("لو التقييم الفني نزل تحت -0.6 — اتجاه هابط مؤكد")
 
+    warnings = []
+    if consistent is False:
+        warnings.append(
+            "⚠️ الرقم المنشور ({}) مختلف عن إعادة تركيب الشرح ({})".format(published_v, engine_final))
+
     return {
-        "final_score": round(final_v, 1),
+        "final_score": engine_final,
+        # 📌 الرقم المنشور من المحرك + هل الشرح متسق معاه (مفيش إخفاء)
+        "published_score": published_v,
+        "score_consistent": consistent,
         "base_score": base,
         "contributions": contributions,
         "adjustments": adjustments,
-        "adjustment_total": round(sum(a["value"] for a in adjustments), 1),
-        "formula": "{} (مرجّح) {} (تعديلات) = {}".format(
-            base, round(sum(a["value"] for a in adjustments), 1), round(final_v, 1)),
+        "adjustment_total": total,
+        "formula": "{} (مرجّح) {} (تعديلات) = {}".format(base, total, engine_final),
         "top_positives": [{"from": s, "text": p} for s, p in all_pos[:3]],
         "top_negatives": [{"from": s, "text": n} for s, n in all_neg[:3]],
         "missing_data": missing,
@@ -8407,6 +8525,8 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
         "what_could_change_score": what_changes,
         "what_could_invalidate": invalidation,
         "confidence": _f((final or {}).get("confidence"), 0),
+        "warnings": warnings,
+        "engine_notes": list(_reasons),
     }
 
 
@@ -9048,10 +9168,27 @@ def bt_evaluate(days_back=30):
     """
     نقيس: الأسهم اللي رشحناها قبل N يوم، كانت بتعمل إيه؟
     ⚠️ مفيش track real history — بنستخدم أداء الفترة الحالي كبديل
+    ⛔ MD-034 / AZ25-BACKTEST-DAYS: `days_back` كان **مش بيتقرا خالص** ⇒
+       `days_back=3` كان بيرجّع نافذة عمرها 50 يوم ⇒ القياس بيقيس فترة
+       أطول بكتير من اللي اليوزر طلبه، والرقم المنشور غلط.
+    📌 القاعدة: الحد بطبق في **الاختيار** (مش في العرض بس) ⇒ أي نافذة
+       أقدم من `days_back` ما بتتقاسش أصلاً.
+    ⛔ توثيق (لازم يتقال): التتبّع الأمامي (forward tracking) لوحده
+       **مش كفاية** لتقييم تاريخي شامل — النتائج دي قياس نافذة واحدة
+       على بيانات لحظية، مش تاريخ أداء مُراجَع.
     """
     def _f(v, d=None):
         try: return float(v) if v is not None else d
         except (TypeError, ValueError): return d
+
+    # ⛔ حدّ المدة الدنيا للقياس (٣ أيام) — زي ما كان
+    MIN_HOLD_DAYS = 3
+    try:
+        window_days = int(days_back)
+    except (TypeError, ValueError):
+        window_days = 30
+    if window_days < 0:
+        window_days = 0
 
     st = {s["code"]: s for s in LIVE_DATA.get("egx30", [])}
     snaps = sorted(BACKTEST["snapshots"].items())
@@ -9061,12 +9198,22 @@ def bt_evaluate(days_back=30):
             "note": "محتاجين يومين على الأقل عشان نقيس. لقطة اليوم اتسجلت.",
             "snapshots_count": len(snaps),
             "days_back": days_back,
+            "window_days": window_days,
+            "min_hold_days": MIN_HOLD_DAYS,
+            "windows": [],
+            "stats": BACKTEST.get("stats", {}),
         }
 
     results = []
+    skipped_by_age = 0
     for date, snap in snaps[:-1]:
         age_days = (datetime.utcnow() - datetime.fromisoformat(date)).days
-        if age_days < 3:   # نقيس بعد ٣ أيام على الأقل
+        if age_days < MIN_HOLD_DAYS:   # نقيس بعد ٣ أيام على الأقل
+            continue
+        # ⛔ حدّ العمر (MD-034): لقطة أقدم من النافذة المطلوبة ما
+        #    بتتقاسش — كانت بتترجّع زي ما هي والرقم كان غلط.
+        if age_days > window_days:
+            skipped_by_age += 1
             continue
         wins, losses, flat = 0, 0, 0
         picks = []
@@ -9138,13 +9285,33 @@ def bt_evaluate(days_back=30):
                         "مقبول"),
         }
         _bt_save()
+    else:
+        # ⛔⛔⛔ مفيش نافذة داخل النطاق ⇒ ممنوع ترجّع إحصائيات قديمة
+        #    (كانت بتتقال «مقاسة» وهي من نافذة أوسع) ⇒ حالة صريحة.
+        BACKTEST["results"] = []
+        BACKTEST["stats"] = {
+            "snapshots_taken": len(snaps),
+            "windows_measured": 0,
+            "total_picks": 0, "wins": 0, "losses": 0, "flat": 0,
+            "win_rate": 0, "loss_rate": 0, "avg_return": 0,
+            "profit_factor": 0,
+            "verdict": "مفيش نافذة قابلة للقياس",
+            "status": "no_window_in_range",
+        }
+        _bt_save()
 
     return {
-        "status": "تم القياس",
+        "status": "تم القياس" if results else "مفيش نافذة في النطاق المطلوب",
         "snapshots_count": len(snaps),
         "days_back": days_back,
+        "window_days": window_days,
+        "min_hold_days": MIN_HOLD_DAYS,
+        "skipped_by_age": skipped_by_age,
         "windows": results,
         "stats": BACKTEST.get("stats", {}),
+        "note": None if results else (
+            "مفيش لقطة عمرها بين {} و {} يوم — القياس اتخطّى "
+            "({} لقطة أقدم من النطاق)".format(MIN_HOLD_DAYS, window_days, skipped_by_age)),
     }
 
 
@@ -11228,9 +11395,18 @@ def portfolio_api():
         else:
             return jsonify({"error": "action غير معروف"}), 400
 
-        _patch_user(u["id"], portfolio=pf)
+        saved = _patch_user(u["id"], portfolio=pf)
+        if not saved:
+            # ⛔ نفس قاعدة «النجاح = دليل على الكتابة» (MD-054b) —
+            #    الحفظ فشل ⇒ ممنوع «ok: true».
+            resp = jsonify({"ok": False, "saved": False,
+                            "error": "مقدرناش نحفظ المحفظة — تخزين بيانات المستخدم فشل. "
+                                     "مافيش تغيير اتحفظ، جرّب تاني."})
+            if hasattr(resp, "status_code"):
+                resp.status_code = 500
+            return resp
         u["portfolio"] = pf
-        return jsonify({"ok": True, "portfolio": pf})
+        return jsonify({"ok": True, "saved": True, "portfolio": pf})
 
     # ── GET: محفظة المستخدم (اتأكدنا فوق إن في توكن) ──
     pf = _user_portfolio(u)
@@ -11259,13 +11435,76 @@ def portfolio_api():
 
 @app.route("/api/portfolio/fit/<code>")
 def portfolio_fit_api(code):
-    """ملاءمة السهم لمحفظتك"""
+    """ملاءمة السهم **لمحفظتك أنت** — 🔒 مصادقة إلزامية.
+
+    ⛔⛔⛔ AZ24-PORTFOLIO-SHARED / SEC-015 (P1 + أمني):
+       · المسار كان بيرجّع ملاءمة **المحفظة العامة** (`PORTFOLIO`) لأي
+         زائر **من غير تسجيل دخول** ⇒ (١) تسرّب حالة مالية مش بتاعتك،
+         (٢) رقم ملاءمة محسوب على محفظة مش موجودة أصلاً.
+       · كمان `portfolio_fit` بيرجّع «70 محايد» لمحفظة فاضية ⇒ رقم
+         مصنوع بلا دليل.
+    📌 القاعدة:
+       · المصادقة إلزامية (401 لزائر).
+       · المحفظة = محفظة **المستخدم نفسه** (`_user_portfolio`)، مش العامة.
+       · مفيش محفظة ⇒ رد **صريح** (مش محفظة عامة ومش رقم مخترع).
+       · الوصف بيقول nature المحفظة صراحة (portfolio_kind / source).
+    """
+    u = require_user()
+    if not u:
+        resp = jsonify({
+            "ok": False,
+            "error": "لازم تسجّل دخول عشان تشوف ملاءمة محفظتك",
+            "auth_required": True,
+            "hint": "سجّل دخول الأول من /api/auth/register",
+        })
+        if hasattr(resp, "status_code"):      # ⛔ رد Flask ⇒ 401
+            resp.status_code = 401
+        return resp
+
     code = code.upper().strip()
     item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == code), None)
     if not item:
         return jsonify({"error": f"السهم {code} غير موجود"}), 404
-    fit = portfolio_fit(item, PORTFOLIO)
-    return jsonify({"code": code, "portfolio_fit": fit})
+
+    pf = _user_portfolio(u)
+    holdings = (pf.get("holdings") or {}) if isinstance(pf, dict) else {}
+    try:
+        cash = float((pf.get("cash") if isinstance(pf, dict) else 0) or 0)
+    except (TypeError, ValueError):
+        cash = 0.0
+
+    portfolio_desc = {
+        # ⛔ صريح: دي محفظتك **انت** — مش محفظة عامة
+        "portfolio_kind": "user",
+        "source": "user_portfolio",
+        "holdings_count": len(holdings),
+        "cash": cash,
+        "status": "ok" if holdings else "empty",
+    }
+
+    if not holdings:
+        # ⛔ مافيش محفظة ⇒ رد صريح. ممنوع نرجّع «70 محايد» لمحفظة فاضية
+        #    (رقم مصنوع) وممنوع نرجّع المحفظة العامة.
+        return jsonify({
+            "ok": True,
+            "code": code,
+            "name": item.get("name"),
+            "portfolio": portfolio_desc,
+            "portfolio_fit": None,
+            "note": "ما عندكش محفظة — ملاءمة محفظتك مش محسوبة. "
+                    "أضف أسهم من /api/portfolio وبعدين اطلب تاني.",
+        })
+
+    fit = dict(portfolio_fit(item, pf) or {})
+    fit["portfolio_kind"] = "user"
+    fit["portfolio_source"] = "user_portfolio"
+    return jsonify({
+        "ok": True,
+        "code": code,
+        "name": item.get("name"),
+        "portfolio": portfolio_desc,
+        "portfolio_fit": fit,
+    })
 
 
 @app.route("/api/sentiment/<code>")
@@ -11324,10 +11563,16 @@ def explain_api(code):
     p = portfolio_fit(item, PORTFOLIO)
     r = risk_engine(item, SECTOR_STATS)
     fin = final_score(item, t, f, l, SECTOR_STATS)
+    # ⛔⛔⛔ MD-052 / AZ22-EXPLAIN-DIVERGES: لازم نمسك **المحاور اللي
+    #    اشتغلت عليها النتيجة** قبل أي تعديل للعرض. قبل كده كانت
+    #    بتتعدّل بعد الحساب (sentiment · news · portfolio) ⇒ الشرح بيعرض
+    #    محاور مش هي اللي اشتغلت عليها النتيجة ⇒ المجموع 50.9 والرقم
+    #    المنشور 75. 📌 الشرح دلوقتي بيفكّك **نفس** الأرقام.
+    axes_used = dict(fin.get("axes") or {})
     if s: fin["axes"]["sentiment"] = s["score"]
     if p: fin["axes"]["portfolio"] = p["score"]
     if n: fin["axes"]["news"] = n["score"]
-    ex = explain_score(item, t, f, l, n, s, r, p, fin)
+    ex = explain_score(item, t, f, l, n, s, r, p, fin, axes=axes_used)
     return jsonify({
         "code": code, "name": item.get("name"), "sector": item.get("sector"),
         "price": item.get("price"),
@@ -11839,6 +12084,11 @@ def backtest_api():
     result = bt_evaluate(days)
     result["benchmark"] = bt_benchmark()
     result["method"] = "forward-tracking: بنسجّل ترتيب اليوم ونقيس بعد ٣+ أيام"
+    # ⛔ توثيق (MD-034): forward-tracking على بيانات لحظية **مش** تقييم
+    #    تاريخي شامل — مافيش تاريخ أداء مُراجَع، والنتيجة دي قياس نافذة
+    #    واحدة على البيانات الحالية.
+    result["caveat"] = ("⚠️ forward-tracking على بيانات لحظية — مش تقييم تاريخي شامل: "
+                        "مافيش تاريخ أداء مُراجَع، وده قياس نافذة واحدة بس.")
     return jsonify(result)
 
 
@@ -14392,12 +14642,11 @@ def _octa_watch_get():
         })
 
     watch = u.get("watch") or {}
-    items = []
-    for c, cfg in watch.items():
-        item = next((s for s in LIVE_DATA.get("egx30", []) if s["code"] == c), None)
-        if item:
-            rows = w_add({"watch": dict(watch)}, c, cfg.get("hi"), cfg.get("lo"))
-            items.extend(w_list({"watch": dict(watch)}))
+    # ⛔⛔⛔ MD-054 / AZ24-WATCH-DUP: كان `w_list` بيتنادى **جوه الحلقة**
+    #    ⇒ 3 منبهات ⇒ 9 صفوف (n²). وكمان `w_add` (يعني **كتابة**) كان
+    #    بيتنادى في مسار القراءة ⇒ قراءة بتيكتب + بتفضح «at» وهمية.
+    # 📌 القاعدة: مسار القراءة = قراءة فقط · منبه واحد = صف واحد.
+    items = w_list({"watch": watch})
     return jsonify({"ok": True, "items": items})
 
 
@@ -14464,10 +14713,25 @@ def _octa_watch_post():
     if len(watch) > 100:
         return jsonify({"error": "الحد 100 منبه بس"}), 400
 
-    _patch_user(u["id"], watch=watch)
-    u["watch"] = watch
+    # ⛔⛔⛔ MD-054b / AZ24-WATCH-PERSIST: «النجاح» لازم يكون **دليل على
+    #    الكتابة**. `_patch_user` بيرجع None لو الحفظ فشل — والرد كان
+    #    بيقول «ok: true» ⇒ **نجاح كاذب** (المستخدم فاكر إن المنبه اتحفظ).
+    # 📌 القاعدة: لو مفيش دليل على الحفظ ⇒ ok=false + سبب صريح.
+    saved = _patch_user(u["id"], watch=watch)
+    if not saved:
+        resp = jsonify({
+            "ok": False,
+            "error": "مقدرناش نحفظ المنبه — تخزين بيانات المستخدم فشل. "
+                     "مافيش تغيير اتحفظ، جرّب تاني.",
+            "saved": False,
+            "count": len(u.get("watch") or {}),
+        })
+        if hasattr(resp, "status_code"):      # ⛔ رد Flask ⇒ 500
+            resp.status_code = 500
+        return resp
 
-    return jsonify({"ok": True, "count": len(watch)})
+    u["watch"] = watch
+    return jsonify({"ok": True, "saved": True, "count": len(watch)})
 
 
 @app.route("/api/alerts/diag", methods=["GET"])
