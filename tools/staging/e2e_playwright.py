@@ -53,6 +53,15 @@ def read_staging_secrets():
     return {}
 
 
+def _is_local_base(url):
+    """هل العنوان محلي؟ (⛔ التوكن ما ينفعش يروح لعنوان خارجي)"""
+    try:
+        host = url.split("//")[-1].split("/")[0].split(":")[0]
+    except Exception:
+        return False
+    return host in ("127.0.0.1", "localhost", "::1", "")
+
+
 def free_port():
     s = socket.socket()
     s.bind(("127.0.0.1", 0))
@@ -303,7 +312,12 @@ def main():
         # 📌 رقم الجهاز = octa_bio_key (عشوائي في localStorage).
         # 📌 من غير الربط ⇒ «جهاز جديد» ⇒ لازم كود إيميل ⇒ مستحيل في الاختبار.
         device = "e2e-" + ("d" * 48)
-        admin = os.environ.get("OCTA_ADMIN_TOKEN", "") or sec.get("admin", "")
+        # ⛔ ترتيب مهم: توكن **الـstaging** (من ملف الأسرار) هو الصح.
+        #   ⛔ المتغيّر في البيئة ممكن يكون توكن **إنتاج** ⇒ ما ينفعش
+        #   نبعتّه لعنوان غير محلي. ⇒ لو الـbase مش محلي ⇒ مافيش توكن خالص.
+        admin = sec.get("admin", "")
+        if not admin and _is_local_base(a.api_base):
+            admin = os.environ.get("OCTA_ADMIN_TOKEN", "")
         bound = False
         if admin:
             try:
