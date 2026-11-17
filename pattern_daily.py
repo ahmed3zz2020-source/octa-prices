@@ -413,7 +413,7 @@ def build_shortlist(codes=None, filters=None, cfg=None, universe=None,
                 summary["filtered_out"] += 1
                 continue
             seen.add(key)
-            # ⭐⭐ المطابقة الكاملة = «مُقاس» (اللي عنده إحصا��ة ونتايج
+            # ⭐⭐ المطابقة الكاملة = «مُقاس» (اللي عنده إحصائية ونتائج
             #    تاريخية). اللي بيمر بغير شرط الـregime بيظهر برضه بس
             #    موسوم «مش مُقاس» — عشان المستخدم مايفتكرش إنه مدروس.
             if _passes(s, flt):
@@ -597,17 +597,20 @@ def register(app, require_user=None, send=None, live_data_getter=None,
             return None
 
     def _plan_of(user):
-        """خطة المستخدم — 'pro' يعني إن باقة «نماذجي» مفتوحة."""
+        """خطة المستخدم — 'pro' يعني إن باقة «نماذجي» مفتوحة.
+
+        ⛔ SEC-011 — **fail-closed** (القاعدة الواحدة: plan_gate.resolve_plan):
+           لو الـplan_checker واقع أو رجّع فاضي ⇒ 'free'.
+        ⛔ ممنوع ترجع plan الخام من سجل المستخدم ⇒ ده allow-open
+           (Pro منتهي أو تلاعب في السجل).
+        """
         if not user:
             return "free"
         try:
-            if plan_checker:
-                p = plan_checker(user)
-                if p:
-                    return str(p)
+            import plan_gate as _pg
+            return _pg.resolve_plan(user, checker=plan_checker)
         except Exception:
-            pass
-        return str(user.get("plan") or "free")
+            return "free"
 
     def _locked_response(user):
         return jsonify({"ok": False, "locked": True,

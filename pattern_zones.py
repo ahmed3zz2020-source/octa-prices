@@ -99,7 +99,7 @@ def detect_zones(bars, code=None, cfg=None, max_zones=3):
     out["atr"] = round(atr_val, 4)
     out["atr_pct"] = round(atr_val / price * 100, 2) if price else None
     packed = [_pack(z) for z in (res + sup)]
-    # ⭐ الترتيب بالأقرب للم��عر أولاً (هو اللي يهم المستخدم)
+    # ⭐ الترتيب بالأقرب للمؤشر أولاً (هو اللي يهم المستخدم)
     packed.sort(key=lambda z: abs(z.get("distance_pct") or 0))
     out["zones"] = packed
     out["nearest"] = (min(out["zones"], key=lambda z: abs(z["distance_pct"]))
@@ -283,16 +283,17 @@ def register(app, require_user=None, plan_checker=None, universe=None):
             return None
 
     def _plan_of(user):
+        """⛔ SEC-011 — fail-closed (القاعدة الواحدة: plan_gate.resolve_plan).
+
+        ⛔ أي تعذّر في الـplan_checker ⇒ 'free' (مش plan الخام).
+        """
         if not user:
             return "free"
         try:
-            if plan_checker:
-                p = plan_checker(user)
-                if p:
-                    return str(p)
+            import plan_gate as _pg
+            return _pg.resolve_plan(user, checker=plan_checker)
         except Exception:
-            pass
-        return str(user.get("plan") or "free")
+            return "free"
 
     def _locked(user=None):
         return jsonify({"ok": False, "locked": True, "plan": _plan_of(user),

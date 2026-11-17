@@ -1452,6 +1452,73 @@ LIMITS = {
     "pin_bio": [(20, 60)],
 }
 
+# ══════════════════════════════════════════════════════════════════
+# ⛔ SEC-019 — سقف تكلفة الاستدعاءات الخارجية (fail-closed)
+# ══════════════════════════════════════════════════════════════════
+# 📌 السبب: /api/chat و /api/analyze بيستدعوا خدمة خارجية ⬇️
+# 📌 ⬇️ ⇒ كل نداء = تكلفة حقيقية ⬇️ ⇒ لازم سقف **واضح** ⬇️
+# 📌 ⬇️ (حد الـrequest-IP بيحمي من السحب السريع ⬇️ بس مش بيحمي
+# 📌 ⬇️  من الاستهلاك على المدى الطويل ولا من التكلفة الكلية) ⬇️
+#
+# ⛔ الافتراضي **محافظ** (مش مفتوح) ⬇️ ولو الـenv مش مضبوط ⬇️
+# 📌 ⛔ المتغيّر: OCTA_AI_MAX_CALLS_PER_HOUR (نداءات/ساعة/حساب) ⬇️
+# ⛔ ملاحظة: العدّاد في ذاكرة العملية (زي حد الـrequest) ⬇️
+# ⛔ ⇒ التوزيع على أكتر من عامل محتاج كاش مشترك (بند منفصل).
+AI_COST_DEFAULT_CALLS = 60        # ⛔ افتراضي محافظ (مش مفتوح)
+AI_COST_WINDOW = 3600             # ⛔ نافذة الساعة (٣٦٠٠ ثانية)
+_AI_COST = defaultdict(deque)      # ⛔ {مفتاح الحساب: [طوابع الوقت]}
+_AI_COST_LOCK = threading.Lock()
+
+
+def _ai_cost_limit():
+    """⛔ سقف النداءات في الساعة — من الـenv ⬇️ والافتراضي محافظ.
+
+    ⛔ fail-closed: قيمة غلط/مصفّرة/سالبة ⇒ الافتراضي (مش مفتوح).
+    📌 المتغيّر: OCTA_AI_MAX_CALLS_PER_HOUR.
+    """
+    raw = str(os.environ.get("OCTA_AI_MAX_CALLS_PER_HOUR", "") or "").strip()
+    try:
+        v = int(raw)
+    except Exception:
+        return AI_COST_DEFAULT_CALLS
+    if v <= 0:
+        return AI_COST_DEFAULT_CALLS
+    return v
+
+
+def _ai_cost_key(user=None):
+    """مفتاح العدّاد — الحساب (مش الـIP) ⬇️."""
+    try:
+        uid = str((user or {}).get("id") or (user or {}).get("uid") or "")
+        if uid:
+            return "u:" + uid[:64]
+    except Exception:
+        pass
+    try:
+        return "ip:" + _client_key()
+    except Exception:
+        return "ip:unknown"
+
+
+def _ai_cost_take(key):
+    """⛔ خد «تذكرة» نداء خارجي: (مسموح, retry_after) — fail-closed.
+
+    ⛔ لو الحساب وقع ⇒ نرفض (مش نسمح) ⇒ مافيش تكلفة مفتوحة.
+    """
+    try:
+        limit = _ai_cost_limit()
+        now = int(time.time())
+        with _AI_COST_LOCK:
+            dq = _AI_COST[key]
+            while dq and now - dq[0] > AI_COST_WINDOW:
+                dq.popleft()
+            if len(dq) >= limit:
+                return False, max(1, AI_COST_WINDOW - (now - dq[0]))
+            dq.append(now)
+        return True, 0
+    except Exception:
+        return False, 60
+
 # تخزين: {ip: {bucket: deque(timestamps)}}
 _HITS = defaultdict(lambda: defaultdict(deque))
 _HITS_LOCK = threading.Lock()
@@ -10662,6 +10729,13 @@ def markets_api():
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
     try:
+        # ⛔ SEC-019 — ⛔ **صلاحية**: التحليل لازم جلسة ⬇️
+        # 📌 (الزائر المجهول كان بياخد تحليل مدفوع من غير حد ⬇️ ⬇️
+        # 📌  ⬇️ ⇒ تكلفة على كل طلب ⬇️ ⬇️)
+        _u = require_user()
+        if not _u:
+            return jsonify({"ok": False, "error": "لازم تسجّل دخول",
+                            "why": "auth_required"}), 401
         data = request.get_json(force=True, silent=True) or {}
         code = (data.get("code") or "").upper().strip()
 
@@ -10681,6 +10755,15 @@ def analyze():
                 return jsonify(cached)
 
         name, sector = EGX_MAP[code]
+
+        # ⛔ SEC-019 — ⛔ **سقف التكلفة** ⬇️ (قبل الاستدعاء الخارجي)
+        # 📌 الكاش ما بيكلّفش ⇒ الفحص بعده ⬇️ ⬇️
+        _ok, _retry = _ai_cost_take(_ai_cost_key(_u))
+        if not _ok:
+            return jsonify({"ok": False,
+                            "error": "تجاوزت حد الاستدعاءات — استنى شوية",
+                            "why": "ai_quota_exceeded",
+                            "retry_after": _retry}), 429
 
         # ═══ Phase 1: اجيب كل البيانات الحقيقية للسهم ═══
         item = None
@@ -10808,6 +10891,12 @@ CHAT_MAX_HISTORY = 40       # ⛔ عدد رسائل التاريخ ⬇️
 def chat():
     """شات عام مع OCTA"""
     try:
+        # ⛔ SEC-019 — ⛔ **صلاحية**: الشات لازم جلسة ⬇️
+        # 📌 (الزائر المجهول كان بيستدعي الخدمة الخارجية ببلاش ⬇️ ⬇️)
+        _u = require_user()
+        if not _u:
+            return jsonify({"ok": False, "error": "لازم تسجّل دخول",
+                            "why": "auth_required"}), 401
         # 🐞🛡️ ١٥ نوفمبر ٢٠٢٦ (دفعة الأمان ٠٢ · المراجعة الأمنية) — ⛔ ترتيب ⬇️
         # 📌 ⬇️ ⛔ كان: فحص «المفتاح موجود» **قبل** فحوص الحجم ⬇️ ⬇️ ⬇️
         # 📌 ⬇️ ⛔ ⇒ طلب ضخم (أو رسالة طويلة) بيرجّع 503 ⬇️ ⬇️ ⬇️
@@ -10848,6 +10937,14 @@ def chat():
 
         if not GEMINI_KEY:
             return jsonify({"error": "API key not configured"}), 503
+
+        # ⛔ SEC-019 — ⛔ **سقف التكلفة** ⬇️ (قبل الاستدعاء الخارجي)
+        _ok, _retry = _ai_cost_take(_ai_cost_key(_u))
+        if not _ok:
+            return jsonify({"ok": False,
+                            "error": "تجاوزت حد الاستدعاءات — استنى شوية",
+                            "why": "ai_quota_exceeded",
+                            "retry_after": _retry}), 429
 
         chat_prompt = """أنت OCTA، مساعد ذكي متخصص في البورصة المصرية.
 أنت بتجيب على أسئلة المستخدم عن الأسهم المصرية، التحليل الفني والأساسي، التوصيات.
@@ -11325,10 +11422,13 @@ def _opp_public_strategy(st):
 
 
 def _opp_plan(user=None):
-    """باقة المستخدم (Free/Pro) — مصدرها plan_gate (مصدر واحد للحقيقة)."""
+    """باقة المستخدم (Free/Pro) — مصدرها plan_gate (مصدر واحد للحقيقة).
+
+    ⛔ SEC-011 — القاعدة الواحدة (resolve_plan): أي تعذّر ⇒ 'free'.
+    """
     try:
         import plan_gate as _pg
-        return _pg.plan_of(user) if user else "free"
+        return _pg.resolve_plan(user) if user else "free"
     except Exception:
         return "free"
 
@@ -15944,12 +16044,16 @@ try:
         return _patch_user(key, plan=str(plan))
 
     def _pattern_plan_checker(user):
-        """حالة الباقة (مع تاريخ الانتهاء) — من plan_gate (مصدر واحد)."""
+        """حالة الباقة (مع تاريخ الانتهاء) — من plan_gate (مصدر واحد).
+
+        ⛔ SEC-011 — **fail-closed**: أي تعذّر ⇒ 'free'.
+        ⛔ ممنوع ترجع plan الخام من سجل المستخدم (allow-open).
+        """
         try:
             import plan_gate as _pg
-            return _pg.plan_of(user)
+            return _pg.resolve_plan(user)
         except Exception:
-            return str((user or {}).get("plan") or "free")
+            return "free"
 
     # ⛔⛔⛔ تسجيل **متين**: كاش بناء Railway ممكن يقدّم نسخة قديمة من
     #    pattern_daily.py ⇒ بارامتر جديد ⇒ TypeError ⇒ كل المسارات
@@ -15985,7 +16089,13 @@ try:
         return _pg.status_of(user)
 
     def _subs_activate(who, plan, days, price, method, note):
-        """تفعيل/تجديد: يمدّد من تاريخ الانتهاء الحالي (لو لسه ساري)."""
+        """تفعيل/تجديد: يمدّد من تاريخ الانتهاء الحالي (لو لسه ساري).
+
+        ⛔ SEC-012 — ترتيب ذرّي ⬇️ **السجل الأول** ثم تغيير الخطة ⬇️
+        ⛔ ① فشل السجل ⇒ مافيش أي تغيير في الحساب (الحالة زي ما كانت).
+        ⛔ ② فشل تغيير الخطة ⇒ **تراجع عن السجل** ⇒ اتساق دائم:
+           مافيش «Pro من غير سجل» ولا «سجل من غير Pro».
+        """
         try:
             users = _load_users() or {}
             if _users_store_broken():
@@ -16006,11 +16116,18 @@ try:
         cur_until = int(rec.get("plan_until") or 0)
         base = cur_until if cur_until > now else now
         until = base + int(days) * 86400
-        _patch_user(key, plan=plan, plan_until=until)
+        # ⛔ ① السجل **أولاً** — لو فشل ⇒ الخطة ما اتغيّرتش ⬇️
         lg, err = _pg.log_subscription(key, rec.get("email"), plan, days,
                                        price, method, note)
         if err:
             return False, err, None
+        # ⛔ ② بعدين الخطة — ولو فشلنا نتراجع عن السجل ⬇️
+        if _patch_user(key, plan=plan, plan_until=until) is None:
+            try:
+                _pg.rollback_subscription(lg)
+            except Exception:
+                pass
+            return False, "فشل تحديث الحساب — من غير أي تعديل اتحفظ", None
         return True, None, {"uid": key, "email": rec.get("email"),
                             "plan": plan, "until": until,
                             "until_date": time.strftime("%Y-%m-%d",
@@ -16035,11 +16152,12 @@ try:
     import pattern_zones as _zones_mod
 
     def _zones_plan(user):
+        """⛔ SEC-011 — fail-closed: أي تعذّر ⇒ 'free' (مش plan الخام)."""
         try:
             import plan_gate as _pg
-            return _pg.plan_of(user)
+            return _pg.resolve_plan(user)
         except Exception:
-            return str((user or {}).get("plan") or "free")
+            return "free"
 
     try:
         _zones_mod.register(app, require_user=require_user,
@@ -16058,11 +16176,12 @@ try:
     import pattern_challenges as _ch_mod
 
     def _ch_plan(user):
+        """⛔ SEC-011 — fail-closed: أي تعذّر ⇒ 'free' (مش plan الخام)."""
         try:
             import plan_gate as _pg
-            return _pg.plan_of(user)
+            return _pg.resolve_plan(user)
         except Exception:
-            return str((user or {}).get("plan") or "free")
+            return "free"
 
     def _ch_require_user():
         """المستخدم + الـuid (السجل بيتخزّن بالـuid كـkey مش كحقل)."""
@@ -16110,11 +16229,12 @@ try:
     import pattern_studio as _studio_mod
 
     def _studio_plan(user):
+        """⛔ SEC-011 — fail-closed: أي تعذّر ⇒ 'free' (مش plan الخام)."""
         try:
             import plan_gate as _pg
-            return _pg.plan_of(user)
+            return _pg.resolve_plan(user)
         except Exception:
-            return str((user or {}).get("plan") or "free")
+            return "free"
 
     try:
         _studio_mod.register(app, require_user=require_user,
