@@ -308,7 +308,8 @@ def price_label_for(market_phase="unknown", stale=False, data_state=None,
         price_age_seconds = price_age_seconds_from(price_ts, now)
     # ⛔⛔ ترتيب الأسبقية: «قديم» أقوى من «مافيش توقيت» ⇒
     #    السهم من الكاش (قديم) يُوصف قديم حتى لو مافيش توقيت من المصدر.
-    if stale or data_state == "stale":
+    # ⛔⛔⛔ R17-P1 — «unknown» (مافيش دليل حداثة) كمان بيمنع ادعاء «الآن».
+    if stale or str(data_state or "") in ("stale", "unknown"):
         return "آخر سعر معروف"
     # ⛔ مافيش توقيت موثوق من المصدر ⇒ ممنوع أي ادعاء لحظية
     if str(price_time_source or "") != "source":
@@ -1027,11 +1028,20 @@ def build_payload(stocks, definitions=None, meta=None):
             #    إن آخر جلب ناجح من يومين ⇒ ادعاء كاذب).
             _dataset_state = str(_data_state or "unknown")
             _dataset_stale = _dataset_state in ("stale", "unavailable")
+            # ⛔⛔⛔ R17-P1 (مراجعة الجولة ١٧) — **«live» لازم دليل صريح**:
+            #    لو الحداثة العامة «unknown» (مافيش دليل) ⇒ الصف ما يقولش
+            #    «live» ⇒ حالة آمنة «unknown» (مش قديم، ومش حيّ).
+            _dataset_unknown = (_dataset_state not in ("fresh", "stale", "unavailable"))
             _row_stale = bool(_stale) or _dataset_stale
+            _row_live = (not _row_stale) and (_dataset_state == "fresh")
+            _row_state = ("live" if _row_live else
+                           ("unknown" if _dataset_unknown else "stale"))
             _stale_reason = ("item_cache" if _stale else
                              ("dataset_stale" if _dataset_state == "stale"
                               else ("dataset_unavailable"
-                                    if _dataset_state == "unavailable" else "")))
+                                    if _dataset_state == "unavailable"
+                                    else ("dataset_unknown"
+                                          if _dataset_unknown else ""))))
             _src_ts = item.get("stale_ts") if _stale else (item.get("ts") or "")
             _phase = meta.get("market_phase") or "unknown"
             _price_ts = item.get("price_ts") or None
@@ -1058,17 +1068,20 @@ def build_payload(stocks, definitions=None, meta=None):
                 # ⛔⛔⛔ الجولة ١٦ — الوصف محسوب من **عمر السعر** وجلسة السعر
                 "price_label": price_label_for(
                     _phase, _row_stale,
-                    data_state=("stale" if _row_stale else None),
+                    data_state=("stale" if _row_stale
+                                else ("unknown" if _dataset_unknown else None)),
                     price_time_source=_price_time_source,
                     price_age_seconds=_price_age,
                     price_session_date=(_price_session or None),
                     session_date=(_current_session or None)),
                 "session_date": str(item.get("session_date") or item.get("ts") or "")[:10],
                 "change": item.get("change"),
-                "data_state": ("stale" if _row_stale else "live"),
+                # ⛔⛔⛔ R17-P1 — live | stale | unknown (مافيش دليل ⇒ unknown)
+                "data_state": _row_state,
                 # ⛔⛔⛔ الجولة ١٧ (R16-N1) — **ليه** الصف مش حيّ
                 # (item_cache = السهم من الكاش · dataset_stale = آخر جلب
-                #  ناجح قديم · dataset_unavailable = مافيش جلب ناجح أصلاً).
+                #  ناجح قديم · dataset_unavailable = مافيش جلب ناجح أصلاً ·
+                #  dataset_unknown = مافيش دليل حداثة).
                 "stale_reason": (_stale_reason or None),
                 "source_as_of": _src_ts,
                 "data_received_at": (item.get("ts") or "") if not _stale else None,
