@@ -121,6 +121,34 @@ def main():
         print("❌ مفيش أي مؤشر اتجلب — مش هنكتب ملف فاضي")
         return 1
 
+    # 🛡️ الجولة ٢١ (R21) — ⛔⛔ **حارس ضد القصّ** ⭐⭐
+    # 📌 العيب المقاس (الجولة ٢٠): الملف اتكتب بـ**120 صف** بدل **7,028** ⭐
+    #   ⇒ ⛔ تاريخ المؤشرات اتقصّ ⇒ ⛔ الـbacktesting|Price-action اتأثر ⭐
+    # 📌 السبب: سكربت التحديث كتب نسخة **مبتورة** فوق نسخة **أ fullest** ⭐
+    # ✅ القاعدة: ⛔ ما ينفعش نكتب بيانات **أقل** من الموجودة ⭐
+    #   ⛔ أو ننسخ مؤشر معيّن من الملف القديم ⭐ (partial write ⭐).
+    try:
+        _old = json.load(open(OUT, encoding="utf-8"))
+        _old_idx = _old.get("indices") or {}
+        for _k, _meta in list(out["indices"].items()):
+            _prev = _old_idx.get(_k) or {}
+            _old_n = int(_prev.get("count") or 0)
+            _new_n = int(_meta.get("count") or 0)
+            if _old_n > _new_n:
+                print("❌⛔ %s: الجديدة %d صف < الموجودة %d — ⛔ مش هكتب"
+                      " (قصّ بيانات!)" % (_k, _new_n, _old_n))
+                return 1
+        _missing = [k for k in _old_idx if k not in out["indices"]]
+        if _missing:
+            print("❌⛔ مؤشرات موجودة مش في الجديدة: %s — ⛔ مش هكتب"
+                  % ", ".join(sorted(_missing)))
+            return 1
+    except FileNotFoundError:
+        pass
+    except Exception as _e:
+        print("❌⛔ فحص القصّ فشل: %s — ⛔ مش هكتب" % str(_e)[:120])
+        return 1
+
     tmp = OUT + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
