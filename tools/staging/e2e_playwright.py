@@ -13,7 +13,7 @@
 
 📌 التشغيل:
    python3 tools/staging/e2e_playwright.py --frontend-dir /workspace/.wt_ux
-   python3 tools/staging/e2e_playwright.py --frontend-dir ... --out /tmp/e2e.json
+   python3 tools/staging/e2e_playwright.py --frontend-dir <path> --out /tmp/e2e.json
 
 📌 المخرجات: JSON + Markdown (نفس شكل فاحص الواجهة).
 """
