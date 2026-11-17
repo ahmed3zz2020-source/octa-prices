@@ -21,7 +21,12 @@ import ast
 import shutil
 import tempfile
 
-HERE = "/workspace/octa-prices"
+# 📌 ١٧ نوفمبر ٢٠٢٦ (الجولة ١٩ · المرحلة ٧) — ⭐ مسار مستقل عن البيئة
+# 📌 السبب: كان `HERE = "/workspace/octa-prices"` (مسار ثابت) ⇒ الاختبار
+#   يفشل بـ FileNotFoundError في أي مكان تاني (نسخة/ forks/ CI).
+# 📌 ✅ الحل: مسار المجلد اللي الملف فيه ⇒ يشتغل في أي مكان.
+# 📌 ⚠️ الفحص نفسه (AST على update_prices.py) ما اتغيّرش.
+HERE = os.path.dirname(os.path.abspath(__file__))
 TMP = tempfile.mkdtemp(prefix="signuptest_", dir="/tmp")
 sys.path.insert(0, HERE)
 
@@ -45,7 +50,14 @@ up.PIN_PEPPER_FILE = Path(TMP) / "pin_pepper.txt"
 up.OTP_FILE = Path(TMP) / "otp.json"
 up.PIN_CHAL_FILE = Path(TMP) / "pinchal.json"
 up.SIGNUP_FILE = Path(TMP) / "signup.json"
-up.MAIL_ON = False          # ⛔ متبعثش إيميل حقيقي في الاختبار
+# 📌 ١٧ نوفمبر ٢٠٢٦ (الجولة ١٩ · المرحلة ٧) — ⭐ تصحيح
+# 📌 كان: MAIL_ON = False ⇒ المسارات اللي محتاجة إيميل بترجّع 503
+#   (وده سلوك **صح** في الكود: مافيش خدمة إيميل ⇒ 503 صريح).
+#   ⇒ الاختبار كان بيفشل لسبب **تجهيز** مش لسبب عيب ⛔ (إنذار كاذب).
+# 📌 ✅ الحل: نفعّل الخدمة وبنمسك الإيميل بدل ما يتبعت فعلاً.
+#   ⛔ مافيش إيميل حقيقي بيخرج: `_send_mail` متبدّل بـ`_grab_mail` تحتها.
+#   (نفس النمط اللي بتعمله بيئة الـstaging: run_staging.py)
+up.MAIL_ON = True           # ⛔ الإرسال نفسه متبدّل بالمسكّا تحتها
 
 # ⛔ ⛔ مافيش خدمة إيميل: بنمسك الإيميل بدل ما يتبعت فعلاً.
 #    الكود بيتقرا من نص الإيميل نفسه — وده بالظبط اللي المستخدم
@@ -841,7 +853,13 @@ def t_challenge_still_works():
     ok(rn.status_code == 200, "challenge/newpin → %s %s"
        % (rn.status_code, jbody(rn)))
     ok(jbody(rn).get("token"), "مافيش توكن")
-    rl = call("/api/auth/pin/login", body={"pin": "7004"}, ip="10.11.0.2")
+    # 📌 ١٧ نوفمبر ٢٠٢٦ (الجولة ١٩ · المرحلة ٧) — ⭐ الجهاز مطلوب في الدخول
+    # 📌 السبب: من ٢٤ أكتوبر ٢٠٢٦ الباسورد **لوحده** مش كفاية — لازم
+    #   الجهاز المسجّل على الحساب (إصلاح Cross-Account Takeover).
+    #   ⇒ نداء بلا device بيرجّع 401 new_device وده **سلوك صح**.
+    # 📌 ✅ الحل: ندخل بالجهاز المسجّل فعلاً (FULL_DEVICE من التسجيل).
+    rl = call("/api/auth/pin/login", body={"pin": "7004", "device": FULL_DEVICE},
+              ip="10.11.0.2")
     ok(rl.status_code == 200, "الدخول بالباسورد الجديد → %s" % rl.status_code)
 
 
@@ -850,10 +868,17 @@ t("مسار الاسترجاع (challenge) لسه شغال", t_challenge_still_w
 
 def t_login_still_works():
     """⛔⛔ الدخول العادي بالباسورد فاضل شغال"""
-    r = call("/api/auth/pin/login", body={"pin": PIN}, ip="10.12.0.1")
+    # 📌 ١٧ نوفمبر ٢٠٢٦ (الجولة ١٩ · المرحلة ٧) — ⭐ الجهاز المسجّل مطلوب
+    # 📌 الحساب ده اتعمل بـfull_signup ⇒ جهازه = FULL_DEVICE.
+    # 📌 الدخول من غير device ⇒ 401 new_device (سلوك صح بعد إصلاح ٢٤ أكتوبر).
+    # 📌 والحالة الغلط: بندي الجهاز الصح مع باسورد غلط ⇒ لازم 401 كمان
+    #   (يعني الباسورد الغلط مابيتخطّاش التسجيل بالجهاز).
+    r = call("/api/auth/pin/login", body={"pin": PIN, "device": FULL_DEVICE},
+             ip="10.12.0.1")
     ok(r.status_code == 200, "→ %s %s" % (r.status_code, jbody(r)))
     ok(jbody(r).get("token"), "مافيش توكن")
-    r2 = call("/api/auth/pin/login", body={"pin": "0000"}, ip="10.12.0.1")
+    r2 = call("/api/auth/pin/login", body={"pin": "0000", "device": FULL_DEVICE},
+              ip="10.12.0.1")
     ok(r2.status_code == 401, "غلط → %s" % r2.status_code)
 
 
