@@ -593,14 +593,15 @@ def register(app, require_user=None, plan_checker=None, user_getter=None,
     from flask import jsonify, request
 
     def _plan_of(user):
+        """⛔ SEC-011 — fail-closed (القاعدة الواحدة: plan_gate.resolve_plan).
+
+        ⛔ أي تعذّر في الـplan_checker ⇒ 'free' (مش plan الخام).
+        """
         try:
-            if plan_checker:
-                p = plan_checker(user)
-                if p:
-                    return str(p)
+            import plan_gate as _pg
+            return _pg.resolve_plan(user, checker=plan_checker)
         except Exception:
-            pass
-        return str((user or {}).get("plan") or "free")
+            return "free"
 
     def _locked(user=None):
         return jsonify({"ok": False, "locked": True, "plan": _plan_of(user),

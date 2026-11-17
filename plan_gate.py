@@ -58,6 +58,29 @@ def plan_of(user, now=None):
         return "free"
 
 
+def resolve_plan(user, now=None, checker=None):
+    """⛔ **القاعدة الواحدة** للباقة — fail-closed (الجولة ١٨ · SEC-011).
+
+    📌 لو فيه `checker` (plan_checker):
+       بنستدعيه ⬇️ ولو **وقع** (تعطّر سجل الاشتراكات ·Checker مكسور ·
+       أي استثناء) ⇒ النتيجة ``'free'``.
+    📌 لو مافيش checker ⇒ بنحسب من سجل المستخدم (نفس `plan_of`).
+    ⛔ ممنوع ترجع `user['plan']` الخام ⬇️ ⬇️ ⇒ ده fail-open ⬇️
+       (بيسمح بـPro منتهي أو بتلاعب في السجل).
+    ⛔ أي قيمة مش معروفة (``''`` · ``None`` · قيمة غريبة) ⇒ ``'free'``.
+    """
+    if checker is not None:
+        try:
+            p = str(checker(user) or "").strip().lower()
+        except Exception:
+            return "free"
+        return p if p in ("free", "pro") else "free"
+    try:
+        return plan_of(user, now)
+    except Exception:
+        return "free"
+
+
 def plan_until(user):
     try:
         return int(user.get("plan_until") or 0)
@@ -141,6 +164,31 @@ def subscription_log(limit=100):
     items = _read_log()
     items.sort(key=lambda x: x.get("at") or 0, reverse=True)
     return items[:int(limit or 100)]
+
+
+def rollback_subscription(rec):
+    """⛔ التراجع عن عملية تسجيل (الجولة ١٨ · SEC-012).
+
+    📌 السبب: لو عملية التفعيل اتسجّلت وبعدين **فشل** تغيير
+       الخطة ⬇️ ⇒ لازم السجل يرجع زي ما كان ⬇️ ⇒ الحالة النهائية
+       ⬇️ متسقة دايمًا (مافيش «Pro من غير سجل» ولا «سجل من غير Pro»).
+    📌 بيرجّع True/False (مافيش «نجاح» كاذب).
+    """
+    if not isinstance(rec, dict):
+        return False
+    try:
+        uid = str(rec.get("uid") or "")
+        at = int(rec.get("at") or 0)
+        with _LOCK:
+            items = _read_log()
+            out = [x for x in items
+                   if not (str(x.get("uid") or "") == uid
+                           and int(x.get("at") or 0) == at)]
+            if len(out) == len(items):
+                return False        # ⛔ مافيش سجل بهذا الوصف
+            return _write_log(out)
+    except Exception:
+        return False
 
 
 def _clean(s, limit=200):
