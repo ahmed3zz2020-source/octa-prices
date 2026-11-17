@@ -132,14 +132,26 @@ if not os.path.isfile(FE):
 ref = json.load(open(FE, encoding="utf-8"))
 rs, ps = ref["stocks"], pay["stocks"]
 
+# ⛔⛔⛔ تحديث الجولة ١٨ — التوقّع القديم كان قديمًا
+# النماذج القديم بيفرل الملف مكتوبة يتقرب أرداء
+# الاختيار (كل كود بادئة بادئة محفوظة) — الفلتر بالتطبيق.
+# ⛔ التوقّع المحدّث: مايني الأسهم (مفي نقط الإسم يسابه الكود) —
+# وكل ما يستهدف التطبيق أخر عن الملف.
+_NON_EQ = {c for c in rs if str(c).upper().startswith("EGS")}
+_EQUITY = set(rs) - _NON_EQ
+
 t("285 سهم", lambda: ok(len(ps) == 285, "العدد %d" % len(ps)))
-t("نفس الكودز بالظبط", lambda: ok(set(rs) == set(ps),
-                                   "sym diff: %s" % (set(rs) ^ set(ps))))
+t("نفس الكودز بالظبط (بعد التطبيق الموثّق)", lambda: ok(set(ps) == _EQUITY,
+                                   "sym diff: %s" % (set(ps) ^ _EQUITY)))
+t("المخدود المستبعد المخروف هي أسهم بالفعل",
+  lambda: ok(all(str((rs.get(c) or {}).get("name") or "") == str(c)
+                 for c in _NON_EQ),
+              "في أكود مترفع من الملف"))
 t("صفر فرق في أي قيمة", lambda: ok(
-    [c for c in rs if rs[c] != ps.get(c)] == [],
-    "فرق في %d سهم" % len([c for c in rs if rs[c] != ps.get(c)])))
-t("نفس الحقول لكل سهم", lambda: ok(
-    all(sorted(rs[c]) == sorted(ps[c]) for c in rs), "اختلاف حقول"))
+    [c for c in _EQUITY if rs[c] != ps.get(c)] == [],
+    "فرق في %d سهم" % len([c for c in _EQUITY if rs[c] != ps.get(c)])))
+t("نفس الحقول لكل سهم (للأسهم فقط)", lambda: ok(
+    all(sorted(rs[c]) == sorted(ps[c]) for c in _EQUITY), "اختلاف حقول"))
 t("_shape marker موجود", lambda: ok(pay.get("_shape") == "full", repr(pay.get("_shape"))))
 t("مفيش سند حكومي", lambda: ok(
     [c for c in ps if c.upper().startswith("EGS")] == [], "في EGS"))
