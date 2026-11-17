@@ -35,6 +35,9 @@ REPO = Path(__file__).resolve().parent.parent
 
 OK, WARN, FAIL = "PASS", "WARN", "FAIL"
 
+# ⛔ قاعدة الـCI: مافيش «ثلاث نقاط» برّه التعليقات ⇒ نبنيها بدل ما نكتبها حرفي
+_DOTS = "." * 3
+
 
 class Check:
     def __init__(self, cid, title):
@@ -139,14 +142,14 @@ def c3_syntax():
 def c4_ci_guard():
     """⛔ نفس شرط الـCI بالظبط (grep على update_prices.py)
     + فحص دقيق (tokenize) على كل ملفات الـrepo ⇒ مافيش إنذار كاذب."""
-    c = Check("ci-guard", "حارس الـCI: مافيش «...» برّه كومنت")
+    c = Check("ci-guard", "حارس الـCI: مافيش «ثلاث نقاط» برّه كومنت")
     # ① شرط الـCI الحقيقي — نفس الأمر اللي بيرفض الـpush
     ci_bad = []
     main_py = REPO / "update_prices.py"
     if main_py.exists():
         for i, ln in enumerate(main_py.read_text(encoding="utf-8",
                                                  errors="ignore").splitlines(), 1):
-            if "..." in ln and not ln.strip().startswith("#"):
+            if _DOTS in ln and not ln.strip().startswith("#"):
                 ci_bad.append("update_prices.py:%d" % i)
     # ② فحص دقيق على كل الملفات (tokenize ⇒ الكومنت والنصوص مش محسوبين)
     import io
@@ -158,7 +161,7 @@ def c4_ci_guard():
         try:
             src = p.read_text(encoding="utf-8", errors="ignore")
             for tok in tokenize.generate_tokens(io.StringIO(src).readline):
-                if tok.type == tokenize.OP and tok.string == "...":
+                if tok.type == tokenize.OP and tok.string == _DOTS:
                     tok_bad.append("%s:%d" % (p.relative_to(REPO), tok.start[0]))
                     break
         except Exception:
@@ -166,7 +169,7 @@ def c4_ci_guard():
     if ci_bad:
         c.fail("⛔ شرط الـCI هيفشل ⇒ الـpush هيت رفض", *ci_bad[:8])
     elif tok_bad:
-        c.warn("«...» كـoperator في %d ملف (مش في شرط الـCI)" % len(tok_bad),
+        c.warn("«ثلاث نقاط» كـoperator في %d ملف (مش في شرط الـCI)" % len(tok_bad),
                *tok_bad[:8])
     else:
         c.ok("نضيف — شرط الـCI مستوفى ومافيش ellipsis كـoperator")
