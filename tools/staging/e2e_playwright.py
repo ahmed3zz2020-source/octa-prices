@@ -151,14 +151,21 @@ class Handler(BaseHTTPRequestHandler):
                         continue
                     self.send_header(k, v)
                 self.end_headers()
-                self.wfile.write(data)
+                # ⛔ العميل ممكن يكون قفل الاتصال ⇒ من غير كده بيقع BrokenPipe
+                try:
+                    self.wfile.write(data)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
         except urllib.error.HTTPError as e:
             data = e.read()
             self.send_response(e.code)
             self.send_header("Content-Type", e.headers.get("Content-Type", "application/json"))
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
-            self.wfile.write(data)
+            try:
+                self.wfile.write(data)
+            except (BrokenPipeError, ConnectionResetError):
+                pass
         except Exception as e:
             self._send(502, json.dumps({"ok": False, "error": "upstream_unreachable",
                                         "why": str(e)[:120]}).encode(), "application/json")
@@ -171,6 +178,11 @@ def parse_spa_routes(fe_dir: Path):
     if not m:
         return []
     return [x.strip().strip("'\"") for x in m.group(1).split(",") if x.strip().strip("'\"")]
+
+
+# ⛔ تحويل موثّق في الكود (octa-filters.js · fzBestInit):
+#   'best' ⇒ تبويب جوّه صفحة الفلاتر (مش صفحة مستقلة)
+LEGACY_REDIRECT = {"best": "filter"}
 
 
 def parse_alias(fe_dir: Path):
@@ -317,7 +329,16 @@ def main():
         pg2.on("pageerror", lambda e: login.setdefault("errors", []).append(str(e)[:200]))
         try:
             pg2.goto(base + "/", wait_until="domcontentloaded", timeout=40000)
-            pg2.wait_for_selector("button.gt-key[data-k='1']", timeout=25000)
+            # 📌 شاشة البوابة: «عندك حساب؟ ادخل» (#gtLogin) ⇒ بعدها لوحة ٤ أرقام
+            #   (buttons .gt-key[data-k]) ⇒ من غير الخطوة دي اللوحة مش موجودة.
+            try:
+                # ⛔ مهلة طويلة: البوابة بتظهر بعد ردّ /api/auth/me
+                #   (والستaging مشغول ⇒ الرد ممكن ياخد ثواني).
+                pg2.wait_for_selector("#gtLogin", timeout=45000)
+                pg2.click("#gtLogin")
+            except Exception:
+                pass
+            pg2.wait_for_selector("button.gt-key[data-k='1']", timeout=45000)
             for d in a.pin:
                 pg2.click("button.gt-key[data-k='%s']" % d)
                 pg2.wait_for_timeout(220)
@@ -351,6 +372,7 @@ def main():
                     vis = page.evaluate(js_vis)
                     rec["visible"] = vis
                     pid = alias.get(route.strip("/"), route.strip("/"))
+                    pid = LEGACY_REDIRECT.get(pid, pid)
                     want = "dashPage" if pid == "dash" else "page-" + pid
                     rec["want"] = want
                     rec["page_ok"] = want in vis
