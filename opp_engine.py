@@ -1034,8 +1034,10 @@ def build_payload(stocks, definitions=None, meta=None):
             _dataset_unknown = (_dataset_state not in ("fresh", "stale", "unavailable"))
             _row_stale = bool(_stale) or _dataset_stale
             _row_live = (not _row_stale) and (_dataset_state == "fresh")
-            _row_state = ("live" if _row_live else
-                           ("unknown" if _dataset_unknown else "stale"))
+            # ⛔⛔⛔ ترتيب الأولوية: «القديم» أقوى من «غير معروف» ⇒
+            #    سهم من الكاش (أو دفعة قديمة) = stale حتى لو الدلّة ناقصة.
+            _row_state = ("stale" if _row_stale else
+                          ("live" if _dataset_state == "fresh" else "unknown"))
             _stale_reason = ("item_cache" if _stale else
                              ("dataset_stale" if _dataset_state == "stale"
                               else ("dataset_unavailable"
