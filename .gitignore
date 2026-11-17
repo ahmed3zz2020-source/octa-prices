@@ -30,5 +30,13 @@ data/gold_factors.json
 .r17_v20*_tmp_*
 .r19_v2*_tmp_*
 
-# 🛡️ الجولة ٢٠ — ملف CI محفوظ في الحزمة (⛔ التوكن مافيشوش scope workflow ⭐)
-.github/workflows/
+# 🛡️ الجولة ٢١ — ⛔ منع تكرار إدراج ملفات الاختبار المؤقتة ⭐
+# (Were: .r17_p3_tmp_*Temporary test/probe dirs — 70 files leaked into the candidate tree in R20 ⭐)
+.r17_p3_tmp_*/
+*.probe_*
+*_tmp_*/
+# ⛔ المخرجات المولّدة (مش جزء من المستودع ⭐)
+engine_audit_result.json
+acceptance_center_r20.json
+acceptance_center_r21.json
+git_pii_scan_result.json

@@ -1,0 +1,93 @@
+name: OCTA Code Check
+
+# 🛡️ الجولة ٢٠ (R20 · AZ31) — ⛔ كان بيعمل **فحص syntax** بس ⬇️
+# 📌 ⛔⛔ أي كود بيندمج من غير ما الاختبارات الحقيقية تشتغل ⬇️
+# 📌 ⛔ ⛔ ⛔ (٥٣ ملف اختبار · ٥٦٢ حالة).
+# ✅ الحل: تشغّل **الاختبارات الحقيقية** (كل الملفات) + بوابات الجودة ⬇️
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  syntax-check:
+    name: 🐍 فحص الباك + الاختبارات الحقيقية
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 تحميل الكود
+        uses: actions/checkout@v4
+
+      - name: 🐍 تجهيز Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 تثبيت الاعتماديات
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || echo "⚠️ requirements.txt مش موجود/فشل"
+
+      - name: 🔍 فحص syntax
+        run: |
+          echo "فحص update_prices.py..."
+          python -c "import ast; ast.parse(open('update_prices.py', encoding='utf-8').read()); print('✅ update_prices.py سليم')"
+
+      - name: 🔍 فحص dependencies
+        run: |
+          echo "فحص requirements.txt..."
+          test -f requirements.txt && echo "✅ requirements.txt موجود" || echo "⚠️ لا يوجد"
+          test -f Procfile && echo "✅ Procfile موجود" || echo "❌ Procfile مفقود!"
+          grep -q "web:" Procfile && echo "✅ Procfile فيه web:" || echo "❌ مفيش web: في Procfile"
+
+      - name: 🔍 فحص أنماط الغلط
+        run: |
+          echo "فحص أنماط غلط..."
+          if grep -n '\.\.\.' update_prices.py | grep -v '^\s*#'; then
+            echo "❌ لقيت ... برّه كومنت — ده غالباً خطأ لصق!"
+            exit 1
+          fi
+          echo "✅ مفيش أنماط غلط"
+
+      - name: 🧪 حارس نظافة الكود (نفس أمر الـCI القديم)
+        run: python test_code_hygiene.py
+
+      # 🛡️ AZ31 — ⭐ الاختبارات **الحقيقية** ⬇️
+      # ⛔ مستثنى: ملفات الاختبارات اللي بتحتاج **خادم حيّ** ⬇️
+      #    (test_security_p0 · test_security_batch02 · test_security_bgstore ⬇️
+      #     · test_pin_challenge · test_signup_flow) ⭐
+      #    ⇒ دي بتيجي في مرحلة الـstaging ⭐ (مرفقة في التسليم) ⭐
+      - name: 🧪 كل اختبارات الباك (من غير خادم حيّ)
+        run: |
+          python - <<'PY'
+          import os, subprocess, sys, glob
+          SKIP = {"test_security_p0.py", "test_security_batch02.py",
+                  "test_security_bgstore.py", "test_pin_challenge.py",
+                  "test_signup_flow.py"}
+          files = sorted(f for f in glob.glob("test_*.py")
+                         if os.path.basename(f) not in SKIP)
+          print("📦 %d ملف اختبار" % len(files))
+          failed = []
+          for f in files:
+              r = subprocess.run([sys.executable, f], capture_output=True,
+                                 text=True, timeout=900)
+              tail = (r.stdout or "").strip().splitlines()[-1:] or [""]
+              print("%-38s %s  %s" % (f, "OK " if r.returncode == 0 else "FAIL",
+                                     tail[0][:60]))
+              if r.returncode != 0:
+                  failed.append((f, r.stdout[-1500:] + r.stderr[-800:]))
+          if failed:
+              print("\n❌ فشل:")
+              for f, out in failed:
+                  print("──── %s\n%s" % (f, out))
+              sys.exit(1)
+          print("\n✅ كل الاختبارات عدّت")
+          PY
+
+      - name: 📊 ملخص
+        run: |
+          echo ""
+          echo "╔══════════════════════════════╗"
+          echo "║   ✅ الكود سليم — ينفع ينشر  ║"
+          echo "╚══════════════════════════════╝"
