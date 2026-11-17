@@ -189,13 +189,26 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
     #      · coverage_acceptable = التغطية فوق عتبة القبول (٩٠٪)
     #    ⇒ ٩٠٪ من ١٠٠ = «مقبولة» مش «كاملة» ⇒ النصّ بيبقى صادق.
     _missing = _cov_info.get("missing")
+    # ⛔⛔⛔ R17-P2 (مراجعة الجولة ١٧) — **اتساق المدخلات قبل التصنيف**:
+    #    لو النسبة والأعداد بيتناقضوا (مثلاً coverage=90 وrequested=100
+    #    وupdated=100) ⇒ مفيش تغطية «كاملة» — والأرقام متناقضة ⇒ «جزئية».
+    _implied_cov = None
+    if (requested is not None and updated is not None
+            and float(requested) > 0):
+        _implied_cov = (float(updated) / float(requested)) * 100.0
+    _cov_consistent = True
+    if coverage is not None and _implied_cov is not None:
+        _cov_consistent = abs(float(coverage) - _implied_cov) <= 1.0
     if coverage is None:
         coverage_status = "unavailable"
         coverage_acceptable = False
     else:
         _cov = float(coverage)
-        coverage_acceptable = bool(_cov >= FRESH_MIN_COVERAGE)
-        if _missing is not None:
+        coverage_acceptable = bool(_cov >= FRESH_MIN_COVERAGE and _cov_consistent)
+        if not _cov_consistent:
+            # ⛔ تناقض ⇒ ممنوع «كاملة» في أي حال
+            coverage_status = "partial"
+        elif _missing is not None:
             coverage_status = "complete" if int(_missing) <= 0 else "partial"
         else:
             coverage_status = "complete" if _cov >= 100.0 else "partial"
@@ -217,6 +230,10 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
         #    بس **مش كاملة** ⇒ لازم التمييز يكون صريح في العقد.
         "coverage_acceptable": coverage_acceptable,
         "coverage_min_pct": FRESH_MIN_COVERAGE,
+        # ⛔⛔⛔ R17-P2 — اتساق الأرقام (النسبة ↔ المطلوب ↔ المحدَّث)
+        "coverage_consistent": _cov_consistent,
+        "coverage_implied_pct": (round(_implied_cov, 2)
+                                 if _implied_cov is not None else None),
         # ⛔ data_state = الحداثة — مافيش خلط مع التغطية
         "data_state": freshness,
         "is_fresh": freshness == "fresh",
@@ -271,6 +288,9 @@ def freshness_summary_ar(fresh_state=None):
         else:
             parts.append("التغطية جزئية%s"
                          % ((" (%s%%)" % pct) if pct is not None else ""))
+        # ⛔⛔⛔ R17-P2 — تناقض الأرقام لازم يبان للمستخدم
+        if st.get("coverage_consistent") is False:
+            parts.append("أرقام التغطية غير متسقة")
     else:
         parts.append("التغطية غير معروفة")
     if age is not None:
