@@ -11342,10 +11342,16 @@ def _opp_contract(p=None, *lists):
     p = p or {}
 
     def _pick(field):
+        # ⛔⛔⛔ R17-P3 (مراجعة الجولة ١٧) — **القيم الصريحة تُحترم**:
+        #    `False` و`0` قيم مشروعة (مثلاً coverage_acceptable=False)
+        #    ⇒ لازم نفرّق بين «الحقل موجود وقيمته False» و«الحقل مش موجود».
+        #    ⛔ شرط truthiness القديم كان بيرمي False ⇒ بيرجع قيمة الباك.
         for lst in lists:
-            if lst and lst.get(field):
+            if lst and field in lst and lst.get(field) is not None:
                 return lst.get(field)
-        return p.get(field)
+        if field in p and p.get(field) is not None:
+            return p.get(field)
+        return None
 
     return {
         "coverage_status": _pick("coverage_status"),
