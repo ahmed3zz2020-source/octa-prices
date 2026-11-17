@@ -200,6 +200,19 @@ class Flask:
         for fn in self.before_reqs:
             early = fn()
             if early is not None:
+                # ⛔⛔⛔ ١٧ نوفمبر ٢٠٢٦ (الجولة ١٩ · المرحلة ٧) — ⭐ تصحيح
+                # 📌 المشكلة: الـbefore_request ممكن يرجّع (body, status) —
+                #   زي Flask بالظبط (مثال: سقف المسارات ⇒ 429).
+                # 📌 الكود القديم كان يعمل: Resp(early) ⇒ بيلفّ الـtuple كله
+                #  جوّه الـbody ⇒ **الرد بيرجع 200 بدل 429** ⛔
+                # 📌 النتيجة: اختبار «سقوف المسارات» كان **بيفشل بسبب الستب**
+                #   مش بسبب عيب في الكود ⇒ إنذار كاذب.
+                # 📌 ✅ الحل: نفس منطق مسار الـroute بالظبط (فكّ الـtuple).
+                # 📌 برهن: مع Flask الحقيقي الأكواد = [200,200,200,429].
+                if isinstance(early, tuple):
+                    b = early[0] if early else Resp({})
+                    st = early[1] if len(early) > 1 else 200
+                    return Resp(b.get_json() if isinstance(b, Resp) else b, st)
                 return early if isinstance(early, Resp) else Resp(early)
 
         rule = None
