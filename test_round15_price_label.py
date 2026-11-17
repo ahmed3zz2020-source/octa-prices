@@ -212,17 +212,37 @@ class TestFreshnessStates(unittest.TestCase):
         self.assertEqual(st["coverage_status"], "complete")
 
     def test_acceptable_but_incomplete_coverage(self):
-        """⛔ 90% بالظبط = **مقبول** (فوق العتبة) و**مش كامل** (29 ناقص).
+        """⛔ 90% بالظبط = **مقبول** (فوق العتبة) و**مش كامل** (10 ناقص).
 
         📌 الجولة ١٧ (R16-N2) — التمييز بين «مقبولة» و«كاملة» بقى صريح.
+        📌 **تحديث الجولة ١٧ (R17-V2-01)** — الأعداد بقت **مصدر الحقيقة**:
+           النسبة المعلنة لازم تتوافق مع (المحدَّث ÷ المطلوب) بتقريب رقمين
+           عشريين. فالحالة (257 من 286 = 89.86% < 90%) ⇒ **مش مقبولة**؛
+           صاحب «المقبولة» بقى (90 من 100 = 90% بالظبط).
+        """
+        st = oe.freshness_state(last_success_at=1700000000,
+                                market_phase="open", coverage=90.0,
+                                requested=100, updated=90)
+        self.assertTrue(st.get("coverage_acceptable"),
+                        "90% فوق العتبة ⇒ مقبولة")
+        self.assertEqual(st["coverage_status"], "partial",
+                         "في 10 ناقص ⇒ ممنوع تقول «كاملة»")
+        self.assertEqual(st["missing"], 10)
+
+    def test_declared_ratio_below_threshold_is_not_acceptable(self):
+        """⛔ **تحديث الجولة ١٧ (R17-V2-01)** — النسبة المعلنة ما بتنتصرش على الأعداد.
+
+        ⛔ 90% معلنة مع 257/286 ⇒ النسبة الحقيقية 89.86% ⇒ تحت العتبة ⇒
+           ممنوع «مقبولة» (و«كاملة» ممنوعة طبعاً).
         """
         st = oe.freshness_state(last_success_at=1700000000,
                                 market_phase="open", coverage=90.0,
                                 requested=286, updated=257)
-        self.assertTrue(st.get("coverage_acceptable"),
-                        "90% فوق العتبة ⇒ مقبولة")
-        self.assertEqual(st["coverage_status"], "partial",
-                         "في 29 ناقص ⇒ ممنوع تقول «كاملة»")
+        self.assertFalse(st.get("coverage_acceptable"),
+                         "⛔ 89.86% أقل من العتبة ⇒ ممنوع «مقبولة»")
+        self.assertFalse(st.get("coverage_consistent"),
+                         "⛔ النسبة المعلنة (90) بتتناقض مع الأعداد (89.86)")
+        self.assertEqual(st["coverage_status"], "partial")
         self.assertEqual(st["missing"], 29)
 
     def test_partial_coverage(self):

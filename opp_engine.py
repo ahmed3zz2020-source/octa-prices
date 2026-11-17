@@ -189,29 +189,69 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
     #      · coverage_acceptable = التغطية فوق عتبة القبول (٩٠٪)
     #    ⇒ ٩٠٪ من ١٠٠ = «مقبولة» مش «كاملة» ⇒ النصّ بيبقى صادق.
     _missing = _cov_info.get("missing")
-    # ⛔⛔⛔ R17-P2 (مراجعة الجولة ١٧) — **اتساق المدخلات قبل التصنيف**:
-    #    لو النسبة والأعداد بيتناقضوا (مثلاً coverage=90 وrequested=100
-    #    وupdated=100) ⇒ مفيش تغطية «كاملة» — والأرقام متناقضة ⇒ «جزئية».
+    # ⛔⛔⛔ R17-V2-01 (مراجعة الجولة ١٧) — **نطاق الأعداد + مصدر الحقيقة**:
+    #    ① نطاق الأعداد: المطلوب لازم أكبر من صفر · والمحدَّث بين الصفر والمطلوب.
+    #    ② لما الأعداد موجودة ⇒ **هي مصدر الحقيقة**: النسبة = المحدَّث ÷ المطلوب
+    #       والمقارنة بتقريب المصدر لرقمين عشريين (مش سماحية نقطة واحدة).
+    #    ③ «كاملة» بس لو النسبة ١٠٠٪ صحيحة ومتسقة · «مقبولة» بس لو عدّت
+    #       العتبة الفعلية (٩٠٪) — ⛔ العتبة نفسها ما بتتغيّرش.
+    _req = requested
+    _upd = updated
+    try:
+        _req = int(_req) if _req is not None else None
+    except (TypeError, ValueError):
+        _req = None
+    try:
+        _upd = int(_upd) if _upd is not None else None
+    except (TypeError, ValueError):
+        _upd = None
+    _counts_ok = True
+    if _req is not None and _req <= 0:
+        _counts_ok = False          # ⛔ كون(The Universe) = 0 ⇒ مافيش تغطية أصلاً
+    if _upd is not None and _upd < 0:
+        _counts_ok = False          # ⛔ عدد سالب
+    if _req is not None and _upd is not None and _upd > _req:
+        _counts_ok = False          # ⛔ محدَّث أكبر من المطلوب
+    _ratio_given = None
+    if coverage is not None:
+        try:
+            _ratio_given = float(coverage)
+        except (TypeError, ValueError):
+            _ratio_given = None
+    _ratio_valid = (_ratio_given is not None
+                     and 0.0 <= _ratio_given <= 100.0)
     _implied_cov = None
-    if (requested is not None and updated is not None
-            and float(requested) > 0):
-        _implied_cov = (float(updated) / float(requested)) * 100.0
+    if _req and _upd is not None and _req > 0:
+        _implied_cov = (float(_upd) / float(_req)) * 100.0
     _cov_consistent = True
-    if coverage is not None and _implied_cov is not None:
-        _cov_consistent = abs(float(coverage) - _implied_cov) <= 1.0
+    _coverage_pct = (round(_ratio_given, 2) if _ratio_given is not None else None)
     if coverage is None:
         coverage_status = "unavailable"
         coverage_acceptable = False
-    else:
-        _cov = float(coverage)
-        coverage_acceptable = bool(_cov >= FRESH_MIN_COVERAGE and _cov_consistent)
+        _cov_consistent = False
+    elif not _counts_ok:
+        # ⛔ تناقض أو نطاق غير صالح ⇒ ممنوع «كاملة» وممنوع «مقبولة»
+        coverage_status = "partial"
+        coverage_acceptable = False
+        _cov_consistent = False
+    elif _implied_cov is not None:
+        # ⛔ الأعداد هي مصدر الحقيقة
+        _cov_consistent = (round(_ratio_given, 2) == round(_implied_cov, 2))
         if not _cov_consistent:
-            # ⛔ تناقض ⇒ ممنوع «كاملة» في أي حال
             coverage_status = "partial"
-        elif _missing is not None:
-            coverage_status = "complete" if int(_missing) <= 0 else "partial"
+            coverage_acceptable = False
         else:
-            coverage_status = "complete" if _cov >= 100.0 else "partial"
+            _coverage_pct = round(_implied_cov, 2)
+            coverage_status = ("complete" if _implied_cov >= 100.0 else "partial")
+            coverage_acceptable = bool(_implied_cov >= FRESH_MIN_COVERAGE)
+    elif not _ratio_valid:
+        # ⛔ نسبة خارج المدى (٠..١٠٠) ⇒ ممنوع «كاملة»
+        coverage_status = "partial"
+        coverage_acceptable = False
+        _cov_consistent = False
+    else:
+        coverage_status = "complete" if _ratio_given >= 100.0 else "partial"
+        coverage_acceptable = bool(_ratio_given >= FRESH_MIN_COVERAGE)
     # ⛔⛔⛔ مفهوم ٢ — الحداثة (عمر آخر جلب ناجح · مستقلّ عن التغطية)
     ts = _parse_timestamp(last_success_at) if last_success_at else None
     if ts is None:
@@ -232,6 +272,9 @@ def freshness_state(last_success_at, market_phase="unknown", now=None,
         "coverage_min_pct": FRESH_MIN_COVERAGE,
         # ⛔⛔⛔ R17-P2 — اتساق الأرقام (النسبة ↔ المطلوب ↔ المحدَّث)
         "coverage_consistent": _cov_consistent,
+        # ⛔⛔⛔ R17-V2-01 — النسبة المنشورة = النسبة المعتمدة
+        #    (المستنتجة من الأعداد لما تكون موجودة)
+        "coverage_pct": _coverage_pct,
         "coverage_implied_pct": (round(_implied_cov, 2)
                                  if _implied_cov is not None else None),
         # ⛔ data_state = الحداثة — مافيش خلط مع التغطية
