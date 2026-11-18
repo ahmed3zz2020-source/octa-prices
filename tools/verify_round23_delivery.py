@@ -122,6 +122,26 @@ def extract(zip_path, dest):
     return dest
 
 
+def resolve_branch(clone_dir, branch):
+    """بصمة الفرع بعد الـclone: محلي أو تتبّع بعيد ⭐.
+
+    📌 ليه: `git clone` من حزمة Git بيخلّي الفروع **تتبّع بعيد** (origin/*)
+       إلا الفرع الافتراضي ⇒ لازم نجرّب الاتنين ⭐.
+    """
+    for ref in (branch, "origin/" + branch):
+        rc, out = run(["git", "-C", str(clone_dir), "rev-parse", "--verify",
+                       ref], timeout=120)
+        if rc == 0 and out.strip():
+            return out.strip()
+    return ""
+
+
+def branch_exists(clone_dir, branch):
+    rc, out = run(["git", "-C", str(clone_dir), "branch", "-a", "--list",
+                   "*" + branch], timeout=120)
+    return rc == 0 and branch in out
+
+
 # ── وضع الـprobe (بيستخدَم في البرهان السالب ⑨) ───────────────────────────
 def probe_package(zip_path):
     """(ok, reason, detail) — فحص BRIEF لحزمة واحدة.
@@ -177,11 +197,10 @@ def probe_package(zip_path):
                           timeout=600)
             if rc != 0:
                 return False, "BUNDLE_CLONE_FAILED", out.strip()[:160]
-            rc, got = run(["git", "-C", str(clone_dir), "rev-parse", want_branch],
-                          timeout=120)
-            if rc != 0 or got.strip() != want_sha:
+            got = resolve_branch(clone_dir, want_branch)
+            if got != want_sha:
                 return False, "SHA_MISMATCH", "%s: المتوقّع %s · الموجود %s" % (
-                    group, str(want_sha)[:8], got.strip()[:8])
+                    group, str(want_sha)[:8], got[:8])
         return True, "OK", "الحزمة سليمة ⭐"
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -282,16 +301,15 @@ def check_04_clone(tmp):
             all_ok = False
             bits.append("%s: clone فشل" % group)
             continue
-        rc, sha = run(["git", "-C", str(dest), "rev-parse", want_branch], timeout=120)
-        got = sha.strip()
-        rc2, names = run(["git", "-C", str(dest), "branch", "--list", want_branch],
-                         timeout=120)
-        branch_ok = want_branch in names
+        got = resolve_branch(dest, want_branch)
+        branch_ok = branch_exists(dest, want_branch)
         if got == want_sha and branch_ok:
             bits.append("%s: %s = %s ✅" % (group, want_branch, got[:8]))
         else:
             all_ok = False
-            bits.append("%s: المتوقّع %s · الموجود %s" % (group, want_sha[:8], got[:8]))
+            bits.append("%s: المتوقّع %s · الموجود %s%s" % (
+                group, want_sha[:8], got[:8],
+                "" if branch_ok else " (الفرع مش موجود ⭐)"))
     return record("④", "git clone من الحزم المستقلّة", all_ok, " · ".join(bits))
 
 

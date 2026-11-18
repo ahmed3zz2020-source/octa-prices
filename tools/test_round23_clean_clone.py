@@ -73,7 +73,11 @@ def clone_bundle(bundle, dest, branch):
         return None, out.strip()[:200]
     rc, _ = run(["git", "-C", str(dest), "checkout", "--quiet", branch], timeout=300)
     if rc != 0:
-        return None, "checkout فشل"
+        # ⛔ الفرع ممكن يكون تتبّع بعيد بس (من clone حزمة Git ⭐)
+        rc, out2 = run(["git", "-C", str(dest), "checkout", "--quiet", "-b",
+                        branch, "origin/" + branch], timeout=300)
+        if rc != 0:
+            return None, "checkout فشل: %s" % out2.strip()[:160]
     return dest, ""
 
 

@@ -129,6 +129,26 @@ def safe_name(rel):
 
 
 # ── ① الحزم (bundles) ─────────────────────────────────────────────────────
+def set_bundle_head(bundle, branch_sha):
+    """يضبط مدخل HEAD في ترويسة الحزمة على **فرع التسليم** ⭐.
+
+    📌 ليه: `git bundle create` بياخد HEAD من شجرة العمل بتاعة الريبو ⇒ لو
+       الريبو ماشي على فرع تاني، الـclone بيقف على الفرع الغلط ⭐.
+       الاستبدال هنا **بنفس الطول** (٤٠ حرف ⭐) ⇒ مافيش إزاحة في الملف ⭐.
+    """
+    p = pathlib.Path(bundle)
+    data = bytearray(p.read_bytes())
+    idx = data.find(b" HEAD\n")
+    if idx < 40:
+        return False
+    old = bytes(data[idx - 40:idx])
+    if len(old) != 40:
+        return False
+    data[idx - 40:idx] = branch_sha.encode("ascii")
+    p.write_bytes(bytes(data))
+    return True
+
+
 def build_bundle(repo, branch, out_dir, name):
     out_dir = pathlib.Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -140,6 +160,9 @@ def build_bundle(repo, branch, out_dir, name):
     if p.returncode != 0:
         raise SystemExit("git bundle create فشل: %s"
                          % (p.stderr or p.stdout)[:300])
+    sha = git(repo, "rev-parse", branch)
+    if sha and set_bundle_head(dst, sha):
+        pass
     v = subprocess.run(["git", "-C", str(repo), "bundle", "verify", str(dst)],
                        capture_output=True, text=True)
     (dst.parent / (name + ".verify.txt")).write_text(
