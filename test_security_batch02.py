@@ -21,6 +21,11 @@ from pathlib import Path
 
 import requests
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+import staging_probe  # noqa: E402
+
 # ══════════════════════════════════════════════════════════════════
 #  ⛔ إعداد البيئة (مافيش أي production)
 # ══════════════════════════════════════════════════════════════════
@@ -28,7 +33,12 @@ CFG = json.loads(Path(os.environ.get(
     "STAGE_CONFIG", "/workspace/.staging/staging-config.json")).read_text("utf-8"))
 BASE = os.environ.get("STAGE_URL", "http://127.0.0.1:8099").rstrip("/")
 PROXY = CFG["proxy_secret"]
-OUTBOX = Path(CFG["data_dir"]) / "outbox.jsonl"
+
+# ⛔ الجولة ٢٤ (R24) — المسارات من **السيرفر** مش من ملف قديم ⇐
+#  📌 ملف الإعدادات ممكن يبقى قديم (أو يوجّه لنسخة تانية) ⇐ والسيرفر
+#  📌 شغّال على STAGE_DIR تاني ⇐ ⇒ الكود بيوصل لصندوق ما بيقراش ⇐
+#  📌 والاختبار بيقفل بـ unlock_expired ⇐ سبب بيئي مش عيب إنتاج ⇐
+DATA_DIR, OUTBOX, ENV_SOURCE = staging_probe.resolve_paths(BASE, PROXY, CFG)
 
 RESULTS = []
 
@@ -64,24 +74,18 @@ def get(path, headers=None, proxy=True):
     return requests.get(BASE + path, headers=H(headers, proxy), timeout=45)
 
 
-def mail_code(email, kind=None):
-    """يستخرج الكود من صندوق الإيميل (Mock) — آخر رسالة."""
-    try:
-        lines = OUTBOX.read_text(encoding="utf-8").strip().split("\n")
-    except Exception:
-        return ""
-    for ln in reversed(lines):
-        if not ln.strip():
-            continue
-        rec = json.loads(ln)
-        if rec.get("to") != email:
-            continue
-        if kind and kind not in (rec.get("subject") or ""):
-            continue
-        m = re.findall(r"([0-9]{6})", rec.get("html") or "")
-        if m:
-            return m[0]
-    return ""
+def mail_code(email, kind=None, marker=0):
+    """يستخرج الكود من صندوق الإيميل (Mock) — **الجديد بس** بعد العلامة.
+
+    ⛔ الجولة ٢٤ (R24): الكود القديم (من تشغيل سابق) ما يقدرش يخدع
+    ⛔ أي assertion ⇐ عشان كده نقرأ من بعد العلامة بس.
+    """
+    return staging_probe.read_code(OUTBOX, marker, email, kind)
+
+
+def mail_marker():
+    """علامة (=إزاحة بالبايت) قبل الطلب ⇒ بعدّ الرسائل الجديدة بس."""
+    return staging_probe.mailbox_marker(OUTBOX)
 
 
 def bearer(tok):
@@ -123,16 +127,20 @@ def main():
     print("🛡️ دفعة الأمان ٠٢ — اختبارات Staging")
     print("   القاعدة: %s" % BASE)
     print("   ⛔ كل الحسابات وهمية · مافيش أي طلب على الإنتاج")
+    # ⛔ الجولة ٢٤ — تشخيص مصدر المسارات (معلومة · مش assertion)
+    print("   📍 مجلد البيانات: %s (%s)" % (DATA_DIR, ENV_SOURCE))
+    print("   📍 صندوق البريد: %s (%s)" % (OUTBOX, ENV_SOURCE))
 
     # ⛔ تنظيف البيئة المعزولة ⬇️ ⬇️ ⬇️ (عشان الاختبار يفضل قابل للتكرار)
-    reset_stage(Path(CFG["data_dir"]))
+    reset_stage(DATA_DIR)
 
     # ─────────────────────────────────────────────────────────────
     section("١) إنشاء حساب وتأكيد البريد التجريبي")
     new_mail = "staging.new.%d@example.test" % int(time.time())
+    mk_signup = mail_marker()
     r = post("/api/auth/signup/start", {"name": "حساب جديد", "email": new_mail})
     ok(r.status_code == 200, "signup/start رجّع 200", r.status_code)
-    code = mail_code(new_mail, "كود تأكيد")
+    code = mail_code(new_mail, "كود تأكيد", mk_signup)
     ok(bool(code), "كود التأكيد وصل (من صندوق الإيميل Mock)")
 
     r = post("/api/auth/signup/verify", {"email": new_mail, "code": "000000"})
@@ -251,9 +259,10 @@ def main():
     # ⛔ ملاحظة: الكود **مش** بيتبعت لعنوان غير مسجّل (تصميم ضد
     # ⛔ كشف الحسابات) ⇒ لازم نستخدم عنوان الحساب نفسه
     chal_mail = free["email"]
+    mk_chal = mail_marker()
     r = post("/api/auth/pin/challenge/send", {"email": chal_mail})
     ok(r.status_code == 200, "طلب كود استرجاع اتقبل", r.status_code)
-    ccode = mail_code(chal_mail)
+    ccode = mail_code(chal_mail, None, mk_chal)
     ok(bool(ccode), "كود الاسترجاع وصل")
     seen = []
     for i in range(8):
@@ -356,7 +365,7 @@ def main():
 
     # ─────────────────────────────────────────────────────────────
     section("١٥) ⛔ مافيش بيانات إنتاج حقيقية في الـstaging")
-    ddir = Path(CFG["data_dir"])
+    ddir = DATA_DIR
     users_file = ddir / "users.json"
     raw = users_file.read_text(encoding="utf-8") if users_file.exists() else "{}"
     try:

@@ -74,26 +74,90 @@ os.environ["MAIL_ON"] = "0"                       # ⛔ هنعمل mock
 os.environ["OCTA_ADMIN_TOKEN"] = ADMIN
 
 import update_prices as up  # noqa: E402
+import flask  # noqa: E402
+import hmac  # noqa: E402
 
 # ══════════════════════════════════════════════════════════════════
 #  📮 Mock الإيميل — يتكتب في ملف (مفيش إرسال حقيقي)
 # ══════════════════════════════════════════════════════════════════
 MAIL_FILE = STAGE_DIR / "outbox.jsonl"
-MAIL_FILE.write_text("", encoding="utf-8")
+# ⛔ الجولة ٢٤ (R24) — الصندوق **بإضافة فقط** (append-only) ⭐
+#  📌 قبل كده: الملف كان بيتمسح كل ما السيرفر يقوم ⇐ فلو السيرفر
+#  📌 عمل restart في نص الاختبار ⇐ الكود اللي اتسلّم ضاع ⇐
+#  📌 والاختبار قفل بـ unlock_expired ⇐ وده مش عيب في الإنتاج ⭐
+#  ✅ الحل: ما بنمسحش الملف عند الإقلاع ⇐ والاختبار يقرأ **الجديد**
+#  📌 بس (من بعد الطلب اللي طلب الكود) ⇐ فالكود القديم ما يقدرش
+#  📌 يخدع أي assertion ⭐
+MAIL_SEQ = 0
 
 
 def _mock_send(to, subject, html):
+    """يكتب الرسالة في صندوق البريد المحاكى (سطر واحد · كتابة ذرّية)."""
+    global MAIL_SEQ
+    MAIL_SEQ += 1
+    rec = {"to": to, "subject": subject, "html": html,
+           "seq": MAIL_SEQ, "sent_at": int(time.time())}
+    line = (json.dumps(rec, ensure_ascii=False) + "\n").encode("utf-8")
     try:
-        with MAIL_FILE.open("a", encoding="utf-8") as f:
-            f.write(json.dumps({"to": to, "subject": subject, "html": html},
-                               ensure_ascii=False) + "\n")
+        fd = os.open(str(MAIL_FILE),
+                     os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        try:
+            view = memoryview(line)
+            while view:
+                n = os.write(fd, view)
+                view = view[n:]
+            try:
+                os.fsync(fd)
+            except Exception:
+                pass
+        finally:
+            os.close(fd)
     except Exception:
-        pass
+        return False
     return True
 
 
 up._send_mail = _mock_send
 up.MAIL_ON = True
+
+
+# ══════════════════════════════════════════════════════════════════
+#  🔎 نشر بيئة التشغيل — للاختبارات بس (الجولة ٢٤ · R24)
+# ══════════════════════════════════════════════════════════════════
+#  📌 المشكلة الجذرية (الجولة ٢٤) ⭐
+#  📌 الاختبار كان ياخد مسار صندوق البريد ومجلد البيانات من **ملف
+#  📌 الإعدادات** (STAGE_CONFIG) ⇐ والسيرفر ياخدهم من **متغيّر
+#  📌 البيئة** بتاعه (STAGE_DIR) ⇐ ومفيش حاجة تربط الاتنين ⇐
+#  📌 ⇒ لو ملف الإعدادات قديم أو بيوجّه لنسخة تانية ⇐ الكود بيوصل
+#  📌 لصندوق mails ما بيقراش ⇐ والاختبار بيفشل بـ unlock_expired ⇐
+#  📌 وprobe الملف التالف بيفحص ملف ما السيرفرش بيقراه ⇐ 200 مش 503 ⇐
+#  ✅ الحل: السيرفر هو المرجع ⇐ ينشر بيئته الحقيقية هنا ⇐ والاختبار
+#  📌 بياخد المسارات من السيرفر نفسه ⇐ مش من ملف ممكن يكون قديم ⭐
+#
+#  ⛔ المسار ده موجود في **بيئة الـstaging بس** ⇐ الإنتاج مافيشش المسار
+#  ⛔ ده خالص (المسار بيتسجّل من الملف ده بس) ⇐
+#  ⛔ ومقفول بسر الـproxy (مقارنة constant-time) ⇐
+@up.app.route("/__staging__/env", methods=["GET"])
+def _staging_env():
+    got = str(flask.request.headers.get("X-OCTA-Proxy", "") or "").strip()
+    secret = str(getattr(up, "PROXY_SECRET", "") or "").strip()
+    if (not secret or not got
+            or not hmac.compare_digest(got.encode("utf-8", "replace"),
+                                       secret.encode("utf-8", "replace"))):
+        return flask.jsonify({
+            "ok": False,
+            "error": "المسار ده للاختبارات المعزولة بس",
+            "why": "proxy_secret_required",
+        }), 403
+    return flask.jsonify({
+        "ok": True,
+        "data_dir": str(STAGE_DIR),
+        "mailbox": str(MAIL_FILE),
+        "mail_on": True,
+        "port": PORT,
+        "pid": os.getpid(),
+        "started_at": int(time.time()),
+    })
 
 # ══════════════════════════════════════════════════════════════════
 #  👥 حسابات وهمية — واحد Free وواحد Pro
@@ -144,6 +208,9 @@ if __name__ == "__main__":
         "expired_pro": {"email": "staging.expired@example.test",
                         "pin": "3333", "device": "e" * 64},
         "data_dir": str(STAGE_DIR),
+        # ⛔ الجولة ٢٤ — الملف بقى **مكتفي بنفسه**: بيقول مسار صندوق
+        # ⛔ البريد المحاكى كمان ⇐ فالاختبار مابقاش محتاج يستنتجه ⭐
+        "mailbox": str(MAIL_FILE),
     }
     (STAGE_DIR / "staging-config.json").write_text(
         json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
