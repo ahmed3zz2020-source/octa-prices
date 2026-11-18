@@ -6888,8 +6888,25 @@ NZ5_AXES = [
 
 
 def _nz_pos(v):
-    """للربحية والخسارة: 0 أو السالب = أسوأ درجة (رقم حقيقي) مش «ناقص»"""
-    return None if v is None else max(0.0, v)
+    """للربحية والخسارة: 0 أو السالب = أسوأ درجة (رقم حقيقي) مش «ناقص»
+
+    🛡️ الجولة ٢٢ (R22 · F-1/F-2) — ⛔⛔ إصلاح عيب حقيقي ⭐
+    📌 العيب: `max(0.0, v)` ⭐ ⇒ P/E سالب (شركة خسرانة ⭐) ⇒ 0.0 ⭐
+    📌 ⇒ والبحث عن الدرجة بياخد **أول** حدّ `v <= lim` ⭐ ⇒ 0 ≤ 5 ⭐
+    📌 ⇒ الدرجة 95 ⭐ = **أفضل** درجة ⭐ ⛔⛔ ⭐
+    📌 ⭐ الكود كان بيقول «شركة بخسارة = أرخص شركة في السوق» ⭐ ⛔
+    ✅ الحل: ⛔ القيمة غير الموجبة ⭐ ⇒ ترجع لآخر نطاق (أسوأ درجة ⭐)
+       ⭐ (NZ_R = 1e9 ⇒ يقع في النطاق الأخير ⭐ ⇒ 20 ⭐)
+       ⭐ ⭐ وبكده **رقم حقيقي** ⭐ (مش ناقص ⭐) ⭐ زي ما التوثيق يقول ⭐.
+    ⛔ الأوزان ما اتغيّرتش ⭐ ⛔ الحد ٩٠٪ ما اتغيّرش ⭐
+    """
+    if v is None:
+        return None
+    try:
+        fv = float(v)
+    except (TypeError, ValueError):
+        return None
+    return fv if fv > 0 else NZ_R
 
 
 def _nz_pos_strict(v):
@@ -7625,7 +7642,9 @@ def fundamental_score(item, peers_map=None):
             else:              neg.append(f"غالي جداً مقارنة بالقطاع ({ppe:.1f})")
         else:
             val += 15 if P < 8 else 12 if P < 15 else 7 if P < 25 else 2
-    if B is not None and ppb and ppb > 0 and px:
+    # 🛡️ الجولة ٢٢ (R22 · F-5) — ⛔ P/B غير الموجب ⭐ ما ينفعش يتحسب ⭐
+    #    (كان بيدي +8 ونص «رخيص على الكتاب» ⭐ ⛔ لمضاعف سالب ⭐)
+    if B is not None and B > 0 and ppb and ppb > 0 and px:
         ratio = B / ppb
         if   ratio < 0.6: val += 8; pos.append(f"رخيص على الكتاب ({B:.1f} مقابل {ppb:.1f})")
         elif ratio < 0.9: val += 5
@@ -7648,8 +7667,10 @@ def fundamental_score(item, peers_map=None):
     # 4) اكتمال البيانات (20)
     # ⚠️ مبدأ أساسي: "غير متاح" مش = "ضعيف"
     #    البيانات الناقصة بتقلّل الثقة مش الدرجة
+    # 🛡️ الجولة ٢٢ (R22 · F-4) — ⛔ «موجود» = **رقم صالح** ⭐
+    #    (كان `is not None` ⭐ ⇒ «N/A» كانت بتتحسب بيانات موجودة ⭐ ⛔)
     avail = sum(1 for k in ("pe","pb","roe","net_margin","de_ratio","eps","revenue")
-                if item.get(k) is not None)
+                if _f(item.get(k)) is not None)
     conf_s = (avail / 7) * 20
     if   avail < 3: neu.append(f"بيانات مالية ناقصة ({avail}/7) — التقييم غير موثوق")
     elif avail < 5: neu.append(f"بيانات مالية جزئية ({avail}/7)")
@@ -7696,7 +7717,9 @@ def fundamental_score(item, peers_map=None):
         safe(eps_d * ppe,
              f"ربحية {eps_d:.2f} × متوسط القطاع {ppe:.1f}" + ("" if E is not None else " (محسوبة من السعر)"),
              "مضاعف الربحية")
-    if B is not None and ppb and ppb > 0 and px:
+    # 🛡️ الجولة ٢٢ (R22 · F-3) — ⛔ `B > 0` ⭐ (B هو مضاعف الكتاب ⭐)
+    # ⛔ بدونها: pb = 0 ⇒ `px / B` ⇒ ZeroDivisionError ⇒ 500 ⭐
+    if B is not None and B > 0 and ppb and ppb > 0 and px:
         adj = 1.1 if (R is not None and R > 20) else 0.9
         safe((px / B) * ppb * adj, f"قيمة دفترية × متوسط {ppb:.1f} × تعديل {adj}", "مضاعف الكتاب")
     if eps_d and eps_d > 0:
