@@ -9,7 +9,7 @@
 ⛔ **مافيش إعادة كتابة تاريخ** ⭐ (محتاجة إذن مستقل من المالك) ⭐
 ⛔ مافيش سر ولا توكن ولا كلمة مرور في المخرجات ⭐
 
-شغّله:  python3 tools/git_pii_scan.py <repo> [<repo> ...]
+شغّله:  python3 tools/git_pii_scan.py <repo> [<repo> _DOTS]
 """
 import io
 import os

@@ -15,7 +15,7 @@ valuation_audit.py — تدقيق مستقل لحساب التقييم (P/E · P
 نمط التشغيل (نفس نمط test_r20_az31_36.py):
    import _stub_env; fl_mod, _ = _stub_env.install()
    import update_prices as up
-   up.app.dispatch(path, method=..., body=..., headers=...)   +   up._HITS.clear()
+   up.app.dispatch(path, method=_DOTS, body=_DOTS, headers=_DOTS)   +   up._HITS.clear()
 
 شغّله:  python3 tools/valuation_audit.py
 """
@@ -759,7 +759,7 @@ BASELINE = "edc49cd"
 
 
 def strategies_block(src_text):
-    """ يستخرج كتلة STRATEGIES = { ... } من نص المصدر كما هي (بايت ببايت)."""
+    """ يستخرج كتلة STRATEGIES = { _DOTS } من نص المصدر كما هي (بايت ببايت)."""
     start = src_text.index("STRATEGIES = {")
     i = src_text.index("{", start)
     depth, in_str, quote = 0, False, ""
