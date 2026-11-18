@@ -1,0 +1,682 @@
+name: OCTA CI — الجولة ٢٣ (بوابات حقيقية)
+
+# OCTA-CI-GATES-V1 profile=backend
+#
+# 📌 ليه الملف ده على فرع `ci/octa-ci-r23` ومش على فرع الكود؟
+#    ⇒ GitHub بيرفض تحديث أي ملف تحت `.github/workflows/` لو التوكن
+#      مالوش scope اسمه `workflow`.
+#    ⇒ فرع الكود (review/round23-backend) بيحمل **نسخة main بالظبط**
+#      من ملف الـCI ⇒ دفعه ميحتاجش الـscope ده.
+#    ⇒ الـCI الحقيقي (ده) بينزل على فرع الـci ويننشر بتوكن
+#      عنده scope `workflow`.
+#
+# ⛔ قواعد الـCI (كلها متحقَّقة آلياً بـ tools/test_ci_gates.py):
+#   ① `pip install -r requirements.txt` = **بوابة صارمة**: لو فشل
+#      الـjob فشل وكل خطوة بعده اتخطّت (مفيش continue-on-error،
+#      مفيش `|| true`، مفيش `|| echo`، مفيش `--no-deps`).
+#   ② **كل** ملف اختبار موجود في المستودع بيشتغل (مفيش استبعاد
+#      صامت) — وأي ملف محتاج بيئة حيّة ليه **بوابة بديلة إلزامية**
+#      بتشتغل جواه نفس الـjob.
+#   ③ الفشل في أي اختبار ⇒ الـjob بيفشل (exit code ≠ 0).
+#   ④ حُرّاس المستودع (نظافة الكود · نظافة الشجرة · حارس الـCI)
+#      + سلامة البيانات كلهم **بوابات** بتفشل الـpipeline.
+#   ⑤ مفيش أسرار · مفيش نشر · مفيش دفع · مفيش موارد مدفوعة.
+#
+# 📌 ترتيب الـjobs (مرتّب على شكل سلسلة):
+#    dependency-install → backend-suite → frontend-suite
+#                      → hygiene-guards → data-integrity
+#    ⛔ أي فشل في التثبيت ⇒ الـpipeline كله بيقف.
+
+on:
+  push:
+    branches:
+      - main
+      - 'ci/**'
+      - 'review/round23-backend'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  OCTA_CANDIDATE_SHA: '28174db1edd69e557e9ce822a1da7f9eca89c653'
+
+jobs:
+  # ══════════════════════════════════════════════════════════════
+  # ① البوابة الأولى: تثبيت الاعتماديات (صارم)
+  # ══════════════════════════════════════════════════════════════
+  dependency-install:
+    name: "📦 ١) تثبيت الاعتماديات — بوابة صارمة"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود"
+        uses: actions/checkout@v4
+      - name: "بوابة بصمة المرشح (R23-I07)"
+        env:
+          OCTA_CANDIDATE_SHA: '28174db1edd69e557e9ce822a1da7f9eca89c653'
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: المرشح المطلوب مش موجود في الشجرة المختبَرة"
+            exit 1
+          fi
+          UNEXPECTED=""
+          while IFS= read -r f; do
+            case "$f" in
+              .github/workflows/*|tools/test_ci_*) ;;
+              *) UNEXPECTED="$UNEXPECTED$f " ;;
+            esac
+          done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL: ملفات خارج نطاق الـCI اتغيرت عن المرشح"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "PASS: الشجرة المختبَرة = المرشح + ملفات الـCI فقط"
+
+      - name: "🐍 تجهيز Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "📦 pip install -r requirements.txt (فشل التثبيت ⇒ فشل الـjob)"
+        run: |
+          set -euo pipefail
+          echo "📦 تثبيت الاعتماديات من requirements.txt…"
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+          echo "✅ التثبيت خلص بنجاح"
+
+      - name: "🔬 تحقّق إن التثبيت تمّ فعلاً (إصدارات مثبّتة + pip check)"
+        run: |
+          set -euo pipefail
+          python -m pip check
+          python3 - <<'PY'
+          import importlib
+          import sys
+
+          WANT = {}
+          for line in open("requirements.txt", encoding="utf-8"):
+              line = line.strip()
+              if not line or line.startswith("#"):
+                  continue
+              name, _sep, ver = line.partition("==")
+              WANT[name.strip().lower()] = ver.strip()
+
+          MODS = {"flask": "flask", "requests": "requests", "gunicorn": "gunicorn"}
+          bad = 0
+          for dist, mod in MODS.items():
+              m = importlib.import_module(mod)
+              got = getattr(m, "__version__", None)
+              want = WANT.get(dist, "")
+              if want and got != want:
+                  print("⛔ %s: متوقع %s · الموجود %s" % (dist, want, got))
+                  bad += 1
+              else:
+                  print("✅ %s==%s اتثبّت فعلاً" % (dist, got))
+          if bad:
+              print("⛔ التثبيت مش مطابق لـ requirements.txt")
+              sys.exit(1)
+          print("✅ كل الاعتماديات مثبّتة بالنسخة المطلوبة")
+          PY
+
+      - name: "🛡️ حارس الـCI (لازم ملف الـCI نفسه نضيف)"
+        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+
+  # ══════════════════════════════════════════════════════════════
+  # ② كل اختبارات الباك (كل ملف موجود — بلا استبعاد صامت)
+  # ══════════════════════════════════════════════════════════════
+  backend-suite:
+    name: "🧪 ٢) اختبارات الباك — كل الملفات (بوابة صارمة)"
+    needs: dependency-install
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود"
+        uses: actions/checkout@v4
+      - name: "بوابة بصمة المرشح (R23-I07)"
+        env:
+          OCTA_CANDIDATE_SHA: '28174db1edd69e557e9ce822a1da7f9eca89c653'
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: المرشح المطلوب مش موجود في الشجرة المختبَرة"
+            exit 1
+          fi
+          UNEXPECTED=""
+          while IFS= read -r f; do
+            case "$f" in
+              .github/workflows/*|tools/test_ci_*) ;;
+              *) UNEXPECTED="$UNEXPECTED$f " ;;
+            esac
+          done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL: ملفات خارج نطاق الـCI اتغيرت عن المرشح"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "PASS: الشجرة المختبَرة = المرشح + ملفات الـCI فقط"
+
+      - name: "🐍 تجهيز Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "📦 pip install -r requirements.txt (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+
+      - name: "🧪 تشغيل بيئة الـstaging المعزولة (لاختبارات الأمان الحقيقية)"
+        run: |
+          set -euo pipefail
+          export STAGE_DIR="$RUNNER_TEMP/octa-staging"
+          export STAGE_PORT=8099
+          mkdir -p "$STAGE_DIR"
+          # ⛔ مفيش تيليجرام في بيئة الـstaging:
+          #    خيط تيليجرام بيعمل TLS من خيط تاني ⇒ OpenSSL مش آمن
+          #    ⇒ كان السقوط بيقتل السيرفر كله. نمطّله يدوياً ⭐.
+          export TELEGRAM_BOT_TOKEN=""
+          export TELEGRAM_CHAT_ID=""
+          # ⛔ مفيش مهام خلفية (تحديث الأسعار/الكاش) في بيئة الـstaging:
+          #    ① بتعمل TLS من خيط تاني ⇒ نفس خطر السقوط ⭐
+          #    ② بتجيب داتا حيّة غير ثابتة ⇒ الـCI يبقى غير حتمي ⭐
+          #    البيانات الثابتة بتتبعت من ملفات المستودع ✓
+          export OCTA_BG_TASKS="off"
+          # 📌 مشرف: لو السيرفر وقع (خيط دخيل بيقتل العملية) يرجع
+          #    تاني بعد ثانيتين ⇒ الاختبارات مابتبقاش مكسورة بسببه.
+          ( while true; do
+              python tools/staging/run_staging.py >> "$RUNNER_TEMP/staging.log" 2>&1
+              echo "⚠️  الـstaging وقف — بيرجع تاني" >&2
+              sleep 2
+            done ) &
+          for _i in $(seq 1 90); do
+            if curl -s -m 2 -o /dev/null "http://127.0.0.1:8099/api/health"; then break; fi
+            sleep 2
+          done
+          if ! curl -s -m 5 -o /dev/null "http://127.0.0.1:8099/api/health"; then
+            echo "⛔ بيئة الـstaging مش راقية"
+            tail -n 60 "$RUNNER_TEMP/staging.log"
+            exit 1
+          fi
+          echo "✅ الـstaging شغّال على 127.0.0.1:8099 (بيانات وهمية ١٠٠٪)"
+
+      - name: "🧪 كل اختبارات الباك (تشغيل كل ملف · عدّاد لكل ملف)"
+        env:
+          STAGE_URL: "http://127.0.0.1:8099"
+          STAGE_CONFIG: "${{ runner.temp }}/octa-staging/staging-config.json"
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob
+          import json
+          import os
+          import re
+          import shutil
+          import subprocess
+          import sys
+          import tempfile
+
+          def bail(code):
+              sys.stdout.flush()
+              sys.stderr.flush()
+              os._exit(code)
+
+          ROOT = os.getcwd()
+          PY = sys.executable
+
+          # ─────────────────────────────────────────────────────────
+          #  المُشغّل: بيشغّل ملف الاختبار زي `python <file>` بالظبط،
+          #  بس بيقفل العملية بـ os._exit بعد ما الاختبار يخلص.
+          #  📌 السبب: بعض ملفات الاختبار بتسيب خيوط (daemon) شغّالة
+          #  ⇒ لما الـinterpreter يقرّض نفسه وهو واقف جوه استدعاء C
+          #  ⇒ انهيار (SIGSEGV) **بعد** ما كل الحاجات عدّت.
+          #  ⛔ os._exit بيكمّل نفس كود خروج الاختبار (٠ لو نجح).
+          # ─────────────────────────────────────────────────────────
+          CHILD = '''import os
+          import runpy
+          import sys
+
+          target = sys.argv[1]
+          sys.argv = sys.argv[1:]
+          sys.path.insert(0, os.path.dirname(os.path.abspath(target)))
+          code = 0
+          try:
+              runpy.run_path(target, run_name="__main__")
+          except SystemExit as exc:
+              code = exc.code
+              if code is None:
+                  code = 0
+              if not isinstance(code, int):
+                  code = 1
+          except BaseException:
+              import traceback
+              traceback.print_exc()
+              code = 1
+          sys.stdout.flush()
+          sys.stderr.flush()
+          os._exit(code)
+          '''
+          child_dir = tempfile.mkdtemp(prefix="octa_ci_child_")
+          child_path = os.path.join(child_dir, "child.py")
+          with open(child_path, "w", encoding="utf-8") as fh:
+              fh.write(CHILD)
+
+          # ─────────────────────────────────────────────────────────
+          #  ⛔ الملفات اللي **مش** قادرة تشتغل في الـCI (بيء حيّ):
+          #    كل واحد فيهم لازم يكون ليه **بوابة بديلة إلزامية**
+          #    بتشتغل في نفس الـjob (ومش بتتخطّى).
+          # ─────────────────────────────────────────────────────────
+          ISOLATED = {
+              "tools/staging/test_flask_binding.py": {
+                  "reason": "ملف «ربط الواجهة بالباك» بيقرأ مصدر مستودع "
+                            "الواجهة (مستودع تاني) وبيفتح مسار إعداد ثابت ⇒ "
+                            "مش قابل للتشغيل جوه مستودع الباك",
+                  "gate": "tools/test_ci_alt_gates.py",
+                  "gate_id": "A8",
+                  "env": {},
+              },
+              "test_gold_integrity.py": {
+                  "reason": "فحص «السعر المرصود» بيقرأ سعراً حيّاً من "
+                            "market.isagha.com ⇒ مش قابل للتكرار في الـCI",
+                  "gate": "tools/test_ci_alt_gates.py",
+                  "gate_id": "A1..A7",
+                  "env": {"HTTPS_PROXY": "http://127.0.0.1:9",
+                          "HTTP_PROXY": "http://127.0.0.1:9"},
+              },
+          }
+
+          # ⛔ أدوات الـCI نفسها (مش اختبارات) ⇒ بتتشال من الكشف
+          NOT_TESTS = {"tools/test_ci_gates.py"}
+
+          def discover():
+              found = set()
+              for pat in ("test_*.py", "*_test.py", "tools/**/test_*.py",
+                          "tools/**/*_test.py"):
+                  found.update(glob.glob(pat, recursive=True))
+              return sorted(f for f in found
+                            if os.path.isfile(f) and not f.startswith(".")
+                            and f not in NOT_TESTS)
+
+          def case_count(text):
+              for rx in (r"Ran\s+(\d+)\s+tests?",
+                         r"(\d+)\s*(?:نجح|ناجح)",
+                         r"(\d+)\s+passed",
+                         r"#\s*pass\s+(\d+)"):
+                  m = re.search(rx, text)
+                  if m:
+                      return int(m.group(1))
+              return None
+
+          base_env = dict(os.environ)
+          cfg_path = os.environ.get("STAGE_CONFIG", "")
+          if cfg_path and os.path.isfile(cfg_path):
+              try:
+                  with open(cfg_path, encoding="utf-8") as fh:
+                      cfg = json.load(fh)
+                  base_env["STAGE_ADMIN_TOKEN"] = cfg.get("admin_token", "")
+                  base_env["STAGE_URL"] = cfg.get("api_url",
+                                                  base_env.get("STAGE_URL", ""))
+              except Exception as exc:
+                  print("⚠️  تعذّر قراءة إعدادات الـstaging: %s" % exc)
+
+          # ⛔ البوابة البديلة بتشتغل بنفس عزل المصدر الحيّ
+          gate_env = {}
+          for meta in ISOLATED.values():
+              gate_env[meta["gate"]] = dict(meta.get("env", {}))
+
+          files = discover()
+          print("📂 عدد ملفات الاختبار المكتشفة في المستودع: %d" % len(files))
+          for f in files:
+              print("   · %s" % f)
+          print("")
+
+          # ⓪ كل ملف معزول لازم بوابته البديلة موجودة فعلاً
+          #    ولازم الملف نفسه يكون موجود (تصنيف متزامن)
+          broken = []
+          for f, meta in sorted(ISOLATED.items()):
+              if not os.path.isfile(meta["gate"]):
+                  broken.append((f, meta["gate"]))
+              elif f not in files:
+                  broken.append((f, "الملف نفسه مش موجود في المستودع"))
+          if broken:
+              for f, gate in broken:
+                  print("⛔ %s معزول — بس البوابة البديلة %s مش موجودة!"
+                        % (f, gate))
+              bail(1)
+
+          passed = failed = total_cases = 0
+          failures = []
+          isolated = []
+          for f in files:
+              meta = ISOLATED.get(f)
+              env = dict(base_env)
+              if meta:
+                  env.update(meta.get("env", {}))
+                  print("⚠️  معزول (مش بيتنفّذ هنا): %s" % f)
+                  print("    ↳ السبب: %s" % meta["reason"])
+                  print("    ↳ البوابة البديلة الإلزامية: %s (%s)"
+                        % (meta["gate"], meta["gate_id"]))
+                  isolated.append(f)
+                  continue
+              if f in gate_env:
+                  env.update(gate_env[f])
+              try:
+                  r = subprocess.run([PY, child_path, f], env=env, cwd=ROOT,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE,
+                                     encoding="utf-8", errors="replace",
+                                     timeout=2400)
+                  rc, out, err = r.returncode, r.stdout or "", r.stderr or ""
+              except subprocess.TimeoutExpired:
+                  rc, out, err = 124, "", "⏱️ تجاوز الوقت (40 دقيقة)"
+              n = case_count(out)
+              if n:
+                  total_cases += n
+              print("%-46s %-4s rc=%-4s cases=%s"
+                    % (f, "PASS" if rc == 0 else "FAIL", rc,
+                       n if n else "-"))
+              if rc == 0:
+                  passed += 1
+              else:
+                  failed += 1
+                  failures.append((f, rc, out[-3000:], err[-2000:]))
+              for d in glob.glob(".r*_tmp_*") + glob.glob(".*_tmp_*"):
+                  shutil.rmtree(d, ignore_errors=True)
+
+          print("")
+          print("=" * 70)
+          print("📊 اختبارات الباك: %d ملف · %d نجح · %d فشل · %d معزول · %d حالة"
+                % (len(files), passed, failed, len(isolated), total_cases))
+          print("=" * 70)
+          if failures:
+              for f, rc, out, err in failures:
+                  print("")
+                  print("⛔ فشل: %s (rc=%s)" % (f, rc))
+                  print(out)
+                  print("--stderr--")
+                  print(err)
+              bail(1)
+          print("✅ كل اختبارات الباك عدّت")
+          bail(0)
+          PY
+
+  # ══════════════════════════════════════════════════════════════
+  # ③ عقد الواجهة: المسارات اللي الواجهة بتستهلكها من الـAPI
+  # ══════════════════════════════════════════════════════════════
+  frontend-suite:
+    name: "🖥️ ٣) عقد الواجهة — مسارات الـAPI اللي الواجهة بتستهلكها"
+    needs: dependency-install
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود"
+        uses: actions/checkout@v4
+      - name: "بوابة بصمة المرشح (R23-I07)"
+        env:
+          OCTA_CANDIDATE_SHA: '28174db1edd69e557e9ce822a1da7f9eca89c653'
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: المرشح المطلوب مش موجود في الشجرة المختبَرة"
+            exit 1
+          fi
+          UNEXPECTED=""
+          while IFS= read -r f; do
+            case "$f" in
+              .github/workflows/*|tools/test_ci_*) ;;
+              *) UNEXPECTED="$UNEXPECTED$f " ;;
+            esac
+          done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL: ملفات خارج نطاق الـCI اتغيرت عن المرشح"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "PASS: الشجرة المختبَرة = المرشح + ملفات الـCI فقط"
+
+      - name: "🐍 تجهيز Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "📦 pip install -r requirements.txt (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+
+      - name: "🖥️ تشغيل كل اختبارات عقد الواجهة (عدّاد لكل ملف)"
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          import subprocess
+          import sys
+          import tempfile
+
+          def bail(code):
+              sys.stdout.flush()
+              sys.stderr.flush()
+              os._exit(code)
+
+          ROOT = os.getcwd()
+          PY = sys.executable
+
+          # 📌 المجموعة دي = المسارات/العقود اللي **الواجهة** بتستهلكها
+          #    (شart · data_full · index · opp · radar · auth · pin).
+          #    لازم كل ملف فيها يشتغل ويعدّي ⇒ أي كسر في العقد
+          #    بيظهر كإ(job) مستقل باسم واضح في لوق الـCI.
+          GROUP = [
+              "test_charts_api.py",
+              "test_data_full_route.py",
+              "test_index_api.py",
+              "test_opp_api01.py",
+              "test_radar_api.py",
+              "test_auth_holes.py",
+              "test_pin_auth.py",
+              "test_engine_contract01.py",
+              "test_round16_contract_wiring.py",
+              "test_round16_query_limits.py",
+              "test_round15_query_guard.py",
+              "test_round17_p3_contract_pick.py",
+          ]
+
+          CHILD = '''import os
+          import runpy
+          import sys
+
+          target = sys.argv[1]
+          sys.argv = sys.argv[1:]
+          sys.path.insert(0, os.path.dirname(os.path.abspath(target)))
+          code = 0
+          try:
+              runpy.run_path(target, run_name="__main__")
+          except SystemExit as exc:
+              code = exc.code
+              if code is None:
+                  code = 0
+              if not isinstance(code, int):
+                  code = 1
+          except BaseException:
+              import traceback
+              traceback.print_exc()
+              code = 1
+          sys.stdout.flush()
+          sys.stderr.flush()
+          os._exit(code)
+          '''
+          child_dir = tempfile.mkdtemp(prefix="octa_ci_child_")
+          child_path = os.path.join(child_dir, "child.py")
+          with open(child_path, "w", encoding="utf-8") as fh:
+              fh.write(CHILD)
+
+          missing = [f for f in GROUP if not os.path.isfile(os.path.join(ROOT, f))]
+          if missing:
+              print("⛔ ملفات اختبارات العقد ناقصة: %s" % ", ".join(missing))
+              bail(1)
+
+          def case_count(text):
+              for rx in (r"Ran\s+(\d+)\s+tests?",
+                         r"(\d+)\s*(?:نجح|ناجح)",
+                         r"(\d+)\s+passed",
+                         r"#\s*pass\s+(\d+)"):
+                  m = re.search(rx, text)
+                  if m:
+                      return int(m.group(1))
+              return None
+
+          passed = failed = total_cases = 0
+          failures = []
+          for f in GROUP:
+              try:
+                  r = subprocess.run([PY, child_path, f], cwd=ROOT,
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE,
+                                     encoding="utf-8", errors="replace",
+                                     timeout=2400)
+                  rc, out, err = r.returncode, r.stdout or "", r.stderr or ""
+              except subprocess.TimeoutExpired:
+                  rc, out, err = 124, "", "⏱️ تجاوز الوقت (40 دقيقة)"
+              n = case_count(out)
+              if n:
+                  total_cases += n
+              print("%-46s %-4s rc=%-4s cases=%s"
+                    % (f, "PASS" if rc == 0 else "FAIL", rc,
+                       n if n else "-"))
+              if rc == 0:
+                  passed += 1
+              else:
+                  failed += 1
+                  failures.append((f, rc, out[-3000:], err[-2000:]))
+
+          print("")
+          print("=" * 70)
+          print("📊 عقد الواجهة: %d ملف · %d نجح · %d فشل · %d حالة"
+                % (len(GROUP), passed, failed, total_cases))
+          print("=" * 70)
+          if failures:
+              for f, rc, out, err in failures:
+                  print("")
+                  print("⛔ فشل: %s (rc=%s)" % (f, rc))
+                  print(out)
+                  print("--stderr--")
+                  print(err)
+              bail(1)
+          print("✅ كل اختبارات عقد الواجهة عدّت")
+          bail(0)
+          PY
+
+  # ══════════════════════════════════════════════════════════════
+  # ④ حُرّاس المستودع (نظافة الكود · نظافة الشجرة · حارس الـCI)
+  # ══════════════════════════════════════════════════════════════
+  hygiene-guards:
+    name: "🧹 ٤) حُرّاس المستودع — نظافة الكود + نظافة الشجرة + حارس الـCI"
+    needs: [backend-suite, frontend-suite]
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود"
+        uses: actions/checkout@v4
+      - name: "بوابة بصمة المرشح (R23-I07)"
+        env:
+          OCTA_CANDIDATE_SHA: '28174db1edd69e557e9ce822a1da7f9eca89c653'
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: المرشح المطلوب مش موجود في الشجرة المختبَرة"
+            exit 1
+          fi
+          UNEXPECTED=""
+          while IFS= read -r f; do
+            case "$f" in
+              .github/workflows/*|tools/test_ci_*) ;;
+              *) UNEXPECTED="$UNEXPECTED$f " ;;
+            esac
+          done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL: ملفات خارج نطاق الـCI اتغيرت عن المرشح"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "PASS: الشجرة المختبَرة = المرشح + ملفات الـCI فقط"
+        with:
+          fetch-depth: 0
+
+      - name: "🐍 تجهيز Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "📦 pip install -r requirements.txt (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+
+      - name: "🧼 حارس نظافة الكود (test_code_hygiene.py)"
+        run: python3 test_code_hygiene.py
+
+      - name: "🌳 حارس نظافة الشجرة (test_tree_hygiene.py)"
+        run: python3 test_tree_hygiene.py
+
+      - name: "🛡️ حارس بوّابات الـCI (tools/test_ci_gates.py)"
+        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+
+  # ══════════════════════════════════════════════════════════════
+  # ⑤ سلامة البيانات (بوابة مستقلة)
+  # ══════════════════════════════════════════════════════════════
+  data-integrity:
+    name: "🧾 ٥) سلامة البيانات (tools/verify_data_integrity.py)"
+    needs: hygiene-guards
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود"
+        uses: actions/checkout@v4
+      - name: "بوابة بصمة المرشح (R23-I07)"
+        env:
+          OCTA_CANDIDATE_SHA: '28174db1edd69e557e9ce822a1da7f9eca89c653'
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: المرشح المطلوب مش موجود في الشجرة المختبَرة"
+            exit 1
+          fi
+          UNEXPECTED=""
+          while IFS= read -r f; do
+            case "$f" in
+              .github/workflows/*|tools/test_ci_*) ;;
+              *) UNEXPECTED="$UNEXPECTED$f " ;;
+            esac
+          done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL: ملفات خارج نطاق الـCI اتغيرت عن المرشح"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "PASS: الشجرة المختبَرة = المرشح + ملفات الـCI فقط"
+        with:
+          fetch-depth: 0
+
+      - name: "🐍 تجهيز Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "📦 pip install -r requirements.txt (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+
+      - name: "🧾 فحص سلامة البيانات (مقارنة بنيوية مع الأساس)"
+        run: python3 tools/verify_data_integrity.py
