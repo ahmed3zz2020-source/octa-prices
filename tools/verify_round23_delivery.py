@@ -560,10 +560,14 @@ def write_fingerprints():
             "testzip": "None" if broken is None else str(broken),
             "sidecar": SIDE_NAMES[z],
         }
-    main_root = OUT_DIR / ("OCTA-ROUND%s-DELIVERY" % ROUND)
+    # البصمات بتوصف **الملفات المُتحقَّق منها** (من جوّه الـZIP) ⭐
+    #    مش المجلد على القرص (ممكن يكون بيتكتب فيه في نفس الوقت ⭐).
     env = {}
-    if (main_root / "ENVIRONMENT.json").is_file():
-        env = json.loads((main_root / "ENVIRONMENT.json").read_text(encoding="utf-8"))
+    try:
+        with zipfile.ZipFile(MAIN_ZIP) as zf:
+            env = json.loads(zf.read("ENVIRONMENT.json").decode("utf-8"))
+    except Exception:
+        env = {}
     doc = {
         "round": ROUND,
         "generated_utc": env.get("generated_utc"),
