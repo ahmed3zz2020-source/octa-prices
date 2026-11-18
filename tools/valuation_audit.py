@@ -744,7 +744,13 @@ for root, dirs, files in os.walk(REPO):
         if "peg" in txt:
             all_peg_files.append(os.path.relpath(p, REPO))
 KNOWN_PEG_FILES = {"update_prices.py", "tools/valuation_audit.py",
-                   "tools/test_engines_filters_audit.py"}
+                   "tools/test_engines_filters_audit.py",
+                   # ⛔ الجولة ٢٤ (R24): تدقيق مصدر النمو (مراجعة نور-الكوانت)
+                   #    · ملف **اختبار** بيوثّق إن `ni_growth` مش موجود في أي
+                   #      مصدر وقت تشغيل وإن PEG بيطلع «غير متاح».
+                   #    ⛔ الـassertion نفسه ما اتغيّرش: أي ملف تاني فيه
+                   #      الكلمة بيفشل لسه (PEG-07 زي ما هو).
+                   "tools/test_round24_growth_source_audit.py"}
 unknown_peg_files = sorted(f for f in set(all_peg_files) if f not in KNOWN_PEG_FILES)
 
 check(bool(engine_peg_hits),
@@ -753,13 +759,14 @@ check(bool(engine_peg_hits),
       "no PEG computation found in the tracked engines")
 check(not unknown_peg_files,
       "PEG-07 · every source file that mentions 'peg' is a known one "
-      "(engine + audit + R23 test) — no stray/unknown implementation",
+      "(engine + audit + R23/R24 tests) — no stray/unknown implementation",
       unknown_peg_files)
 print("     file inventory of 'peg' (%d tracked hit(s) · %d file(s) on disk):" % (
     len(tracked_peg_hits), len(set(all_peg_files))))
 for f in sorted(set(all_peg_files)):
     kind = "engine" if f == "update_prices.py" else (
-        "audit tool" if f == "tools/valuation_audit.py" else "R23 test")
+        "audit tool" if f == "tools/valuation_audit.py" else (
+            "R24 test" if f.startswith("tools/test_round24") else "R23 test"))
     print("       · %-42s [%s]" % (f, kind))
 
 # ── 3.2) صحّة الحساب: المحرك لازم يطابق المرجع المستقل ──
