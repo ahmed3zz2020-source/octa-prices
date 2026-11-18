@@ -12659,7 +12659,7 @@ def _maybe_refresh_index_history():
                       f" ({len(_missing)}) ⇒ لم نكتب ملف التاريخ")
                 continue
             _pts_out = [[int(t), round(float(v), 4)] for t, v in pts]
-            # ✅ الصفوف الكاملة هي المصدر ⭐ 且 `series` مرآة لها ⭐
+            # ✅ الصفوف الكاملة هي المصدر ⭐  `series` مرآة لها ⭐
             #    (الحارس يقول إن `series` == `rows` ⭐)
             row["rows"] = _pts_out
             row["series"] = [list(x) for x in _pts_out]

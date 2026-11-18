@@ -4,7 +4,7 @@
 🛡️ حارس بوّابات الـCI (Round 23) — يثبت إن ملف الـCI **مش ممرّر**
 
 🎯 الغرض: الـCI اللي كان في الجولة ٢٢ كان **بيلفّ الفشل**:
-   · `pip install ... || echo`   ⇒ فشل التثبيت مش بيفشل الـjob
+   · `pip install || echo`      ⇒ فشل التثبيت مش بيفشل الـjob
    · `continue-on-error: true`   ⇒ فشل الاختبار مش بيفشل الـjob
    · `npm ci || npm install`      ⇒ بيخفي فشل التثبيت
    · ملف اختبار مش شغّال أصلاً   ⇒ استبعاد صامت
@@ -49,35 +49,35 @@ TEST_RE = re.compile(
     r"unittest|jest|vitest|mocha|go\s+test|cargo\s+test)\b", re.I)
 
 FORBIDDEN_LITERAL = [
-    (r"\|\|\s*true\b", "‫|| true‫ — بيخفي فشل الخطوة"),
-    (r"\|\|\s*echo\b", "‫|| echo‫ — بيخفي فشل الخطوة"),
-    (r"\|\|\s*:\s*$", "‫|| :‫ — بيخفي فشل الخطوة"),
-    (r"--ignore(-glob)?\b", "‫--ignore‫ — استبعاد ملفات من الاختبارات"),
-    (r"--exclude\b", "‫--exclude‫ — استبعاد من الاختبارات"),
-    (r"--deselect\b", "‫--deselect‫ — استبعاد حالات من الاختبارات"),
-    (r"--test-name-pattern\b", "‫--test-name-pattern‫ — تضييق الاختبارات"),
-    (r"--test-skip-pattern\b", "‫--test-skip-pattern‫ — تخطّي اختبارات"),
-    (r"(^|\s)-k\s+\S", "‫-k‫ — تضييق اختبارات pytest"),
-    (r"\bxdescribe\s*\(", "‫xdescribe‫ — تخطّي اختبارات"),
-    (r"\bdescribe\s*\.\s*skip\b", "‫describe.skip‫ — تخطّي اختبارات"),
-    (r"\bit\s*\.\s*skip\b", "‫it.skip‫ — تخطّي اختبارات"),
-    (r"\btest\s*\.\s*skip\b", "‫test.skip‫ — تخطّي اختبارات"),
-    (r"\bpytest\s*\.\s*skip\b", "‫pytest.skip‫ — تخطّي اختبارات"),
-    (r"@unittest\s*\.\s*skip", "‫@unittest.skip‫ — تخطّي اختبارات"),
-    (r"\bunittest\s*\.\s*skip\b", "‫unittest.skip‫ — تخطّي اختبارات"),
-    (r"\bSKIP(_FILES|_LIST)?\s*=", "‫SKIP =‫ — استبعاد ملفات الاختبار"),
-    (r"\bEXCLUDE(_FILES|_LIST)?\s*=", "‫EXCLUDE =‫ — استبعاد ملفات الاختبار"),
+    (r"\|\|\s*true\b", "|| true — بيخفي فشل الخطوة"),
+    (r"\|\|\s*echo\b", "|| echo — بيخفي فشل الخطوة"),
+    (r"\|\|\s*:\s*$", "|| : — بيخفي فشل الخطوة"),
+    (r"--ignore(-glob)?\b", "--ignore — استبعاد ملفات من الاختبارات"),
+    (r"--exclude\b", "--exclude — استبعاد من الاختبارات"),
+    (r"--deselect\b", "--deselect — استبعاد حالات من الاختبارات"),
+    (r"--test-name-pattern\b", "--test-name-pattern — تضييق الاختبارات"),
+    (r"--test-skip-pattern\b", "--test-skip-pattern — تخطّي اختبارات"),
+    (r"(^|\s)-k\s+\S", "-k — تضييق اختبارات pytest"),
+    (r"\bxdescribe\s*\(", "xdescribe — تخطّي اختبارات"),
+    (r"\bdescribe\s*\.\s*skip\b", "describe.skip — تخطّي اختبارات"),
+    (r"\bit\s*\.\s*skip\b", "it.skip — تخطّي اختبارات"),
+    (r"\btest\s*\.\s*skip\b", "test.skip — تخطّي اختبارات"),
+    (r"\bpytest\s*\.\s*skip\b", "pytest.skip — تخطّي اختبارات"),
+    (r"@unittest\s*\.\s*skip", "@unittest.skip — تخطّي اختبارات"),
+    (r"\bunittest\s*\.\s*skip\b", "unittest.skip — تخطّي اختبارات"),
+    (r"\bSKIP(_FILES|_LIST)?\s*=", "SKIP = — استبعاد ملفات الاختبار"),
+    (r"\bEXCLUDE(_FILES|_LIST)?\s*=", "EXCLUDE = — استبعاد ملفات الاختبار"),
     (r"if\s+\\?['\"]test[^'\\\"]*\\?['\"]\s+not\s+in\s", "استبعاد ملفات الاختبار برمجياً"),
     (r"if\s+\\?['\"][^'\\\"]*\.(test|spec)\.[cm]?js['\"]\s+not\s+in\s", "استبعاد ملفات الاختبار برمجياً"),
     (r"if\s+not\s+[A-Za-z_]+\.startswith\(['\"]test", "استبعاد ملفات الاختبار برمجياً"),
-    (r"\bskipFiles\b", "‫skipFiles‫ — استبعاد ملفات الاختبار"),
-    (r"\bgit\s+push\b", "‫git push‫ — الدفع ممنوع في الـCI"),
-    (r"\bnpm\s+publish\b", "‫npm publish‫ — النشر ممنوع في الـCI"),
-    (r"\bdocker\s+push\b", "‫docker push‫ — النشر ممنوع في الـCI"),
-    (r"\bwrangler\s+deploy\b", "‫wrangler deploy‫ — النشر ممنوع في الـCI"),
-    (r"\brailway\s+up\b", "‫railway up‫ — النشر ممنوع في الـCI"),
-    (r"\bgh\s+release\b", "‫gh release‫ — النشر ممنوع في الـCI"),
-    (r"\bsecrets\.", "‫secrets.*‫ — مفيش أسرار في الـCI"),
+    (r"\bskipFiles\b", "skipFiles — استبعاد ملفات الاختبار"),
+    (r"\bgit\s+push\b", "git push — الدفع ممنوع في الـCI"),
+    (r"\bnpm\s+publish\b", "npm publish — النشر ممنوع في الـCI"),
+    (r"\bdocker\s+push\b", "docker push — النشر ممنوع في الـCI"),
+    (r"\bwrangler\s+deploy\b", "wrangler deploy — النشر ممنوع في الـCI"),
+    (r"\brailway\s+up\b", "railway up — النشر ممنوع في الـCI"),
+    (r"\bgh\s+release\b", "gh release — النشر ممنوع في الـCI"),
+    (r"\bsecrets\.", "secrets.* — مفيش أسرار في الـCI"),
 ]
 FORBIDDEN_RE = [(re.compile(p, re.I), m) for p, m in FORBIDDEN_LITERAL]
 
@@ -269,22 +269,22 @@ def check_workflow(wf, findings):
                                re.I) and (is_install or is_test):
             findings.append(
                 (wf.path, st.job, st.name,
-                 "‫continue-on-error‫ على خطوة تثبيت/اختبار — الفشل مش "
+                 "continue-on-error على خطوة تثبيت/اختبار — الفشل مش "
                  "بيفشّل الـjob"))
-        # ‫||‫ جوّه أمر التثبيت
+        # || جوّه أمر التثبيت
         if "||" in clean and is_install:
             findings.append(
                 (wf.path, st.job, st.name,
-                 "‫pip/npm install‫ مع ‫||‫ — فشل التثبيت ممكن يتخبى"))
+                 "pip/npm install مع || — فشل التثبيت ممكن يتخبى"))
         # خطوة «خطأ» جوّه run
         if re.search(r"(^|\n)\s*set\s+\+\w+", clean):
             findings.append((wf.path, st.job, st.name,
-                             "‫set +e‫ — بيخفي فشل الخطوة"))
+                             "set +e — بيخفي فشل الخطوة"))
     # continue-on-error: true في أي مكان (متغير على مستوى الـjob)
     for m in re.finditer(r"continue-on-error\s*:\s*(true|yes|1)\b", wf.clean,
                          re.I):
         findings.append((wf.path, "-", "-",
-                         "‫continue-on-error: true‫ — الفشل مش بيفشّل الـjob"))
+                         "continue-on-error: true — الفشل مش بيفشّل الـjob"))
     # الأنماط النصية الممنوعة
     for rx, msg in FORBIDDEN_RE:
         for m in rx.finditer(wf.clean):
@@ -303,7 +303,7 @@ def check_workflow(wf, findings):
     # uses لتطبيق نشر
     for m in DEPLOY_ACTIONS_RE.finditer(wf.clean):
         findings.append((wf.path, "-", "-",
-                         "‫uses‫ لتطبيق نشر/نشر حزم — ممنوع في الـCI"))
+                         "uses لتطبيق نشر/نشر حزم — ممنوع في الـCI"))
 
 
 def check_profile(wf, findings):
@@ -333,10 +333,10 @@ def check_profile(wf, findings):
                              % prof["install"]))
         if re.search(r"continue-on-error", install_job, re.I):
             findings.append((wf.path, "dependency-install", "-",
-                             "‫continue-on-error‫ في job التثبيت"))
+                             "continue-on-error في job التثبيت"))
         if "||" in install_job:
             findings.append((wf.path, "dependency-install", "-",
-                             "‫||‫ في job التثبيت — الفشل ممكن يتخبى"))
+                             "|| في job التثبيت — الفشل ممكن يتخبى"))
     # الحارس: لازم كل بوابة حراسة موجودة
     all_jobs = "\n".join(b for _, b in wf.jobs)
     for g in prof["guards"] + prof["data"]:
@@ -348,7 +348,7 @@ def check_profile(wf, findings):
         cond = st.cond.lower()
         if re.search(r"always\(\)|failure\(\)|!cancelled\(\)", cond):
             findings.append((wf.path, st.job, st.name,
-                             "‫if: always()‫ — الخطوة هتشتغل حتى لو التثبيت "
+                             "if: always() — الخطوة هتشتغل حتى لو التثبيت "
                              " فشل"))
     # الـjobs اللي محتاجة التثبيت لازم تعتمد عليه (عن طريق السلسلة)
     needs_map = {}
