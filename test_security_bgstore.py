@@ -26,12 +26,21 @@ from pathlib import Path
 
 import requests
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+import staging_probe  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent
 CFG = json.loads(Path(os.environ.get(
     "STAGE_CONFIG", "/workspace/.staging/staging-config.json")).read_text("utf-8"))
 BASE = os.environ.get("STAGE_URL", "http://127.0.0.1:8099").rstrip("/")
 PROXY = CFG["proxy_secret"]
-DATA_DIR = Path(CFG["data_dir"])
+
+# ⛔ الجولة ٢٤ (R24) — مجلد البيانات من **السيرفر** مش من ملف قديم ⇐
+#  📌 probe «users.json تالف» لازم يفحص الملف اللي **السيرفر بيقراه**
+#  📌 فعلاً ⇐ وإلا الرجوع 200 بدل 503 ⇐ والاختبار يفشل ⇐ سبب بيئي
+DATA_DIR, OUTBOX, ENV_SOURCE = staging_probe.resolve_paths(BASE, PROXY, CFG)
 USERS_FILE = DATA_DIR / "users.json"
 
 RESULTS = []
@@ -102,6 +111,9 @@ def child_json(stdout, key="BG_RESULT"):
 def main():
     print("🧪 اختبارات ارتدادية — القائد + fail-closed + سلامة users.json")
     print("   ⛔ القاعدة: %s" % BASE)
+    # ⛔ الجولة ٢٤ — تشخيص مصدر المسارات (معلومة · مش assertion)
+    print("   📍 مجلد البيانات: %s (%s)" % (DATA_DIR, ENV_SOURCE))
+    print("   📍 users.json: %s" % USERS_FILE)
 
     # ─────────────────────────────────────────────────────────────────────────
     section("① القائد: قرار واحد ⇒ الـ5 مهام كلها تشتغل")

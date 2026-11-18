@@ -36,6 +36,7 @@ FILES = [
     "_stub_env.py",
     "tools/staging/run_staging.py",
     "tools/staging/run_all.sh",
+    "staging_probe.py",
     "doc/GITHUB-DATA-CONTAINMENT.md",
     "docs/WEBAUTHN-DESIGN.md",
     "docs/WEBAUTHN-DESIGN.md",
