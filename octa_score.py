@@ -38,6 +38,33 @@ def _confidence_value(raw, default=60.0):
         return default
     return max(0.0, min(100.0, v))
 
+
+def _known_number(v):
+    """رقم معروف ومحدود — بيفرّق بين «الصفر الحقيقي» و«مش موجود».
+
+    ⛔ الجولة ٢٤ (R24) — ليش الدالة دي؟
+       · الصفر (0.0) = **قيمة حقيقية** (سهم مالوش تداول) ⇒ لازم يفضل
+         0.0 معروف — مش يتحوّل لـNone (مش «ناقص»).
+       · `None` / نص / `NaN` / `±Inf` = **مش بيانات** ⇒ None (ناقص).
+
+    📌 العلّتين اللي كانت بتضيّع الفكرة:
+       ① `0.0 or None` ⇒ None ⇒ الصفر الحقيقي بيختفي من القياس.
+       ② `float('nan')` بيمرّ من كل المقارنات (False) ⇒ «محايد» في
+          المحرك الفني و«ضعيف» في محرك السيولة، والمقسومة بتطلع NaN
+          في ردود الـAPI ⇒ رقم مش صالح أصلاً.
+    ⛔ مفيش تغيير في أي وزن ولا عتبة ولا سقف — التطبيع بس.
+    """
+    if v is None or isinstance(v, bool):
+        return None
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if f != f or f in (float("inf"), float("-inf")):
+        return None
+    return f
+
+
 AXIS_WEIGHTS = {
     # ⛔⛔⛔ ٢٦ أكتوبر ٢٠٢٦ — إعادة توزيع الأوزان بعد شيل الأرقام الثابتة
     # 📌 «محور المحفظة» كان رقم ثابت 70 لكل سهم (مفيش محفظة عامة)
@@ -222,7 +249,11 @@ def tech_score(item):
 
     # ─────────── 4) الحجم والتأكيد (10 نقاط) ───────────
     vol_score = 5.0
-    rv = _n(item.get("rel_volume"), None)
+    # ⛔ R24: التطبيع بيفرّق الصفر الحقيقي (0.0 ⇒ ضعيف 3 نقاط) عن
+    #    القيم الناقصة (None/NaN/Inf ⇒ محايد 5 نقاط). الصفر قبل كده
+    #    كان بيفضل 3 نقاط (سلوك صحيح) — والـNaN كان بيعدّي كأنه محايد
+    #    والـInf كان بياخد أعلى شريحة (10) ⇒ رقم مش حقيقي.
+    rv = _known_number(item.get("rel_volume"))
     if rv is not None:
         if rv > 1.5:
             vol_score = 9
@@ -374,7 +405,14 @@ def liquidity_score(item):
     vol5 = num(item.get("vol_5"))         # متوسط 5 أيام
     vol60 = num(item.get("vol_60"))       # متوسط 60 يوم
     mc = num(item.get("mkt_cap")) or None # القيمة السوقية
-    rv = num(item.get("rel_volume")) or None  # الحجم النسبي
+    # ⛔ الجولة ٢٤ (R24) — تمييز الصفر الحقيقي من القيم الناقصة:
+    #    · `rv_known` = الرقم الحقيقي للنشر: الصفر يفضل 0.0 (معلوم
+    #      كصفر) · وNone/NaN/Inf/نص ⇒ None (مش متاح).
+    #    · `rv` = متغيّر الدرجة: **مطابق للمرجع** (صفر ⇒ ناقص ⇒ محايد 15)
+    #      ⛔ تغيير درجة الصفر من محايد إلى أسوأ = تغيير سياسة ⇒
+    #        محتاج إذن المالك ⇒ مسجّل كاقتراح في أدلة الجولة ٢٤.
+    rv_known = _known_number(item.get("rel_volume"))   # الحجم النسبي
+    rv = rv_known if rv_known else None
     atr = num(item.get("atr")) or None    # المدى الحقيقي
 
     pos, neg, neu = [], [], []
@@ -484,7 +522,8 @@ def liquidity_score(item):
             "حجم اليوم": vol,
             "متوسط 5 أيام": vol5,
             "متوسط 60 يوم": vol60,
-            "الحجم النسبي": rv,
+            # ⛔ R24: الرقم الحقيقي (صفر = 0.0 · مش موجود = None)
+            "الحجم النسبي": rv_known,
             "أيام لبيع 1% من السوق": days_to_liq,
         },
         "max_safe_position_egp": max_position,
