@@ -18,6 +18,7 @@
 """
 
 import argparse
+import io
 import json
 import os
 import pathlib
@@ -46,6 +47,132 @@ SERVER_TESTS = {
 }
 
 PYPI_INDEX = "https://pypi.org/simple"
+
+# ⛔ كاش pip المحلي (http cache) — فيه العجلات (wheels) المخزّنة ⭐
+# 📌 مهم: الشبكة مقفولة في البيئة ⇒ `pip install` العادي بيفشل ⭐
+#   ⇒ بنستخرج العجلات من الكاش ourselves ⇒ ونركّب بـ --no-index ⭐
+PIP_HTTP_CACHE = pathlib.Path("/workspace/.home/.cache/pip/http")
+
+
+def build_wheelhouse(dest):
+    """يستخرج عجلات (wheels) من كاش pip المحلي ⇒ مجلد `dest` ⭐.
+
+    📌 ليه: الشبكة مقفولة ⇒ `pip install` من الإنترنت مش هينفع ⭐
+       والعجلات موجودة فعلاً في كاش pip ⇒ بنطلعها ونركّب offline ⭐.
+
+    📌 طريقتين مستقلّتين (الاتنين بيوصلوا لنفس النتيجة ⭐):
+       ① `pip._vendor.msgpack` ⇒ تفكيك ترويسة cachecontrol ⭐
+       ② مسح خام على مستوى البايت ⇒ استخراج الأرشيفات zip ⭐
+
+    ⛔ بيرجع (عدد العجلات · ملاحظات) ⭐
+    """
+    dest = pathlib.Path(dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    names = set()
+    notes = []
+
+    # ── ① msgpack (المسار الدقيق ⭐) ──
+    try:
+        from pip._vendor import msgpack
+    except Exception:
+        msgpack = None
+    if msgpack is not None:
+        for p in sorted(PIP_HTTP_CACHE.rglob("*")):
+            if not p.is_file():
+                continue
+            try:
+                data = p.read_bytes()
+            except Exception:
+                continue
+            if not data.startswith(b"cc=4,"):
+                continue
+            try:
+                obj = msgpack.loads(data[5:], raw=False)
+            except Exception:
+                continue
+            body = (obj.get("response") or {}).get("body") or b""
+            if body[:2] != b"PK":
+                continue
+            saved = _save_wheel(body, dest)
+            if saved:
+                names.add(saved)
+    else:
+        notes.append("msgpack مش متاح ⇒ المسار الخام ⭐")
+
+    # ── ② مسح خام (بدون اعتماد على أي مكتبة ⭐) ──
+    for p in sorted(PIP_HTTP_CACHE.rglob("*")):
+        if not p.is_file():
+            continue
+        try:
+            data = p.read_bytes()
+        except Exception:
+            continue
+        _extract_wheels_raw(data, dest, names)
+    return len(names), notes
+
+
+def _save_wheel(blob, dest):
+    """يحفظ عجلة صالحة باسمها ⇒ (الاسم · '') أو (None · '') ⭐.
+
+    ⛔ التحقق **صارم**: الأرشيف لازم يُفتح، والـMETADATA والـWHEEL لازم
+       يُقرآن فعلاً، و`testzip()` لازم يرجع None ⭐.
+       (من غير التحقق ⇒ نسخة مقطوعة ممكن تكتب فوق نسخة سليمة ⭐)
+    """
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(blob))
+        names = zf.namelist()
+    except Exception:
+        return None
+    meta = [n for n in names if n.endswith(".dist-info/METADATA")]
+    if not meta:
+        return None
+    dist = meta[0].split("/")[0][:-len(".dist-info")]
+    tag = "py3-none-any"
+    wheel_meta = [n for n in names if n.endswith(".dist-info/WHEEL")]
+    if wheel_meta:
+        try:
+            text = zf.read(wheel_meta[0]).decode("utf-8", "replace")
+        except Exception:
+            return None
+        for line in text.splitlines():
+            if line.lower().startswith("tag:"):
+                tag = line.split(":", 1)[1].strip()
+    try:
+        if zf.testzip() is not None:
+            return None
+        zf.read(meta[0])
+    except Exception:
+        return None
+    out = pathlib.Path(dest) / ("%s-%s.whl" % (dist, tag))
+    try:
+        out.write_bytes(blob)
+    except Exception:
+        return None
+    return out.name
+
+
+def _extract_wheels_raw(data, dest, names):
+    """مسح خام للبايتات ⇒ يستخرج كل أرشيف zip صالح ⭐.
+
+    📌 لازم نجرب **كل** مرشّحات نهاية الأرشيف (EOCD) ⭐ لأن أول تطابق
+       ممكن يكون صدفة جوّه بيانات مضغوطة ⇒ نسخة مقطوعة ⭐.
+    """
+    pos = 0
+    while True:
+        start = data.find(b"PK\x03\x04", pos)
+        if start < 0:
+            break
+        eocd = start
+        while True:
+            eocd = data.find(b"PK\x05\x06", eocd + 4)
+            if eocd < 0:
+                break
+            comment = int.from_bytes(data[eocd + 20:eocd + 22], "little")
+            saved = _save_wheel(data[start:eocd + 22 + comment], dest)
+            if saved:
+                names.add(saved)
+                break
+        pos = start + 4
 
 
 def run(cmd, cwd=None, env=None, timeout=1200):
@@ -101,7 +228,12 @@ def backend_suite(clone_dir, py, files, timeout=600):
 
 
 def install_backend_deps(clone_dir, work):
-    """(ok, note) — تثبيت اعتماديات الباك في بيئة معزولة."""
+    """(ok, note) — تثبيت اعتماديات الباك في بيئة معزولة.
+
+    📌 الترتيب: **العجلات المحلية الأول** ⭐ ⇒ لأن الشبكة مقفولة ⭐
+       وkاش pip فيه العجلات ⇒ نركّب offline بـ --no-index ⭐.
+       وبعدين الشبكة كخطة بديلة ⭐.
+    """
     req = pathlib.Path(clone_dir) / "requirements.txt"
     if not req.is_file():
         return False, "requirements.txt مش موجود"
@@ -111,12 +243,27 @@ def install_backend_deps(clone_dir, work):
         return False, "venv فشل: %s" % out.strip().splitlines()[-1][:120]
     pip = venv / "bin" / "pip"
     cache = "/workspace/.home/.cache/pip"
-    attempts = [
-        ([str(pip), "install", "--disable-pip-version-check", "-q",
-          "--cache-dir", cache, "-r", str(req)], "pip (الافتراضي + الكاش)"),
-        ([str(pip), "install", "--disable-pip-version-check", "-q",
-          "--index-url", PYPI_INDEX, "-r", str(req)], "pip (%s)" % PYPI_INDEX),
-    ]
+
+    attempts = []
+    # ⛔ ① العجلات المحلية (offline ⭐) — الأولوية ⭐
+    if PIP_HTTP_CACHE.is_dir():
+        house = pathlib.Path(work) / "wheelhouse"
+        n_wheels, notes = build_wheelhouse(house)
+        if n_wheels:
+            attempts.append(([str(pip), "install", "--disable-pip-version-check",
+                              "-q", "--no-index", "--find-links", str(house),
+                              "-r", str(req)],
+                             "عجلات محلية (%d ⭐)" % n_wheels))
+        else:
+            notes.append("مفيش عجلات في الكاش ⭐")
+    # ② الشبكة (خطة بديلة ⭐)
+    attempts.append(([str(pip), "install", "--disable-pip-version-check", "-q",
+                      "--cache-dir", cache, "-r", str(req)],
+                     "pip (الافتراضي + الكاش)"))
+    attempts.append(([str(pip), "install", "--disable-pip-version-check", "-q",
+                      "--index-url", PYPI_INDEX, "-r", str(req)],
+                     "pip (%s)" % PYPI_INDEX))
+
     notes = []
     for cmd, label in attempts:
         rc, out = run(cmd, timeout=1800)

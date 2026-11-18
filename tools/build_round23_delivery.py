@@ -23,6 +23,7 @@
 
 import hashlib
 import json
+import os
 import pathlib
 import re
 import shutil
@@ -254,18 +255,27 @@ def build_manifest(pkg):
 
 # ── ⑤ الكتابة الحتمية للـZIP ───────────────────────────────────────────────
 def write_zip(pkg, zip_path):
+    """يكتب الـzip **ذرّياً** (ملف مؤقت + إعادة تسمية) ⭐.
+
+    📌 ليه الذرّية: لو كنا بنحذف الملف الأول وبنكتبه،(الفاحص الشغّال
+       في نفس اللحظة) ممكن يلاقي الملف **مش موجود** أو **نصّه** ⭐
+       ⇒ فشل كاذب. مع الكتابة في ملف مؤقت ثم `os.replace` (ذرّية ⭐)
+       ⇒ الفاحص دايماً بيلاقي إمّا النسخة القديمة كاملة أو الجديدة كاملة ⭐.
+    """
     pkg = pathlib.Path(pkg)
     zip_path = pathlib.Path(zip_path)
-    if zip_path.exists():
-        zip_path.unlink()
+    tmp = zip_path.with_name(zip_path.name + ".tmp")
+    if tmp.exists():
+        tmp.unlink()
     files = sorted(p for p in pkg.rglob("*") if p.is_file())
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as z:
         for p in files:
             info = zipfile.ZipInfo(str(p.relative_to(pkg)), date_time=ZIP_DATE)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = (0o644 << 16)
             info.create_system = 3
             z.writestr(info, p.read_bytes())
+    os.replace(str(tmp), str(zip_path))
     return len(files)
 
 
@@ -309,7 +319,11 @@ def write_sidecar(zip_path, out_path, pkg_label, be_sha, fe_sha):
         "═══════════════════════════════════════════════════════════════",
         "",
     ]
-    pathlib.Path(out_path).write_text("\n".join(lines), encoding="utf-8")
+    # ⛔ كتابة ذرّية ⭐ (نفس سبب الـzip ⭐) ⇒ الفاحص ما يلاقيش ملف نصّه ⭐
+    out_path = pathlib.Path(out_path)
+    tmp = out_path.with_name(out_path.name + ".tmp")
+    tmp.write_text("\n".join(lines), encoding="utf-8")
+    os.replace(str(tmp), str(out_path))
     return {"md5": md5, "sha256": sha, "bytes": size, "entries": entries}
 
 
