@@ -24,11 +24,21 @@
 📌 طريقة التشغيل:
    cd octa-prices
    python3 tools/refresh_index_history.py
-   git add data/index_history.json && git commit -m "..."
+   git add data/index_history.json && git commit -m "رسالة Commit"
 
 📌 ⛔ ممنوع نخترع أي رقم — لو الـwebsocket رجّع غلط، الملف بيتكتب ناقص
    (والباك هيقول «غير متاح» بدل ما يعرض رقم مش حقيقي).
+
+🛡️ الجولة ٢٣ (R23) — الحارس بقى **fail-closed** ⭐:
+   ⛔ ما ينفعش نكتب تاريخ **مبتور** ⭐ (تاريخ قديم يتشال ⭐).
+   ⛔ ما ينفعش نكتب تاريخ **مكرّر** ⭐ (نفس اليوم مرتين ⭐).
+   ⛔ ما ينفعش نكتب تاريخ **مُعاد كتابته** ⭐ (قيمة تاريخ قديم تتغيّر ⭐).
+   ⛔ ما ينفعش نكتب ملف **ناقص الحقول** ⭐ (count/from/to لازم يطابقوا الصفوف ⭐).
+   ⛔ الكتابة **ذرّية** ⭐: ملف مؤقّت + fsync + فحص الملف المؤقّت + rename ⭐
+      ⇒ مافيش لحظة في الديسك فيها ملف نص مكتوب ⭐.
+   ⇒ الفحص كله بيستخدم نفس دوال الحارس ⭐ (tools/verify_data_integrity.py ⭐).
 """
+import io
 import json
 import os
 import sys
@@ -38,8 +48,16 @@ import datetime
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
+sys.path.insert(0, HERE)
 
 OUT = os.path.join(ROOT, "data", "index_history.json")
+
+# ⭐ نفس الحارس ⭐ — دوال فحص البنية + المقارنة ⭐
+from verify_data_integrity import (  # noqa: E402
+    compare_history,
+    utc_date,
+    validate_payload,
+)
 
 # (id, tv symbol, name_ar, name_en, official_inception, note)
 INDICES = [
@@ -54,6 +72,42 @@ INDICES = [
 ]
 
 COUNT = 12000  # TradingView بيرجّع كل المتاح
+
+
+def atomic_write_json(path, payload):
+    """كتابة ذرّية fail-closed ⭐
+
+    ⛔ مافيش ملف نص مكتوح في الديسك ⭐ (كله ملف مؤقّت ⭐).
+    ⛔ لوanything فشل ⇒ الملف المؤقّت يتمسح ⭐ والملف القديم يفضل زي ما هو ⭐.
+    """
+    tmp = path + ".tmp"
+    try:
+        with io.open(tmp, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, ensure_ascii=False, separators=(",", ":"))
+            handle.flush()
+            os.fsync(handle.fileno())
+        # ⭐ نفحص الملف المؤقّت نفسه قبل ما نعمله rename ⭐
+        with io.open(tmp, encoding="utf-8") as handle:
+            written = json.load(handle)
+        problems = validate_payload(written)
+        if problems:
+            raise ValueError("الملف المؤقّت مش سليم: %s" % "; ".join(problems[:5]))
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        except OSError:
+            pass
+        raise
+    try:
+        dir_fd = os.open(os.path.dirname(path) or ".", os.O_RDONLY)
+        try:
+            os.fsync(dir_fd)
+        finally:
+            os.close(dir_fd)
+    except OSError:
+        pass
 
 
 def main():
@@ -100,6 +154,9 @@ def main():
             # آخر قيمة في نفس اليوم هي الأصح (الشمعة جارية)
             by_day[day] = [int(b["t"]), round(float(c), 4)]
         rows = [by_day[d] for d in sorted(by_day.keys())]
+        if not rows:
+            print("❌ %s — مفيش صفوف صالحة" % sym)
+            continue
 
         out["indices"][idx_id] = {
             "symbol": sym,
@@ -107,8 +164,8 @@ def main():
             "name_en": name_en,
             "official_inception": inception,
             "official_note": note,
-            "from": rows[0][0] and datetime.datetime.utcfromtimestamp(rows[0][0]).strftime("%Y-%m-%d"),
-            "to": datetime.datetime.utcfromtimestamp(rows[-1][0]).strftime("%Y-%m-%d"),
+            "from": utc_date(rows[0][0]),
+            "to": utc_date(rows[-1][0]),
             "count": len(rows),
             "rows": rows,
         }
@@ -127,33 +184,47 @@ def main():
     # 📌 السبب: سكربت التحديث كتب نسخة **مبتورة** فوق نسخة **أ fullest** ⭐
     # ✅ القاعدة: ⛔ ما ينفعش نكتب بيانات **أقل** من الموجودة ⭐
     #   ⛔ أو ننسخ مؤشر معيّن من الملف القديم ⭐ (partial write ⭐).
+    # 🛡️ الجولة ٢٣ (R23) — تشديد ⭐:
+    #   ⛔ مفيش تاريخ قديم يتشال ⭐ (مش عدد الصفوف بس ⭐)
+    #   ⛔ مفيش قيمة تاريخية تتغيّر ⭐ (تاريخ مُعاد كتابته ⭐)
+    #   ⛔ مافيش تاريخ مكرّر ⭐ (structural check ⭐)
+    #   ⛔ count/from/to لازم يطابقوا الصفوف ⭐
+    old_payload = None
     try:
-        _old = json.load(open(OUT, encoding="utf-8"))
-        _old_idx = _old.get("indices") or {}
-        for _k, _meta in list(out["indices"].items()):
-            _prev = _old_idx.get(_k) or {}
-            _old_n = int(_prev.get("count") or 0)
-            _new_n = int(_meta.get("count") or 0)
-            if _old_n > _new_n:
-                print("❌⛔ %s: الجديدة %d صف < الموجودة %d — ⛔ مش هكتب"
-                      " (قصّ بيانات!)" % (_k, _new_n, _old_n))
-                return 1
-        _missing = [k for k in _old_idx if k not in out["indices"]]
-        if _missing:
-            print("❌⛔ مؤشرات موجودة مش في الجديدة: %s — ⛔ مش هكتب"
-                  % ", ".join(sorted(_missing)))
-            return 1
+        with io.open(OUT, encoding="utf-8") as handle:
+            old_payload = json.load(handle)
     except FileNotFoundError:
-        pass
-    except Exception as _e:
-        print("❌⛔ فحص القصّ فشل: %s — ⛔ مش هكتب" % str(_e)[:120])
+        print("ℹ️ مافيش ملف قديم — هنكتب أول نسخة ⭐")
+    except Exception as exc:
+        print("❌⛔ مقدرتش أقرأ الملف القديم: %s — ⛔ مش هكتب" % str(exc)[:120])
         return 1
 
-    tmp = OUT + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
-    os.replace(tmp, OUT)
-    print("\n💾 اتكتب: %s (%.1f KB)" % (OUT, os.path.getsize(OUT) / 1024.0))
+    if old_payload is not None:
+        problems = compare_history(old_payload, out)
+        if problems:
+            print("❌⛔ الحارس رفض الكتابة ⭐ (التاريخ الجديد مينفعش يكمّل القديم ⭐):")
+            for problem in problems[:12]:
+                print("   - %s" % problem)
+            print("   ⛔ الملف القديم اتساب زي ما هو ⭐")
+            return 1
+
+    # ⭐ فحص البنية والسلامة للحمولة الجديدة ⭐ (قبل أي كتابة ⭐)
+    problems = validate_payload(out)
+    if problems:
+        print("❌⛔ الحارس رفض الكتابة ⭐ (الحمولة الجديدة مش سليمة ⭐):")
+        for problem in problems[:12]:
+            print("   - %s" % problem)
+        return 1
+
+    # ⭐ كتابة ذرّية ⭐ (مافيش ملف نص مكتوح ⭐)
+    try:
+        atomic_write_json(OUT, out)
+    except Exception as exc:
+        print("❌⛔ الكتابة الذرّية فشل: %s — ⛔ الملف القديم اتساب زي ما هو ⭐"
+              % str(exc)[:160])
+        return 1
+
+    print("\n💾 اتكتب: %s (%.1f KB) ⭐" % (OUT, os.path.getsize(OUT) / 1024.0))
     return 0
 
 
