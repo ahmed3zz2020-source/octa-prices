@@ -1,0 +1,6 @@
+SRC: /workspace/.wt_r18fe/mgmt/worker.js
+SRC_SHA256: 92bfaef0c78a590ba6f95669aa2313954d16b9ec73f93b355607bc55b91e0e65
+OUT: /run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/output/OCTA-ROUND24-EVIDENCE/do-preview/worker.js
+OUT_SHA256: 8c101ad8df4b14980e054f747ab5ff90d88efca9acdc2bd23496faf03faa2be8
+INJECTED_LINES: 4
+FAULT_ENV: OCTA_TEST_DO_FAULT=storage-write

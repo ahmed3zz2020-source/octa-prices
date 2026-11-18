@@ -1,0 +1,68 @@
+HEAD=7e15f9a6c84200576aef0f8ba92c52bb1d0607ae
+CANDIDATE=28174db1edd69e557e9ce822a1da7f9eca89c653
+--- diff vs candidate (must be CI files only) ---
+.github/workflows/ci.yml
+tools/test_ci_alt_gates.py
+PASS test_auth_holes.py
+PASS test_charts_api.py
+PASS test_code_hygiene.py
+PASS test_data_full_route.py
+PASS test_egx_ttl.py
+PASS test_engine_contract01.py
+PASS test_engine_safety01.py
+PASS test_gold_history.py
+PASS test_gold_integrity.py
+PASS test_gold_live_price.py
+PASS test_gold_local.py
+PASS test_gold_macro.py
+PASS test_gold_scenarios.py
+PASS test_gold_technical.py
+PASS test_index_api.py
+PASS test_index_history_refresh_guard.py
+PASS test_opp_api01.py
+PASS test_opp_freshness13.py
+PASS test_opp_live01.py
+PASS test_pattern_challenges.py
+PASS test_pattern_daily.py
+PASS test_pattern_detector.py
+PASS test_pattern_stats.py
+PASS test_pin_auth.py
+PASS test_pin_challenge.py
+PASS test_r20_az31_36.py
+PASS test_radar_api.py
+PASS test_recipe_filter.py
+PASS test_round14_release.py
+PASS test_round15_coverage_states.py
+PASS test_round15_maildown_enum.py
+PASS test_round15_opp_perms.py
+PASS test_round15_price_label.py
+PASS test_round15_query_guard.py
+PASS test_round16_contract_wiring.py
+PASS test_round16_legacy_weights.py
+PASS test_round16_price_freshness.py
+PASS test_round16_query_limits.py
+PASS test_round17_n1_row_state.py
+PASS test_round17_n2_coverage.py
+PASS test_round17_n3_contract.py
+PASS test_round17_n4_session_match.py
+PASS test_round17_p1_unknown_state.py
+PASS test_round17_p2_coverage_consistency.py
+PASS test_round17_p3_contract_pick.py
+PASS test_round17_v2_01_coverage_domain.py
+PASS test_round17_v2_04_payload_ttl.py
+PASS test_round18_analysis_truth.py
+PASS test_round18_sec_failopen.py
+PASS test_run_pattern_scan.py
+PASS test_security_batch01.py
+PASS test_security_batch02.py
+PASS test_security_bgstore.py
+PASS test_security_p0.py
+PASS test_signup_flow.py
+PASS test_strategy_cap01.py
+PASS test_tree_hygiene.py
+PASS tools/test_ci_alt_gates.py
+PASS tools/test_ci_gates.py
+PASS tools/test_data_integrity_guard.py
+PASS tools/test_engines_filters_audit.py
+PASS tools/test_round23_clean_clone.py
+SUMMARY files_pass=62 files_fail=0

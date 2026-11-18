@@ -1,0 +1,120 @@
+{
+  "phase": "healthy",
+  "base": "http://127.0.0.1:8791",
+  "checks": [
+    {
+      "name": "login_200",
+      "pass": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "session_cookie_present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "session_200_before",
+      "pass": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "logout_status_recorded",
+      "pass": true,
+      "detail": {
+        "status": 200,
+        "ok": true
+      }
+    },
+    {
+      "name": "logout_200",
+      "pass": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "logout_ok_true",
+      "pass": true,
+      "detail": {
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "name": "revocation_survived_restart",
+      "pass": true,
+      "detail": {
+        "skipped": "no previous phase"
+      }
+    },
+    {
+      "name": "session_401_after_revoke",
+      "pass": true,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "revoked_cookie_saved_for_restart_check",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "replica_sees_revocation",
+      "pass": true,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "fresh_session_200",
+      "pass": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "logout3_200",
+      "pass": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "concurrent_checks_all_401",
+      "pass": true,
+      "detail": {
+        "total": 25,
+        "refused": 25
+      }
+    },
+    {
+      "name": "concurrent_logouts_all_ok",
+      "pass": true,
+      "detail": {
+        "total": 25,
+        "ok": 25
+      }
+    },
+    {
+      "name": "concurrent_sessions_all_401",
+      "pass": true,
+      "detail": {
+        "total": 25,
+        "refused": 25
+      }
+    }
+  ],
+  "summary": {
+    "logout_status": 200,
+    "session_after": 401,
+    "concurrent_refused": 25,
+    "concurrent_logouts_ok": 25,
+    "concurrent_sessions_refused": 25
+  }
+}

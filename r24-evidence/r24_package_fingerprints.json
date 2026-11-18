@@ -1,0 +1,30 @@
+{
+  "OCTA-ROUND24-DELIVERY.zip": {
+    "bytes": 4533480,
+    "entries": 267,
+    "md5": "092ed1b47e968fd912d4dcf008f3013a",
+    "sha256": "6905918628738b30c80a29dee3c05bec4b11c5ebdb9fe9c43f065acfb58e4178",
+    "zip_ok": true
+  },
+  "OCTA-ROUND24-BACKEND.zip": {
+    "bytes": 3087105,
+    "entries": 46,
+    "md5": "c957eced2e122b31f8eca650d82141b6",
+    "sha256": "9058898361654322d5c4e23e7c5739e74aa1502f1384d4156be9153987925527",
+    "zip_ok": true
+  },
+  "OCTA-ROUND24-FRONTEND.zip": {
+    "bytes": 1194958,
+    "entries": 4,
+    "md5": "d1faef945ae2ded83d018bcc87b6e649",
+    "sha256": "f04ecdbef0725af539460ec937c1647a0e85c777eebdc0acfd710416f292a759",
+    "zip_ok": true
+  },
+  "OCTA-ROUND24-CI.zip": {
+    "bytes": 16885933,
+    "entries": 41,
+    "md5": "336df64780afaed828fdc716c5b8ae5c",
+    "sha256": "e3aa2700fe67a13635bd626f9ed26869ce465153ccde63c61bd9131570f6c102",
+    "zip_ok": true
+  }
+}

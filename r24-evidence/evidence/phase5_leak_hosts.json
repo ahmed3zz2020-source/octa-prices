@@ -1,0 +1,2835 @@
+{
+  "round": "R24",
+  "item": "5 - close leaks via workers.dev and old preview version links",
+  "checked_at_utc": "2026-11-18T17:55:36.882055+00:00",
+  "leak_variant_count": 18,
+  "must_keep_count": 5,
+  "hosts": [
+    {
+      "host_label": "production_domain",
+      "base_url": "https://octashares.com",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 18,
+        "leak_leaking_200": 0,
+        "leak_other_status": 0,
+        "must_keep_200": 5,
+        "must_keep_other": 0,
+        "api_200": 1,
+        "resolved": 24,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_worker",
+      "base_url": "https://octa-preview.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 18,
+        "leak_leaking_200": 0,
+        "leak_other_status": 0,
+        "must_keep_200": 5,
+        "must_keep_other": 0,
+        "api_200": 0,
+        "resolved": 24,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "mgmt_worker",
+      "base_url": "https://octa-mgmt.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 18,
+        "leak_leaking_200": 0,
+        "leak_other_status": 0,
+        "must_keep_200": 1,
+        "must_keep_other": 4,
+        "api_200": 1,
+        "resolved": 24,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "prod_version_236",
+      "base_url": "https://c38a70e1-fa0d-48c9-9c86-dd9d2828f0e1.octa.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "prod_version_235",
+      "base_url": "https://b25bc875-9b55-49f5-84fe-7424d908fcc0.octa.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "prod_deploy_235",
+      "base_url": "https://3fc9abc5-b8cf-47ec-b708-dc5af7159d0c.octa.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_version_235",
+      "base_url": "https://b25bc875-9b55-49f5-84fe-7424d908fcc0.octa-preview.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_235",
+      "base_url": "https://3fc9abc5-b8cf-47ec-b708-dc5af7159d0c.octa-preview.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_9393",
+      "base_url": "https://939312b4-1164-4b64-9608-2d0d38336f3b.octa-preview.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_7611",
+      "base_url": "https://7611dca9-529d-4b89-8609-20c1a95b866d.octa-preview.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_3aa8",
+      "base_url": "https://3aa85617-2041-4b7a-ad2b-1f3200c88b0d.octa-preview.ahmed3zz2020.workers.dev",
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    }
+  ],
+  "detail": [
+    {
+      "host_label": "production_domain",
+      "base_url": "https://octashares.com",
+      "rows": [
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": null,
+          "content_type": "text/html",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 11768,
+          "body_sha256_12": "d7e8fae42fc5",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": null,
+          "content_type": "text/html",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 11768,
+          "body_sha256_12": "d7e8fae42fc5",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": "9656",
+          "content_type": "application/json",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 9656,
+          "body_sha256_12": "d93ce25ba80b",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": "16321",
+          "content_type": "application/javascript",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 16321,
+          "body_sha256_12": "28995c38f7cb",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": "13391",
+          "content_type": "application/json",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 13391,
+          "body_sha256_12": "c56e24e6b8a1",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": "667",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 667,
+          "body_sha256_12": "45446f561573",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": true
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 18,
+        "leak_leaking_200": 0,
+        "leak_other_status": 0,
+        "must_keep_200": 5,
+        "must_keep_other": 0,
+        "api_200": 1,
+        "resolved": 24,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_worker",
+      "base_url": "https://octa-preview.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "64",
+          "content_type": "application/json",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 64,
+          "body_sha256_12": "4ee105c6f871",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": null,
+          "content_type": "text/html",
+          "cf_cache_status": "MISS",
+          "location": null,
+          "bytes_received": 12013,
+          "body_sha256_12": "4c488b8e8bf6",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": null,
+          "content_type": "text/html",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 12013,
+          "body_sha256_12": "4c488b8e8bf6",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": "9656",
+          "content_type": "application/json",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 9656,
+          "body_sha256_12": "d93ce25ba80b",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": "16321",
+          "content_type": "application/javascript",
+          "cf_cache_status": "MISS",
+          "location": null,
+          "bytes_received": 16321,
+          "body_sha256_12": "28995c38f7cb",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": "13391",
+          "content_type": "application/json",
+          "cf_cache_status": "MISS",
+          "location": null,
+          "bytes_received": 13391,
+          "body_sha256_12": "c56e24e6b8a1",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 530,
+          "content_length": "17",
+          "content_type": "text/plain; charset=UTF-8",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 17,
+          "body_sha256_12": "71310e1f2fd1",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 18,
+        "leak_leaking_200": 0,
+        "leak_other_status": 0,
+        "must_keep_200": 5,
+        "must_keep_other": 0,
+        "api_200": 0,
+        "resolved": 24,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "mgmt_worker",
+      "base_url": "https://octa-mgmt.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": true
+        },
+        {
+          "status": 200,
+          "content_length": null,
+          "content_type": "text/html",
+          "cf_cache_status": "HIT",
+          "location": null,
+          "bytes_received": 122831,
+          "body_sha256_12": "be106ac13541",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": true
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": 404,
+          "content_length": "0",
+          "content_type": null,
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 0,
+          "body_sha256_12": null,
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": 200,
+          "content_length": "134",
+          "content_type": "application/json; charset=utf-8",
+          "cf_cache_status": null,
+          "location": null,
+          "bytes_received": 134,
+          "body_sha256_12": "05f79dec88d1",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": true
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 18,
+        "leak_leaking_200": 0,
+        "leak_other_status": 0,
+        "must_keep_200": 1,
+        "must_keep_other": 4,
+        "api_200": 1,
+        "resolved": 24,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "prod_version_236",
+      "base_url": "https://c38a70e1-fa0d-48c9-9c86-dd9d2828f0e1.octa.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "prod_version_235",
+      "base_url": "https://b25bc875-9b55-49f5-84fe-7424d908fcc0.octa.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "prod_deploy_235",
+      "base_url": "https://3fc9abc5-b8cf-47ec-b708-dc5af7159d0c.octa.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_version_235",
+      "base_url": "https://b25bc875-9b55-49f5-84fe-7424d908fcc0.octa-preview.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_235",
+      "base_url": "https://3fc9abc5-b8cf-47ec-b708-dc5af7159d0c.octa-preview.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_9393",
+      "base_url": "https://939312b4-1164-4b64-9608-2d0d38336f3b.octa-preview.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_7611",
+      "base_url": "https://7611dca9-529d-4b89-8609-20c1a95b866d.octa-preview.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    },
+    {
+      "host_label": "preview_deploy_3aa8",
+      "base_url": "https://3aa85617-2041-4b7a-ad2b-1f3200c88b0d.octa-preview.ahmed3zz2020.workers.dev",
+      "rows": [
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/opp_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/OPP_SNAPSHOT.JSON",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6fpp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/opp_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/Alpha_Snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/./alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data//alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/x/../alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/alpha_snapshot.json/",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%6cpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%2e/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/%64ata/alpha_snapshot.json",
+          "category": "leak_variant",
+          "expected_status": 404,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/index.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/market.html",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/egx30_history.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/market_names.js",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/data/sahm_names_ar.json",
+          "category": "must_keep",
+          "expected_status": 200,
+          "pass": false
+        },
+        {
+          "status": null,
+          "error": "URLError: <urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+          "path": "/api/health",
+          "category": "api",
+          "expected_status": 200,
+          "pass": false
+        }
+      ],
+      "counts": {
+        "leak_variants": 18,
+        "leak_blocked_404": 0,
+        "leak_leaking_200": 0,
+        "leak_other_status": 18,
+        "must_keep_200": 0,
+        "must_keep_other": 5,
+        "api_200": 0,
+        "resolved": 0,
+        "total": 24
+      }
+    }
+  ]
+}

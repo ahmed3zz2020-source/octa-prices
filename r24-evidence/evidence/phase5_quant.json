@@ -1,0 +1,469 @@
+{
+  "round": "24",
+  "phase": "5",
+  "title": "OCTA R24 · المرحلة ٥ — سلامة البيانات والتحليل في محرك التقييم",
+  "generated_at_utc": "2026-11-18T18:05:00Z",
+  "branch": "review/round24-quant",
+  "base_commit": "5681ab9c838c2888f25cf59e218c9000a83d4dd7",
+  "base_branch": "review/round23-backend",
+  "worktree": "/workspace/.wt_r24",
+  "repo": "/workspace/repos/octa-prices",
+  "environment": {
+    "python_audit": "/usr/bin/python3 (3.11.2)",
+    "python_venv": "/tmp/ci_r23_venv/bin/python (أُعيد إنشاؤه في الجولة دي — كان مفقوداً عند البداية)",
+    "dependencies": "flask==3.0.0 · requests==2.31.0 · gunicorn==21.2.0 (من requirements.txt)",
+    "network": "متاح (TradingView + iSagha + startamarkets)",
+    "note": "مافيش كتابة على الإنتاج · مافيش دمج · مافيش push",
+    "staging": "بيئة الـstaging المعزولة اشتغلت على 127.0.0.1:8099 (STAGE_DIR=/tmp/octa-staging-r24) عشان اختبارات الأمان"
+  },
+  "points": {
+    "a_relative_volume": {
+      "title": "الحجم النسبي = 0 في octa_score.py — تمييز الصفر الحقيقي عن القيم الناقصة",
+      "where_computed": [
+        {
+          "file": "octa_score.py",
+          "function": "tech_score",
+          "lines": "250-268 (بعد الإصلاح) / 223-243 (قبل الإصلاح)",
+          "band": "بند «الحجم والتأكيد» — سقف 10 نقاط من المحور الفني",
+          "formula": "rv = _known_number(item.get(\"rel_volume\")) ⇒ rv>1.5 ⇒ 9 نقاط · rv>1.0 ⇒ 7 · rv<0.5 ⇒ 3 · الباقي 5 (محايد افتراضي) · ثم تعديل تأكيد ±3 لو perf_1m مع rv>1.2",
+          "source_of_field": "update_prices.py:10341 — عمود الـscanner `relative_volume_10d_calc` ⇒ `rel_volume` (TradingView) · مرفوض بـvalidate_value خارج (0.0 .. 1000.0) ورافض NaN/Inf (update_prices.py:10500-10503)"
+        },
+        {
+          "file": "octa_score.py",
+          "function": "liquidity_score",
+          "lines": "435-446 (بعد الإصلاح) / 397-406 (قبل الإصلاح)",
+          "band": "بند «النشاط» — سقف 30 نقاط من محور السيولة",
+          "formula": "rv>2.0 ⇒ 28 · rv>1.3 ⇒ 24 · rv>0.8 ⇒ 18 · rv>0.4 ⇒ 11 · الباقي 5 · الناقص ⇒ 15 (محايد افتراضي)",
+          "published": "octa_score.py:526 — metrics[\"الحجم النسبي\"] (بيوصل للمستخدم في رد الـAPI)"
+        }
+      ],
+      "behaviour_before": {
+        "commit": "5681ab9",
+        "case_0_true": {
+          "tech_volume_band": 3,
+          "tech_total": 80.0,
+          "liq_activity_band": 15,
+          "liq_score": 51,
+          "published_metric": null,
+          "final_score": 34.9,
+          "note": "الصفر الحقيقي كان بيتحول لـmissing ⇒ محايد 15 والمقاس المنشور None"
+        },
+        "case_null": {
+          "tech_volume_band": 5.0,
+          "tech_total": 82.0,
+          "liq_activity_band": 15,
+          "liq_score": 51,
+          "published_metric": null,
+          "final_score": 35.4
+        },
+        "case_nan": {
+          "tech_volume_band": 5.0,
+          "tech_total": 82.0,
+          "liq_activity_band": 5,
+          "liq_score": 41,
+          "published_metric": "NaN",
+          "final_score": 31.6,
+          "note": "كل المقارنات مع NaN = False ⇒ واقعاً في أضعف شريحة + NaN بيتنشر في الرد"
+        },
+        "case_inf": {
+          "tech_volume_band": 10,
+          "tech_total": 87.0,
+          "liq_activity_band": 28,
+          "liq_score": 64,
+          "published_metric": "inf",
+          "final_score": 45.4,
+          "note": "Inf كان بياخد أعلى شريحة في المحورين"
+        }
+      },
+      "behaviour_after": {
+        "commit": "review/round24-quant",
+        "case_0_true": {
+          "tech_volume_band": 3,
+          "tech_total": 80.0,
+          "liq_activity_band": 15,
+          "liq_score": 51,
+          "published_metric": 0.0,
+          "final_score": 34.9,
+          "note": "الصفر بقي معلوم كصفر في القياس المنشور (0.0) والدرجة زي ما هي (سياسة مرجعية)"
+        },
+        "case_null": {
+          "tech_volume_band": 5.0,
+          "tech_total": 82.0,
+          "liq_activity_band": 15,
+          "liq_score": 51,
+          "published_metric": null,
+          "final_score": 35.4
+        },
+        "case_nan": {
+          "tech_volume_band": 5.0,
+          "tech_total": 82.0,
+          "liq_activity_band": 15,
+          "liq_score": 51,
+          "published_metric": null,
+          "final_score": 35.4,
+          "note": "NaN بقى ناقص زي الناقص بالظبط — مافيش NaN في الرد"
+        },
+        "case_inf": {
+          "tech_volume_band": 5.0,
+          "tech_total": 82.0,
+          "liq_activity_band": 15,
+          "liq_score": 51,
+          "published_metric": null,
+          "final_score": 35.4,
+          "note": "Inf بقى ناقص — مافيش inf في الرد"
+        }
+      },
+      "code_change": {
+        "file": "octa_score.py",
+        "hunks": [
+          "@@ -40,0 +41,27 @@ (دالة _known_number جديدة)",
+          "@@ -225 +252,5 @@ (tech_score)",
+          "@@ -377 +408,8 @@ (liquidity_score)",
+          "@@ -487 +525,2 @@ (المقياس المنشور)"
+        ],
+        "summary": "دالة _known_number: NaN/Inf/نص ⇒ None (ناقص) · الصفر يفضل 0.0 (معلوم). اتعملت على مسار الحجم النسبي بس.",
+        "policy_changes": "مافيش — مافيش تغيير في أي وزن ولا عتبة ولا سقف ولا حد التغطية."
+      },
+      "sensitivity": {
+        "identity_fix_zero": {
+          "published_score_change_pp": 0.0,
+          "note": "نشر 0.0 بدل None ما حرّكش أي درجة"
+        },
+        "nan_normalisation": {
+          "published_score_change_pp": 3.8,
+          "note": "31.6 ⇒ 35.4 (لقيمة غير صالحة فقط)"
+        },
+        "inf_normalisation": {
+          "published_score_change_pp": -10.0,
+          "note": "45.4 ⇒ 35.4 (لقيمة غير صالحة فقط)"
+        },
+        "real_rows_affected": 0,
+        "proof_real_rows_unaffected": "validate_value(\"rel_volume\", NaN/Inf/-Inf) ⇒ (None, سبب مكتوب) · واللقطة المنشورة data_full.json: صفر قيمة غير صالحة في 260 صف"
+      },
+      "missing_gets_no_score_proof": {
+        "axis_level": "محور ناقص ⇒ None ⇒ مستبعد من المحصلة وبياخد صفر وزن (octa_score._compose_score)",
+        "axis_absent": "مافيش بيانات سيولة خالص ⇒ الدرجة None + score_status=insufficient_liquidity_data (مش 50)",
+        "band_level_pending_owner": "البنود الداخلية (نشاط/عمق/سهولة) لسه بيدي قيمة محايدة افتراضية للناقص ⇒ تغييرها = سياسة ⇒ مقترح موثّق (PR-24-01)"
+      },
+      "proposal_not_applied": {
+        "id": "PR-24-02",
+        "title": "الصفر في بند «النشاط» ⇒ شريحة «ضعيف جداً» (5) بدل المحايد (15)",
+        "why_policy": "تغيير سلوك الصفر من محايد إلى أسوأ = تغيير سياسة ⇒ محتاج إذن المالك",
+        "before_after": {
+          "zero_now": {
+            "liq_activity": 15,
+            "liq_score": 51,
+            "tech_total": 80.0,
+            "final_score": 34.9,
+            "liquidity_penalty": -4.9
+          },
+          "zero_with_proposal": {
+            "liq_activity": 5,
+            "liq_score": 41,
+            "tech_total": 80.0,
+            "final_score": 31.0,
+            "liquidity_penalty": -5.9
+          },
+          "missing_unchanged": {
+            "liq_activity": 15,
+            "liq_score": 51,
+            "tech_total": 82.0,
+            "final_score": 35.4
+          }
+        },
+        "delta_pp": -3.9,
+        "consistency_note": "المحرك الفني بيعامل الصفر كضعيف (3/10) — الاقتراح بيوحّد سلوك المحورين"
+      }
+    },
+    "b_peg": {
+      "title": "PEG — مصدر نمو الأرباح غير موجود وقت التشغيل ⇒ «غير متاح»",
+      "implementation": {
+        "file": "update_prices.py",
+        "lines": "7636-7649 (الثوابت والأشرطة) · 7666-7690 (peg_value) · 7693-7710 (peg_score) · 7779 (نقطة الاستدعاء) · 7880-7881 (النشر)",
+        "call_site": "peg_pts, peg_v = peg_score(P, _f(item.get(\"ni_growth\")))",
+        "published": "\"peg\": peg_v (None = غير متاح) · \"peg_points\": peg_pts (0.0)"
+      },
+      "proof_ni_growth_absent_at_runtime": {
+        "data_files": {
+          "checked": "كل ملفات JSON في المستودع (data/*.json + data_full.json + egx_names.json)",
+          "method": "مسح عميق لكل المفاتيح (deep key scan)",
+          "result": "صفر ملف فيه مفتاح ni_growth"
+        },
+        "scanner_columns": {
+          "checked": "update_prices.TV_COLUMNS + TV_TECH_COLUMNS (71 عمود)",
+          "result": "مافيش عمود بيغذّي ni_growth · ومافيش عمود فيه كلمة growth أصلاً"
+        },
+        "engine_writes": {
+          "method": "مسح AST لكل المحركات (update_prices · octa_score · opp_engine · index_engine)",
+          "result": "صفر كتابة على ni_growth — كل الاستخدامات قراءة (.get)"
+        },
+        "snapshot": "data_full.json (296 سهماً): صفر سطر فيه ni_growth"
+      },
+      "published_behaviour": {
+        "peg_value": null,
+        "peg_points": 0.0,
+        "meaning": "«غير متاح» — مش صفر ولا inf ولا proxy · والقاعدة: الناقص = صفر نقاط (مش أفضل شريحة)",
+        "scores_unchanged_vs_pre_peg_baseline": true,
+        "baseline": "edc49cd (قبل إضافة PEG) — نفس الدرجة ونفس بند «القيمة» لسهم ما عندوش نمو"
+      },
+      "weights_unchanged": {
+        "axis_weights_vs_baseline_edc49cd": "متطابقة تماماً (مقارنة AST بالقيمة الحرفية)",
+        "axis_weights": {
+          "technical": 0.2,
+          "fundamental": 0.24,
+          "liquidity": 0.2,
+          "news": 0.05,
+          "sentiment": 0.04,
+          "risk": 0.27,
+          "portfolio": 0.0
+        },
+        "fundamental_composition": "30+30+20+20 (أربعة بنود: الربحية · القيمة · الصحة المالية · اكتمال البيانات)",
+        "coverage_threshold": {
+          "opp_engine.FRESH_MIN_COVERAGE": 90.0,
+          "update_prices._FRESH_MIN_COVERAGE": 90.0
+        },
+        "peg_points_cap": 8,
+        "value_band_cap": 30
+      },
+      "real_growth_provider_exists_but_not_wired": {
+        "source_name": "startamarkets — إحصاءات السهم",
+        "source_url": "https://startamarkets.com/api/v1/egx/statistics/{code}",
+        "field": "profit_growth (نمو الأرباح ٪)",
+        "measured_example": {
+          "code": "COMI",
+          "profit_growth": 48.99,
+          "eps_growth": 22.65,
+          "revenue_growth": 1,
+          "measured_at": "2026-11-18"
+        },
+        "current_wiring": "الرد الحيّ بي نشره باسم s_pg (update_prices.py:14101) — مش ni_growth ⇒ PEG ما بيشوفه",
+        "status": "اقتراح باسم المصدر فقط — من غير تنفيذ (محتاج إذن المالك)"
+      },
+      "defect_status": {
+        "code_fix_needed": false,
+        "reason": "المحرك بيعرض «غير متاح» فعلاً (None) و0 نقاط — مافيش رقم مخترع ولا proxy. العيب **فجوة تغطية بيانات** مش عيب كود.",
+        "applied_change": "مافيش تغيير في الكود في هذه النقطة — أُثبت بالاختبارات بدل التثبيت"
+      },
+      "open_finding": {
+        "id": "F-24-01",
+        "title": "معيار «نمو الأرباح» في محرك الفرص بيستخدم أداء السعر كبديل",
+        "file": "opp_engine.py",
+        "lines": "532-542",
+        "detail": "c_growth بيقرأ ni_growth و revenue_growth (كلاهما ناقص وقت التشغيل) ⇒ بيرجع لأداء 3 شهور (perf_3m) — وهو **أداء سعر** مش نمو أرباح، والاسم المنشور «معدل نمو الأرباح».",
+        "action": "ممنوع التعديل (منهجية الفرص = سياسة) ⇒ مرفوع كاقتراح PR-24-03"
+      }
+    },
+    "c_gold_drift": {
+      "title": "انحراف الذهب الحي — عزل السبب بالقياس",
+      "r23_measurement": {
+        "drift_pct": -3.18,
+        "source": "OCTA-ROUND23-DELIVERY/OCTA-ROUND23-SEND-MESSAGE.txt:43 + OCTA-ROUND23-ISSUE-REGISTER.md:29",
+        "other_measurements": {
+          "base_edc49cd": -2.13,
+          "branch_at_the_time": -2.57
+        }
+      },
+      "measurement_r24": {
+        "measured_at_utc": "2026-11-18T17:58:53Z",
+        "source_updated_iso": "2026-11-18T19:58:27+02:00",
+        "live_source": "iSagha — مرجع سوق ذهب مصري (https://market.isagha.com/prices)",
+        "series_source": "TradingView — FX_IDC:XAUUSD + FX_IDC:USDEGP (نفس رمز tk-usd في الـscanner)",
+        "series_last_point": {
+          "date": "2026-11-17",
+          "xau_usd_per_oz": 3734.64,
+          "egp_per_usd": 53.7,
+          "gram_egp": 6447.8328
+        },
+        "live": {
+          "gram_24_reference_egp": 6617.25,
+          "ounce_usd": 3734.04
+        },
+        "drift_pct": -2.5602,
+        "legs": {
+          "gold_leg_pct": -0.0161,
+          "gold_leg_note": "أونصة السوق المحلي (3734.04) مقابل إغلاق السلسلة (3734.64)",
+          "tv_same_bar_pct": 0.0035,
+          "tv_same_bar_note": "الذهب العالمية ما اتغيّرتش بين إغلاق السلسلة ووقت القياس",
+          "fx_leg_pct": 2.644,
+          "fx_leg_note": "الدولار الضمني من السوق المحلي 55.1198 مقابل الرسمي 53.7000 ⇒ +2.644٪",
+          "local_margin_pct": 0.0,
+          "local_margin_note": "مافيش هامش صاغة/عمولة: سعر السوق المحلي = أونصة المصدر × الدولار الضمني ÷ 31.1035 بالظبط"
+        },
+        "identity_check_pct": -2.560206,
+        "identity_error_pp": 6e-06,
+        "internal_consistency_pct": 0.0,
+        "repeated_runs_same_day_pct": [
+          -2.52,
+          -2.5897,
+          -2.5602,
+          -2.64
+        ],
+        "repeated_runs_note": "آخر شمعة يومية في السلسلة بيتعدّل من المصدر (3731.45 → 3733.51 → 3734.64) ⇒ الانحراف بيتحرك ~±0.12 نقطة مئوية"
+      },
+      "cause_isolation": {
+        "time_gap": {
+          "verdict": "مش السبب",
+          "evidence": "رجل الذهب −0.016٪ ورجل نفس الشمعة +0.0035٪ ⇒ فجوة الوقت (آخر نقطة 2026-11-17 مقابل قياس 2026-11-18 الساعة 19:58 القاهرة) = 0 تقريباً"
+        },
+        "unit": {
+          "verdict": "مش السبب",
+          "evidence": "نسب العيّارات من المصدر الحيّ: 3860.0/6617.25=0.583324 (المتوقع 14/24=0.583333) · 4962.75/6617.25=0.749972 (18/24) · 5790.0/6617.25=0.874986 (21/24) ⇒ نفس وحدة الجرام عيار 24 · والسلسلة: gram = xau×egp/31.1035 باتساق داخلي −0.000000٪"
+        },
+        "currency_pair": {
+          "verdict": "السبب",
+          "evidence": "السلسلة: FX_IDC:USDEGP = 53.7000 ج.م/دولار (رسمي) · السوق المحلي الضمني: 55.1198 ⇒ +2.644٪ (فرق سعر السوق الموازي)"
+        },
+        "different_source": {
+          "verdict": "السبب المباشر",
+          "evidence": "السلسلة سعر مرجعي محسوب (docs في gold_history.py: «ده سعر مرجعي محسوب مش سعر البيع») · المصدر الحيّ سعر سوق محلي"
+        },
+        "conclusion": "الانحراف سببه **طبقة العملة** (سعر السوق المحلي مقابل سعر الصرف الرسمي) + فجوة زمنية شبه معدومة — مش خطأ في الوحدة ولا في الكود"
+      },
+      "negative_proof": {
+        "what": "حقن انحراف +5٪ في آخر نقطة من السلسلة (في الذاكرة) وتشغيل البوابة الحتمية",
+        "exit_code": 1,
+        "failed_as_expected": true,
+        "failing_line": "❌ آخر نقطة (2026-11-17) = 6768.18 ج.م — الفرق عن المعاداة 5.000% (≤ 0.5%)",
+        "conclusion": "البوابة الحتمية لسه بتفشل على أي انحراف في السلسلة (47/47 على سلسلة سليمة)"
+      },
+      "gate_separation_status": {
+        "already_done_in_r23": true,
+        "proof": "test_gold_live_price.py متخطّى افتراضياً (OCTA_RUN_LIVE_TESTS) وكود خروجه 0 (متحقّق بتنفيذه في الاختبار)",
+        "residual": "البوابة الحتمية فيها لمس حيّ اختياري (نسب العيّارات) fail-soft ⇒ فصل مش نظيف 100٪ ⇒ مقترح PR-24-04"
+      },
+      "acceptance_proposal_not_applied": {
+        "id": "PR-24-05",
+        "current": {
+          "tolerance_pct": 1.5,
+          "source": "test_gold_live_price.py:32 (OCTA_LIVE_GOLD_TOLERANCE_PCT)"
+        },
+        "measured_history_pct": [
+          -2.13,
+          -2.52,
+          -2.56,
+          -2.57,
+          -2.59,
+          -3.18
+        ],
+        "problem": "كل انحراف مقاس خارج الحد 1.5٪ ⇒ البوابة الحيّة بتفشل على حركة سوق طبيعية",
+        "proposed": {
+          "tolerance_pct": 5.0,
+          "reference": "أكبر انحراف مقاس في السجل 3.18٪ + هامش 1.8 نقطة مئوية لتعديل آخر شمعة (±0.12٪) وحركة يوم واحد",
+          "extra_conditions": [
+            "تشغيل المقارنة بس لو آخر نقطة في السلسلة أحدث من 3 أيام تداول (وإلا تخطّى بسبب مكتوب)",
+            "طباعة التفكيك (ذهب/دولار/هامش) بدل رقم واحد",
+            "البوابة الحيّة البوابة الحتمية: الاتساق الداخلي ≤ 0.5٪ + حداثة ≤ 10 أيام (زي ما هي — مافيش تغيير)"
+          ]
+        },
+        "policy_note": "مافيش تغيير في السياسة — الحد المقترح مسجّل كمرجع للمالك يقرر"
+      }
+    }
+  },
+  "proposals": [
+    {
+      "id": "PR-24-01",
+      "title": "الناقص في البنود الداخلية ما بياخدش نقاط (بدل القيم المحايدة الافتراضية)",
+      "scope": "octa_score.liquidity_score (عمق/نشاط/سهولة/استقرار) + tech_score",
+      "status": "مقترح — محتاج إذن المالك",
+      "reason": "«missing لا يحصل على أي درجة» ⇒ تغيير درجات منشورة لكل سهم ناقص ⇒ سياسة"
+    },
+    {
+      "id": "PR-24-02",
+      "title": "الصفر في بند «النشاط» ⇒ شريحة «ضعيف جداً» (5) بدل المحايد (15)",
+      "scope": "octa_score.liquidity_score",
+      "status": "مقترح — محتاج إذن المالك",
+      "before_after": "34.9 ⇒ 31.0 (−3.9 نقطة) لنفس السهم"
+    },
+    {
+      "id": "PR-24-03",
+      "title": "معيار «نمو الأرباح» في محرك الفرص: تسمية صريحة أو استبعاد",
+      "scope": "opp_engine.c_growth (532-542)",
+      "status": "مقترح — محتاج إذن المالك",
+      "reason": "بيستخدم أداء السعر كبديل لنمو الأرباح · تغييره = منهجية الفرص ⇒ ممنوع من غير إذن"
+    },
+    {
+      "id": "PR-24-04",
+      "title": "نقل اللمس الحيّ الاختياري (نسب العيّارات) من البوابة الحتمية لاختبار الحيّ",
+      "scope": "test_gold_integrity.py قسم ⑥",
+      "status": "مقترح",
+      "reason": "فصل نظيف 100٪ بين الحتمي والحيّ"
+    },
+    {
+      "id": "PR-24-05",
+      "title": "حدّ قبول حيّ موثّق (±5٪) + شروط تشغيل + طباعة التفكيك",
+      "scope": "test_gold_live_price.py",
+      "status": "مقترح — محتاج إذن المالك",
+      "reference": "أكبر انحراف مقاس 3.18٪"
+    },
+    {
+      "id": "PR-24-06",
+      "title": "مصدر واحد للنمو: startamarkets · profit_growth",
+      "scope": "توصيل الحقل ni_growth بخط بيانات PEG",
+      "status": "مقترح — الاسم والمصدر فقط (من غير تنفيذ)",
+      "measured_example": "COMI ⇒ profit_growth = 48.99٪ (قياس 2026-11-18)"
+    }
+  ],
+  "findings_open": [
+    {
+      "id": "F-24-01",
+      "title": "معيار النمو في محرك الفرص بيستخدم perf_3m كبديل",
+      "file": "opp_engine.py:532-542",
+      "status": "مفتوح — ممنوع التعديل (سياسة)"
+    },
+    {
+      "id": "F-24-02",
+      "title": "دالة _n في tech_score/final_score مافيش فلتر لـNaN/Inf لغير الحجم النسبي",
+      "file": "octa_score.py (tech_score السطر 85 · final_score السطر 687)",
+      "status": "مفتوح — النطاق كان الحجم النسبي بس (المرحلة ٥) · التعميم محتاج دراسة حساسية على كل الحقول"
+    },
+    {
+      "id": "F-24-03",
+      "title": "آخر شمعة يومية في السلسلة بتتعدّل من المصدر ⇒ الانحراف المقاس بيتحرك ~±0.12 نقطة مئوية",
+      "file": "gold_history.py (سلسلة TradingView اليومية)",
+      "status": "مفتوح — توثيق في حدود القبول المقترحة"
+    },
+    {
+      "id": "F-24-04",
+      "title": "البوابة الحتمية فيها لمس حيّ اختياري (fail-soft)",
+      "file": "test_gold_integrity.py قسم ⑥",
+      "status": "مفتوح — مقترح PR-24-04"
+    }
+  ],
+  "tests_added": [
+    {
+      "path": "tools/test_round24_rel_volume_states.py",
+      "cases": 12,
+      "result": "12/12",
+      "covers": "(أ) الحالات الأربعة · تمييز الصفر · NaN/Inf ⇒ ناقص · مافيش NaN/Inf في الرد · سياسة الدرجة مثبّتة · حساسية · إثبات إن «الناقص» ما بياخدش وزن · مدخل الـscanner رافض NaN/Inf"
+    },
+    {
+      "path": "tools/test_round24_growth_source_audit.py",
+      "cases": 14,
+      "result": "14/14",
+      "covers": "(ب) مسح ملفات البيانات · مسح أعمدة الـscanner · مسح AST للكتابات · PEG «غير متاح» + صفر نقاط · مافيش proxy · الدرجات مطابقة لأساس ما قبل PEG · الأوزان مطابقة للأساس · حد التغطية 90٪"
+    },
+    {
+      "path": "tools/test_round24_gold_gate_contract.py",
+      "cases": 9,
+      "result": "9/9",
+      "covers": "(ج) فصل البوابة الحتمية · الاختبار الحيّ متخطّى وكود خروجه 0 · حدود البوابة الحتمية صارمة · وحدة الجرام · هوية التفكيك · سبب العملة · حدود القبول"
+    },
+    {
+      "path": "tools/r24_gold_drift_isolation.py",
+      "kind": "أداة قياس حيّ (مش بوابة CI)",
+      "result": "انحراف −2.5602٪ + برهان سالب (كود خروج 1)",
+      "covers": "(ج) القياس الكامل والتفكيك والبرهان السالب"
+    }
+  ],
+  "regression_suite": {
+    "r23_valuation_audit": "78/78 (بلا عيوب)",
+    "r23_engines_filters_audit": "77/77",
+    "r23_gold_deterministic": "47/47",
+    "r24_new_tests": "12/12 · 14/14 · 9/9",
+    "root_test_files": "كل ملفات test_*.py في الجذر: ناجحة — 3 ملفات اختبارات أمنية محتاجة بيئة staging (127.0.0.1:8099) اختبرتها بعد تشغيل بيئة الـstaging المعزولة: batch02 64/64 · bgstore 16/16 · p0 34/34. قبل تشغيل البيئة: نفس الـ3 بيفشلوا بالظبط على الأساس 5681ab9 ⇒ فشل بيئي مش من التعديل",
+    "notes": "مافيش تغيير في الأوزان أو في حد الـ90٪ أو في منهجية التقييم أو في أي سياسة",
+    "hygiene_guards": "test_code_hygiene.py 6/6 · test_tree_hygiene.py 9/9"
+  },
+  "head_commit": "49df9ce28e9b2c5e6cd272552cc05ebdda8432f5",
+  "head_commit_short": "49df9ce"
+}

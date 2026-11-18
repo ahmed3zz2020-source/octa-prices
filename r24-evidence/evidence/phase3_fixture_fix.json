@@ -1,0 +1,283 @@
+{
+  "phase": "3",
+  "title": "إصلاح fixture البريد الوهمي — اختبارات الأمان ما بتوصلش كود التأكيد",
+  "round": "24",
+  "date": "2026-11-18",
+  "branch": "review/round24-data-proofs",
+  "base_branch": "review/round23-backend",
+  "base_commit": "5681ab9c838c2888f25cf59e218c9000a83d4dd7",
+  "baseline_commit": "edc49cd6e29b04f335876fb1bed7a95971eae75a",
+  "commits": [
+    {
+      "sha": "19427da",
+      "subject": "إصلاح fixture البريد الوهمي (المرحلة ٣)",
+      "files": [
+        "tools/staging/run_staging.py",
+        "staging_probe.py",
+        "test_security_batch02.py",
+        "test_security_bgstore.py",
+        "test_code_hygiene.py"
+      ]
+    }
+  ],
+  "root_cause": "اختبارات الأمان كانت بتاخد مسار صندوق البريد المحاكى ومجلد البيانات من ملف الإعدادات (STAGE_CONFIG) بينما السيرفر بياخدهم من متغيّر البيئة (STAGE_DIR) بتاعه، ولما الاتنين يختلفوا الكود بيوصل لصندوق ما بيقراش (⇒ verify 401 ⇒ newpin يرجّع unlock_expired) وprobe «users.json تالف» بيفحص ملف ما السيرفرش بيقراه (⇒ 200 بدل 503) — سبب بيئي في harness الاختبار مش عيب في الإنتاج.",
+  "proof_of_root_cause": [
+    "ملف صندوق البريد في /workspace/.staging/outbox.jsonl ما اتكتبش وقت تشغيل الجولة 23 رغم أن signup/start رجّع 200 ⇒ الكود اتسلّم لصندوق تاني غير اللي الاختبار بيقراه.",
+    "ت corruption users.json في /workspace/.staging/users.json ما أثّرش على ردود السيرفر (200 بدل 503) رغم إن update_prices.py بيقرأ الملف من القرص في كل طلب (مافيش كاش) ⇒ مجلد بيانات السيرفر مش هو اللي الاختبار كان بيلمسه.",
+    "إعادة إنتاج الفشل بالظبط على الأساس edc49cd: batch02 = 58 ناجح / 5 فاشل (63) و bgstore = 13 ناجح / 3 فاشل (16) — نفس أرقام تقرير الجولة 23 بالظبط."
+  ],
+  "files_changed": [
+    {
+      "path": "tools/staging/run_staging.py",
+      "role": "harness بيئة الـstaging ومزوّد البريد المحاكى",
+      "changes": [
+        "صندوق البريد بقى إضافة فقط (append-only) — ما ينمسحش عند الإقلاع ⇒ كود ما يضيعش لو السيرفر عمل restart.",
+        "الكتابة ذرّية: os.open بـ O_APPEND + كتابة السطر كله + fsync ⇒ مافيش سطر نصيف.",
+        "كل رسالة بتاخد seq و sent_at.",
+        "مسار جديد /__staging__/env (بيئة الـstaging بس) ينشر المسارات الحقيقية (data_dir + mailbox) — مقفول بسر الـproxy بمقارنة constant-time (403 بدون السر).",
+        "ملف staging-config.json بقى فيه مسار صندوق البريد (الملف مكتفي بنفسه)."
+      ]
+    },
+    {
+      "path": "staging_probe.py",
+      "role": "ملف جديد — مساعد مشترك للاختبارين",
+      "changes": [
+        "server_env(): تسأل السيرفر عن بيئته الحقيقية.",
+        "resolve_paths(): ترجّع (مجلد البيانات · صندوق البريد · المصدر) — الأولوية للسيرفر والرجوع لملف الإعدادات كاحتياطي.",
+        "mailbox_marker(): علامة (إزاحة بالبايت) قبل الطلب.",
+        "read_code(): بتقرأ **الجديد بس** بعد العلامة ⇒ كود قديم من تشغيل سابق ما يقدرش يخدع assertion، والسطر النصيف بيتجاهل."
+      ]
+    },
+    {
+      "path": "test_security_batch02.py",
+      "role": "اختبار تسجيل الدخول والتأكيد",
+      "changes": [
+        "المسارات من السيرفر (server) بدل ملف الإعدادات القديم (config).",
+        "قراءة الكود من **الجديد بس** بعد علامة قبل كل طلب ⇐ الكود القديم ما يعدّيش نجاح.",
+        "التنظيف وفحص users.json بقوا على مجلد بيانات السيرفر الحقيقي.",
+        "مفيش أي assertion اتغيّر · مفيش sleep · مفيش تجاوز مصادقة."
+      ]
+    },
+    {
+      "path": "test_security_bgstore.py",
+      "role": "اختبار القائد + fail-closed + سلامة users.json",
+      "changes": [
+        "مجلد البيانات (users.json) من السيرفر ⇐ probe «الملف التالف» بيفحص الملف اللي السيرفر بيقراه فعلاً ⇐ 503 زي ما المفروض.",
+        "مفيش أي assertion اتغيّر."
+      ]
+    },
+    {
+      "path": "test_code_hygiene.py",
+      "role": "حارس نظافة الكود",
+      "changes": [
+        "إضافة staging_probe.py لقائمة الملفات اللي الحارس بيحصيها (تقوية مش weaken)."
+      ]
+    }
+  ],
+  "environment": {
+    "python": "3.11.2",
+    "venv": "/tmp/ci_r23_venv",
+    "deps": "flask==3.0.0 · requests==2.31.0 · gunicorn==21.2.0 (pip --index-url https://pypi.org/simple)",
+    "baseline_clone": "/tmp/r24_base (git clone من /workspace/repos/octa-prices عند edc49cd)",
+    "branch_clone": "/tmp/r24_final (clone نظيف لفرع review/round24-data-proofs)",
+    "isolation": "كل تشغيل على STAGE_DIR و بورت منفصل · كل الحسابات وهمية (example.test) · الإيميل Mock ملف · مافيش أي اتصال بالإنتاج · TELEGRAM_BG_TASKS=off",
+    "mismatch_setup": "STAGE_CONFIG بيوجّه لمجلد غير مجلد السيرفر (الوضع اللي خلّى الجولة 23 تفشل)"
+  },
+  "baseline_before": [
+    {
+      "case": "الأساس edc49cd · بيئة مطابقة (ملف الإعدادات = مجلد السيرفر)",
+      "file": "test_security_batch02.py",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "total": 64,
+      "log": "evidence/logs/base_batch02.out"
+    },
+    {
+      "case": "الأساس edc49cd · بيئة مطابقة",
+      "file": "test_security_bgstore.py",
+      "exit_code": 0,
+      "passed": 16,
+      "failed": 0,
+      "total": 16,
+      "log": "evidence/logs/base_bgstore.out"
+    },
+    {
+      "case": "الأساس edc49cd · بيئة **متعارضة** (الوضع بتاع الجولة 23)",
+      "file": "test_security_batch02.py",
+      "exit_code": 1,
+      "passed": 57,
+      "failed": 6,
+      "total": 63,
+      "failing_assertions": [
+        "كود التأكيد وصل (من صندوق الإيميل Mock)",
+        "كود صح ⇒ 200 — 401",
+        "رجع توكن فتح",
+        "حساب جديد اتعمل بـPIN — 401 ... why=unlock_expired",
+        "رجع توكن جلسة للحساب الجديد",
+        "كود الاسترجاع وصل"
+      ],
+      "log": "evidence/logs/base_batch02_mismatch2.out"
+    },
+    {
+      "case": "الأساس edc49cd · بيئة متعارضة **مع صندوق قديم فيه كود من تشغيل سابق** (نفسsetup الجولة 23)",
+      "file": "test_security_batch02.py",
+      "exit_code": 1,
+      "passed": 58,
+      "failed": 5,
+      "total": 63,
+      "note": "أرقام مطابقة لتقرير الجولة 23 بالظبط (58/5/63) · وفيه **نجاح مضلّل**: «كود الاسترجاع وصل ✅» بكود قديم ما اتبعتش أصلاً",
+      "log": "evidence/logs/base_batch02_stale_falsepass.out"
+    },
+    {
+      "case": "الأساس edc49cd · بيئة متعارضة",
+      "file": "test_security_bgstore.py",
+      "exit_code": 1,
+      "passed": 13,
+      "failed": 3,
+      "total": 16,
+      "failing_assertions": [
+        "⑤aRegister:a clear 503 instead of a fake success — 200",
+        "⑤aRegister:ok=false",
+        "⑤bLogin:a clear 503 — 200"
+      ],
+      "note": "أرقام مطابقة لتقرير الجولة 23 بالظبط (13/3/16)",
+      "log": "evidence/logs/base_bgstore_mismatch.out"
+    }
+  ],
+  "after": [
+    {
+      "case": "الفرع بعد الإصلاح · بيئة **متعارضة** (نفس setup الفشل)",
+      "file": "test_security_batch02.py",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "total": 64,
+      "paths_source": "server",
+      "log": "evidence/logs/fix_batch02_mismatch.out"
+    },
+    {
+      "case": "الفرع بعد الإصلاح · بيئة متعارضة",
+      "file": "test_security_bgstore.py",
+      "exit_code": 0,
+      "passed": 16,
+      "failed": 0,
+      "total": 16,
+      "paths_source": "server",
+      "log": "evidence/logs/fix_bgstore_mismatch.out"
+    },
+    {
+      "case": "الفرع بعد الإصلاح · بيئة مطابقة",
+      "file": "test_security_batch02.py",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "total": 64,
+      "paths_source": "server",
+      "log": "evidence/logs/fix_batch02_match.out"
+    },
+    {
+      "case": "الفرع بعد الإصلاح · بيئة مطابقة",
+      "file": "test_security_bgstore.py",
+      "exit_code": 0,
+      "passed": 16,
+      "failed": 0,
+      "total": 16,
+      "paths_source": "server",
+      "log": "evidence/logs/fix_bgstore_match.out"
+    },
+    {
+      "case": "الفرع بعد الإصلاح · تشغيلين متتاليين (قابلية التكرار)",
+      "file": "test_security_batch02.py",
+      "exit_code": 0,
+      "passed": 64,
+      "failed": 0,
+      "total": 64,
+      "runs": [64, 64]
+    }
+  ],
+  "negative_control": {
+    "title": "كود قديم في الصندوق ما يعدّيش نجاح",
+    "setup": "صندوق فيه كود من تشغيل سابق (6 أرقام) + سيرفر قديم من غير مسار نشر البيئة",
+    "baseline_behaviour": "«كود الاسترجاع وصل ✅» (نجاح مضلّل بكود ما اتبعتش) · 58 ناجح / 5 فاشل · exit=1",
+    "fixed_behaviour": "«كود الاسترجاع وصل ❌» (الكود القديم مرفوض) · 57 ناجح / 6 فاشل · exit=1",
+    "why_fixed_still_fails_here": "السيرفر في هذا الضابط هو سيرفر قديم (ما فيهوش /__staging__/env) ⇒ الاختبار رجع لملف الإعدادات ⇒ ماقدرش يلاقي صندوق السيرفر ⇒ الفشل صريح بدل نجاح مضلّل.",
+    "logs": [
+      "evidence/logs/base_batch02_stale_falsepass.out",
+      "evidence/logs/fix_batch02_stale.out"
+    ]
+  },
+  "full_suite": {
+    "how": "clone نظيف للفرع (/tmp/r24_final) · بيئة معزولة STAGE_DIR=/tmp/r24_stage_final2 · بورت 8395 · نفس مُشغّل الـCI (backend-suite) · 63 ملف اختبار",
+    "files": 63,
+    "passed": 60,
+    "failed": 1,
+    "isolated": 2,
+    "isolated_files": [
+      "tools/staging/test_flask_binding.py (بيقرأ مستودع الواجهة)",
+      "test_gold_integrity.py (بيقرأ سعر حي من market.isagha.com)"
+    ],
+    "cases": 931,
+    "target_files": [
+      {"file": "test_security_batch02.py", "exit_code": 0, "cases": 64},
+      {"file": "test_security_bgstore.py", "exit_code": 0, "cases": 16}
+    ],
+    "failed_files": [
+      {
+        "file": "tools/test_data_integrity_guard.py",
+        "exit_code": 1,
+        "cases": "14/15",
+        "reason": "الحالة ⑥ (الملف الحقيقي مقابل الأساس) فشلت لأن التحديث اليومي (_maybe_refresh_index_history) عدّل data/index_history.json أثناء تشغيل المجموعة (ترتيب الملفات) ⇒ artifact بيئي مش انحدار.",
+        "same_file_alone": "15/15 · exit=0 (بعد رجوع الملف لنسخته في git)",
+        "on_base_branch": "نفس الـartifact بالظبط (ملف واحد فاشل · نفس الحالة ⑥) — انظر before_full_suite"
+      }
+    ],
+    "log": "runner/r24_runner.py + /tmp/r24_logs/suite_final2.log"
+  },
+  "before_full_suite": {
+    "note": "نفس المُشغّل ونفس البيئة على فرع الأساس review/round23-backend (5681ab9) — لمقارنة_numbers",
+    "clone": "/tmp/r24_base_suite",
+    "files": 61,
+    "passed": 58,
+    "failed": 1,
+    "isolated": 2,
+    "cases": 931,
+    "failed_files": ["tools/test_data_integrity_guard.py (نفس artifact البيئي — الحالة ⑥)"],
+    "target_files": [
+      {"file": "test_security_batch02.py", "exit_code": 0, "cases": 64},
+      {"file": "test_security_bgstore.py", "exit_code": 0, "cases": 16}
+    ],
+    "log": "/tmp/r24_logs/suite_base.log"
+  },
+  "diff_before_after_suite": {
+    "files": "+2 (ملفَي البراهين الجديدين في المرحلة ٥)",
+    "passed": "+2 (نفس الملفين الجديدين)",
+    "failed": "0 (نفس الملف الفاشل بالظبط قبل وبعد)",
+    "cases": "0 (نفس العدد 931 — الملفين الجديدين بيطبعوا «النتيجة: 16/16» و«26/26» مش بصيغة العدّاد)"
+  },
+  "single_process_mode_measurement": {
+    "why": "المشرف سجّل إن الاختبارين الأمنيين بيفشلوا لما كل الملفات تشتغل في عملية واحدة (mode-suite) — والسبب المتوقّع كان «تسرّب حالة صندوق البريد الوهمي بين الملفات».",
+    "how": "runner/r24_single_process.py — كل ملف داخل نفس الـinterpreter (runpy) · نفس خادم الـstaging · نفس الـconfig",
+    "base_branch_5681ab9": {"files": 57, "passed": 37, "failed": 20},
+    "branch_review_round24_data_proofs": {"files": 57, "passed": 37, "failed": 20},
+    "per_file_difference": "صفر — نفس نتيجة كل ملف بالظبط على الفرعين",
+    "actual_root_cause_in_single_process": "مش صندوق البريد: `_stub_env.install()` (بتستعمله test_auth_holes · test_charts_api · test_gold_history · test_gold_local · test_index_api …) بتعمل sys.modules['requests'] = stub ⇒ كل ملف بعده بيتكلم مع stub مش مع الشبكة ⇒ ردود 200 مزيفة ⇒ test_security_batch02 بيفشل بـ AttributeError: module 'requests' has no attribute 'Session' و«كود التأكيد وصل ❌».",
+    "what_my_fix_changes_here": "تسرّب حالة الصندوق نفسه اتقفل (العلامة قبل الطلب ⇒ كود قديم ما يعدّيش نجاح)، بس السبب الأقوى — وهو الـstub — موجود على الأساس كمان — وهو الـstub — موجود على الأساس كمان ⇒ الوضع ده مش صالح كبوابة أصلاً.",
+    "logs": [
+      "evidence/logs/single_process_base_branch.log",
+      "evidence/logs/single_process_branch.log"
+    ]
+  },
+  "constraints_respected": [
+    "مافيش أي تعديل في update_prices.py (سياسة الإنتاج ما اتغيّرتش).",
+    "مافيش تجاوز للمصادقة ولا لفحص فتح الحساب · المسار الجديد مقفول بسر الـproxy.",
+    "مافيش assertion اتضعف · مافيش sleep · مافيش بريد حقيقي · مافيش حساب حقيقي.",
+    "مافيش تعديل في ملفات الـCI · مافيش حذف لأي ملف اختبار.",
+    "مافيش push · مافيش دمج في main · مافيش لمس لأي بيئة حيّة (octashares.com / Railway).",
+    "ملف الإعدادات المشترك /workspace/.staging-secrets.json و users.json بقوا متطابقين (sha256 قبل/بعد)."
+  ],
+  "not_done": [
+    "مافيش إصلاح لسبب الجولة 23 في الـCI نفسه (الملف على فرع ci/ منفصل) — الملف ده ماقدرتش ألمسه.",
+    "مافيش اختبار end-to-end على الواجهة (مستودع تاني) — مش في نطاق الباك."
+  ]
+}

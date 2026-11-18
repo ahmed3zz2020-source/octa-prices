@@ -1,0 +1,76 @@
+{
+  "phase": "fault",
+  "base": "http://127.0.0.1:8791",
+  "checks": [
+    {
+      "name": "login_200",
+      "pass": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "session_cookie_present",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "session_200_before",
+      "pass": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "logout_status_recorded",
+      "pass": true,
+      "detail": {
+        "status": 503,
+        "ok": false
+      }
+    },
+    {
+      "name": "logout_not_false_success",
+      "pass": true,
+      "detail": {
+        "status": 503,
+        "ok": false
+      }
+    },
+    {
+      "name": "logout_is_503",
+      "pass": true,
+      "detail": {
+        "status": 503
+      }
+    },
+    {
+      "name": "logout_body_ok_false",
+      "pass": true,
+      "detail": {
+        "body": {
+          "ok": false,
+          "error": "تعذّر إبطال الجلسة على كل النسخ — جرّب تاني",
+          "revoked_shared": false
+        }
+      }
+    },
+    {
+      "name": "logout_clears_cookie",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "session_refused_after_failed_revoke",
+      "pass": true,
+      "detail": {
+        "status": 401
+      }
+    }
+  ],
+  "summary": {
+    "logout_status": 503,
+    "logout_ok": false,
+    "session_after": 401
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "artifact": "phase2_session_proofs",
+  "generated_at": "2026-11-18T18:29:02.318004Z",
+  "code_under_test": {
+    "file": "mgmt/worker.js ⭐",
+    "repo": "octa (الواجهة ⭐) ⭐",
+    "branch": "review/round24-security-fe ⭐",
+    "base": "review/round23-frontend @ ba94ec12bf491aeb7a527766d982c7a0f3823a6d ⭐"
+  },
+  "identifiers": {
+    "R22-I04": {
+      "requirement": "فشل كتابة الإبطال (الـKV أو الـDO) لا ينتج نجاحاً وهمياً ⭐",
+      "test_file": "assets/tests/r24-session-i04.test.js",
+      "negative_tests": "R24-I04-01 ⭐ (مزوّد معزول ⭐: كتابة الـKV ترمي ⭐ والـDO يرد ٥٠٠ ⭐) ⭐",
+      "before": {
+        "code_under_test": "mgmt/worker.js @ ba94ec1 (جولة ٢٣ ⭐)",
+        "tests": 7,
+        "pass": 5,
+        "fail": 2,
+        "failed_titles": [
+          "not ok 1 - R24-I04-01: a broken revocation write must NOT produce a false success",
+          "not ok 3 - R24-I04-03: a SILENT revocation write failure is also not a success"
+        ]
+      },
+      "after": {
+        "code_under_test": "mgmt/worker.js @ فرع review/round24-security-fe ⭐",
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "failed_titles": []
+      },
+      "closed": true,
+      "score_before": "5/7",
+      "score_after": "7/7"
+    },
+    "R22-I05": {
+      "requirement": "مدة صلاحية التخزين (TTL) تغطي العمر المتبقي للجلسة بهامش ⭐ + بطلان الحالة القديمة ⭐",
+      "test_file": "assets/tests/r24-session-i05.test.js",
+      "negative_tests": "R24-I05-01 ⭐ (TTL = باقي العمر + هامش ⭐) ⭐ و R24-I05-02 ⭐ (العلامة بتفضل موجودة ⭐ بعد ساعة ⭐) ⭐ و R24-I05-03 ⭐ (علامة الـDO لازم صلاحية ⭐) ⭐",
+      "before": {
+        "code_under_test": "mgmt/worker.js @ ba94ec1 (جولة ٢٣ ⭐)",
+        "tests": 5,
+        "pass": 2,
+        "fail": 3,
+        "failed_titles": [
+          "not ok 1 - R24-I05-01: the KV marker TTL covers the remaining session lifetime + margin",
+          "not ok 2 - R24-I05-02: an hour later the marker must still be there (no fail-open)",
+          "not ok 3 - R24-I05-03: the Durable Object marker carries an expiration (session end + margin)"
+        ]
+      },
+      "after": {
+        "code_under_test": "mgmt/worker.js @ فرع review/round24-security-fe ⭐",
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "failed_titles": []
+      },
+      "closed": true,
+      "score_before": "2/5",
+      "score_after": "5/5"
+    },
+    "R22-I06": {
+      "requirement": "التحقق من التوقيع وانتهاء الصلاحية يسبق أي نداء إلى DO/KV ⭐",
+      "test_file": "assets/tests/r24-session-i06.test.js",
+      "negative_tests": "R24-I06-01 ⭐ (كوكي مزوّر ⭐ ⇒ صفر نداءات ⭐) ⭐ و R24-I06-02 ⭐ (كوكي منتهٍ ⭐ ⇒ صفر نداءات ⭐) ⭐",
+      "before": {
+        "code_under_test": "mgmt/worker.js @ ba94ec1 (جولة ٢٣ ⭐)",
+        "tests": 6,
+        "pass": 2,
+        "fail": 4,
+        "failed_titles": [
+          "not ok 1 - R24-I06-01: a FORGED cookie never reaches the storage (zero calls)",
+          "not ok 2 - R24-I06-02: an EXPIRED cookie never reaches the storage (zero calls)",
+          "not ok 3 - R24-I06-03: a MALFORMED cookie never reaches the storage (zero calls)",
+          "not ok 6 - R24-I06-06: a forged cookie is refused on a protected API too"
+        ]
+      },
+      "after": {
+        "code_under_test": "mgmt/worker.js @ فرع review/round24-security-fe ⭐",
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "failed_titles": []
+      },
+      "closed": true,
+      "score_before": "2/6",
+      "score_after": "6/6"
+    }
+  },
+  "durable_object_preview": {
+    "runtime": "wrangler 3.114.14 ⭐ + workerd/miniflare محلي ⭐ ⭐",
+    "cloud_resource_created": false,
+    "paid_resource_created": false,
+    "phases": {
+      "phase1_storage_fault": {
+        "checks": 9,
+        "passed": 9,
+        "failed": 0,
+        "summary": {
+          "logout_status": 503,
+          "logout_ok": false,
+          "session_after": 401
+        }
+      },
+      "phase2_healthy": {
+        "checks": 15,
+        "passed": 15,
+        "failed": 0,
+        "summary": {
+          "logout_status": 200,
+          "session_after": 401,
+          "concurrent_refused": 25,
+          "concurrent_logouts_ok": 25,
+          "concurrent_sessions_refused": 25
+        }
+      },
+      "phase3_after_restart": {
+        "checks": 15,
+        "passed": 15,
+        "failed": 0,
+        "summary": {
+          "logout_status": 200,
+          "session_after": 401,
+          "concurrent_refused": 25,
+          "concurrent_logouts_ok": 25,
+          "concurrent_sessions_refused": 25
+        }
+      }
+    },
+    "bundle": "SRC: /workspace/.wt_r18fe/mgmt/worker.js\nSRC_SHA256: 92bfaef0c78a590ba6f95669aa2313954d16b9ec73f93b355607bc55b91e0e65\nOUT: /run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/output/OCTA-ROUND24-EVIDENCE/do-preview/worker.js\nOUT_SHA256: 8c101ad8df4b14980e054f747ab5ff90d88efca9acdc2bd23496faf03faa2be8\nINJECTED_LINES: 4\nFAULT_ENV: OCTA_TEST_DO_FAULT=storage-write\n",
+    "injected_fault": "خط واحد في **نسخة المعاينة بس** ⭐ (مش في المستودع ⭐) ⭐ بيكسر كتابة التخزين ⭐ ( throwing ) ⭐",
+    "free_tier_cost": {
+      "durable_objects_free_tier": "100 ألف طلب/يوم ⭐ + ١٠٠٠ اتصال/|Consumer؟ ⭐",
+      "requests_charged": "الاستعلامات ⭐ (كل طلب ⭐) ⭐ + مدة التنفيذ ⭐",
+      "storage": "الحساب ⭐ (-rows ⭐) ⭐ + SQLite ⭐",
+      "estimate_for_octa": "أقل من ١٠٠ طلب/يوم ⭐ (جلسات أدمن ⭐) ⭐ ⇒ داخل Free ⭐ بـ٠$ ⭐ ⭐",
+      "note": "⛔ التفعيل بيحتاج نشر ⭐ (مش من صلاحية الجولة ⭐) ⭐ ⭐",
+      "certain": false,
+      "why_not_certain": "أرقام الحصة بتتغير ⭐ ⇒ المرجع الرسمي ⭐ docs Cloudflare ⭐ (راجعها قبل التفعيل ⭐) ⭐"
+    },
+    "residual_risk": "⛔ لو فشل **كتابة** الإتباط ⭐ ⇒ النسخة اللي حاولت ⭐ رفضت الجلسة ⭐ لكن **النسخ التانية** ⭐ ممكن تقبلها ⭐ (لأن العلامة ما اتكتبتش ⭐) ⭐ ⇒ ده حدّ مادي ⭐ (مش فيه مخزن شغّال ⭐) ⭐ ⇒ الحل ⭐: إما Storage ⭐ يعمل ⭐ أو تدوير SESSION_SECRET ⭐"
+  },
+  "regressions": {
+    "full_frontend_suite": {
+      "tests": 597,
+      "pass": 596,
+      "fail": 1,
+      "failing_test": "🛡️ مفيش حروف صينية/كورية/يابانية في كود المشروع ⭐",
+      "cause": "⛔ تعديل **غير ملتزم** موجود في شجرة العمل المشتركة ⭐ (assets/js/octa-origin-guard.js ⭐) ⭐ من جولة سابقة ⭐ — **مش** من شغل الجولة ٢٤ ⭐ ⭐",
+      "proof": "النفس ⭐ على نسخة الجولة ٢٣ النظيفة ⭐ ⇒ ٢/٢ نجاح ⭐ ⭐"
+    },
+    "updated_existing_assertion": {
+      "file": "assets/tests/r21-kv-failure.test.js ⭐",
+      "test": "R21-KV-02 ⭐",
+      "was": "assert.equal(res.status, 200) ⭐ + assert.equal(body.ok, true) ⭐",
+      "now": "assert.equal(res.status, 503) ⭐ + assert.equal(body.ok, false) ⭐ + التحقق إن الكوكي اتمسح ⭐",
+      "why": "عقد الجولة ٢٤ ⭐ (I04 ⭐): ⛔ ممنوع نجاح وهمي ⭐ ⭐",
+      "weakened": false
+    }
+  },
+  "live_touched": false,
+  "secrets_written": false
+}

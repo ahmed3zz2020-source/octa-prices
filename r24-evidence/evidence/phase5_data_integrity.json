@@ -1,0 +1,287 @@
+{
+  "phase": "5",
+  "title": "إعادة إثبات R21-I01/I02 ببراهين سالبة محددة + PEG «غير متاح» + ثبات الأوزان",
+  "round": "24",
+  "date": "2026-11-18",
+  "branch": "review/round24-data-proofs",
+  "base_branch": "review/round23-backend",
+  "base_commit": "5681ab9c838c2888f25cf59e218c9000a83d4dd7",
+  "commits": [
+    {
+      "sha": "0f41788",
+      "subject": "براهين سالبة أقوى لحارس البيانات + PEG (المرحلة ٥)",
+      "files": [
+        "tools/test_data_integrity_proofs_r24.py",
+        "tools/test_peg_availability_r24.py"
+      ]
+    }
+  ],
+  "goal_in_one_sentence": "إثبات إن حارس بيانات تاريخ المؤشرات **يفشل** — بسبب العيب نفسه في مواجهة كل نوع عيب مطلوب (فقد تاريخ بثبات العدد · إزاحة كل التواريخ · تداخل فارغ · تكرار · count/from/to · كتابة ذرية · تشغيل يومي على نسخة صناعية)، وإثبات إن PEG بيقول «غير متاح» بدل ما يخترع نمواً أو proxy، وإن الأوزان المعتمدة ما اتغيّرتش.",
+  "root_cause_of_the_review_gaps": "منطق الحارس في الجولة 23 كان موجود فعلاً (tools/verify_data_integrity.py + tools/refresh_index_history.py)، لكن البراهين السالبة كانت ناقصة التغطية: مافيش برهان لتاريخ بيتفقد والعدد ثابت، ولا لإزاحة كل التواريخ، ولا لتداخل فارغ في الاتجاهين، ولا ضابط موجب لـ count/from/to، ولا إثبات للكتابة الذرية عند القطع في النص، ولا تشغيل يومي حقيقي على نسخة صناعية، ولا أي برهان PEG.",
+  "files": [
+    {
+      "path": "tools/test_data_integrity_proofs_r24.py",
+      "status": "جديد",
+      "lines": 643,
+      "role": "البراهين السالبة السبعة المطلوبة",
+      "note": "كل الـfixtures في مجلد مؤقّت · data/index_history.json ما يتلمسش (sha256 قبل/بعد)"
+    },
+    {
+      "path": "tools/test_peg_availability_r24.py",
+      "status": "جديد",
+      "lines": 378,
+      "role": "براهين PEG + ثبات الأوزان"
+    },
+    {
+      "path": "tools/verify_data_integrity.py",
+      "status": "ما اتغيّرش في الجولة 24",
+      "role": "الحارس (منطق الجولة 23) — اتقفل عليه بالبراهين الجديدة"
+    },
+    {
+      "path": "tools/refresh_index_history.py",
+      "status": "ما اتغيّرش في الجولة 24",
+      "role": "أداة التحديث اليومي — اتقفلت عليها بالبراهين الجديدة"
+    }
+  ],
+  "proofs_guard": {
+    "file": "tools/test_data_integrity_proofs_r24.py",
+    "passed": 16,
+    "total": 16,
+    "exit_code": 0,
+    "log": "evidence/logs/proofs_r24.out",
+    "report": "evidence/logs/proofs_report.json",
+    "cases": [
+      {
+        "id": "①",
+        "requirement": "برهان فقد تاريخ مع ثبات العدد",
+        "fixture": "أساس 400 صف · التاريخ الأول (2024-01-01) اتشال والتاريخ الجديد اتحط في النص ⇒ عدد الصفوف 400 في النسختين",
+        "expected": "الحارس يفشل",
+        "exit_code": 1,
+        "failed_assertions": ["I01.TS_SUBSET"],
+        "detail": "base=400 · current=400 (ثابت) · missing=1"
+      },
+      {
+        "id": "②",
+        "requirement": "إزاحة جميع التواريخ بنفس المقدار",
+        "fixture": "كل التواريخ اتزحفت +30 يوم (العدد ثابت 400) على أساس طويل ⇒ التداخل فضل 92% من المدى",
+        "expected": "الحارس يفشل",
+        "exit_code": 1,
+        "failed_assertions": ["I01.TS_SUBSET", "I01.VALUE_IDENTICAL", "LEGACY.SHARED_VALUES.SYNTH", "LEGACY.SHARED_VALUES.TOTAL"],
+        "detail": "base=400 · current=400 (ثابت) · missing=30 · changed=370 · التداخل فضل كبير"
+      },
+      {
+        "id": "③أ",
+        "requirement": "مقارنة بتداخل فارغ (المدى بعد الأساس)",
+        "fixture": "المدى الحالي 2026-03-10 → 2027-04-13 مقابل أساس 2024-01-01 → 2025-02-03",
+        "expected": "الحارس يفشل",
+        "exit_code": 1,
+        "failed_assertions": ["I01.TS_SUBSET", "I02.OVERLAP_WINDOW", "I02.OVERLAP_MIN_DAYS", "I02.OVERLAP_BASE_FRACTION", "I02.SHARED_COUNT"]
+      },
+      {
+        "id": "③ب",
+        "requirement": "مقارنة بتداخل فارغ (المدى قبل الأساس)",
+        "fixture": "المدى الحالي 2022-11-27 → 2023-12-31",
+        "expected": "الحارس يفشل",
+        "exit_code": 1,
+        "failed_assertions": ["I01.TS_SUBSET", "I02.OVERLAP_WINDOW", "I02.OVERLAP_MIN_DAYS", "I02.OVERLAP_BASE_FRACTION", "I02.SHARED_COUNT"]
+      },
+      {
+        "id": "③ج",
+        "requirement": "مقارنة بتداخل فارغ (السلسلة الحالية فارغة)",
+        "fixture": "current=0 صف (base=400)",
+        "expected": "الحارس يفشل (مش مقارنة فاضية تعدّي)",
+        "exit_code": 1,
+        "failed_assertions": ["LEGACY.ROW_COUNT.SYNTH", "META.FROM", "META.TO", "I01.TS_SUBSET", "I02.OVERLAP_WINDOW", "I02.OVERLAP_MIN_DAYS", "I02.OVERLAP_BASE_FRACTION", "I02.SHARED_COUNT"]
+      },
+      {
+        "id": "④",
+        "requirement": "تكرار التواريخ مرفوض",
+        "fixture": "تاريخ مكرّر بنفس القيمة (2024-02-20) ⇒ الفشل منسوب للتكرار نفسه",
+        "expected": "الحارس يفشل",
+        "exit_code": 1,
+        "failed_assertions": ["I03.STRICTLY_INCREASING"],
+        "detail": "base=400 · current=401 · تكرار: 2024-02-20"
+      },
+      {
+        "id": "⑤أ",
+        "requirement": "صحة count مطابقة للصفوف فعلياً",
+        "fixture": "count=401 والصفوف 400",
+        "expected": "الحارس يفشل",
+        "exit_code": 1,
+        "failed_assertions": ["META.COUNT"]
+      },
+      {
+        "id": "⑤ب",
+        "requirement": "صحة from و to مطابقة للصفوف فعلياً",
+        "fixture": "from و to مربوطين بصفوف تانية (مش أول وآخر صف)",
+        "expected": "الحارس يفشل",
+        "exit_code": 1,
+        "failed_assertions": ["META.FROM", "META.TO"]
+      },
+      {
+        "id": "⑤ج",
+        "requirement": "ضابط موجب ل count/from/to",
+        "fixture": "ملف سليم",
+        "expected": "الحارس يعدّي",
+        "exit_code": 0,
+        "failed_assertions": []
+      },
+      {
+        "id": "⑥أ",
+        "requirement": "الكتابة ذرية — الكتابة اتقفلت في النص",
+        "fixture": "قطع مقصود في نص json.dump (جزء من الملف اتكتب وبعدين استثناء)",
+        "expected": "الملف القديم متطابق (sha256) · مافيش ملف مؤقّت · الملف لسه JSON صالح",
+        "result": "كل الشروط_true",
+        "detail": "رُمي الاستثناء=True · sha256 الملف=متطابق · ملف مؤقّت متبقّي=لأ · الملف لسه JSON صالح=أيوه"
+      },
+      {
+        "id": "⑥ب",
+        "requirement": "الكتابة ذرية — فشل الـrename",
+        "fixture": "os.replace بيرمي استثناء",
+        "expected": "الملف القديم متطابق · مافيش ملف نصيف يبان كأنه سليم",
+        "result": "كل الشروط_true",
+        "detail": "رُمي الاستثناء=True · sha256 الملف=متطابق · ملف مؤقّت متبقّي=لأ · الملف لسه JSON صالح=أيوه"
+      },
+      {
+        "id": "⑥ج",
+        "requirement": "الكتابة ذرية — حمولة غير سليمة (تاريخ مكرّر)",
+        "fixture": "حمولة فيها طابع زمني مكرّر",
+        "expected": "الكتابة تترفض قبل ما تمسّ الملف",
+        "result": "كل الشروط_true",
+        "detail": "رُمي الاستثناء=True · sha256 الملف=متطابق · ملف مؤقّت متبقّي=لأ"
+      },
+      {
+        "id": "⑥د",
+        "requirement": "ضابط موجب للكتابة الذرية",
+        "fixture": "حمولة سليمة",
+        "expected": "الملف اتبدّل كامل ومافيش ملف مؤقّت",
+        "result": "pass"
+      },
+      {
+        "id": "⑦أ",
+        "requirement": "تشغيل التحديث اليومي على نسخة صناعية",
+        "fixture": "نسخة كاملة من المشروع في مجلد مؤقّت (tools + data + tv_ws محاكى) + تشغيل السكربت كعملية مستقلة",
+        "expected": "exit=0 والنسخة الصناعية اتكتبت صح",
+        "result": "count=10 · rows=10 · from=2024-01-01 · to=2024-01-10 · ملف مؤقّت متبقّي=لأ"
+      },
+      {
+        "id": "⑦ب",
+        "requirement": "التحديث اليومي على بيانات مبتورة",
+        "fixture": "نفس التشغيل بمصدر مبتر (4 صفوف بدل 10)",
+        "expected": "يرفض الكتابة (exit≠0) والملف زي ما هو",
+        "result": "exit=1 · الملف=متطابق · ملف مؤقّت متبقّي=لأ"
+      },
+      {
+        "id": "⑦ج",
+        "requirement": "ملف الإنتاج ما اتلمسش",
+        "fixture": "sha256 لـ data/index_history.json قبل وبعد كل التشغيلات",
+        "expected": "متطابق",
+        "result": "sha256 قبل=0fc20dfeb274b428 · بعد=0fc20dfeb274b428"
+      }
+    ]
+  },
+  "proofs_peg": {
+    "file": "tools/test_peg_availability_r24.py",
+    "passed": 26,
+    "total": 26,
+    "exit_code": 0,
+    "log": "evidence/logs/peg_r24.out",
+    "report": "evidence/logs/peg_report.json",
+    "findings": {
+      "no_source": [
+        "①أ `ni_growth` مش في أعمدة الـscanner (TV_COLUMNS) — والـscanner هو مصدر الأرقام الحقيقي.",
+        "①ب مفيش أي عمود نمو في الـscanner (لا growth ولا غيره).",
+        "①ج مفيش مفتاح `ni_growth` في أي ملف بيانات بالمستودع (10 ملفات: data_full.json + data/*.json) — فحص تكراري على شجرة JSON كلها.",
+        "①د الكود بيقرأ الحقل بس — مافيش سطر بيكتبه (القيمة اللي في قاموس تفاصيل المحور echo للقيمة المقروءة مش مصدر).",
+        "①ه الـitem المبني من أعمدة المصدر مافيش فيه `ni_growth`."
+      ],
+      "behaviour": [
+        "②أ مفيش `ni_growth` ⇒ `peg` = null (غير متاح).",
+        "②ب مفيش `ni_growth` ⇒ نقاط PEG = 0 (مش «رخيص»).",
+        "②ج مافيش نص PEG في المبررات (positives/neutral/negatives).",
+        "②④ الرد بيطلع `\"peg\": null` ⇒ الواجهة بتعرض «غير متاح» (مش 0 ولا inf).",
+        "②ه proxy (نمو إيرادات 55 · أداء 3 شهور 55 · earnings_growth 55) ⇒ PEG لسه null ⇒ مافيش استبدال.",
+        "②و ضابط موجب: `ni_growth`=20 و P/E=10 ⇒ PEG=0.5 ⇒ «غير متاح» مش رقم ثابت مكتوب.",
+        "②ز نفس الحالة ⇒ 8 نقاط (سقف PEG_POINTS_MAX).",
+        "②ح قيم حدّية (None · 0 · سالب · نص · NaN · inf) ⇒ PEG=null.",
+        "②خ محرك الفرص: مافيش أي نمو ⇒ المحور «غير متاح» (None).",
+        "②د محرك الفرص: بيستخدم المتاح بس وبيقول اللي استخدمه ⇒ `ni_growth` = null."
+      ],
+      "weights_unchanged": [
+        "update_prices.py.PEG_POINTS_MAX = 8 (زي الأساس 5681ab9).",
+        "update_prices.py.PEG_PE_MAX = 1000.0 (زي الأساس).",
+        "update_prices.py.PEG_GROWTH_MIN = 0.01 (زي الأساس).",
+        "update_prices.py.PEG_GROWTH_MAX = 1000.0 (زي الأساس).",
+        "update_prices.py.PEG_BANDS (5 أشرطة) مطابقة للأساس قيمة-بيمة.",
+        "opp_engine.py.FRESH_MIN_COVERAGE = 90.0 (زي الأساس).",
+        "octa_score.py.AXIS_WEIGHTS مطابقة للأساس قيمة-بيمة (technical .20 · fundamental .24 · liquidity .20 · news .05 · sentiment .04 · risk .27 · portfolio .00).",
+        "سقف بند «القيمة» في الـbreakdown ≤ 30 نقطة.",
+        "مجموع أوزان المحاور = 1.00.",
+        "دالتا peg_value و peg_score مطابقتان للأساس (مقارنة ast)."
+      ]
+    }
+  },
+  "numbers_before_after": {
+    "guard_proofs": {
+      "before_round24": "tools/test_data_integrity_guard.py (الجولة 23) = 15 حالة",
+      "after_round24": "15 (الجولة 23) + 16 (الجولة 24) = 31 حالة حارس بيانات",
+      "new_cases": 16,
+      "new_cases_passed": 16
+    },
+    "peg_proofs": {
+      "before_round24": "0 برهان PEG",
+      "after_round24": "26 برهان",
+      "new_cases": 26,
+      "new_cases_passed": 26
+    },
+    "guard_on_real_file": {
+      "command": "python3 tools/verify_data_integrity.py",
+      "passed": 110,
+      "total": 110,
+      "exit_code": 0,
+      "base_ref": "e101401",
+      "detail": "EGX30 base=7028 current=7028 shared=7028 missing=0 changed=0 · EGX70 2382 · EGX100 1568 · EGX33 1168 · إجمالي القيم المشتركة المتغيّرة = 0"
+    },
+    "r23_guard_test_alone": {
+      "file": "tools/test_data_integrity_guard.py",
+      "passed": 15,
+      "total": 15,
+      "exit_code": 0,
+      "note": "بيفشل جوّه المجموعة الكاملة لأن التحديث اليومي يعدّل data/index_history.json أثناء التشغيل (ترتيب الملفات) — نفس الـartifact على فرع الأساس"
+    },
+    "engine_audit": {
+      "file": "tools/test_engines_filters_audit.py",
+      "status": "PASS في المجموعة الكاملة (rc=0) — نفس نتيجة الجولة 23 (78/78) من غير تعديل على المحركات"
+    }
+  },
+  "full_suite": {
+    "how": "clone نظيف للفرع (/tmp/r24_final) · STAGE_DIR=/tmp/r24_stage_final2 · بورت 8395 · نفس مُشغّل الـCI",
+    "files": 63,
+    "passed": 60,
+    "failed": 1,
+    "isolated": 2,
+    "cases": 931,
+    "new_files_results": [
+      {"file": "tools/test_data_integrity_proofs_r24.py", "exit_code": 0, "cases": 16},
+      {"file": "tools/test_peg_availability_r24.py", "exit_code": 0, "cases": 26}
+    ],
+    "failed_files": [
+      {
+        "file": "tools/test_data_integrity_guard.py",
+        "exit_code": 1,
+        "cases": "14/15",
+        "reason": "الحالة ⑥ فقط: التحديث اليومي عدّل data/index_history.json أثناء المجموعة (artifact بيئي · ترتيب ملفات) — نفس الـartifact على فرع الأساس · والملف لوحده 15/15"
+      }
+    ]
+  },
+  "constraints_respected": [
+    "مافيش تعديل في tools/verify_data_integrity.py ولا tools/refresh_index_history.py — البراهين الجديدة بتقفل السلوك الموجود.",
+    "كل الـfixtures في مجلدات مؤقّتة · data/index_history.json ما اتغيّرش (sha256 قبل=بعد).",
+    "مافيش أي رقم مخترع · كل الأرقام من مخرجات الأدوات والملفات نفسها.",
+    "مافيش أي طلب شبكي في براهين PEG (المصدر = أعمدة الـscanner + ملفات المستودع)."
+  ],
+  "not_done": [
+    "مافيش مصدر بيانات لنمو الأرباح (ni_growth) — ده gap في التغطية مش في الكود، وجولة 24 ما اخترعتش مصدر.",
+    "مافيش تشغيل للسكربت اليومي على المصدر الحقيقي (TradingView websocket) — محجوب من البيئة؛ التشغيل اتعمل على نسخة صناعية بمصدر محاكى."
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "series": {
+    "date": "2026-11-17",
+    "xau_usd_per_oz": 3734.64,
+    "egp_per_usd": 53.7,
+    "gram_egp": 6447.8328,
+    "gram_recomputed": 6447.832816242545
+  },
+  "live": {
+    "gram_24_reference_egp": 6617.25,
+    "ounce_usd": 3734.04,
+    "source": "iSagha — مرجع سوق ذهب مصري",
+    "source_url": "https://market.isagha.com/prices",
+    "updated_iso": "2026-11-18T19:58:27+02:00",
+    "fetched_at": "2026-11-18T17:58:53.301186Z"
+  },
+  "tv_snapshot": {
+    "xau": {
+      "date": "2026-11-17",
+      "close": 3734.77
+    },
+    "egp_per_usd": {
+      "date": "2026-11-17",
+      "close": 53.7
+    }
+  },
+  "internal_consistency_pct": -0.0,
+  "drift_pct": -2.5602,
+  "gold_leg_pct": -0.0161,
+  "tv_xau_same_bar_pct": 0.0035,
+  "implied_egp_per_usd_from_market": 55.1198,
+  "fx_leg_pct": 2.644,
+  "local_margin_pct": 0.0,
+  "karat_ratio_check": {
+    "14": {
+      "sell_egp": 3860.0,
+      "ratio": 0.583324,
+      "purity_over_24": 0.583333,
+      "abs_error": 9e-06
+    },
+    "18": {
+      "sell_egp": 4962.75,
+      "ratio": 0.749972,
+      "purity_over_24": 0.75,
+      "abs_error": 2.8e-05
+    },
+    "21": {
+      "sell_egp": 5790.0,
+      "ratio": 0.874986,
+      "purity_over_24": 0.875,
+      "abs_error": 1.4e-05
+    }
+  },
+  "identity_check_pct": -2.560206,
+  "identity_error_pp": 6e-06,
+  "measured_at_utc": "2026-11-18T17:58:53.650864Z",
+  "series_meta": {
+    "points": 6871,
+    "sources": {
+      "gold": {
+        "provider": "TradingView",
+        "symbol": "FX_IDC:XAUUSD",
+        "points": 9000,
+        "from": "1990-05-22",
+        "to": "2026-11-17"
+      },
+      "fx": {
+        "provider": "TradingView",
+        "symbol": "FX_IDC:USDEGP",
+        "points": 7078,
+        "from": "1997-08-17",
+        "to": "2026-11-17",
+        "id": "tradingview_usdegp",
+        "quote_convention": "EGP لكل دولار (مباشر)",
+        "note": "سعر الصرف الرسمي — **نفس رمز الـscanner (tk-usd)** ⇒ كارت الذهب والسلسلة من مصدر واحد."
+      }
+    },
+    "from": "1997-08-17",
+    "to": "2026-11-17"
+  },
+  "negative_proof": {
+    "injected_drift_pct": 5.0,
+    "exit_code": 1,
+    "failed_as_expected": true,
+    "drift_check_line": "❌ آخر نقطة (2026-11-17) = 6770.22 ج.م — الفرق عن المعاداة 5.000% (≤ 0.5%)",
+    "tail": [
+      "   -  4000 يوم: |lr_x+lr_f−lr_t| = 4.88e-02 (≤1e-4) exact=False",
+      "   -  9000 يوم: |lr_x+lr_f−lr_t| = 4.88e-02 (≤1e-4) exact=False",
+      "   - سعر الدولار الضمني 56.3850 vs الرسمي 53.7000 ⇒ فرق 5.000% (≤0.5% ⇒ محسوب)",
+      "   -    30 يوم: نقاط الذهب -701.1 + نقاط الدولار -20.3 = التغير -398.9 ✔",
+      "   -   365 يوم: نقاط الذهب -538.0 + نقاط الدولار +826.4 = التغير +610.9 ✔",
+      "   -  1095 يوم: نقاط الذهب +2390.3 + نقاط الدولار +2091.7 = التغير +4804.4 ✔"
+    ]
+  }
+}

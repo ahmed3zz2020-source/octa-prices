@@ -1,0 +1,19 @@
+{
+  "artifact": "rollback/worker.v235-safe.js",
+  "purpose": "rollback-safe worker bundle (v235 base + R23 snapshot guard)",
+  "base_commit": "71ba99a9fb6595f1c80da2debabe222e8e1ab1b2",
+  "base_commit_short": "71ba99a",
+  "guard_commit": "1ec73d85b9c5da1fbbe1228ddfd10bc2b8709a8d",
+  "guard_commit_short": "1ec73d8",
+  "bytes": 177412,
+  "sha256": "2a26c76d486008046037d2481bc92869453216614dca94325e067363361a7fb4",
+  "identical_to_guard_commit_worker": true,
+  "patch_bytes": 2337,
+  "built_at": "2026-11-18T17:58:18.641Z",
+  "deployed": false,
+  "notes": [
+    "ملف محلي ⭐ — مفيش نشر ⭐ ولا اتصال بأي بيئة حيّة ⭐.",
+    "أساس النسخة ٢٣٥ + حارس الجولة ٢٣ ⭐.",
+    "الاختبار: node tools/check_safe_rollback.js rollback/worker.v235-safe.js"
+  ]
+}

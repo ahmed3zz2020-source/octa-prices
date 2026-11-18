@@ -1,0 +1,1849 @@
+{
+  "source_file": "r24_prompt_source.txt",
+  "source_of_truth": "OCTA_Final_Acceptance_Center.xlsx (text appendix, sha256 b60b0c5651b8df44fd0f64fcc8bb6100841f5ce0731d4b67f51e7d1bd379df46)",
+  "note": "Verbatim copy of the original acceptance field text. No criterion was added, removed, reworded, or invented. Results are stored separately.",
+  "scope_count": 36,
+  "item_count": 144,
+  "points_per_scope": 100,
+  "points_total": 3600,
+  "scopes": [
+    {
+      "scope_no": "01",
+      "title": "خريطة المشروع والمستودعات ونقاط الدخول",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-01-1",
+        "AC-01-2",
+        "AC-01-3",
+        "AC-01-4"
+      ]
+    },
+    {
+      "scope_no": "02",
+      "title": "أمان البوابة وتوثيق الجلسة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-02-1",
+        "AC-02-2",
+        "AC-02-3",
+        "AC-02-4"
+      ]
+    },
+    {
+      "scope_no": "03",
+      "title": "التسجيل وPIN وOTP والبصمة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-03-1",
+        "AC-03-2",
+        "AC-03-3",
+        "AC-03-4"
+      ]
+    },
+    {
+      "scope_no": "04",
+      "title": "توكنات الجلسات والكوكي وتسجيل الخروج",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-04-1",
+        "AC-04-2",
+        "AC-04-3",
+        "AC-04-4"
+      ]
+    },
+    {
+      "scope_no": "05",
+      "title": "عزل المستخدم والصلاحيات والاشتراكات",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-05-1",
+        "AC-05-2",
+        "AC-05-3",
+        "AC-05-4"
+      ]
+    },
+    {
+      "scope_no": "06",
+      "title": "API والطلبات والمدخلات وCSRF وCORS",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-06-1",
+        "AC-06-2",
+        "AC-06-3",
+        "AC-06-4"
+      ]
+    },
+    {
+      "scope_no": "07",
+      "title": "متصفح XSS/CSP والكاش والأكواد الخارجية",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-07-1",
+        "AC-07-2",
+        "AC-07-3",
+        "AC-07-4"
+      ]
+    },
+    {
+      "scope_no": "08",
+      "title": "GitHub/Railway/Cloudflare والأسرار",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-08-1",
+        "AC-08-2",
+        "AC-08-3",
+        "AC-08-4"
+      ]
+    },
+    {
+      "scope_no": "09",
+      "title": "اختبارات الأمان على Staging المعزول",
+      "prior_review": "جزئي (اختبار حي)",
+      "items": [
+        "AC-09-1",
+        "AC-09-2",
+        "AC-09-3",
+        "AC-09-4"
+      ]
+    },
+    {
+      "scope_no": "10",
+      "title": "معمارية الباك والتخزين والتحمّل",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-10-1",
+        "AC-10-2",
+        "AC-10-3",
+        "AC-10-4"
+      ]
+    },
+    {
+      "scope_no": "11",
+      "title": "تحديثات أسعار السوق وأعمار البيانات",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-11-1",
+        "AC-11-2",
+        "AC-11-3",
+        "AC-11-4"
+      ]
+    },
+    {
+      "scope_no": "12",
+      "title": "نظام الطوابير والتزامن والمهام الخلفية",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-12-1",
+        "AC-12-2",
+        "AC-12-3",
+        "AC-12-4"
+      ]
+    },
+    {
+      "scope_no": "13",
+      "title": "أعطال النظام والمهلات وإعادة المحاولة والاستعادة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-13-1",
+        "AC-13-2",
+        "AC-13-3",
+        "AC-13-4"
+      ]
+    },
+    {
+      "scope_no": "14",
+      "title": "التخزين الدائم والنسخ الاحتياطي وتماسك الحالة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-14-1",
+        "AC-14-2",
+        "AC-14-3",
+        "AC-14-4"
+      ]
+    },
+    {
+      "scope_no": "15",
+      "title": "مصداقية المصادر وترتيب الأولوية والإسناد",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-15-1",
+        "AC-15-2",
+        "AC-15-3",
+        "AC-15-4"
+      ]
+    },
+    {
+      "scope_no": "16",
+      "title": "سلامة الجداول والأسهم والمطابقة بين الأسواق",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-16-1",
+        "AC-16-2",
+        "AC-16-3",
+        "AC-16-4"
+      ]
+    },
+    {
+      "scope_no": "17",
+      "title": "المؤشرات والعملات والذهب ودقة الوحدات والتحويل",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-17-1",
+        "AC-17-2",
+        "AC-17-3",
+        "AC-17-4"
+      ]
+    },
+    {
+      "scope_no": "18",
+      "title": "الفترات التاريخية ومقارنة الأداء وRealView",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-18-1",
+        "AC-18-2",
+        "AC-18-3",
+        "AC-18-4"
+      ]
+    },
+    {
+      "scope_no": "19",
+      "title": "البيانات الناقصة والقديمة ومنع القيم المُختلقة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-19-1",
+        "AC-19-2",
+        "AC-19-3",
+        "AC-19-4"
+      ]
+    },
+    {
+      "scope_no": "20",
+      "title": "المحاور التقنية والأساسية وتفسير الأرقام",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-20-1",
+        "AC-20-2",
+        "AC-20-3",
+        "AC-20-4"
+      ]
+    },
+    {
+      "scope_no": "21",
+      "title": "السيولة والمخاطر والمعنويات والأخبار",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-21-1",
+        "AC-21-2",
+        "AC-21-3",
+        "AC-21-4"
+      ]
+    },
+    {
+      "scope_no": "22",
+      "title": "الدرجات النهائية والثقة والوزن ومنع ازدواج الحساب",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-22-1",
+        "AC-22-2",
+        "AC-22-3",
+        "AC-22-4"
+      ]
+    },
+    {
+      "scope_no": "23",
+      "title": "محرك الفرص والفلتر 8 وفلاتر كل الأفق الزمني",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-23-1",
+        "AC-23-2",
+        "AC-23-3",
+        "AC-23-4"
+      ]
+    },
+    {
+      "scope_no": "24",
+      "title": "المحفظة الذكية والتوزيع والتنبيهات والقياس",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-24-1",
+        "AC-24-2",
+        "AC-24-3",
+        "AC-24-4"
+      ]
+    },
+    {
+      "scope_no": "25",
+      "title": "الباك تيست والسيناريوهات والذهب والتحليل المتقدم",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-25-1",
+        "AC-25-2",
+        "AC-25-3",
+        "AC-25-4"
+      ]
+    },
+    {
+      "scope_no": "26",
+      "title": "هيكل التنقل والوضوح والبساطة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-26-1",
+        "AC-26-2",
+        "AC-26-3",
+        "AC-26-4"
+      ]
+    },
+    {
+      "scope_no": "27",
+      "title": "تجربة تسجيل الدخول والحسابات والاشتراك",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-27-1",
+        "AC-27-2",
+        "AC-27-3",
+        "AC-27-4"
+      ]
+    },
+    {
+      "scope_no": "28",
+      "title": "تجربة الشارتات والفلترة وأداة الذهب",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-28-1",
+        "AC-28-2",
+        "AC-28-3",
+        "AC-28-4"
+      ]
+    },
+    {
+      "scope_no": "29",
+      "title": "الموبايل والوصولية وسهولة الاستخدام",
+      "prior_review": "جزئي (اختبار حي)",
+      "items": [
+        "AC-29-1",
+        "AC-29-2",
+        "AC-29-3",
+        "AC-29-4"
+      ]
+    },
+    {
+      "scope_no": "30",
+      "title": "حالات التحميل والخطأ والبيانات الفارغة وتعافي الواجهة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-30-1",
+        "AC-30-2",
+        "AC-30-3",
+        "AC-30-4"
+      ]
+    },
+    {
+      "scope_no": "31",
+      "title": "اختبارات الوحدات والتكامل والمتصفح وتجهيز CI",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-31-1",
+        "AC-31-2",
+        "AC-31-3",
+        "AC-31-4"
+      ]
+    },
+    {
+      "scope_no": "32",
+      "title": "الأداء وكمية الطلبات والكاش والحدود والتكلفة",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-32-1",
+        "AC-32-2",
+        "AC-32-3",
+        "AC-32-4"
+      ]
+    },
+    {
+      "scope_no": "33",
+      "title": "العزل وعمليات النشر وRollback ومراجعة الفروع",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-33-1",
+        "AC-33-2",
+        "AC-33-3",
+        "AC-33-4"
+      ]
+    },
+    {
+      "scope_no": "34",
+      "title": "المراقبة والسجلات وقياس الاعتمادية",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-34-1",
+        "AC-34-2",
+        "AC-34-3",
+        "AC-34-4"
+      ]
+    },
+    {
+      "scope_no": "35",
+      "title": "الجاهزية التشغيلية وخدمة العملاء والخصوصية",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-35-1",
+        "AC-35-2",
+        "AC-35-3",
+        "AC-35-4"
+      ]
+    },
+    {
+      "scope_no": "36",
+      "title": "الجاهزية التجارية وقائمة قبول الإطلاق النهائي",
+      "prior_review": "تمت المراجعة",
+      "items": [
+        "AC-36-1",
+        "AC-36-2",
+        "AC-36-3",
+        "AC-36-4"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "ac_id": "AC-01-1",
+      "scope_no": "01",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "خريطة المستودعات تطابق مكونات الواجهة والباك وWorker وكل نقاط الدخول مع SHA وmanifest.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-028/029; R17-V2-03"
+    },
+    {
+      "ac_id": "AC-01-2",
+      "scope_no": "01",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "أزل bundle أو غيّر ref؛ يجب رفض المرشح وعدم تسجيل نجاح.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-028/029; R17-V2-03"
+    },
+    {
+      "ac_id": "AC-01-3",
+      "scope_no": "01",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "استخرج الحزم في مجلد نظيف وتحقق من تطابق الشجرة والبناء واعتمادياتها دون نشر.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-028/029; R17-V2-03"
+    },
+    {
+      "ac_id": "AC-01-4",
+      "scope_no": "01",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق أوامر الاسترجاع، الفروق والملفات المشمولة ونتيجة الحارس قبل وبعد.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-028/029; R17-V2-03"
+    },
+    {
+      "ac_id": "AC-02-1",
+      "scope_no": "02",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "الدخول إلى صفحة وأداة محمية يتطلب جلسة موقعة وصالحة وتتحقق API من السلطة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-001/002/009"
+    },
+    {
+      "ac_id": "AC-02-2",
+      "scope_no": "02",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "كوكي فارغ/مزور/منتهي أو طلب مباشر بلا proxy صالح يرفض بلا بيانات داخلية.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-001/002/009"
+    },
+    {
+      "ac_id": "AC-02-3",
+      "scope_no": "02",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "Worker + Flask حقيقيان: دخول صناعي ثم طلب محمي عبر المسار الصحيح؛ اختبر الرفض المباشر.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-001/002/009"
+    },
+    {
+      "ac_id": "AC-02-4",
+      "scope_no": "02",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "سجل HTTP منقح واختبارات انحدار لمسارات التشخيص والبوابة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-001/002/009"
+    },
+    {
+      "ac_id": "AC-03-1",
+      "scope_no": "03",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "تسجيل واسترجاع PIN وOTP صناعيان يعملان حسب السياسة المعتمدة؛ البصمة القديمة تظل مغلقة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-003/004/005; UX-LOGIN-01"
+    },
+    {
+      "ac_id": "AC-03-2",
+      "scope_no": "03",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "OTP خاطئ أو منتهي أو مستخدم سابقًا لا يعمل؛ PIN جديد يبطل التوكن القديم؛ لا أكواد خام في التخزين.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-003/004/005; UX-LOGIN-01"
+    },
+    {
+      "ac_id": "AC-03-3",
+      "scope_no": "03",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "رحلة حساب جديد ثم استرجاعه في متصفح حقيقي ومزود رسائل صناعي دون إرسال فعلي.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-003/004/005; UX-LOGIN-01"
+    },
+    {
+      "ac_id": "AC-03-4",
+      "scope_no": "03",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق اختبار فشل/نجاح ومراجعة سياسة الاسترجاع؛ لا تغير المسار المؤجل دون قرار.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-003/004/005; UX-LOGIN-01"
+    },
+    {
+      "ac_id": "AC-04-1",
+      "scope_no": "04",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "إصدار جلسة بمدة صحيحة وخصائص كوكي مناسبة والتأكد من إبطالها عند الخروج.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-006/007/008/010/022"
+    },
+    {
+      "ac_id": "AC-04-2",
+      "scope_no": "04",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "إعادة استخدام توكن قديم بعد logout أو تغيير epoch أو PIN مرفوضة؛ فشل الإبطال لا يعرض نجاحًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-006/007/008/010/022"
+    },
+    {
+      "ac_id": "AC-04-3",
+      "scope_no": "04",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "اختبر تبويبين ومتصفحًا حقيقيًا وAPI عبر Worker؛ تحقق من صلاحيات الجلسة بعد الخروج.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-006/007/008/010/022"
+    },
+    {
+      "ac_id": "AC-04-4",
+      "scope_no": "04",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق خصائص الكوكي دون قيمة سرية واختبارات المدة وفشل التخزين.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-006/007/008/010/022"
+    },
+    {
+      "ac_id": "AC-05-1",
+      "scope_no": "05",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "Free/Pro/expired/admin يكتسبون فقط الأذونات وفق جدول باقات معتمد.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-011/012/013/015/016/017"
+    },
+    {
+      "ac_id": "AC-05-2",
+      "scope_no": "05",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "حساب A لا يقرأ أو يغير حساب B؛ UID مزيف أو خطة منتهية أو مجهولة لا ترفع الصلاحية.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-011/012/013/015/016/017"
+    },
+    {
+      "ac_id": "AC-05-3",
+      "scope_no": "05",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "حسابان صناعيان على Flask وWorker: عرض المحفظة والتنبيه والإدارة لكل دور.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-011/012/013/015/016/017"
+    },
+    {
+      "ac_id": "AC-05-4",
+      "scope_no": "05",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "سجل مصفوفة الأدوار والمسارات ونتائج منع الوصول لكل حالة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-011/012/013/015/016/017"
+    },
+    {
+      "ac_id": "AC-06-1",
+      "scope_no": "06",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "API يطبق schema وحدود الحقول والأحجام وحالات HTTP لكل مسار.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-018/019/021/024"
+    },
+    {
+      "ac_id": "AC-06-2",
+      "scope_no": "06",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "CSRF وorigin غير مسموح وNaN وJSON تالف وحمولة كبيرة ترفض دون أثر كتابة أو كشف بيانات.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-018/019/021/024"
+    },
+    {
+      "ac_id": "AC-06-3",
+      "scope_no": "06",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "طلبات HTTP فعلية من Worker ومتصفح بأصول مسموحة وغير مسموحة؛ صفر اتصال مدفوع في الاختبار.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-018/019/021/024"
+    },
+    {
+      "ac_id": "AC-06-4",
+      "scope_no": "06",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق مصفوفة CORS/CSRF ونتائج validation وحدود AI المعتمدة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-018/019/021/024"
+    },
+    {
+      "ac_id": "AC-07-1",
+      "scope_no": "07",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "محتوى المستخدم يعرض كنص آمن؛ الأصول العامة لا تحوي بيانات حساب أو snapshots محظورة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-022/023/034; MGMT-001"
+    },
+    {
+      "ac_id": "AC-07-2",
+      "scope_no": "07",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "نص XSS صناعي لا ينفذ؛ ذاكرة التخزين المشتركة لا تعرض بيانات مستخدم سابق أو ملفات محمية.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-022/023/034; MGMT-001"
+    },
+    {
+      "ac_id": "AC-07-3",
+      "scope_no": "07",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "اختبر متصفحين وكاش وService Worker وmanifest الإنتاج في معاينة مصرح بها فقط.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-022/023/034; MGMT-001"
+    },
+    {
+      "ac_id": "AC-07-4",
+      "scope_no": "07",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أدلة CSP والكاش وتدقيق dist؛ تطبيق CSP الفعلي يحتاج قرارًا منفصلًا.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-022/023/034; MGMT-001"
+    },
+    {
+      "ac_id": "AC-08-1",
+      "scope_no": "08",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "اعتماد خريطة GitHub/Railway/Cloudflare وسياسات أقل صلاحية وفصل الأسرار لكل بيئة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-027/028/029; PROD-001..003"
+    },
+    {
+      "ac_id": "AC-08-2",
+      "scope_no": "08",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "غياب سر مطلوب أو KV خطأ يمنع المرور؛ لا أسرار أو PII في الأدلة أو الأصول العامة.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-027/028/029; PROD-001..003"
+    },
+    {
+      "ac_id": "AC-08-3",
+      "scope_no": "08",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "تحقق قراءة فقط من رؤوس الفروع وهوية الخدمة وفصل preview/prod؛ لا تغيير إعدادات.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-027/028/029; PROD-001..003"
+    },
+    {
+      "ac_id": "AC-08-4",
+      "scope_no": "08",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق قائمة الأسرار بالأسماء فقط وملكية الحماية وخطة التعرض والتدوير المصرح بها.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-027/028/029; PROD-001..003"
+    },
+    {
+      "ac_id": "AC-09-1",
+      "scope_no": "09",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "Flask/Werkzeug وWorker حقيقيان ببيانات صناعية ومجلد مؤقت وعزل شبكة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-009; STG-09-01/02; BE-012"
+    },
+    {
+      "ac_id": "AC-09-2",
+      "scope_no": "09",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "صفر محاولة Thread.start غير مصرح بها؛ منع egress؛ proxy مفقود/خاطئ يرفض حسب عقد البيئة.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-009; STG-09-01/02; BE-012"
+    },
+    {
+      "ac_id": "AC-09-3",
+      "scope_no": "09",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "اختبر مصادقة وعزل A/B وCSRF وepoch وأدوار Free/Pro/expired في staging مستقل بلا tunnel.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-009; STG-09-01/02; BE-012"
+    },
+    {
+      "ac_id": "AC-09-4",
+      "scope_no": "09",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق نتائج HTTP وأدلة العزل ومنع الاتصال وقائمة المهام؛ المحاكي لا يكفي.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-009; STG-09-01/02; BE-012"
+    },
+    {
+      "ac_id": "AC-10-1",
+      "scope_no": "10",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "قراءة وكتابة متسقة من طبقة التخزين ومسارات الصحة مع نموذج أعطال موثق.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "BE-001..006"
+    },
+    {
+      "ac_id": "AC-10-2",
+      "scope_no": "10",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "فشل كتابة أو قفل أو ملف ناقص لا يضيع آخر حالة صحيحة ولا يرجع نجاحًا كاذبًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "BE-001..006"
+    },
+    {
+      "ac_id": "AC-10-3",
+      "scope_no": "10",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "تحميل صناعي متزامن من عاملين ثم إعادة تشغيل ومقارنة الحالة المرجعية.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "BE-001..006"
+    },
+    {
+      "ac_id": "AC-10-4",
+      "scope_no": "10",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق نموذج البيانات وتتبع أخطاء القراءة/الكتابة واختبارات التراجع.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "BE-001..006"
+    },
+    {
+      "ac_id": "AC-11-1",
+      "scope_no": "11",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "السعر يحمل زمن صفقة ومصدرًا وعمرًا صحيحًا؛ 100% فقط complete وعدد/نسبة متوافقان.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-001..010; R17-V2-01/04"
+    },
+    {
+      "ac_id": "AC-11-2",
+      "scope_no": "11",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "دفعة قديمة/unknown أو مستقبلية أو متوقفة لا توصف live؛ 0/0 و110/100 و90% مع 895/1000 ترفض التعارض.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-001..010; R17-V2-01/04"
+    },
+    {
+      "ac_id": "AC-11-3",
+      "scope_no": "11",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "ساعة صناعية عبر المسارات الخمسة ثم توقف التحديث؛ طابق الصف مع حالة الدفعة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-001..010; R17-V2-01/04"
+    },
+    {
+      "ac_id": "AC-11-4",
+      "scope_no": "11",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق fixtures لحالات fresh/stale/unavailable والتغطية وحدود الزمن.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-001..010; R17-V2-01/04"
+    },
+    {
+      "ac_id": "AC-12-1",
+      "scope_no": "12",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "المهام المصرح بها تعمل وفق الجدولة وبلا تنفيذ مكرر لنفس المفتاح.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "BE-007..013; STG-09-01"
+    },
+    {
+      "ac_id": "AC-12-2",
+      "scope_no": "12",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "تزامن عمليتين وتهيئة مكررة وoff لا يسببان تكرار أو بدء مهمة غير مصرح بها.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "BE-007..013; STG-09-01"
+    },
+    {
+      "ac_id": "AC-12-3",
+      "scope_no": "12",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "عاملان صناعيان، فشل مهمة ثم restart؛ تحقق من idempotency وأقفال البيانات.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "BE-007..013; STG-09-01"
+    },
+    {
+      "ac_id": "AC-12-4",
+      "scope_no": "12",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "سجل عدد التنفيذ والمهام وحالات الانتقال دون تفاصيل حساسة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "BE-007..013; STG-09-01"
+    },
+    {
+      "ac_id": "AC-13-1",
+      "scope_no": "13",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "مهلة وretry محدودان؛ فشل مصدر لا يحجب مصدرًا مستقلاً.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "BE-014..019; AZ30-RETRY"
+    },
+    {
+      "ac_id": "AC-13-2",
+      "scope_no": "13",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "مهلة أو 429 أو 5xx أو رد تالف لا يسبب حلقة طلبات أو إعادة POST غير idempotent.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "BE-014..019; AZ30-RETRY"
+    },
+    {
+      "ac_id": "AC-13-3",
+      "scope_no": "13",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "حقن أعطال متدرجة ثم عودة المصدر؛ تحقق من عدم مسح الحالة الصحيحة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "BE-014..019; AZ30-RETRY"
+    },
+    {
+      "ac_id": "AC-13-4",
+      "scope_no": "13",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق timeline وزمن الاستعادة وعدد الطلبات وسبب كل retry.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "BE-014..019; AZ30-RETRY"
+    },
+    {
+      "ac_id": "AC-14-1",
+      "scope_no": "14",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "حفظ ذري ونسخ احتياطي صالح مع رقم نسخة ووقت متسق.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "BE-020..028; MD-039"
+    },
+    {
+      "ac_id": "AC-14-2",
+      "scope_no": "14",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "اسقط العملية أثناء الحفظ أو قدم backup تالفًا؛ لا استبدال للنسخة الصحيحة أو نجاح كاذب.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "BE-020..028; MD-039"
+    },
+    {
+      "ac_id": "AC-14-3",
+      "scope_no": "14",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "استرجع نسخة صناعية في بيئة مستقلة وطابق checksum والسجلات والحسابات.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "BE-020..028; MD-039"
+    },
+    {
+      "ac_id": "AC-14-4",
+      "scope_no": "14",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق زمن وفجوة الاسترجاع مقابل RTO/RPO المقترحين بعد اعتماد المالك.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "BE-020..028; MD-039"
+    },
+    {
+      "ac_id": "AC-15-1",
+      "scope_no": "15",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "لكل قيمة مالية مصدر وتوقيت ووحدة؛ ترتيب fallback حسب سياسة معتمدة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-011..018"
+    },
+    {
+      "ac_id": "AC-15-2",
+      "scope_no": "15",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "تعارض مصدرين أو غياب مصدر أو توقيت مزور لا يصنع قيمة حديثة أو مصدرًا وهميًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-011..018"
+    },
+    {
+      "ac_id": "AC-15-3",
+      "scope_no": "15",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "قارن عينة ثابتة من مصادر موثوقة مصرح بها مع العرض والـAPI في الوقت نفسه.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-011..018"
+    },
+    {
+      "ac_id": "AC-15-4",
+      "scope_no": "15",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق جدول المصدر/التوقيت والفروق مع حدود التقريب المعتمدة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-011..018"
+    },
+    {
+      "ac_id": "AC-16-1",
+      "scope_no": "16",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "رموز الأسهم وأسماء الشركات ومكونات المؤشرات تطابق مرجعًا بتاريخ سريان واضح.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-019..026"
+    },
+    {
+      "ac_id": "AC-16-2",
+      "scope_no": "16",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "رمز محذوف/مكرر/مشابه أو سهم موقوف لا يعين إلى شركة خاطئة أو يختفي بلا تفسير.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-019..026"
+    },
+    {
+      "ac_id": "AC-16-3",
+      "scope_no": "16",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "مطابقة عينة وقائمة الكون المرجعية مع البحث والفلاتر والمقارنة بنفس تاريخ البيانات.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-019..026"
+    },
+    {
+      "ac_id": "AC-16-4",
+      "scope_no": "16",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق diff قائمة الرموز والمكونات والاستثناءات الموثقة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-019..026"
+    },
+    {
+      "ac_id": "AC-17-1",
+      "scope_no": "17",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "المؤشرات والعملات والذهب تستخدم EGP/USD الصحيح وعيار 21/24 وسعر جرام موثق.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-027..031; AZ28-SIGN"
+    },
+    {
+      "ac_id": "AC-17-2",
+      "scope_no": "17",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "انعكاس زوج العملة أو اختلاف وحدة الأونصة/الجرام أو قيمة غائبة لا ينتج رقمًا مضللًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-027..031; AZ28-SIGN"
+    },
+    {
+      "ac_id": "AC-17-3",
+      "scope_no": "17",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "طابق عينة من الأسعار والحسابات المرجعية مع البطاقة والشارت ووقت الجلسة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-027..031; AZ28-SIGN"
+    },
+    {
+      "ac_id": "AC-17-4",
+      "scope_no": "17",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق golden fixtures وتحويلات وحدات مستقلة وحدود التقريب.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-027..031; AZ28-SIGN"
+    },
+    {
+      "ac_id": "AC-18-1",
+      "scope_no": "18",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "RealView يقارن العوائد بالجنيه والدولار على نافذة وتواريخ مشتركة وبتركيب صحيح.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-032..038/041/042"
+    },
+    {
+      "ac_id": "AC-18-2",
+      "scope_no": "18",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "تاريخ ناقص أو صفر سعر أساس أو split بلا معالجة لا يولد عائدًا وهميًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-032..038/041/042"
+    },
+    {
+      "ac_id": "AC-18-3",
+      "scope_no": "18",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "بيانات صناعية: سهم 100→120 ودولار 50→60، عائد بالجنيه 20% وبالدولار 0%؛ تحقق API والشارت.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-032..038/041/042"
+    },
+    {
+      "ac_id": "AC-18-4",
+      "scope_no": "18",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق حسابًا مستقلًا وفترات المقارنة ومصدر تقويم الجلسات.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-032..038/041/042"
+    },
+    {
+      "ac_id": "AC-19-1",
+      "scope_no": "19",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "حالات fresh/stale/unknown/unavailable ظاهرة بالتوقيت الصحيح في كل الأدوات.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-040/043/044; R17-V2-04"
+    },
+    {
+      "ac_id": "AC-19-2",
+      "scope_no": "19",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "NaN أو missing أو مستقبل زمني أو توقف دورة لا يتحول لصفر أو ختم حديث.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-040/043/044; R17-V2-04"
+    },
+    {
+      "ac_id": "AC-19-3",
+      "scope_no": "19",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "توقف دورة الأسعار مع ساعة متحكم بها؛ راجع الواجهة والـAPI لكل حالة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-040/043/044; R17-V2-04"
+    },
+    {
+      "ac_id": "AC-19-4",
+      "scope_no": "19",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق مصفوفة الحالات والحقول ومسارات freshness الخمسة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-040/043/044; R17-V2-04"
+    },
+    {
+      "ac_id": "AC-20-1",
+      "scope_no": "20",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "المؤشرات الفنية والأساسية تطابق أمثلة مستقلة ومقارنة تعريفات EPS وP/E وPEG.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-045..055"
+    },
+    {
+      "ac_id": "AC-20-2",
+      "scope_no": "20",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "خسارة أو EPS صفري أو فترة ناقصة لا يظهر مضاعفًا صالحًا أو توصية مضللة.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-045..055"
+    },
+    {
+      "ac_id": "AC-20-3",
+      "scope_no": "20",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "قارن fixtures حسابية عبر محرك التحليل وبطاقة التفسير لنفس السهم والفترة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-045..055"
+    },
+    {
+      "ac_id": "AC-20-4",
+      "scope_no": "20",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق المعادلة والمدخلات والتقريب؛ لا تغير المنهجية دون قرار.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-045..055"
+    },
+    {
+      "ac_id": "AC-21-1",
+      "scope_no": "21",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "السيولة والمخاطر والمعنويات والأخبار لها تعريف ومصدر ودرجة قابلة للتفسير.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ21-LIQ-MISSING/LIQ-ZERO/NEWS-CRITICAL/RISK-SHARPE"
+    },
+    {
+      "ac_id": "AC-21-2",
+      "scope_no": "21",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "سيولة صفر ليست missing؛ خبر خطر أو معنويات سلبية أو مخاطر مجهولة لا تزيد التقييم بلا مبرر.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ21-LIQ-MISSING/LIQ-ZERO/NEWS-CRITICAL/RISK-SHARPE"
+    },
+    {
+      "ac_id": "AC-21-3",
+      "scope_no": "21",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "قارن عينة أخبار صناعية ومدخلات سيولة ومخاطر مع المحرك والواجهة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ21-LIQ-MISSING/LIQ-ZERO/NEWS-CRITICAL/RISK-SHARPE"
+    },
+    {
+      "ac_id": "AC-21-4",
+      "scope_no": "21",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق golden cases للحدود والبيانات الناقصة وسياسة الخبر والمخاطر.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ21-LIQ-MISSING/LIQ-ZERO/NEWS-CRITICAL/RISK-SHARPE"
+    },
+    {
+      "ac_id": "AC-22-1",
+      "scope_no": "22",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "إعادة تركيب الدرجة والثقة من المكونات تطابق الناتج والأوزان المعتمدة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ22-DECISION-RECOMPOSE/EXPLAIN-DIVERGES/STRATEGY-MISSING"
+    },
+    {
+      "ac_id": "AC-22-2",
+      "scope_no": "22",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "مكوّن غائب أو NaN أو مكرر لا يرفع الدرجة أو يخلق يقينًا غير مستحق.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ22-DECISION-RECOMPOSE/EXPLAIN-DIVERGES/STRATEGY-MISSING"
+    },
+    {
+      "ac_id": "AC-22-3",
+      "scope_no": "22",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "اعرض نفس العينة في الترتيب والتفسير والقرار النهائي؛ تطابق الحساب والشرح.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ22-DECISION-RECOMPOSE/EXPLAIN-DIVERGES/STRATEGY-MISSING"
+    },
+    {
+      "ac_id": "AC-22-4",
+      "scope_no": "22",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق نسخة الأوزان ومنهج الثقة وحالات التعارض دون تعديل سياسة الاستثمار.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ22-DECISION-RECOMPOSE/EXPLAIN-DIVERGES/STRATEGY-MISSING"
+    },
+    {
+      "ac_id": "AC-23-1",
+      "scope_no": "23",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "فلتر 8 لكل تبويب يطبق شروطه وأفقه الصحيحين ويشرح أهلية السهم وترتيبه.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "R17-V2-01..04; AZ23-CFO-LOSS/GROWTH-PROXY/INNER-MISSING/NONFINITE"
+    },
+    {
+      "ac_id": "AC-23-2",
+      "scope_no": "23",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "CFO وربح سالبان، حجم نسبي صفر، عائد سعر دون نمو ربح وNaN لا يمنحون تطابقًا خاطئًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "R17-V2-01..04; AZ23-CFO-LOSS/GROWTH-PROXY/INNER-MISSING/NONFINITE"
+    },
+    {
+      "ac_id": "AC-23-3",
+      "scope_no": "23",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "قارن المسارات الخمسة والبطاقات ومعايير الفلتر حول 90% و100% وتوقف التحديث.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "R17-V2-01..04; AZ23-CFO-LOSS/GROWTH-PROXY/INNER-MISSING/NONFINITE"
+    },
+    {
+      "ac_id": "AC-23-4",
+      "scope_no": "23",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق اختبار قبل/بعد لكل عيب R17، وإثبات تفسير التعارض بعرض 390px.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "R17-V2-01..04; AZ23-CFO-LOSS/GROWTH-PROXY/INNER-MISSING/NONFINITE"
+    },
+    {
+      "ac_id": "AC-24-1",
+      "scope_no": "24",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "المحفظة الخاصة والملاءمة والقيم السوقية والتنبيه توافق عقد الحساب الواحد.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "SEC-015; AZ24-PF-MARK/PF-NAN/PF-PERSIST/WATCH-DUP"
+    },
+    {
+      "ac_id": "AC-24-2",
+      "scope_no": "24",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "NaN أو حفظ فاشل أو تكرار إضافة لا ينتج نجاحًا أو صفوفًا مضاعفة أو تسريبًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "SEC-015; AZ24-PF-MARK/PF-NAN/PF-PERSIST/WATCH-DUP"
+    },
+    {
+      "ac_id": "AC-24-3",
+      "scope_no": "24",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "A/B مع 10 أسهم/تبويب عند اعتماد الخاصية؛ إضافة وحذف وTP/SL عبر Telegram صناعي.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "SEC-015; AZ24-PF-MARK/PF-NAN/PF-PERSIST/WATCH-DUP"
+    },
+    {
+      "ac_id": "AC-24-4",
+      "scope_no": "24",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "وثق توزيع الأصول والأسباب وتطابق المخزن الخاص والتنبيهات وعدم التكرار.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "SEC-015; AZ24-PF-MARK/PF-NAN/PF-PERSIST/WATCH-DUP"
+    },
+    {
+      "ac_id": "AC-25-1",
+      "scope_no": "25",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "Backtest يستخدم نافذة فعلية ومعيارًا مشتركًا وبيانات point-in-time دون نظر للمستقبل.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MD-032/034; AZ25-BACKTEST-DAYS/INELIGIBLE/STALE-STATS/BENCH-MISSING"
+    },
+    {
+      "ac_id": "AC-25-2",
+      "scope_no": "25",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "3 أيام لا تعيد 50 يومًا؛ غير المؤهل لا يدخل اللقطة؛ benchmark غائب ليس 0%.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MD-032/034; AZ25-BACKTEST-DAYS/INELIGIBLE/STALE-STATS/BENCH-MISSING"
+    },
+    {
+      "ac_id": "AC-25-3",
+      "scope_no": "25",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "قارن حالات تاريخية صناعية لمراحل 1M/3M/6M/1Y ومخرجات API والشارت والإحصاء.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MD-032/034; AZ25-BACKTEST-DAYS/INELIGIBLE/STALE-STATS/BENCH-MISSING"
+    },
+    {
+      "ac_id": "AC-25-4",
+      "scope_no": "25",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق منهج التكاليف والانحياز والبيانات والنتائج المرجعية؛ لا ادعاء عائد حقيقي بلا دليل.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MD-032/034; AZ25-BACKTEST-DAYS/INELIGIBLE/STALE-STATS/BENCH-MISSING"
+    },
+    {
+      "ac_id": "AC-26-1",
+      "scope_no": "26",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "الأدوات الأساسية والبحث والتنقل واضحة دون عناصر وهمية وإشارات تحميل مضللة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "UX-HOME-01; AZ26-PLACEHOLDERS"
+    },
+    {
+      "ac_id": "AC-26-2",
+      "scope_no": "26",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "لا طريق مسدود أو زر يوحي بوظيفة غير متاحة أو كشف خصائص مدفوعة دون حق.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "UX-HOME-01; AZ26-PLACEHOLDERS"
+    },
+    {
+      "ac_id": "AC-26-3",
+      "scope_no": "26",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "رحلة مستخدم من الرئيسية إلى الأسهم والذهب والفرص والمقارنة ثم العودة على الموبايل.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "UX-HOME-01; AZ26-PLACEHOLDERS"
+    },
+    {
+      "ac_id": "AC-26-4",
+      "scope_no": "26",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "لقطات فعلية لكل حالة ومراجعة عدم تغيير الهوية والوظائف المعتمدة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "UX-HOME-01; AZ26-PLACEHOLDERS"
+    },
+    {
+      "ac_id": "AC-27-1",
+      "scope_no": "27",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "التسجيل والدخول والحساب والاشتراك تعرض نتيجة HTTP المصادق عليها فقط.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "UX-LOGIN-01; AZ27-429/MALFORMED; SEC-013"
+    },
+    {
+      "ac_id": "AC-27-2",
+      "scope_no": "27",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "429 أو 200 HTML تالف لا يمسح الجلسة ولا يظهر نجاحًا؛ اشتراك منتهي لا يمر.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "UX-LOGIN-01; AZ27-429/MALFORMED; SEC-013"
+    },
+    {
+      "ac_id": "AC-27-3",
+      "scope_no": "27",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "تجربة تسجيل صناعية حقيقية ثم logout واسترجاع وPro/Free وفشل الشبكة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "UX-LOGIN-01; AZ27-429/MALFORMED; SEC-013"
+    },
+    {
+      "ac_id": "AC-27-4",
+      "scope_no": "27",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "HAR منقح ولقطات وزمن الدخول؛ لا تعديل مسار الدخول المؤجل بغير موافقة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "UX-LOGIN-01; AZ27-429/MALFORMED; SEC-013"
+    },
+    {
+      "ac_id": "AC-28-1",
+      "scope_no": "28",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "شارت الذهب المصري خطي عيار/جرام مع فترات يومية/أسبوعية/شهرية وزمن ومصدر.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ28-SIGN/SIBLING/DIFF/TILE/CHART-RETRY"
+    },
+    {
+      "ac_id": "AC-28-2",
+      "scope_no": "28",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "100→110 يعرض +10%، السعر الأقل يوصف أقل، فشل مصدر شقيق لا يحجب الذهب.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ28-SIGN/SIBLING/DIFF/TILE/CHART-RETRY"
+    },
+    {
+      "ac_id": "AC-28-3",
+      "scope_no": "28",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "متصفح حقيقي: تبديل الفترات وملء الشاشة والـzoom وS/R والأحداث التاريخية وفشل المصدر.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ28-SIGN/SIBLING/DIFF/TILE/CHART-RETRY"
+    },
+    {
+      "ac_id": "AC-28-4",
+      "scope_no": "28",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق fixtures وإعادة التحميل والكاش واللقطات؛ لا تعارض مع تطوير الذهب المستقل.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ28-SIGN/SIBLING/DIFF/TILE/CHART-RETRY"
+    },
+    {
+      "ac_id": "AC-29-1",
+      "scope_no": "29",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "RTL، نص واضح وإعادة تدفق عند 200%، لا قص أو تمرير أفقي غير مقصود.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ29-DRAWER/GOLD-FOCUS; UX-A11Y-01"
+    },
+    {
+      "ac_id": "AC-29-2",
+      "scope_no": "29",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "القائمة تغلق عند 900/1024/1099 بعد الاختيار؛ inert/aria وEscape وfocus trap صحيحة.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ29-DRAWER/GOLD-FOCUS; UX-A11Y-01"
+    },
+    {
+      "ac_id": "AC-29-3",
+      "scope_no": "29",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "متصفح حقيقي 360/390/768/899/900/1024/1099/1100/1280، لمس ولوحة مفاتيح وقارئ شاشة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ29-DRAWER/GOLD-FOCUS; UX-A11Y-01"
+    },
+    {
+      "ac_id": "AC-29-4",
+      "scope_no": "29",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "لقطات وأدلة وصول واضحة وتقرير تحقق التباين؛ محاكاة JS غير كافية.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ29-DRAWER/GOLD-FOCUS; UX-A11Y-01"
+    },
+    {
+      "ac_id": "AC-30-1",
+      "scope_no": "30",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "التحميل والخطأ والفراغ والتعافي صريحة، ونتيجة السهم الحالي فقط تظهر.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ30-RACE/CONC/STATUS/RETRY"
+    },
+    {
+      "ac_id": "AC-30-2",
+      "scope_no": "30",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "رد متأخر لسهم سابق يهمل؛ حد التزامن 6 لا يتجاوز؛ 204 لا يصنع 200.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ30-RACE/CONC/STATUS/RETRY"
+    },
+    {
+      "ac_id": "AC-30-3",
+      "scope_no": "30",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "محاكاة شبكة بطيئة/منقطعة بمتصفح حقيقي؛ تبديل الأسهم وإلغاء الطلبات والعودة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ30-RACE/CONC/STATUS/RETRY"
+    },
+    {
+      "ac_id": "AC-30-4",
+      "scope_no": "30",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "HAR منقح وعداد التزامن واستجابات HTTP الأصلية ونتائج التراجع.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ30-RACE/CONC/STATUS/RETRY"
+    },
+    {
+      "ac_id": "AC-31-1",
+      "scope_no": "31",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "CI يشغل الاختبارات الفعلية للباك والواجهة والبناء والأمان ويمنع حزمة محظورة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ31-CI-BACKEND/FRONTEND/DIST-TESTS; SEC-028/029"
+    },
+    {
+      "ac_id": "AC-31-2",
+      "scope_no": "31",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "اختبار فاشل عمدًا أو snapshot/test/fixture في dist يفشل بوابة المرشح.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ31-CI-BACKEND/FRONTEND/DIST-TESTS; SEC-028/029"
+    },
+    {
+      "ac_id": "AC-31-3",
+      "scope_no": "31",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "تجربة CI معزولة لكل SHA ونتائج فشل/نجاح؛ تحقق required checks دون تغيير الإعدادات.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ31-CI-BACKEND/FRONTEND/DIST-TESTS; SEC-028/029"
+    },
+    {
+      "ac_id": "AC-31-4",
+      "scope_no": "31",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "سجل passed/failed/skipped وmanifest والبصمات والأسباب؛ لا اعتماد skips إلزامية.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ31-CI-BACKEND/FRONTEND/DIST-TESTS; SEC-028/029"
+    },
+    {
+      "ac_id": "AC-32-1",
+      "scope_no": "32",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "قياس p95 وطلبات الصفحة والذاكرة والتكلفة بالنسبة للأهداف المقترحة المعتمدة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ32-RATE-EVICT; SEC-020; UX-PERF-01"
+    },
+    {
+      "ac_id": "AC-32-2",
+      "scope_no": "32",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "5001 مفتاح اصطناعي منتهٍ تنظف بالـTTL وتلتزم بسقف؛ تجاوز الحد يرجع 429 بلا انهيار.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ32-RATE-EVICT; SEC-020; UX-PERF-01"
+    },
+    {
+      "ac_id": "AC-32-3",
+      "scope_no": "32",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "اختبار حمل صناعي محلي بعد اعتماد ملف الحمل والسقف؛ اختبر عدة عمال دون موارد مدفوعة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ32-RATE-EVICT; SEC-020; UX-PERF-01"
+    },
+    {
+      "ac_id": "AC-32-4",
+      "scope_no": "32",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "قدم نتائج cold/warm وذاكرة وزمن واستجابة وتكلفة تقديرية منفصلة عن الفعلية.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ32-RATE-EVICT; SEC-020; UX-PERF-01"
+    },
+    {
+      "ac_id": "AC-33-1",
+      "scope_no": "33",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "المرشح والبيئة وSHA المخدومون موثقون والـKV مفصول وبناء خال من الملفات المحظورة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ33-SMOKE-401/ROLLBACK-ACTIVE/KV; SEC-027/034"
+    },
+    {
+      "ac_id": "AC-33-2",
+      "scope_no": "33",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "401 للصفحة العامة/health لا يمر كنجاح؛ اختر ACTIVE-OLD لا أحدث رفع غير نشط.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ33-SMOKE-401/ROLLBACK-ACTIVE/KV; SEC-027/034"
+    },
+    {
+      "ac_id": "AC-33-3",
+      "scope_no": "33",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "تجربة smoke وrollback صناعية؛ تحقق عقد route والبصمة بعد الرجوع بلا نشر حي.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ33-SMOKE-401/ROLLBACK-ACTIVE/KV; SEC-027/034"
+    },
+    {
+      "ac_id": "AC-33-4",
+      "scope_no": "33",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق سجل rollback ومصفوفة HTTP وموافقة منفصلة لازمة لأي نشر حقيقي.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ33-SMOKE-401/ROLLBACK-ACTIVE/KV; SEC-027/034"
+    },
+    {
+      "ac_id": "AC-34-1",
+      "scope_no": "34",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "liveness خفيف وreadiness يكشف اعتمادًا حرجًا مع مؤشرات freshness وp95 و5xx.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ34-HEALTH-READY/IO/PUBLIC/OBSERVABILITY; BE-005"
+    },
+    {
+      "ac_id": "AC-34-2",
+      "scope_no": "34",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "تعطل التخزين لا يعرض ready؛ health العام لا يعرض بيانات الحساب أو تشخيصًا داخليًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ34-HEALTH-READY/IO/PUBLIC/OBSERVABILITY; BE-005"
+    },
+    {
+      "ac_id": "AC-34-3",
+      "scope_no": "34",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "حقن تعطل تخزين/مصدر/رسائل واختبار تنبيه صناعي وحالات degraded واعتماد حدودها.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ34-HEALTH-READY/IO/PUBLIC/OBSERVABILITY; BE-005"
+    },
+    {
+      "ac_id": "AC-34-4",
+      "scope_no": "34",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أرفق لوحة قياس وسجلات منقحة وخطة تنبيه واستجابة؛ لا تفعيل خارجي تلقائي.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ34-HEALTH-READY/IO/PUBLIC/OBSERVABILITY; BE-005"
+    },
+    {
+      "ac_id": "AC-35-1",
+      "scope_no": "35",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "الدعم وإدارة الحساب وحذف البيانات وفق سياسة احتفاظ مكتوبة؛ لا PII في shell الإدارة.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "MGMT-001..006; AZ35-DELETE-CLAIM; BE-024"
+    },
+    {
+      "ac_id": "AC-35-2",
+      "scope_no": "35",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "anonymous/Free لا يقرأ إدارة أو أصولًا حساسة؛ الحذف لا يدعي الإزالة الكاملة مع بقايا غير مصرح بها.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "MGMT-001..006; AZ35-DELETE-CLAIM; BE-024"
+    },
+    {
+      "ac_id": "AC-35-3",
+      "scope_no": "35",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "اختبار حساب صناعي لحذف/تعمية وإبطال جلسة واستعادة مقيدة؛ إدارة وصول بدور مصرح.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "MGMT-001..006; AZ35-DELETE-CLAIM; BE-024"
+    },
+    {
+      "ac_id": "AC-35-4",
+      "scope_no": "35",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "أدلة منقحة وسياسات اعتماد الاحتفاظ والدعم وتحقق الكاش؛ أي تعديل إنتاج بموافقة.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "MGMT-001..006; AZ35-DELETE-CLAIM; BE-024"
+    },
+    {
+      "ac_id": "AC-36-1",
+      "scope_no": "36",
+      "index": 1,
+      "category": "وظيفة وحسابات",
+      "weight": 35,
+      "success_condition": "مسار اشتراك صناعي: طلب وتفعيل وتجديد وتسوية واسترداد متوافق مع الحقوق الفعلية.",
+      "verification": "اختبار وحدة / golden fixture",
+      "reference": "AZ36-SUB-PERSIST/ATOMIC; SEC-012; MGMT-001"
+    },
+    {
+      "ac_id": "AC-36-2",
+      "scope_no": "36",
+      "index": 2,
+      "category": "أمان واستثناءات",
+      "weight": 30,
+      "success_condition": "فشل الحفظ في أي خطوة أو إعادة الطلب لا يخلق نجاحًا كاذبًا ولا تفعيلًا/تحصيلًا مضاعفًا.",
+      "verification": "اختبار سلبي / حقن أعطال",
+      "reference": "AZ36-SUB-PERSIST/ATOMIC; SEC-012; MGMT-001"
+    },
+    {
+      "ac_id": "AC-36-3",
+      "scope_no": "36",
+      "index": 3,
+      "category": "تكامل وتجربة",
+      "weight": 25,
+      "success_condition": "رحلة قبول كاملة من التسجيل حتى الدعم والإلغاء مع مزود دفع صناعي فقط؛ كل موانع الإطلاق مغلقة.",
+      "verification": "تكامل واقعي / UAT معزول",
+      "reference": "AZ36-SUB-PERSIST/ATOMIC; SEC-012; MGMT-001"
+    },
+    {
+      "ac_id": "AC-36-4",
+      "scope_no": "36",
+      "index": 4,
+      "category": "انحدار وتوثيق",
+      "weight": 10,
+      "success_condition": "موافقة منفصلة على الباقات والتسعير والشروط والخصوصية وخطة النشر والتراجع؛ لا دفع حقيقي.",
+      "verification": "انحدار + دليل مستقل",
+      "reference": "AZ36-SUB-PERSIST/ATOMIC; SEC-012; MGMT-001"
+    }
+  ]
+}

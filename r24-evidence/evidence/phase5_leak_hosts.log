@@ -1,0 +1,13 @@
+production_domain      leak404=18 leak200=0 keep200=5 resolved=24/24
+preview_worker         leak404=18 leak200=0 keep200=5 resolved=24/24
+mgmt_worker            leak404=18 leak200=0 keep200=1 resolved=24/24
+prod_version_236       leak404=0 leak200=0 keep200=0 resolved=0/24
+prod_version_235       leak404=0 leak200=0 keep200=0 resolved=0/24
+prod_deploy_235        leak404=0 leak200=0 keep200=0 resolved=0/24
+preview_version_235    leak404=0 leak200=0 keep200=0 resolved=0/24
+preview_deploy_235     leak404=0 leak200=0 keep200=0 resolved=0/24
+preview_deploy_9393    leak404=0 leak200=0 keep200=0 resolved=0/24
+preview_deploy_7611    leak404=0 leak200=0 keep200=0 resolved=0/24
+preview_deploy_3aa8    leak404=0 leak200=0 keep200=0 resolved=0/24
+wrote: /workspace/output/OCTA-ROUND24-EVIDENCE/evidence/phase5_leak_hosts.json
+total_leaking_200_across_hosts=0

@@ -1,0 +1,54 @@
+{
+  "artifact": "phase1_safe_rollback",
+  "generated_at": "2026-11-18T18:29:01.456982Z",
+  "goal": "نسخة تراجع محلية تحافظ على حارس التسريب وتبني على أساس النسخة ٢٣٥ ⭐",
+  "deployed": false,
+  "live_touched": false,
+  "build": {
+    "base_commit": "71ba99a9fb6595f1c80da2debabe222e8e1ab1b2",
+    "guard_commit": "1ec73d85b9c5da1fbbe1228ddfd10bc2b8709a8d",
+    "artifact_path": "rollback/worker.v235-safe.js",
+    "artifact_sha256": "2a26c76d486008046037d2481bc92869453216614dca94325e067363361a7fb4",
+    "identical_to_guard_commit_worker": true,
+    "builder": "tools/build_safe_rollback.js (واجهة) ⭐",
+    "checker": "tools/check_safe_rollback.js (واجهة) ⭐"
+  },
+  "before": {
+    "target": "worker.js @ 71ba99a (v235 basis, raw)",
+    "exit_code": 1,
+    "leak_variants": 18,
+    "leak_blocked_404": 6,
+    "leak_reachable": 12,
+    "keep_paths": 6,
+    "keep_alive_200": 6,
+    "keep_broken": 0,
+    "guard_direct_hits": 2,
+    "guard_direct_total": 18,
+    "result": "FAIL",
+    "sha256": "5775033a8d4ca95ddcbe799c64e5cda9dc181181a674bb556fc02be5286214e8"
+  },
+  "after": {
+    "target": "/workspace/.wt_r18fe/rollback/worker.v235-safe.js",
+    "exit_code": 0,
+    "leak_variants": 18,
+    "leak_blocked_404": 18,
+    "leak_reachable": 0,
+    "keep_paths": 6,
+    "keep_alive_200": 6,
+    "keep_broken": 0,
+    "guard_direct_hits": 18,
+    "guard_direct_total": 18,
+    "result": "PASS",
+    "sha256": "2a26c76d486008046037d2481bc92869453216614dca94325e067363361a7fb4"
+  },
+  "delta": {
+    "leak_reachable_before": 12,
+    "leak_reachable_after": 0,
+    "keep_broken_before": 0,
+    "keep_broken_after": 0
+  },
+  "live_version_236_has_guard": true,
+  "live_version_235_has_guard": false,
+  "direct_rollback_to_235_allowed": false,
+  "direct_rollback_block_reason": "النسخة ٢٣٥ ما فيهاش حارس التسريب ⭐ ⇒ الرجوع ليها بيعيد فتح التسريب ⭐ ⇒ ممنوع قبل تفعيل قاعدة WAF ⭐"
+}

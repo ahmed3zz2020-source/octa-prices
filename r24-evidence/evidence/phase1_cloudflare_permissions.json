@@ -1,0 +1,171 @@
+{
+  "artifact": "phase1_cloudflare_permissions",
+  "generated_at": "2026-11-18T18:35:33.346164Z",
+  "observed_in_round23": {
+    "waf_rule_create": "403 ⭐ + 10000 ⭐ (سلطة ناقصة ⭐) ⭐",
+    "cache_purge": "403 ⭐ + 10000/10001 ⭐ ⭐",
+    "access_enable": "«not_enabled» ⭐ ⭐",
+    "note": "⛔ 10001 مش موثّق ⭐ في مرجع أخطاء الـAPI العامة ⭐ ⇒ مش مؤكد ⭐ (السلطة الناقصة الموثّقة ⭐ = 403 + 10000 ⭐) ⭐"
+  },
+  "operations": [
+    {
+      "operation": "إنشاء قاعدة WAF (بلوك اللقطات) ⭐",
+      "endpoint": "POST /zones/{zone_id}/rulesets/{ruleset_id}/rules ⭐",
+      "endpoint_alt": "POST /zones/{zone_id}/rulesets (إنشاء ruleset جديد ⭐) ⭐",
+      "dry_run_endpoint": "POST /zones/{zone_id}/rulesets/{ruleset_id}/rules?dry_run=true ⭐",
+      "read_endpoint": "GET /zones/{zone_id}/rulesets/phases/http_request_firewall_custom/entrypoint ⭐",
+      "min_permission_api": "Zone WAF Write ⭐",
+      "min_permission_dashboard": "Zone ⭐ → Zone WAF ⭐ → Edit ⭐",
+      "scope": "zone_id ⭐ (نطاق المنطقة) ⭐",
+      "scope_value_needed": "معرّف منطقة octashares.com ⭐",
+      "expected_error_if_missing": {
+        "http_status": 403,
+        "error_code": 10000,
+        "message": "Forbidden ⭐ (سلطة ناقصة ⭐) ⭐",
+        "extra": "Cloudflare أضاف/documentation_url/ في رد ٤٠٣ ⭐ والرسالة بتقول المشكلة ⭐",
+        "also_possible": "9109 Unauthorized to access requested resource ⭐ أو 403 «zones [...] are not authorized» ⭐"
+      },
+      "verified": "مستند ⭐ (Cloudflare API · Rulesets) ⭐"
+    },
+    {
+      "operation": "مسح الكاش ⭐",
+      "endpoint": "POST /zones/{zone_id}/purge_cache ⭐",
+      "dry_run_endpoint": null,
+      "read_endpoint": null,
+      "min_permission_api": "Cache Purge ⭐",
+      "min_permission_dashboard": "Zone ⭐ → Cache Purge ⭐ → Purge ⭐",
+      "scope": "zone_id ⭐ (نطاق المنطقة) ⭐",
+      "scope_value_needed": "معرّف منطقة octashares.com ⭐",
+      "expected_error_if_missing": {
+        "http_status": 403,
+        "error_code": 10000,
+        "message": "Forbidden ⭐ (سلطة ناقصة ⭐) ⭐",
+        "extra": "نفس سلوك الـ403 ⭐",
+        "also_possible": "9109 ⭐"
+      },
+      "verified": "مستند ⭐ (Cloudflare API · Cache) ⭐",
+      "correction": "حزمة الجولة ٢٣ سمّت الصلاحية «Zone Cache Purge» ⭐ والاسم الرسمي في التوثيق ⭐ «Cache Purge» ⭐"
+    },
+    {
+      "operation": "تفعيل Cloudflare Access (تطبيق + سياسة) ⭐",
+      "endpoint": "POST /accounts/{account_id}/access/apps ⭐",
+      "endpoint_alt": "POST /accounts/{account_id}/access/apps/{app_id}/policies ⭐",
+      "dry_run_endpoint": null,
+      "read_endpoint": "GET /accounts/{account_id}/access/apps ⭐",
+      "min_permission_api": "Access: Apps and Policies Write ⭐",
+      "min_permission_dashboard": "Account ⭐ → Access: Apps and Policies ⭐ → Edit ⭐",
+      "scope": "account_id ⭐ (نطاق الحساب ⭐ — مش المنطقة ⭐) ⭐",
+      "scope_value_needed": "معرّف حساب Cloudflare (مش المنطقة ⭐) ⭐",
+      "expected_error_if_missing": {
+        "http_status": 403,
+        "error_code": 10000,
+        "message": "Forbidden ⭐ (سلطة ناقصة ⭐) ⭐",
+        "extra": "ولو الـAccess مش مفعّل على الحساب ⭐ ⇒ الخطأ مش ٤٠٣ ⭐ بل «not_enabled» ⭐ (مشكلة تهيئة ⭐ مش مشكلة توكن ⭐)",
+        "also_possible": "التفعيل نفسه ⭐ ⇒ Zero Trust ⭐ → onboarding ⭐"
+      },
+      "verified": "مستند ⭐ (Cloudflare API · Zero Trust · Access) ⭐",
+      "correction": "حزمة الجولة ٢٣ طلبت «Account Access Write» ⭐ وهو **مش اسم صلاحية موجود** ⭐ ⇒ الاسم الصحيح ⭐ «Access: Apps and Policies Write» ⭐"
+    },
+    {
+      "operation": "قراءة معرّف المنطقة (للتحضير ⭐) ⭐",
+      "endpoint": "GET /zones?name=octashares.com ⭐",
+      "dry_run_endpoint": null,
+      "read_endpoint": null,
+      "min_permission_api": "Zone Read ⭐",
+      "min_permission_dashboard": "Zone ⭐ → Zone ⭐ → Read ⭐",
+      "scope": "zone_id ⭐",
+      "scope_value_needed": "اسم المنطقة ⭐",
+      "expected_error_if_missing": {
+        "http_status": 403,
+        "error_code": 10000,
+        "message": "Forbidden ⭐ (سلطة ناقصة ⭐) ⭐",
+        "extra": "لو التوكن مربوط بالحساب بس مش المنطقة ⭐ ⇒ «zones [...] are not authorized» ⭐",
+        "also_possible": null
+      },
+      "verified": "مستند ⭐"
+    }
+  ],
+  "token_blueprint": {
+    "name": "OCTA-R24-containment ⭐",
+    "type": "Custom token ⭐",
+    "permissions": [
+      {
+        "group": "Zone ⭐",
+        "name": "Zone WAF ⭐",
+        "access": "Edit ⭐",
+        "api_name": "Zone WAF Write ⭐",
+        "resources": "Include ⭐ → Specific zone ⭐ → octashares.com ⭐"
+      },
+      {
+        "group": "Zone ⭐",
+        "name": "Cache Purge ⭐",
+        "access": "Purge ⭐",
+        "api_name": "Cache Purge ⭐",
+        "resources": "Include ⭐ → Specific zone ⭐ → octashares.com ⭐"
+      },
+      {
+        "group": "Zone ⭐",
+        "name": "Zone ⭐",
+        "access": "Read ⭐",
+        "api_name": "Zone Read ⭐",
+        "resources": "Include ⭐ → Specific zone ⭐ → octashares.com ⭐"
+      },
+      {
+        "group": "Account ⭐",
+        "name": "Access: Apps and Policies ⭐",
+        "access": "Edit ⭐",
+        "api_name": "Access: Apps and Policies Write ⭐",
+        "resources": "Include ⭐ → Specific account ⭐ → الحساب ⭐"
+      }
+    ],
+    "client_ip_filtering": "اختياري ⭐ (مش مطلوب ⭐) ⭐",
+    "cost": "0$ ⭐",
+    "notes": "⛔ التوكن **مش** بيتكتب في أي ملف ⭐ ⇒ بينحفظ في متغيّر بيئة ⭐ أو في مدير أسرار ⭐ ⭐."
+  },
+  "waf_rule_expressions": {
+    "free_plan_wildcard": "(http.request.uri.path wildcard \"*/data/*opp_snapshot.json*\") or (http.request.uri.path wildcard \"*/data/*alpha_snapshot.json*\")",
+    "free_plan_decoded_optional": "(lower(url_decode(http.request.uri.path)) wildcard \"*/data/*opp_snapshot.json*\") or (lower(url_decode(http.request.uri.path)) wildcard \"*/data/*alpha_snapshot.json*\")",
+    "business_enterprise_regex": "((http.request.uri.path matches \"(?i)^/data/(?:[^/]*/)*(?:opp|alpha)_snapshot\\.json/?$\") or (url_decode(http.request.uri.path) matches \"(?i)^/data/(?:[^/]*/)*(?:opp|alpha)_snapshot\\.json/?$\"))",
+    "action": "block ⭐",
+    "custom_response": {
+      "status_code": 404,
+      "content_type": "application/json ⭐",
+      "content": "{\"ok\":false,\"error\":\"not-found\",\"why\":\"snapshot_assets_blocked\"} ⭐"
+    }
+  },
+  "corrections_to_round23_package": [
+    {
+      "file": "WAF-RULES.md §6.2 (خط جولة ٢٣) ⭐",
+      "was": "GET /zones/$ZONE_ID/rulesets/phases/http_request_firewall_custom/entry ⭐",
+      "now": "GET /zones/$ZONE_ID/rulesets/phases/http_request_firewall_custom/entrypoint ⭐",
+      "why": "المسار الرسمي ⭐ «entrypoint» ⭐ («entry» مش مسار مستند ⭐) ⭐"
+    },
+    {
+      "file": "WAF-RULES.md §6.1 (خط جولة ٢٣) ⭐",
+      "was": "POST .../rulesets/phases/http_request_firewall_custom/entry?dry_run=true ⭐",
+      "now": "POST .../rulesets/{ruleset_id}/rules?dry_run=true ⭐ (أو POST .../rulesets?dry_run=true ⭐) ⭐",
+      "why": "المعامل dry_run بيتقبل على عمليات POST/PUT/PATCH/DELETE ⭐ المدعومة ⭐ ⇒ لازم يكون على نفس عملية التعديل ⭐"
+    },
+    {
+      "file": "CACHE-PURGE.md §2.0 (خط جولة ٢٣) ⭐",
+      "was": "Zone Cache Purge ⭐",
+      "now": "Cache Purge ⭐",
+      "why": "الاسم الرسمي ⭐ (نطاق المنطقة ⭐) ⭐"
+    },
+    {
+      "file": "ACCESS.md + تقرير الجولة ٢٣ ⭐",
+      "was": "Account Access Write ⭐",
+      "now": "Access: Apps and Policies Write ⭐",
+      "why": "الاسم الرسمي ⭐ (نطاق الحساب ⭐) ⭐"
+    },
+    {
+      "file": "WAF-RULES.md §6.1 ⭐",
+      "was": "التوقع: result.rules[0].action == 'block' ⭐",
+      "now": "مع dry_run ⭐ الرد بيكون result: null ⭐ (التحقق بيشتغل ⭐ والكتابة ما بتتمش ⭐) ⭐",
+      "why": "سلوك dry_run الموثّق ⭐: العمليات اللي بترجّع ٢٠٠ بترجّع result: null ⭐ ⇒ الفحص بيبقى على success والرسالة ⭐"
+    }
+  ],
+  "live_writes_performed": false,
+  "tokens_requested": false,
+  "secrets_written": false
+}
