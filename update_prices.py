@@ -6771,7 +6771,17 @@ NZ_R = 1e9
 
 
 def _n(v, d=None):
-    """رقم صالح ولا None — ⛔ صفر Pretoria الكسور بتتحوّل لصفر مش ناقص"""
+    """رقم صالح ومحدود ولا None — ⛔ صفر Pretoria الكسور بتتحوّل لصفر مش ناقص
+
+    🛡️ الجولة ٢٣ (R23) — النموذج اللي اتبعته بقى في **كل** المحركات:
+       NaN / inf / نص / bool ⇒ d (مش «بيانات موجودة»)
+       (قبل الجولة دي كان كل محرك عنده `_f` محلية بتقبل NaN و inf ⇒
+        NaN كان بيوصل لجداول الأشرطة ⇒ «أفضل شريحة» ودرجات NaN
+        في النتيجة النهائية — وشكلها رقم حقيقي!)
+    📌 ملاحظة: `_f` المحلية في كل محرك **مستقلة** عن هذه ⭐
+       (لأن بعض الاختبارات بتستخرج الدوال لوحدها بـAST ⭐ فبنفضل
+        كل دالة مكتفية بذاتها ⭐).
+    """
     if v is None or isinstance(v, bool):
         return d
     try:
@@ -7475,8 +7485,16 @@ def quick_score(item):
         return None
 
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     # نعرّف المتغيرات الأساسية مرة واحدة في الأول — كلها محمية
     p1m = _f(item.get("perf_1m"))
@@ -7501,7 +7519,11 @@ def quick_score(item):
     pe, roe = _f(item.get("pe")), _f(item.get("roe"))
     f = 55.0
     if pe is not None:
-        if pe < 0: f = 30
+        # 🛡️ الجولة ٢٣ (R23) — ⛔ P/E غير الموجب = **أسوأ** شريحة ⭐
+        #    ⛌ العيب: `pe < 0` ⭐ ⇒ pe = 0 ⭐ (مفيش أرباح ⭐) كان بيدخل
+        #    ⭐ شريحة `pe < 8` ⭐ ⇒ 88 ⭐ = **أفضل** درجة ⭐ ⛔⛔ ⭐
+        #    ⛔ نفس قاعدة الجولة ٢٢ في _nz_pos (P/E <= 0 ⇒ أسوأ درجة).
+        if pe <= 0: f = 30
         elif pe < 8: f = 88
         elif pe < 15: f = 78
         elif pe < 25: f = 65
@@ -7588,20 +7610,120 @@ def quick_score(item):
 # ════════════════════════════════════════════════════════════
 
 
+# ════════════════════════════════════════════════════════════
+# ⭐ PEG = P/E ÷ نمو الأرباح (٪) — مضاعف التقييم بالنمو
+#    (الجولة ٢٣ · R23 · Phase 4)
+# ════════════════════════════════════════════════════════════
+# 📌 التعريف (معلن صراحة، ومكتوب في أداة التدقيق):
+#      PEG = (P/E) ÷ (نمو الأرباح %)
+#      · P/E لازم يكون **موجب** ⇒ P/E <= 0 (شركة مش رابحة) ⇒ مفيش PEG
+#      · النمو لازم يكون **رقم حقيقي موجب** ⇒ نمو <= 0 ⇒ مفيش PEG
+# 📌 ⛔ «مش متاح» (None) ≠ صفر:
+#      · نمو مفقود  ⇒ PEG = None (مش 0 ⇒ ولا inf ولا قسمة على صفر)
+#      · نمو سالب/صفر ⇒ PEG = None (مفيش PEG لشركة بتقلّص)
+#      · نمو نصي/NaN/inf ⇒ PEG = None (مش «بيانات موجودة»)
+#      ⇒ كل الحالات دي ⇒ **0 نقطة** (مش «رخيص» و«مش متاح»)
+# 📌 ⛔ مفيش overflow أبداً:
+#      · P/E بيتقصّ عند PEG_PE_MAX · النمو بيتقصّ عند PEG_GROWTH_MAX
+#      · وأي نمو أصغر من PEG_GROWTH_MIN ⇒ «غير متاح» (مش قسمة على صفر)
+#      · ⇒ أكبر PEG ممكن = PEG_PE_MAX / PEG_GROWTH_MIN (رقم محدود)
+# 📌 ⛔ الأوزان المعتمدة ما اتغيّرتش:
+#      · PEG **بند جوه** بند «القيمة» (سقفه 30 نقطة زي ما هو)
+#      · ولا سطر في تركيبة المحور الأساسي (30+30+20+20 = 100)
+#      · ولا في أوزان المحاور (octa_score.AXIS_WEIGHTS)
+#      · ولا في حد التغطية 90٪ (opp_engine.FRESH_MIN_COVERAGE)
+
+PEG_PE_MAX = 1000.0        # ⛔ نفس سقف P/E في validate_value
+PEG_GROWTH_MIN = 0.01      # ⛔ أقل نمو معتبر (٪) — أقل منه مش معقول ⇒ غير متاح
+PEG_GROWTH_MAX = 1000.0    # ⛔ سقف النمو (٪) ⇒ PEG مابيتفجرش
+PEG_POINTS_MAX = 8         # ⛔ أقصى نقاط PEG (من سقف بند «القيمة» = 30)
+
+# ⭐ جدول أشرطة PEG — **الأصغر أفضل** (سعر مدفوع مقابل نمو أسرع)
+#    (الحد الأعلى، الدرجة) — الدرجة قصوى PEG_POINTS_MAX
+PEG_BANDS = (
+    (0.75, 8),    # أرخص من نموه ⇒ ممتاز
+    (1.00, 6),    # P/E = النمو ⇒ مقبول جداً
+    (1.50, 4),    # غالي شوية مقابل النمو
+    (2.00, 2),    # غالي
+    (3.00, 1),    # غالي جداً
+)
+# ⛔ أكبر من 3.00 ⇒ 0 نقطة (ومش «غير متاح» — PEG موجود بس غالي)
+
+
+def _peg_num(v):
+    """رقم صالح محدود — None/نص/NaN/inf/bool ⇒ None (مش «موجود»)."""
+    if v is None or isinstance(v, bool):
+        return None
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if f != f or f in (float("inf"), float("-inf")):
+        return None
+    return f
+
+
+def peg_value(pe, growth_pct):
+    """PEG = P/E ÷ نمو الأرباح(٪) — None لو أي شرط مش متحقّق.
+
+    ⛔ بترجع None (مش 0 ولا inf) في كل الحالات دي:
+       · P/E مفقود أو نصي أو NaN/inf
+       · النمو مفقود أو نصي أو NaN/inf
+       · P/E <= 0  (شركة مش رابحة)
+       · النمو <= 0 (شركة بتقلّص) أو أقل من PEG_GROWTH_MIN
+    """
+    p = _peg_num(pe)
+    g = _peg_num(growth_pct)
+    if p is None or g is None:
+        return None
+    if not p > 0:
+        return None
+    if not g > 0:
+        return None
+    if g < PEG_GROWTH_MIN:
+        return None
+    p = min(p, PEG_PE_MAX)
+    g = min(g, PEG_GROWTH_MAX)
+    v = p / g
+    if v != v or v in (float("inf"), float("-inf")):
+        return None
+    return v
+
+
+def peg_score(pe, growth_pct):
+    """نقاط PEG (0..PEG_POINTS_MAX) + قيمة PEG (None ⇒ غير متاح).
+
+    📌 الاتجاه: **PEG الأصغر = أفضل**.
+    📌 غير المتاح ⇒ 0 نقطة (مش «رخيص»).
+    """
+    v = peg_value(pe, growth_pct)
+    if v is None:
+        return 0.0, None
+    pts = 0.0
+    for lim, sc in PEG_BANDS:
+        if v <= lim:
+            pts = float(sc)
+            break
+    return pts, v
+
 
 def fundamental_score(item, peers_map=None):
-    def _n(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
     """بيانات الشركة → نتيجة 0-100 + حالة تقييم + قيمة عادلة"""
     if not item: return None
     peers_map = peers_map if peers_map is not None else SECTOR_STATS
     sec = item.get("sector") or "أخرى"
     pr = peers_map.get(sec) or {}
     def _f(v, d=None):
-        """يحمي من القيم النصية أو الفارغة"""
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     P, B, R, N, D, E = (_f(item.get("pe")), _f(item.get("pb")), _f(item.get("roe")),
                         _f(item.get("net_margin")), _f(item.get("de_ratio")), _f(item.get("eps")))
@@ -7650,6 +7772,17 @@ def fundamental_score(item, peers_map=None):
         elif ratio < 0.9: val += 5
         elif ratio < 1.2: val += 2
         else:             neg.append(f"مكلف على الكتاب ({B:.1f} مقابل {ppb:.1f})")
+    # ⭐ PEG (الجولة ٢٣ · R23) — بند تقييم تالت **جوّه** بند «القيمة»
+    #    ⛔ مفيش تغيير في السقف (30) ولا في تركيبة المحور ولا في أي وزن معتمد.
+    #    ⛔ PEG غير المتاح (نمو مفقود/سالب/صفر/غير رقمي) ⇒ 0 نقطة
+    #       (مش «رخيص» — وده ⛔ بالظبط زي باقي الحالات الحدية).
+    peg_pts, peg_v = peg_score(P, _f(item.get("ni_growth")))
+    if peg_v is not None:
+        val += peg_pts
+        if peg_v <= 1.0:
+            pos.append(f"PEG {peg_v:.2f} — تقييم رخيص مقابل النمو")
+        else:
+            neu.append(f"PEG {peg_v:.2f} — التقييم مقابل النمو")
     val_s = max(0, min(30, val))
 
     # 3) الصحة المالية (20)
@@ -7742,6 +7875,10 @@ def fundamental_score(item, peers_map=None):
         "breakdown": {"الربحية": round(prof_s,1), "القيمة": round(val_s,1),
                       "الصحة المالية": round(health_s,1), "اكتمال البيانات": round(conf_s,1)},
         "sector": sec,
+        # ⭐ PEG (الجولة ٢٣ · R23) — رقم حقيقي أو None (مش متاح)
+        #    ⛔ مفيش PEG مخترع: القيمة None ⇒ «مش متاح» (مش 0 ولا inf).
+        "peg": peg_v,
+        "peg_points": peg_pts,
         "sector_peers": {"متوسط P/E": ppe, "متوسط P/B": ppb,
                          "عدد المقارنة": pr.get("with_pe",0), "نطاق P/E": pr.get("pe_range")},
         "fair_value": fv, "fair_value_confidence": fvc,
@@ -7766,8 +7903,16 @@ def derive_technical(item):
 
     # ── نقدر نستنتج متوسط 20 يوم من الأداء الشهري ──
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
     p1m = _f(item.get("perf_1m"))
     p3m = _f(item.get("perf_3m"))
     py = _f(item.get("perf_y"))
@@ -7863,8 +8008,16 @@ def sentiment_engine(item, all_stocks=None):
        لو المعنويات عالية بس الأساس ضعيف → لازم يظهر التعارض.
     """
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     if not item: return None
     all_stocks = all_stocks or []
@@ -7964,8 +8117,16 @@ def portfolio_fit(item, portfolio=None):
     مثال: Stock Score = 90 لكن Portfolio Fit = 52 لأن المحفظة فيها 40% بنوك.
     """
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     if not item: return None
     pf = portfolio if portfolio is not None else PORTFOLIO
@@ -8092,8 +8253,16 @@ def risk_engine(item, sector_stats=None):
     لأن أهم حاجة للمستخدم يعرف: هل الخطر مقبول؟
     """
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     if not item: return None
     risks = []      # قائمة المخاطر مرتبة بالخطورة
@@ -8216,10 +8385,13 @@ def risk_engine(item, sector_stats=None):
     r_val = 0
     pe = _f(item.get("pe"))
     if pe is not None:
+        # 🛡️ الجولة ٢٣ (R23) — ⛔ P/E غير الموجب = مخاطرة ⭐ (مش «مافيش مخاطرة»)
+        #    ⛌ العيب: `pe < 0` ⭐ ⇒ pe = 0 ⭐ كان **صفر مخاطرة** ⭐ ⇒
+        #    ⭐ السهم اللي مفيش أرباح كان بيتحسب «آمن» ⭐ ⛔⛔ ⭐
         if   pe > 60: r_val += 10; risks.append(("التقييم", f"P/E {pe:.0f} — غالي جداً", 10))
         elif pe > 35: r_val += 7
         elif pe > 25: r_val += 4
-        elif pe < 0:  r_val += 8; risks.append(("الخسارة", "P/E سالب — الشركة بتخسر", 8))
+        elif pe <= 0: r_val += 8; risks.append(("الخسارة", "P/E غير موجب — مفيش أرباح موجبة", 8))
 
     # ═══ 7) مخاطر الأحداث (5 وزن) — مفيش مصدر أخبار لسه ═══
     r_ev = 5
@@ -8301,8 +8473,16 @@ def news_engine(item, sector_name=None):
        ممنوع نخترع أخبار. وممنوع نخلي غياب الأخبار يعني "مفيش مشاكل".
     """
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     if not item: return None
     code = item.get("code")
@@ -8429,8 +8609,16 @@ def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, ri
     if not item: return None
 
     def _f(v, d=0.0):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     # ⛔ نفس المحرك — المصدر الوحيد للحقيقة.
     # 📌 استيراد محلي: يخلّي الدالة تشتغل لوحدها في الاختبار المعزول
@@ -8620,8 +8808,16 @@ def opportunity_engine(item, tech=None, fund=None, liq=None):
        الفرق بين "فرصة مبكرة" و "حركة موجودة"
     """
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     if not item: return None
     pos, neg, neu = [], [], []
@@ -8831,11 +9027,51 @@ def strategy_score(item, strategy="balanced", tech=None, fund=None, liq=None, se
        مفيش إعادة حساب للمحركات — بنستخدم نفس الأرقام.
     """
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     if not item: return None
-    st = STRATEGIES.get(strategy) or STRATEGIES["balanced"]
+    # 🛡️ الجولة ٢٣ (R23) — ⛔ مفيش fallback صامت لـ«balanced» ⭐
+    #    ⛌ العيب: `STRATEGIES.get(strategy) or STRATEGIES["balanced"]` ⭐
+    #    ⭐ ⇒ اسم استراتيجية غلط ⭐ (زي "swign") ⭐ كان بيرجّع نتيجة ⭐
+    #    ⭐ **متوازنة** ⭐ وبتتسمي باسم الاستراتيجية الغلط ⭐ ⇒
+    #    ⭐ العيب بيتخبى والواجهة بتعرض «استراتيجية غير معروفة» ⭐ ⛔⛔ ⭐
+    #    ⛌ الفحص: كل نداء HTTP بيتحقق من الاسم قبل ما يوصل هنا ⭐
+    #       (‎/api/strategy/<code>/<strategy> ⭐ و ‎/api/rank ⭐) ⭐
+    #    ⭐ ⇒ المسار الحيّ محمي ⭐ — بس العقد نفسه كان مكسور ⭐.
+    # ✅ الحل: استراتيجية مجهولة ⇒ **مفيش نتيجة** (score=None) ⭐
+    #    + سبب صريح (زي باقي الحالات غير القابلة للحساب ⭐).
+    #    ⛔ الأوزان المعتمدة ما اتغيّرتش ⭐ ⛔ كل الاستراتيجيات سليمة ⭐.
+    st = STRATEGIES.get(strategy) if isinstance(strategy, str) else None
+    if st is None:
+        return {
+            "strategy": strategy,
+            "strategy_name": strategy if isinstance(strategy, str) else str(strategy),
+            "timeframe": "",
+            "focus": "",
+            "score": None,
+            "base": None,
+            "axes": {},
+            "weights": {},
+            "risk_penalty": 0.0,
+            "liquidity_penalty": 0.0,
+            "filter_penalty": 0.0,
+            "filters_passed": False,
+            "filter_notes": ["استراتيجية غير معروفة — مفيش نتيجة محسوبة"],
+            "decision": "استراتيجية غير معروفة",
+            "confidence": 0.0,
+            "score_status": "unknown_strategy",
+            "rank_eligible": False,
+            "missing_axes": [],
+        }
     axes = {}
 
     # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-05 + F-20-04: ما بنخترعش رقم.
@@ -9042,8 +9278,16 @@ def rank_stocks(all_stocks, strategy=None, min_score=0, max_risk=None,
     المبدأ: نفس البيانات، فلاتر مختلفة حسب اللي بطلبه المستخدم.
     """
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     out = []
     for item in all_stocks:
@@ -9076,6 +9320,15 @@ def rank_stocks(all_stocks, strategy=None, min_score=0, max_risk=None,
         liq = _f(item.get("liquidity_score"))
 
         # ═══ الفلاتر ═══
+        # 🛡️ الجولة ٢٣ (R23) — ⛔ «مش معروف» مش = «مقبول» ⭐
+        #    ⛌ العيب في max_risk ⭐: الشرط كان بيشترط `safety is not None` ⭐ ⇒
+        #    ⭐ سهم **مالوش** درجة أمان ⭐ كان بيعدّي الفلتر ⭐ ⇒
+        #    ⭐ «الأمان غير معروف» بيتعامل معاه كأنه «آمن» ⭐ ⛔⛔ ⭐
+        #    ⛔ نفس القاعدة المطبّقة في min_safety و min_liquidity ⭐
+        #       (اللي بيستبعدوا الـNone ⭐ ⇒ الاتنين متسقين دلوقتي ⭐).
+        # 📌 ملاحظة تسمية (مش عيب منطقي): اسم الفلتر `max_risk` ⭐
+        #    بس هو في الحقيقة **حدّ أدنى لدرجة الأمان** ⭐ (safety_score = أعلى = أأمن ⭐)
+        #    ⇒ سلوكه زي min_safety ⭐ بالظبط (وهو المطلوب ⭐).
         if score < min_score: continue
         # ⛔⛔⛔ ١٥ نوفمبر ٢٠٢٦ — F-20-04: السهم غير المؤهل (بيانات
         #    المخاطرة ناقصة) ما يدخلش الترتيب **المؤهل**. رقمه
@@ -9086,7 +9339,7 @@ def rank_stocks(all_stocks, strategy=None, min_score=0, max_risk=None,
             # غير مؤهل ⇒ يظهر في الفلترة العامة بس ما يترفعش فوق المؤهلين
             continue
 
-        if max_risk is not None and safety is not None and safety < max_risk: continue
+        if max_risk is not None and (safety is None or safety < max_risk): continue
         if min_safety is not None and (safety is None or safety < min_safety): continue
         if min_liquidity is not None and (liq is None or liq < min_liquidity): continue
         if sectors and (item.get("sector") not in sectors): continue
@@ -9131,8 +9384,16 @@ def rank_stocks(all_stocks, strategy=None, min_score=0, max_risk=None,
 def available_filters(all_stocks):
     """يرجّع كل الخيارات المتاحة للفلاتر"""
     def _f(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»)"""
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
 
     sectors = {}
     for s in all_stocks:

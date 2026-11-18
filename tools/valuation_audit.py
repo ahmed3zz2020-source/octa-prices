@@ -7,8 +7,17 @@ valuation_audit.py — تدقيق مستقل لحساب التقييم (P/E · P
 كود المحرك) ونقارنها بمخرجات المحرك نفسها على بيانات تجريبية واقعية، ونفحص
 الحالات الحدّية (EPS ≤ 0 · PE ≤ 0 · حقوق ملكية ≤ 0 · عدد أسهم ≤ 0 · نمو ≤ 0).
 
-⛔ **مفيش أي تعديل على كود المحرك** — Audit فقط. أي عيب لازم يتبلّغ عنه
-   (file:line · المُدخل · المتوقع vs الفعلي · إعادة إنتاج).
+📌 الجولة ٢٣ (R23 · Phase 4): الـPEG بقى **حساب حقيقي** في محرك الأساسيات
+   (update_prices.py · peg_value / peg_score) ⇒ العقد الجديد:
+   · الـbackend **لازم** فيه حساب PEG صحيح (مش مجرّد غياب).
+   · لازم يطابق المرجع المستقل (PEG-08) على شبكة كاملة.
+   · «غير المتاح» = None (مش 0 ولا inf) + صفر نقاط (مش أفضل شريحة).
+   · مافيش overflow + مافيش PEG مخترع + الدرجات المنشورة ما اتغيّرتش
+     للأسهم اللي مالهاش نمو أرباح (PEG-17).
+
+⛔ **مفيش أي تعديل على الأوزان المعتمدة** — ولا أوزان المحاور
+   (octa_score.AXIS_WEIGHTS) · ولا أوزان الاستراتيجيات · ولا حد الـ90٪
+   (opp_engine.FRESH_MIN_COVERAGE) · ولا منهجية التقييم.
 ⛔ **مفيش كتابة خارج /tmp** — كل التخزين بيروح لمجلد مؤقت.
 ⛔ مفيش أي استدعاء شبكي · مفيش أي معاملة مالية.
 
@@ -31,7 +40,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-TMP = tempfile.mkdtemp(prefix="octa_r22_valuation_", dir="/tmp")
+TMP = tempfile.mkdtemp(prefix="octa_r23_valuation_", dir="/tmp")
 sys.path.insert(0, HERE)
 sys.path.insert(0, REPO)      # _stub_env lives in the repo root (like the other harnesses)
 
@@ -48,6 +57,7 @@ fl_mod, _ = _stub_env.install()
 
 import update_prices as up  # noqa: E402
 import octa_score  # noqa: E402
+import opp_engine  # noqa: E402
 from pathlib import Path  # noqa: E402
 
 # ── كل مسارات التخزين على TMP ──
@@ -64,6 +74,77 @@ up.CHARTS_FILE = Path(TMP) / "charts.json"
 
 RESULTS = []        # (ok, label, detail)
 DEFECTS = []        # structured defect reports
+
+# 📌 الـbaseline المعتمد: الأوزان بتتقارن بيه (من الجولة ١٩).
+BASELINE = "edc49cd"
+
+
+def _extract_function(source_text, func_name):
+    """ يستخرج مصدر دالة بالاسم من نص بايثون."""
+    try:
+        tree = ast.parse(source_text)
+    except SyntaxError:
+        return None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == func_name:
+            return ast.get_source_segment(source_text, node)
+    return None
+
+
+def _pre_peg_fundamental_score():
+    """fundamental_score من آخر نسخة من update_prices.py **قبل** إضافة PEG.
+
+    📌 الهدف: إثبات إن إضافة الـPEG **ما غيّرتش** أي درجة منشورة
+       للأسهم اللي مالهاش نمو أرباح (البيانات الحالية كلها كده).
+    """
+    try:
+        log = subprocess.run(
+            ["git", "-C", REPO, "log", "--format=%H", "--", "update_prices.py"],
+            capture_output=True, text=True, timeout=120).stdout.split()
+    except Exception:  # noqa: BLE001
+        return None
+    for sha in log:
+        try:
+            blob = subprocess.run(
+                ["git", "-C", REPO, "show", "%s:update_prices.py" % sha],
+                capture_output=True, text=True, timeout=120).stdout
+        except Exception:  # noqa: BLE001
+            continue
+        if not blob or "def peg_value" in blob:
+            continue                      # دي نسخة فيها PEG ⇒ تخطّاها
+        src = _extract_function(blob, "fundamental_score")
+        if not src:
+            continue
+        ns = {"SECTOR_STATS": {}}
+        try:
+            exec(compile(src, "<pre-peg-fundamental>", "exec"), ns)  # noqa: S102
+        except Exception:  # noqa: BLE001
+            return None
+        fn = ns.get("fundamental_score")
+        if fn:
+            return fn
+    return None
+
+
+def _baseline_fundamental_score():
+    """fundamental_score من الـbaseline edc49cd (مستقل عن الـPEG)."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", REPO, "show", "%s:update_prices.py" % BASELINE],
+            capture_output=True, text=True, timeout=120).stdout
+    except Exception:  # noqa: BLE001
+        return None
+    if not out:
+        return None
+    src = _extract_function(out, "fundamental_score")
+    if not src:
+        return None
+    ns = {"SECTOR_STATS": {}}
+    try:
+        exec(compile(src, "<baseline-fundamental>", "exec"), ns)  # noqa: S102
+    except Exception:  # noqa: BLE001
+        return None
+    return ns.get("fundamental_score")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -150,7 +231,7 @@ def independent_peg(pe, growth_pct):
 # ══════════════════════════════════════════════════════════════════════
 #  2) البيانات التجريبية (FIXTURE) — قيم معلنة صراحة
 # ══════════════════════════════════════════════════════════════════════
-#  كل الأرقام دي **متختلقة**lake本页 — بتتعلن هنا علشان كل رقم في التقرير
+#  كل الأرقام دي **متختلقة** — بتتعلن هنا علشان كل رقم في التقرير
 #  يكون مرجوع لمصدره. مافيش أي رقم جاي من بيانات حقيقية.
 
 SECTOR = "الخدمات المالية"          # قطاع FIXTURE
@@ -316,7 +397,7 @@ def api_get(path, headers=None):
 # ══════════════════════════════════════════════════════════════════════
 
 print("=" * 78)
-print("  OCTA ROUND 22 — VALUATION MATH AUDIT  (P/E · P/B · PEG)")
+print("  OCTA ROUND 23 — VALUATION MATH AUDIT  (P/E · P/B · PEG)")
 print("=" * 78)
 print("  repo / branch : %s @ %s" % (REPO, subprocess.run(
     ["git", "-C", REPO, "branch", "--show-current"], capture_output=True, text=True).stdout.strip()))
@@ -615,6 +696,11 @@ for pb in (0.0, -2.0):
 
 # ──────────────────────────────────────────────────────────────────────
 section("GROUP 3 — PEG = P/E / earnings growth %")
+# 📌 الجولة ٢٣ (R23): الـPEG بقى **موجود** في محرك الأساسيات ⭐
+#    (كان غايب خالص — PEG-07 القديم كان بيسجّل ده كعيب ⭐).
+#    ⇒ العقد الجديد: الـbackend **لازم** فيه حساب PEG صحيح ⭐
+#      (مش مجرّد وجود الكلمة ⭐) — ولازم يطابق المرجع المستقل ⭐
+#      ولازم «غير المتاح» يبقى None (مش 0 ولا inf ⭐).
 
 check(abs(independent_peg(20.0, 7.0) - 20.0 / 7.0) < 1e-12,
       "PEG-01 · independent PEG = PE / growth%% (20 / 7)",
@@ -632,7 +718,165 @@ check(independent_peg(-5.0, 10.0) is None and independent_peg(0.0, 10.0) is None
       "PEG-05 · P/E <= 0 ⇒ PEG is None",
       (independent_peg(-5.0, 10.0), independent_peg(0.0, 10.0)))
 
-# هل المحرك بينشر PEG من الأساس؟ (ولو نشر ⇒ لازم ما يكونش رقم مخترع)
+# ── 3.1) هل المحرك فيه حساب PEG؟ (فحص الملفات — الدليل على وجوده) ──
+git_grep = subprocess.run(["git", "-C", REPO, "grep", "-i", "-n", "peg", "--", "*.py", "*.json"],
+                          capture_output=True, text=True)
+tracked_peg_hits = [l for l in (git_grep.stdout or "").splitlines() if l.strip()]
+engine_peg_hits = [l for l in tracked_peg_hits
+                   if l.split(":", 1)[0] in ("update_prices.py", "octa_score.py",
+                                             "opp_engine.py", "index_engine.py")]
+audit_peg_hits = [l for l in tracked_peg_hits
+                  if l.split(":", 1)[0] == "tools/valuation_audit.py"]
+
+# ⛔ كل ملف في الشجرة (متتبَّع أو لأ) فيه الكلمة ⇒ لازم يكون مفهوم
+all_peg_files = []
+for root, dirs, files in os.walk(REPO):
+    dirs[:] = [d for d in dirs if d not in (".git", "__pycache__", ".r17_n1_tmp_1367")]
+    for fn in files:
+        if not fn.endswith((".py", ".json")):
+            continue
+        p = os.path.join(root, fn)
+        try:
+            with open(p, "r", encoding="utf-8", errors="ignore") as fh:
+                txt = fh.read().lower()
+        except OSError:
+            continue
+        if "peg" in txt:
+            all_peg_files.append(os.path.relpath(p, REPO))
+KNOWN_PEG_FILES = {"update_prices.py", "tools/valuation_audit.py",
+                   "tools/test_engines_filters_audit.py"}
+unknown_peg_files = sorted(f for f in set(all_peg_files) if f not in KNOWN_PEG_FILES)
+
+check(bool(engine_peg_hits),
+      "PEG-06 · the backend NOW computes PEG — the computation lives in the "
+      "fundamental engine (update_prices.py: %d hit(s))" % len(engine_peg_hits),
+      "no PEG computation found in the tracked engines")
+check(not unknown_peg_files,
+      "PEG-07 · every source file that mentions 'peg' is a known one "
+      "(engine + audit + R23 test) — no stray/unknown implementation",
+      unknown_peg_files)
+print("     file inventory of 'peg' (%d tracked hit(s) · %d file(s) on disk):" % (
+    len(tracked_peg_hits), len(set(all_peg_files))))
+for f in sorted(set(all_peg_files)):
+    kind = "engine" if f == "update_prices.py" else (
+        "audit tool" if f == "tools/valuation_audit.py" else "R23 test")
+    print("       · %-42s [%s]" % (f, kind))
+
+# ── 3.2) صحّة الحساب: المحرك لازم يطابق المرجع المستقل ──
+PEG_GRID_PE = [4.0, 8.0, 12.0, 18.0, 25.0, 35.0, 60.0, 120.0]
+PEG_GRID_G = [1.0, 5.0, 7.0, 12.0, 20.0, 35.0, 60.0, 150.0]
+mismatch = []
+for pe in PEG_GRID_PE:
+    for g in PEG_GRID_G:
+        got = up.peg_value(pe, g)
+        want = independent_peg(pe, g)
+        if want is None:
+            if got is not None:
+                mismatch.append((pe, g, got, want))
+        elif got is None or abs(got - want) > 1e-9:
+            mismatch.append((pe, g, got, want))
+check(not mismatch,
+      "PEG-08 · engine PEG == independent PEG over the whole grid "
+      "(%d P/E x %d growth)" % (len(PEG_GRID_PE), len(PEG_GRID_G)),
+      mismatch[:5])
+
+# ── 3.3) الحالات الحدية: «غير المتاح» = None (مش 0 ولا inf) ──
+EDGE_GROWTH = [None, 0, 0.0, -5.0, -0.5, "N/A", "", "12%", float("nan"), float("inf")]
+edge_bad = []
+for g in EDGE_GROWTH:
+    v = up.peg_value(20.0, g)
+    if v is not None:
+        edge_bad.append((g, v))
+for pe in (0, 0.0, -5.0, None, "N/A", float("nan"), float("inf")):
+    v = up.peg_value(pe, 10.0)
+    if v is not None:
+        edge_bad.append((pe, v))
+check(not edge_bad,
+      "PEG-09 · non-positive / missing / non-numeric / NaN / inf ⇒ PEG is None "
+      "(never 0 and never inf)", edge_bad[:5])
+
+# ── 3.4) النقاط: غير المتاح = صفر نقاط (مش «رخيص») + اتجاه الأشرطة ──
+pts_bad = []
+for g in EDGE_GROWTH:
+    p, v = up.peg_score(20.0, g)
+    if v is not None or p != 0.0:
+        pts_bad.append((g, p, v))
+for pe in (0, 0.0, -5.0):
+    p, v = up.peg_score(pe, 10.0)
+    if v is not None or p != 0.0:
+        pts_bad.append((pe, p, v))
+check(not pts_bad,
+      "PEG-10 · an unavailable PEG scores ZERO points (never the best band)",
+      pts_bad[:5])
+
+pts_seq = [up.peg_score(pe, 10.0)[0] for pe in (5.0, 10.0, 15.0, 20.0, 30.0, 60.0)]
+check(all(pts_seq[i] >= pts_seq[i + 1] for i in range(len(pts_seq) - 1))
+      and pts_seq[0] > pts_seq[-1],
+      "PEG-11 · band direction: a LOWER PEG scores HIGHER (PEG 0.5/1/1.5/2/3/6 "
+      "-> %s)" % pts_seq,
+      pts_seq)
+
+# ── 3.5) مافيش overflow ──
+huge = []
+for pe, g in ((1e308, 1e-300), (1e308, 0.5), (1e308, 1e308), (1e9, 1e-9),
+              (float("inf"), 10.0), (20.0, 1e308)):
+    try:
+        v = up.peg_value(pe, g)
+    except Exception as exc:  # noqa: BLE001
+        huge.append((pe, g, "raised %s" % exc))
+        continue
+    if v is not None and (v != v or v in (float("inf"), float("-inf"))):
+        huge.append((pe, g, v))
+check(not huge,
+      "PEG-12 · huge / extreme inputs never overflow (no inf, no NaN, no raise)",
+      huge)
+
+# ── 3.6) الاندماج في المحور الأساسي — من غير تغيير أي وزن ──
+fund_g = fund_ok(item_with(ni_growth=40.0))       # PEG = 0.5 ⇒ أفضل شريحة
+fund_n = fund_ok(item_with(ni_growth=None))        # PEG غير متاح
+bd_g = (fund_g or {}).get("breakdown") or {}
+bd_n = (fund_n or {}).get("breakdown") or {}
+check(value_axis(fund_g) > value_axis(fund_n),
+      "PEG-13 · the PEG sub-score lands in the VALUE axis "
+      "(value %s > %s)" % (value_axis(fund_g), value_axis(fund_n)),
+      (value_axis(fund_g), value_axis(fund_n)))
+same_others = all(bd_g.get(k) == bd_n.get(k) for k in bd_g if k != VALUE_AXIS_KEY)
+check(same_others,
+      "PEG-14 · the PEG sub-score touches ONLY the value axis "
+      "(profitability / health / completeness unchanged)", bd_g)
+check((fund_g or {}).get("peg") is not None and (fund_n or {}).get("peg") is None,
+      "PEG-15 · the published PEG is a real number or None — never invented",
+      ((fund_g or {}).get("peg"), (fund_n or {}).get("peg")))
+check(abs(sum(octa_score.AXIS_WEIGHTS.values()) - 1.0) < 1e-9
+      and opp_engine.FRESH_MIN_COVERAGE == 90.0,
+      "PEG-16 · axis weights sum to 1.0 and the 90%% coverage threshold is intact")
+
+# ── 3.7) الدرجة المنشورة ما اتغيّرتش للبيانات الحالية (بلا نمو) ──
+baseline_score = _pre_peg_fundamental_score()
+score_drift = []
+NO_GROWTH_FIXTURES = ({}, {"pe": 0.0}, {"pe": -4.0}, {"pb": 0.0}, {"pb": -2.0},
+                       {"roe": 0.0}, {"net_margin": -10.0}, {"de_ratio": 0.0},
+                       {"eps": 0.0}, {"revenue": 0.0}, {"div_yield": 0.0},
+                       {"mkt_cap": 0.0}, {"price": 0.01})
+if baseline_score is None:
+    check(False,
+          "PEG-17 · published fundamental scores are UNCHANGED vs the pre-PEG "
+          "engine for stocks without an earnings growth rate",
+          "the pre-PEG fundamental_score could not be extracted from git")
+else:
+    for over in NO_GROWTH_FIXTURES:
+        it = item_with(ni_growth=None, **over)
+        now = up.fundamental_score(it, PEERS)
+        old = baseline_score(it, PEERS)
+        if (now or {}).get("score") != (old or {}).get("score"):
+            score_drift.append((over, (old or {}).get("score"), (now or {}).get("score")))
+    check(not score_drift,
+          "PEG-17 · published fundamental scores are UNCHANGED vs the pre-PEG "
+          "engine for stocks without an earnings growth rate (%d fixtures)"
+          % len(NO_GROWTH_FIXTURES),
+          score_drift[:5])
+
+# ── 3.8) جرد مفاتيح PEG في مخرجات المحركات ──
 peg_keys = []
 def _scan(obj, path=""):
     if isinstance(obj, dict):
@@ -651,28 +895,14 @@ fin_base = octa_score.final_score(BASE_ITEM, tech_base, fund_base, liq_base, PEE
 nz5_base = up.nz5_score(BASE_ITEM)
 for obj in (fund_base, tech_base, liq_base, fin_base, nz5_base):
     _scan(obj)
-
-git_grep = subprocess.run(["git", "-C", REPO, "grep", "-i", "-n", "peg", "--", "*.py", "*.json"],
-                          capture_output=True, text=True)
-tracked_peg_hits = [l for l in (git_grep.stdout or "").splitlines() if l.strip()]
-all_peg = subprocess.run(["grep", "-ric", "peg", "--include=*.py", "--include=*.json", REPO],
-                         capture_output=True, text=True).stdout.strip()
-untracked_peg_files = [l.split(":")[0] for l in all_peg.splitlines()
-                       if l.rsplit(":", 1)[-1] not in ("0", "") and "valuation_audit.py" not in l]
-
-check(not peg_keys,
-      "PEG-06 · no engine output publishes a PEG key (no invented PEG anywhere)",
-      peg_keys)
-check(not tracked_peg_hits,
-      "PEG-07 · the tracked backend contains NO PEG computation at all "
-      "(git grep -i 'peg' over tracked *.py/*.json = %d hits)" % len(tracked_peg_hits),
-      tracked_peg_hits[:5])
-check(not untracked_peg_files,
-      "PEG-08 · no non-tracked source file (other than this audit tool) contains a "
-      "PEG computation", untracked_peg_files)
-print("     note: the only 'peg' occurrences in the tree are in this audit file "
-      "(%s) and in the fixture label 'PEG-0x' — the engines never compute one."
-      % os.path.basename(os.path.abspath(__file__)))
+check(sorted(peg_keys) == sorted([".peg", ".peg_points"]),
+      "PEG-18 · the only PEG keys published by the engines are the fundamental "
+      "axis' own 'peg' + 'peg_points' (no invented PEG anywhere)", peg_keys)
+check((fund_base or {}).get("peg") is not None
+      and abs((fund_base or {}).get("peg") - independent_peg(
+          BASE_ITEM["pe"], BASE_ITEM["ni_growth"])) < 1e-12,
+      "PEG-19 · the published PEG equals PE / ni_growth for the fixture",
+      (fund_base or {}).get("peg"))
 
 # ──────────────────────────────────────────────────────────────────────
 section("GROUP 4 — engine integration (in-process, via the app dispatcher)")
@@ -755,7 +985,7 @@ up.LIVE_DATA["egx30"] = [dict(BASE_ITEM)]
 # ──────────────────────────────────────────────────────────────────────
 section("GROUP 5 — strategy weights: sum to 1.0 + immutability vs edc49cd")
 
-BASELINE = "edc49cd"
+# 📌 BASELINE معرّف فوق (مع أدوات الاستخراج) — مافيش إعادة تعريف هنا.
 
 
 def strategies_block(src_text):
