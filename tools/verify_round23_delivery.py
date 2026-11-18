@@ -162,6 +162,24 @@ def probe_package(zip_path):
     except zipfile.BadZipFile as exc:
         return False, "ZIP_CORRUPT", "BadZipFile: %s" % exc
     try:
+        # ① البيئة (لازم ⇒ عشان نعرف اسم الفرع والبصمة ⭐)
+        env_path = tmp / "ENVIRONMENT.json"
+        if not env_path.is_file():
+            return False, "ENV_MISSING", "ENVIRONMENT.json مش موجود"
+        env = json.loads(env_path.read_text(encoding="utf-8"))
+
+        # ② وجود حزم Git (قبل الـMANIFEST ⇒ سبب واضح ⭐)
+        bundles = {}
+        for group, prefix in (("backend", "backend"), ("frontend", "frontend")):
+            node = env.get(group) or {}
+            want_branch = node.get("review_branch")
+            want_sha = node.get("review_sha")
+            cands = sorted(glob.glob(str(tmp / "bundles" / (prefix + "*.bundle"))))
+            if not cands:
+                return False, "BUNDLE_MISSING", "مفيش حزمة git للـ%s" % group
+            bundles[group] = (cands[0], want_branch, want_sha)
+
+        # ③ الـMANIFEST ( موجود ⭐ · سليم ⭐ · مطابق ⭐)
         man_path = tmp / "MANIFEST.json"
         if not man_path.is_file():
             return False, "MANIFEST_BROKEN", "MANIFEST.json مش موجود"
@@ -181,19 +199,10 @@ def probe_package(zip_path):
             if sha256_file(f) != rec.get("sha256"):
                 return False, "MANIFEST_MISMATCH", "محتوى مختلف: %s" % rel
 
-        env_path = tmp / "ENVIRONMENT.json"
-        if not env_path.is_file():
-            return False, "ENV_MISSING", "ENVIRONMENT.json مش موجود"
-        env = json.loads(env_path.read_text(encoding="utf-8"))
-        for group, prefix in (("backend", "backend"), ("frontend", "frontend")):
-            node = env.get(group) or {}
-            want_branch = node.get("review_branch")
-            want_sha = node.get("review_sha")
-            cands = sorted(glob.glob(str(tmp / "bundles" / (prefix + "*.bundle"))))
-            if not cands:
-                return False, "BUNDLE_MISSING", "مفيش حزمة git للـ%s" % group
+        # ④ النسخ والبصمة
+        for group, (bundle, want_branch, want_sha) in bundles.items():
             clone_dir = tmp / ("probe_clone_" + group)
-            rc, out = run(["git", "clone", "--quiet", cands[0], str(clone_dir)],
+            rc, out = run(["git", "clone", "--quiet", bundle, str(clone_dir)],
                           timeout=600)
             if rc != 0:
                 return False, "BUNDLE_CLONE_FAILED", out.strip()[:160]
@@ -438,11 +447,14 @@ def check_08_clean_clone():
     data = json.loads(out_json.read_text(encoding="utf-8"))
     be = data.get("backend", {})
     fe = data.get("frontend", {})
-    be_txt = "الباك %s (%s)" % (be.get("summary", "?"), be.get("note", ""))
-    fe_txt = "الواجهة %s (%s)" % (fe.get("summary", "?"), fe.get("note", ""))
+    be_txt = "الباك %s" % be.get("summary", "?")
+    fe_txt = "الواجهة %s" % fe.get("summary", "?")
+    notes = list(be.get("notes") or []) + list(fe.get("notes") or [])
+    detail = "%s · %s" % (be_txt, fe_txt)
+    if notes:
+        detail += " · " + " | ".join(n.replace("\n", " ") for n in notes)
     ok = bool(data.get("ok"))
-    return record("⑧", "اختبار النسخ النظيف (clone + اختبارات)", ok,
-                  "%s · %s" % (be_txt, fe_txt))
+    return record("⑧", "اختبار النسخ النظيف (clone + اختبارات)", ok, detail)
 
 
 def check_09_negative(tmp):
