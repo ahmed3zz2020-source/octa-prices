@@ -12636,7 +12636,13 @@ def _maybe_refresh_index_history():
                 continue
             if not bars or len(bars) < 2:
                 continue
-            old = {int(t): float(v) for t, v in (row.get("series") or [])}
+            # 🛡️ الجولة ٢٣ (R23 · R21-I01) — المصدر = الصفوف الكاملة ⭐
+            # 📌 العيب: كان بيقرأ `series` ⭐ ⇒ وهي آخر 120 بار ⭐
+            #    ⇒ كل تحديث كان بيمسح التاريخ القديم ⭐ (جذر فقدان R21 ⭐)
+            # ✅ الحل: نقرأ `rows` (المجموعة الكاملة ⭐) ⇒ التاريخ بينمو ⭐
+            _prev_rows = row.get("rows") or row.get("series") or []
+            old = {int(t): float(v) for t, v in _prev_rows}
+            _prev_keys = set(old)
             for b in bars:
                 t = int(b.get("t") or 0)
                 c = b.get("c")
@@ -12645,7 +12651,18 @@ def _maybe_refresh_index_history():
             pts = sorted(old.items())
             if not pts:
                 continue
-            row["series"] = [[int(t), round(float(v), 4)] for t, v in pts]
+            # 🛡️ الجولة ٢٣ (R23) — ⛔ fail-closed ⭐
+            #    ⛔ لو أي تاريخ قديم ضاع ⇒ ما نكتبش ⭐ (الملف يفضل زي ما هو ⭐)
+            _missing = _prev_keys - set(old)
+            if _missing:
+                print(f"[idxhist] {ix_id}: ⛔ تاريخ قديم ماضاع — تحديث مرفوض"
+                      f" ({len(_missing)}) ⇒ لم نكتب ملف التاريخ")
+                continue
+            _pts_out = [[int(t), round(float(v), 4)] for t, v in pts]
+            # ✅ الصفوف الكاملة هي المصدر ⭐ 且 `series` مرآة لها ⭐
+            #    (الحارس يقول إن `series` == `rows` ⭐)
+            row["rows"] = _pts_out
+            row["series"] = [list(x) for x in _pts_out]
             row["from"] = time.strftime("%Y-%m-%d", time.gmtime(pts[0][0]))
             row["to"] = time.strftime("%Y-%m-%d", time.gmtime(pts[-1][0]))
             row["count"] = len(pts)
