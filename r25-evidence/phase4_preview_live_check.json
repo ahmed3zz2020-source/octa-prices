@@ -1,0 +1,60 @@
+{
+  "base": "https://octa-preview.ahmed3zz2020.workers.dev",
+  "when": "2026-11-19T00:53:35Z",
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "OCTA — فلتر البورصة: أسعار لحظية لمصر والسعودية والإمارات وأمريكا",
+      "text_len": 3108,
+      "bad_markers": [],
+      "ok": true,
+      "text_head": "OCTA | دخول | إعمل حساب مجاناً | فلتر البورصة — أسعار لحظية لكل سهم في مصر والسعودية والإمارات وأمريكا |  | ابحث بالاسم أو الرمز ورتّب بالسعر أو نسبة التغيّر أو القيمة السوقية. التحليل الكامل بثمانية محاور وقرار OCTA بعد تسجيل الدخول. |  | 🇪🇬 بورصة مصر | 🇸🇦 السعودية | 🇦🇪 الإمارات | 🇺🇸 أمريكا | كل القطاعات | الأعلى قيمة سوق"
+    },
+    {
+      "path": "/gate.html",
+      "status": 200,
+      "title": "OCTA — فلتر البورصة: أسعار لحظية لمصر والسعودية والإمارات وأمريكا",
+      "text_len": 3108,
+      "bad_markers": [],
+      "ok": true,
+      "text_head": "OCTA | دخول | إعمل حساب مجاناً | فلتر البورصة — أسعار لحظية لكل سهم في مصر والسعودية والإمارات وأمريكا |  | ابحث بالاسم أو الرمز ورتّب بالسعر أو نسبة التغيّر أو القيمة السوقية. التحليل الكامل بثمانية محاور وقرار OCTA بعد تسجيل الدخول. |  | 🇪🇬 بورصة مصر | 🇸🇦 السعودية | 🇦🇪 الإمارات | 🇺🇸 أمريكا | كل القطاعات | الأعلى قيمة سوق"
+    },
+    {
+      "path": "/market.html",
+      "status": 200,
+      "title": "OCTA — فلتر البورصة: أسعار لحظية لمصر والسعودية والإمارات وأمريكا",
+      "text_len": 3108,
+      "bad_markers": [],
+      "ok": true,
+      "text_head": "OCTA | دخول | إعمل حساب مجاناً | فلتر البورصة — أسعار لحظية لكل سهم في مصر والسعودية والإمارات وأمريكا |  | ابحث بالاسم أو الرمز ورتّب بالسعر أو نسبة التغيّر أو القيمة السوقية. التحليل الكامل بثمانية محاور وقرار OCTA بعد تسجيل الدخول. |  | 🇪🇬 بورصة مصر | 🇸🇦 السعودية | 🇦🇪 الإمارات | 🇺🇸 أمريكا | كل القطاعات | الأعلى قيمة سوق"
+    }
+  ],
+  "api_calls": [
+    {
+      "method": "GET",
+      "url": "https://octa-preview.ahmed3zz2020.workers.dev/api/quotes?market=egypt",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "url": "https://octa-preview.ahmed3zz2020.workers.dev/api/quotes?market=egypt",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "url": "https://octa-preview.ahmed3zz2020.workers.dev/api/quotes?market=egypt",
+      "status": 503
+    }
+  ],
+  "errors": [
+    "console:Failed to load resource: the server responded with a status of 503 ()",
+    "console:Failed to load resource: the server responded with a status of 503 ()",
+    "console:Failed to load resource: the server responded with a status of 503 ()"
+  ],
+  "api_statuses": [
+    503
+  ],
+  "prod_leak": [],
+  "all_ok": true
+}

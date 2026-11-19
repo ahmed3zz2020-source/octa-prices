@@ -1,0 +1,79 @@
+# R25 — نتيجة تشغيل اختبارات الباك ملف ملف (الإصدار الموحّد)
+
+Backend RC: 316f3b6ca540f05ff7816665f43a5db3d6e8a4f5
+Python: 3.11.2
+الملفات: 73 · الناجحة: 70 · الفاشلة: 3
+
+- test_auth_holes.py · ناجح · 0.9s
+- test_charts_api.py · ناجح · 14.3s
+- test_code_hygiene.py · ناجح · 0.7s
+- test_data_full_route.py · ناجح · 14.9s
+- test_egx_ttl.py · ناجح · 0.2s
+- test_engine_contract01.py · ناجح · 0.9s
+- test_engine_safety01.py · ناجح · 0.1s
+- test_gold_history.py · ناجح · 0.2s
+- test_gold_integrity.py · ناجح · 2.2s
+- test_gold_live_price.py · ناجح · 0.0s
+- test_gold_local.py · ناجح · 2.2s
+- test_gold_macro.py · ناجح · 1.9s
+- test_gold_scenarios.py · ناجح · 2.3s
+- test_gold_technical.py · ناجح · 0.1s
+- test_index_api.py · ناجح · 15.8s
+- test_index_history_refresh_guard.py · ناجح · 0.5s
+- test_opp_api01.py · ناجح · 3.0s
+- test_opp_freshness13.py · ناجح · 16.7s
+- test_opp_live01.py · ناجح · 0.4s
+- test_pattern_challenges.py · ناجح · 0.1s
+- test_pattern_daily.py · ناجح · 0.1s
+- test_pattern_detector.py · ناجح · 0.1s
+- test_pattern_stats.py · ناجح · 0.2s
+- test_pin_auth.py · ناجح · 22.2s
+- test_pin_challenge.py · ناجح · 80.7s
+- test_r20_az31_36.py · ناجح · 1.0s
+- test_radar_api.py · ناجح · 0.1s
+- test_recipe_filter.py · ناجح · 1.2s
+- test_round14_release.py · ناجح · 0.9s
+- test_round15_coverage_states.py · ناجح · 0.1s
+- test_round15_maildown_enum.py · ناجح · 0.6s
+- test_round15_opp_perms.py · ناجح · 1.3s
+- test_round15_price_label.py · ناجح · 0.1s
+- test_round15_query_guard.py · ناجح · 0.6s
+- test_round16_contract_wiring.py · ناجح · 0.6s
+- test_round16_legacy_weights.py · ناجح · 15.9s
+- test_round16_price_freshness.py · ناجح · 0.1s
+- test_round16_query_limits.py · ناجح · 0.7s
+- test_round17_n1_row_state.py · ناجح · 0.1s
+- test_round17_n2_coverage.py · ناجح · 0.1s
+- test_round17_n3_contract.py · ناجح · 0.8s
+- test_round17_n4_session_match.py · ناجح · 0.1s
+- test_round17_p1_unknown_state.py · ناجح · 0.1s
+- test_round17_p2_coverage_consistency.py · ناجح · 0.1s
+- test_round17_p3_contract_pick.py · ناجح · 0.7s
+- test_round17_v2_01_coverage_domain.py · ناجح · 0.1s
+- test_round17_v2_04_payload_ttl.py · ناجح · 0.3s
+- test_round18_analysis_truth.py · ناجح · 0.6s
+- test_round18_sec_failopen.py · ناجح · 1.2s
+- test_run_pattern_scan.py · ناجح · 0.1s
+- test_security_batch01.py · ناجح · 21.1s
+- test_security_batch02.py · فاشل (1) · 4.7s
+- test_security_bgstore.py · ناجح · 4.0s
+- test_security_p0.py · فاشل (1) · 21.7s
+- test_signup_flow.py · ناجح · 14.3s
+- test_strategy_cap01.py · ناجح · 0.7s
+- test_tree_hygiene.py · ناجح · 0.1s
+- tools/test_ci_gates.py · فاشل (1) · 0.1s
+- tools/test_data_integrity_guard.py · ناجح · 6.1s
+- tools/test_data_integrity_proofs_r24.py · ناجح · 4.0s
+- tools/test_engines_filters_audit.py · ناجح · 0.5s
+- tools/test_peg_availability_r24.py · ناجح · 3.9s
+- tools/test_r25_clock_routes.py · ناجح · 6.7s
+- tools/test_r25_concurrency.py · ناجح · 28.5s
+- tools/test_r25_fault_injection.py · ناجح · 6.2s
+- tools/test_r25_growth_truthfulness.py · ناجح · 0.1s
+- tools/test_r25_metrics_board.py · ناجح · 11.0s
+- tools/test_r25_perf_latency.py · ناجح · 5.5s
+- tools/test_r25_storage_durability.py · ناجح · 19.5s
+- tools/test_round23_clean_clone.py · ناجح · 245.3s
+- tools/test_round24_gold_gate_contract.py · ناجح · 0.1s
+- tools/test_round24_growth_source_audit.py · ناجح · 1.2s
+- tools/test_round24_rel_volume_states.py · ناجح · 0.2s
