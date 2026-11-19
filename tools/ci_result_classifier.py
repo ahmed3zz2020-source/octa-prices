@@ -119,6 +119,34 @@ FAIL_MARK = "❌"
 OK_MARK_EN_RE = re.compile(r"^PASS\b", re.M)
 FAIL_MARK_EN_RE = re.compile(r"^FAIL\b", re.M)
 
+# ⛔ أحكام صريحة في آخر الإخراج ⭐
+#    (لازم نقرأها بدل ما نخمّن من عدّ علامات الفشل ⭐
+#     ⭐ لأن اختبارات **البرهان السالب** بتطبع ❌ عمداً ⭐
+#     (دليل إن الحارس كشف العيب ⭐) ⭐)
+VERDICT_PATTERNS = [
+    (re.compile(r"RESULT\s*:\s*FAIL", re.I), "الحكم في الإخراج: RESULT: FAIL"),
+    (re.compile(r"^\s*FAILED\s*\(", re.M), "الحكم في الإخراج: FAILED (...)"),
+    (re.compile(r"^\s*FAILED\b", re.M), "الحكم في الإخراج: FAILED"),
+]
+VERDICT_RATIO_RE = re.compile(
+    r"النتيجة\s*:\s*(\d+)\s*ناجح\s*/\s*(\d+)\s*فاشل")
+VERDICT_TOTAL_RE = re.compile(r"النتيجة\s*:\s*(\d+)\s*/\s*(\d+)")
+
+
+def _verdict_failed(text):
+    """هل الإخراج فيه حكم صريح بالفشل؟ (None = مفيش حكم ⭐)"""
+    for rx, reason in VERDICT_PATTERNS:
+        if rx.search(text):
+            return reason
+    m = VERDICT_RATIO_RE.search(text)
+    if m and int(m.group(2)) > 0:
+        return "النتيجة في الإخراج: %s ناجح / %s فاشل" % (m.group(1),
+                                                           m.group(2))
+    m = VERDICT_TOTAL_RE.search(text)
+    if m and int(m.group(1)) < int(m.group(2)):
+        return "النتيجة في الإخراج: %s من %s" % (m.group(1), m.group(2))
+    return None
+
 # ⛔ مراجع git اللي اختبارات البرهان السالب بتعتمد عليها ⭐
 #    (زي R25-PV-07 في الواجهة ⭐) ⇒ لو المرجع مش موجود ⭐
 #    الاختبار بيرجع **صامت** ⭐ ⇒ الغياب لازم يبقى Blocked موثّق ⭐
@@ -266,11 +294,12 @@ def classify_python(rc, out, err, declared=None):
     if not text.strip():
         return (STATUS_BLOCKED,
                 "مفيش أي إخراج من الاختبار — النتيجة غير معروفة", 0, 0)
-    # ⛔ فيه علامات فشل رغم إن الكود خرج ٠ ⇒ مش نجاح ⭐
-    if bad_marks:
-        return (STATUS_FAILED,
-                "فيه %d علامة فشل رغم إن الكود خرج ٠" % bad_marks,
-                ok_marks + bad_marks, 0)
+    # ⛔ حكم صريح بالفشل في الإخراج ⭐
+    #    (⛔ ملحوظة ⭐: لا نخمّن الفشل من عدّ علامات ❌ ⭐
+    #     لأن اختبارات البرهان السالب بتطبع ❌ عمداً ⭐)
+    verdict = _verdict_failed(text)
+    if verdict:
+        return (STATUS_FAILED, verdict, ok_marks + bad_marks, 0)
     if declared is not None and declared > 0 and ok_marks + bad_marks < declared:
         return (STATUS_BLOCKED,
                 "اتنفّذ %d من %d حالة معلنة — رجوع صامت محتمل"
