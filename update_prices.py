@@ -2237,11 +2237,97 @@ except Exception:
     DATA_DIR = Path(__file__).resolve().parent
 
 USERS_FILE = DATA_DIR / "users.json"
-USERS_LOCK = threading.RLock()   # 🐞 ١٥ نوفمبر ٢٠٢٦ — RLock ⬇️
-# ⛔⛔⛔ كان `threading.Lock()` ⬇️ (غير reentrant) ⬇️
-# ⛔ ⬇️ ⇒ أي استدعاء متداخل للقفل = deadlock ⬇️ ⬇️
-# ⛔ ⬇️ ⇒ والقفل بيتمسك وقت-disk ⇒ كل الـworker بيعلّق ⬇️ ⬇️
+# 🐞🛡️ ١٩ نوفمبر ٢٠٢٦ (R26) — القفل بين العمليات ⬇️
+# 💡 🐞 ١٥ نوفمبر ٢٠٢٦ — RLock ⬇️
+# 🛑⛔⛔⛔ كان `threading.Lock()` ⬇️ (غير reentrant) ⬇️
+# 🛑 ⬇️ ⇒ أي استدعاء متداخل للقفل = deadlock ⬇️ ⬇️
+# 🛑 ⬇️ ⇒ والقفل بيتمسك وقت-disk ⇒ كل الـworker بيعلّق ⬇️ ⬇️
 # ✅ RLock: نفس الـthread يقدر يدخل تاني ⬇️ (Cross-thread لسه معزول) ⬇️
+#
+# 🔴⛔⛔⛔ **عيب R26 المقاس** ⬇️ ⛔⛔⛔
+# 📗 `threading.RLock` ⭐ بيحمي **الخيوط في نفس العملية** ⭐ بس ⭐
+#    ⛔ مش بيعمل إيه بين **عمليتين** على نفس `users.json` ⭐ ⭐
+#    ⇒ ⛔⛔ العمليتين بتقرا نفس النسخة ⭐ ⇒ وبتكتب فوق بعض ⭐
+#    ⇒ ⛔⛔⛔ **lost update بين العمليات** ⭐ (١٣ من ٣٠ ضاعت ⭐ في القياس ⭐).
+# 📗 باءة الخادم الحقيقية (كوان خادمة × ٢ ⭐ / نسختين ⭐) ⇒ ⛔️ العيب **حي** ⭐.
+# ✅ الحل 🐞: ⭐ قفل **ملف** ⭐ (`fcntl.flock` ⭐) ⭐ فوق نفس القفل ⭐
+#    ⭐ ⇒ ⛔⛔ بين العمليات ⭐ ⛔⛔ والعمليات ⭐ ⛔⛔ والخيوط ⭐ (mutual exclusion ⭐)
+#    ⭐ والقفل **reentrant** ⭐ ⇒ الاستدعاءات المتداخلة (مثل `_patch_user` ⭐) شغالة ⭐.
+# 📗 نفس الفكرة المستخدمة في قفل «المهام الخلفية» ⬇️ (انظر `_bg_leader` ⬇️).
+class _CrossProcessRLock(object):
+    """⛔️ قفل **بين العمليات** ⭐ (threading ⭐ + `fcntl.flock` ⭐) ⭐
+
+    💡 🐞 ١٥ نوفمبر ٢٠٢٦ — RLock ⬇️
+    💡 🐞 ١٩ نوفمبر ٢٠٢٦ (R26) — ⭐ إضافة القفل بين العمليات ⭐ ⬇
+    📗 السبب 🐞: `threading.RLock` ⭐ معزول **في العملية الواحدة** ⭐ ⇒ ⛔⛔
+       عمليتين على نفس `users.json` ⭐ ⇒ ⛔⛔ lost update ⭐.
+    📗 الحل 🐞: `fcntl.flock(LOCK_EX)` ⭐ على ملف ⭐ ⇒ ⭐ الإ exclusion بين
+       كل العمليات ⭐ (نفس الجهاز ⭐) ⭐ + نفس الـthread يدخل تاني ⭐ (reentrant ⭐).
+
+    💡 الضمانات 🐞:
+       ① reentrant ⭐: نفس الـthread ⭐ ⇒ `depth` ⭐ ⇒ ⛔⛔ مافيش deadlock ⭐.
+       ② خيوط نفس العملية ⭐ ⇒ متسلسة ⭐ (قفل داخلي ⭐) ⇒ ⛔⛔ مافيش تعارض ⭐.
+       ③ عمليات مختلفة ⭐ ⇒ `flock` ⭐ على نفس الملف ⭐ ⇒ ⭐ واحد بس يدخل ⭐.
+       ④ ⛔ خطأ في فتح ملف القفل ⭐ ⇒ ⛔ **fail-closed** ⭐ (يرمي ⭐ مش يكمّل بدون قفل ⭐).
+    """
+
+    def __init__(self, path):
+        self._path = str(path)
+        self._mutex = threading.Lock()      # ⭐ تسلسل الخيوط في العملية الواحدة ⭐
+        self._owner = None                  # ⭐ ident الـthread المالك ⭐
+        self._depth = 0                     # ⭐ عمق التداخل ⭐
+        self._fd = None
+
+    def __enter__(self):
+        me = threading.get_ident()
+        if self._owner == me and self._depth > 0:
+            self._depth += 1                # ⭐ reentrant ⭐ (نفس الـthread ⭐)
+            return self
+        self._mutex.acquire()               # ⭐ خيوط العملية الواحدة ⭐ متسلسلة ⭐
+        fd = None
+        try:
+            fd = os.open(self._path, os.O_CREAT | os.O_RDWR, 0o600)
+            import fcntl
+            fcntl.flock(fd, fcntl.LOCK_EX)  # ⭐⭐ بين العمليات ⭐⭐
+        except Exception:
+            if fd is not None:
+                try:
+                    os.close(fd)
+                except Exception:
+                    pass
+            self._mutex.release()
+            # ⛔⛔⛔ fail-closed ⭐ ⛔ مافيش قفل ⭐ ⇒ ⛔ ممنوع نكمّل ⭐
+            raise
+        self._fd = fd
+        self._owner = me
+        self._depth = 1
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self._depth -= 1
+        if self._depth <= 0:
+            try:
+                import fcntl
+                if self._fd is not None:
+                    fcntl.flock(self._fd, fcntl.LOCK_UN)
+            except Exception:
+                pass
+            finally:
+                if self._fd is not None:
+                    try:
+                        os.close(self._fd)
+                    except Exception:
+                        pass
+                self._fd = None
+                self._owner = None
+                self._depth = 0
+                self._mutex.release()
+        return False
+
+
+# 🐞🛡️ R26 — ⭐ القفل ⭐ (خيوط ⭐ + عمليات ⭐) ⭐
+# 📗 ملف القفل ⭐ = جنب `users.json` ⭐ ⇒ ⛔⛔ مافيش تعارض مع `users.json.bak` ⭐
+USERS_LOCK = _CrossProcessRLock(DATA_DIR / "users.lock")
 
 
 class _UsersStoreError(Exception):
@@ -2286,6 +2372,48 @@ def _load_users(strict=False):
     return {}
 
 
+def _num_finite(v, default=None):
+    """⛔️ رقم منتهي ⭐ (NaN / Infinity ⭐ مرفوضين ⭐) ⭐
+
+    🐞🛡️ ١٩ نوفمبر ٢٠٢٦ (R26) — حارس الأرقام ⭐
+    📗 العيب المقيس ⭐: `float("nan")` ⭐ و `float("inf")` ⭐ تنجح ⭐
+       وفي الفحو القيم ⭐ (`x < 0` ⭐ `x > 1e9` ⭐) ⭐ **بيطلسا** ⭐
+       ⇒ ⛔⛔ NaN / Inf ⭐ بيدخلوا المحفظة ⭐ ⇒ ⛔⛔ ملف غير صحيح ⭐.
+    ✅ الحل ⭐: رقم غير منتهي ⇒ خارج رقم صحيح ⭐ (400 ⭐).
+    """
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return default
+    if f != f:                       # ⛔ NaN ⭐
+        return default
+    if f in (float("inf"), float("-inf")):
+        return default
+    return f
+
+
+def _scrub_non_finite(obj):
+    """⛔️ نظف الأرقام غير المنتهية ⭐ (NaN / Infinity ⭐) ⭐
+
+    🐞🛡️ ١٩ نوفمبر ٢٠٢٦ (R26) — حارس التخزين ⭐
+    📗 السبب ⭐: `json.dumps` ⭐ بيكتب `NaN` ⭐ ⇒ ⛔⛔ الملف ميبقً جزء معيار الجواس ⭐.
+    ✅ الحل ⭐: القيم غير المنتهية ⇒ صفر ⭐ ⇒ الملف يفق صحيح ⭐.
+    """
+    if isinstance(obj, float):
+        if obj != obj or obj in (float("inf"), float("-inf")):
+            return 0.0
+        return obj
+    if isinstance(obj, dict):
+        for k in list(obj.keys()):
+            obj[k] = _scrub_non_finite(obj[k])
+        return obj
+    if isinstance(obj, list):
+        for i, v in enumerate(obj):
+            obj[i] = _scrub_non_finite(v)
+        return obj
+    return obj
+
+
 def _save_users(d):
     """⛔⛔ الكتابة ذرّية + نسخة احتياطية + **تقرير نجاح صادق**.
 
@@ -2309,9 +2437,12 @@ def _save_users(d):
                 print("  💾 ⛔ users.json تالف — مرفوض الكتابة فوقه "
                       "(%s)" % type(e).__name__, flush=True)
                 return False
+        # 🛡️ R26 — الملف لا يحتفظ على NaN / Infinity ⭐
+        #   (JSON غير صحيح ⇒ ⛔⛔ مافيش لكل مستهلك تاني ⭐)
+        d = _scrub_non_finite(d)
         tmp = USERS_FILE.with_suffix(".tmp")
         with open(tmp, "w", encoding="utf-8") as f:
-            f.write(json.dumps(d, ensure_ascii=False))
+            f.write(json.dumps(d, ensure_ascii=False, allow_nan=False))
             f.flush()
             try:
                 os.fsync(f.fileno())
@@ -11786,11 +11917,11 @@ def portfolio_api():
             pf.setdefault("holdings", {})
 
             if action == "add":
-                try:
-                    shares = float(data.get("shares", 0))
-                    cost = float(data.get("cost", 0))
-                    price = float(data.get("price", 0))
-                except (TypeError, ValueError):
+                # 🛡️ R26 — ⛔️ NaN / Infinity ⭐ مرفوضين ⭐ (الفحو ما يكشف هم ⭐)
+                shares = _num_finite(data.get("shares", 0))
+                cost = _num_finite(data.get("cost", 0))
+                price = _num_finite(data.get("price", 0))
+                if shares is None or cost is None or price is None:
                     return jsonify({"error": "أرقام غير صالحة"}), 400
                 if shares < 0 or cost < 0 or price < 0:
                     return jsonify({"error": "مفيش قيم سالبة"}), 400
@@ -11806,9 +11937,9 @@ def portfolio_api():
                 pf["holdings"] = {}
                 pf["cash"] = 0
             elif action == "set_cash":
-                try:
-                    cash = float(data.get("cash", 0))
-                except (TypeError, ValueError):
+                # 🛡️ R26 — ⛔️ NaN / Infinity ⭐ مرفوضين ⭐
+                cash = _num_finite(data.get("cash", 0))
+                if cash is None:
                     return jsonify({"error": "قيمة غير صالحة"}), 400
                 if cash < 0 or cash > 1e9:
                     return jsonify({"error": "قيمة غير صالحة"}), 400
@@ -16334,18 +16465,21 @@ def admin_user_delete(uid):
                                                        want.encode("utf-8", "replace")):
         return jsonify({"ok": False, "error": "المسار ده محمي"}), 401
     uid = str(uid)
-    # 📌 لو الـuid ده مش موجود ⇒ جرّب نشوفه إيميل
-    users = _load_users() or {}
-    if uid not in users:
-        _e = uid.strip().lower()
-        for _u, _rec in list(users.items()):
-            if isinstance(_rec, dict) and str(_rec.get("email") or "").lower() == _e:
-                uid = str(_u)
-                break
-    if uid not in users:
-        return jsonify({"ok": False, "error": "مفيش حساب بالـid ده"}), 404
-    gone = users.pop(uid)
+    # 🛡️🐞 ١٩ نوفمبر ٢٠٢٦ (R26) — القراءة والحذف والحفظ كلهم ⭐
+    # 📗 قبل R26 ⭐: القراءة كانت **بره** القفل ⭐ ⇒ ⛔⛔
+    #    lost update ⭐ بين العمليات ⭐ ⇒ ⛔⛔ حذف حساب بيمسح
+    #    أي كتابة حصت في نفس الوقت ⭐ ⇒ ⛔⛔ مسح بيانات أخرى ⭐.
     with USERS_LOCK:
+        users = _load_users() or {}
+        if uid not in users:
+            _e = uid.strip().lower()
+            for _u, _rec in list(users.items()):
+                if isinstance(_rec, dict) and str(_rec.get("email") or "").lower() == _e:
+                    uid = str(_u)
+                    break
+        if uid not in users:
+            return jsonify({"ok": False, "error": "مفيش حساب بالـid ده"}), 404
+        gone = users.pop(uid)
         if not _save_users(users):
             return _users_write_failed_resp()
     # ⛔ نمسح من ملف التتبع برضه — يحذف حسابه من كل إحصائيات
