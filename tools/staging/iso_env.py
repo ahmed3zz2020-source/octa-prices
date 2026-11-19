@@ -184,6 +184,12 @@ def launch(stage_dir=None, port=None, extra_env=None, bg_tasks=None,
         env["STAGE_SOURCE_MODE"] = str(source_mode)
     if bg_tasks is not None:
         env["OCTA_BG_TASKS"] = str(bg_tasks)
+    elif harness:
+        # ⛔ الجولة ۲۶ (R26) — الهارنس بيلتقط «نسخة الفرص الحقيقية» ⭐
+        # والنسخة دي بتتبنى جوه مهمة الخلفية ⭐
+        # ⇒ لازم تشتغل ⭐ (وإلا الكابش ماحصلش
+        # ⇒ اختبار الحداثة يفشل بـفقة مالكبر ⭐).
+        env["OCTA_BG_TASKS"] = "on"
     if rate_mult is not None:
         env["OCTA_RATE_MULT"] = str(rate_mult)
     if extra_env:
