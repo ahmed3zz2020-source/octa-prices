@@ -2,32 +2,22 @@
   "rc_backend_sha": "316f3b6ca540f05ff7816665f43a5db3d6e8a4f5",
   "python": "3.11.2",
   "files_total": 73,
-  "files_passed": 70,
-  "files_failed": 3,
+  "files_passed": 72,
+  "files_failed": 1,
   "failed_files": [
-    {
-      "file": "test_security_batch02.py",
-      "exit": 1,
-      "tail": " يفضل قابل للتكرار)\n────────────────────────────────────────────────────────────────\n  ✅ الحساب المؤقت اتشال\n  ✅ سطر الحساب المؤقت اتشال من users.json\n\n════════════════════════════════════════════════════════════════\n  النتيجة: 61 ناجح / 1 فاشل  (الإجمالي 62)\n\n  ❌ الفاشل:\n     - STAGE_ADMIN_TOKEN مش متظبطلosh ⇒ تعذّر فحص جلسة الأدمن\n════════════════════════════════════════════════════════════════\n"
-    },
-    {
-      "file": "test_security_p0.py",
-      "exit": 1,
-      "tail": "مة عامة\n────────────────────────────────────────────────────────────────\n  ✅ الـstaging شغّال\n  ✅ المسارات المحمية شغّالة\n\n════════════════════════════════════════════════════════════════\n  النتيجة: 30 ناجح / 3 فاشل  (الإجمالي 33)\n\n  ❌ الفاشل:\n     - ⓪ جلسة أدمن (mint_session) اتصدرت\n     - ① مافيش جلسة أدمن\n     - ② مافيش جلسة أدمن\n════════════════════════════════════════════════════════════════\n"
-    },
     {
       "file": "tools/test_ci_gates.py",
       "exit": 1,
       "tail": "32 — || echo — بيخفي فشل الخطوة  ⟵ grep -q \"web:\" Procfile && echo \"✅ Procfile فيه web:\" || echo \"❌ مفيش web: في Procfile\"\n   ⛔ [*:*] - — مفيش أي ملف workflow فيه علامة OCTA-CI-GATES-V1 ⇒ البوابات الحقيقية مش موجودة\n\nℹ️  لو أنت على فرع كود بيحمل نسخة main بالظبط من ملف الـCI\n    (عشان الدفع ميحتاجش scope الـworkflow) ⇒ افحص فرع الـci:\n       python3 tools/test_ci_gates.py --git-ref ci/octa-ci-r23\n"
     }
   ],
-  "wall_seconds": 613.4,
+  "wall_seconds": 563.1,
   "results": [
     {
       "file": "test_auth_holes.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.9,
+      "seconds": 0.8,
       "tail": "challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n\n▸ ①  /api/ranking\n  ✅ زائر مجهول → 401\n  ✅ مفيش أي بيانات في الرد\n  ✅ مستخدم مسجّل → 200\n\n▸ ②  /api/portfolio\n  ✅ GET زائر مجهول → 401\n  ✅ مفيش أي مفاتيح محفظة في الرد\n  ✅ POST زائر مجهول → 401\n  ✅ GET مستخدم مسجّل → 200\n\n▸ ③  كود الاسترجاع عشوائي فعلاً\n  ✅ مفيش اشتقاق من الوقت في الكود\n  ✅ 6 أرقام، شبه‑مستحيل تتكرر\n  ✅ مش مربوط بوقت السيرفر\n  ✅ الـTTL والحد اليومي زي ما هم\n\n▸ 🚪  كل المسارات الحساسة مقفولة لزائر مجهول\n  ✅ /api/stats → 401\n  ✅ /api/ranking → 401\n  ✅ /api/portfolio → 401\n  ✅ /api/egx_full → 401\n  ✅ /api/data_full → 401\n\n✅ 16 نجح · 0 فشل\n\n",
       "stderr_tail": ""
     },
@@ -35,15 +25,15 @@
       "file": "test_charts_api.py",
       "exit": 0,
       "ok": true,
-      "seconds": 14.3,
-      "tail": " محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n  TV Scanner: 0/251 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=0/251 | cols_req=71 | cols_recv=0 | rsi=None | pe=None | ema20=None\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: unavailable | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n\n✅ SAVED: 0 stocks | 14 tickers | 0 live | phase=pre\n",
-      "stderr_tail": " (__main__.ChartsApiTest.test_06_uid_from_token_only) ... ok\ntest_07_delete (__main__.ChartsApiTest.test_07_delete) ... ok\ntest_08_limits (__main__.ChartsApiTest.test_08_limits) ... ok\ntest_09_bad_json (__main__.ChartsApiTest.test_09_bad_json) ... ok\ntest_10_no_secret_and_storage_shape (__main__.ChartsApiTest.test_10_no_secret_and_storage_shape) ... ok\ntest_11_atomic_write (__main__.ChartsApiTest.test_11_atomic_write) ... ok\ntest_12_rate_bucket (__main__.ChartsApiTest.test_12_rate_bucket) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.722s\n\nOK\n"
+      "seconds": 0.8,
+      "tail": " ok\n=============================================\n  ➕ استكمال TradingView: 0 سهم ناقص أضيفوا\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[logos] boot thread started\n[LOGOS] 0/0 logo cached\n[logos] ✅ {'count': 0, 'total': 0}\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
+      "stderr_tail": " (__main__.ChartsApiTest.test_06_uid_from_token_only) ... ok\ntest_07_delete (__main__.ChartsApiTest.test_07_delete) ... ok\ntest_08_limits (__main__.ChartsApiTest.test_08_limits) ... ok\ntest_09_bad_json (__main__.ChartsApiTest.test_09_bad_json) ... ok\ntest_10_no_secret_and_storage_shape (__main__.ChartsApiTest.test_10_no_secret_and_storage_shape) ... ok\ntest_11_atomic_write (__main__.ChartsApiTest.test_11_atomic_write) ... ok\ntest_12_rate_bucket (__main__.ChartsApiTest.test_12_rate_bucket) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.576s\n\nOK\n"
     },
     {
       "file": "test_code_hygiene.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.7,
+      "seconds": 0.8,
       "tail": "🛡️ حارس نظافة الكود — ملفات الدفعة الأمنية\n==============================================================\n  ✅ مافيش حروف صينية/كورية/يابانية في ملفات الدفعة\n  ✅ مافيش اسم أداة ذكاء اصطناعي في أسطر الدفعة المضافة\n  ✅ مافيش ثلاث نقاط برّه التعليقات في أسطر الدفعة (قاعدة الـCI)\n  ✅ مافيش محارف تالفة (U+FFFD) في ملفات الدفعة\n  ✅ مافيش حروف سيلانية متلخطة في ملفات الدفعة\n  ✅ كل ملفات الدفعة موجودة\n==============================================================\n  النتيجة: 6 ناجح / 0 فاشل  (الإجمالي 6)\n",
       "stderr_tail": ""
     },
@@ -51,7 +41,7 @@
       "file": "test_data_full_route.py",
       "exit": 0,
       "ok": true,
-      "seconds": 14.9,
+      "seconds": 15.8,
       "tail": "\n▸ المسار محمي ومكتوب صح\n  ✅ /api/data_full مسجّل\n  ✅ المسار مالهوش تعارض مع مسار تاني\n  ✅ require_user() قبل أي إرسال (401 بدون توكن)\n  ✅ اللودر: فلتر EGS + _shape marker + مسار /app\n  ✅ مفيش مسار مفتوح بيقرا data_full.json\n\n▸ الداتا (مقارنة مع الملف اللي كانت الواجهة بتجيبه)\n[data_full] loaded 285 shares (skipped 11 non-equity)\n  ✅ 285 سهم\n  ✅ نفس الكودز بالظبط (بعد التطبيق الموثّق)\n  ✅ المخدود المستبعد المخروف هي أسهم بالفعل\n  ✅ صفر فرق في أي قيمة\n  ✅ نفس الحقول لكل سهم (للأسهم فقط)\n  ✅ _shape marker موجود\n  ✅ مفيش سند حكومي\n\n✅ 12 نجح · 0 فشل\n\n",
       "stderr_tail": ""
     },
@@ -67,9 +57,9 @@
       "file": "test_engine_contract01.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.9,
+      "seconds": 1.1,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "بكل الاستراتيجيات ... ok\ntest_missing_risk_not_assigned_default_60 (__main__.TestStrategyNoCrash.test_missing_risk_not_assigned_default_60)\n⛔ غياب المخاطرة ⇒ مش 60 ... ok\ntest_none_axis_does_not_throw (__main__.TestStrategyNoCrash.test_none_axis_does_not_throw) ... ok\ntest_unavailable_strategy_has_explicit_status (__main__.TestStrategyNoCrash.test_unavailable_strategy_has_explicit_status) ... ok\ntest_valid_strategy_is_eligible (__main__.TestStrategyNoCrash.test_valid_strategy_is_eligible) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 0.193s\n\nOK\n"
+      "stderr_tail": "بكل الاستراتيجيات ... ok\ntest_missing_risk_not_assigned_default_60 (__main__.TestStrategyNoCrash.test_missing_risk_not_assigned_default_60)\n⛔ غياب المخاطرة ⇒ مش 60 ... ok\ntest_none_axis_does_not_throw (__main__.TestStrategyNoCrash.test_none_axis_does_not_throw) ... ok\ntest_unavailable_strategy_has_explicit_status (__main__.TestStrategyNoCrash.test_unavailable_strategy_has_explicit_status) ... ok\ntest_valid_strategy_is_eligible (__main__.TestStrategyNoCrash.test_valid_strategy_is_eligible) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 0.301s\n\nOK\n"
     },
     {
       "file": "test_engine_safety01.py",
@@ -77,7 +67,7 @@
       "ok": true,
       "seconds": 0.1,
       "tail": "",
-      "stderr_tail": "olicy.test_missing_risk_cannot_outrank_real_data)\nنفس البيانات + محور مخاطرة ناقص ⇒ لازم يطلع أسوأ أو مساوي ... ok\ntest_missing_risk_has_no_positive_decision (__main__.TestRiskMissingPolicy.test_missing_risk_has_no_positive_decision) ... ok\ntest_valid_data_is_eligible (__main__.TestRiskMissingPolicy.test_valid_data_is_eligible) ... ok\ntest_zero_risk_is_real_value_not_missing (__main__.TestRiskMissingPolicy.test_zero_risk_is_real_value_not_missing)\n⛔ مخاطرة 0 = مخاطرة شديدة (مش نقص بيانات) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.001s\n\nOK\n"
+      "stderr_tail": "olicy.test_missing_risk_cannot_outrank_real_data)\nنفس البيانات + محور مخاطرة ناقص ⇒ لازم يطلع أسوأ أو مساوي ... ok\ntest_missing_risk_has_no_positive_decision (__main__.TestRiskMissingPolicy.test_missing_risk_has_no_positive_decision) ... ok\ntest_valid_data_is_eligible (__main__.TestRiskMissingPolicy.test_valid_data_is_eligible) ... ok\ntest_zero_risk_is_real_value_not_missing (__main__.TestRiskMissingPolicy.test_zero_risk_is_real_value_not_missing)\n⛔ مخاطرة 0 = مخاطرة شديدة (مش نقص بيانات) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.002s\n\nOK\n"
     },
     {
       "file": "test_gold_history.py",
@@ -91,7 +81,7 @@
       "file": "test_gold_integrity.py",
       "exit": 0,
       "ok": true,
-      "seconds": 2.2,
+      "seconds": 1.4,
       "tail": " كاذب)\n   ✅ ⛔ مع صرف دائري ⇒ السبب مكتوب: سعر الصرف المتاح مطابق للرقم المشتقّ من سعر الذهب (فرق 0.0000% ≤ 0.01%\n   ✅ ⛔ أداة العزل: الهامش 6.1224% (المتوقع +6.1224%) — **مش** صفر بالبناء\n   ✅ ⛔ أداة العسل: الصرف الدائري اترفض (الهامش = None مش صفر)\n   ✅ ⛔ إعادة إنتاج العيب القديم: الصيغة الدورية بتطلع ٠٫٠٠٠٠٪ لكل سعر مرصود (3 حالات)\n   ✅ ✅ الصيغة المستقلة بتطلع هامش حقيقي ≠ صفر لكل سعر مرصود\n   ✅ التصنيف بيصرّح إنه إسهام حسابي مش سبب مؤكد\n\n── ⑬ حارس حدود الانحراف ──\n   ✅ حد الانحراف الحيّ لسه ١٫٥٪ (الافتراضي ما اتغيّرش)\n   ✅ مافيش حد انحراف ٥٪ في الاختبار الحيّ\n   ✅ مافيش حد انحراف ٥٪ في عقد الجولة ٢٤\n\n==============================================================\n✅ كل اختبارات السلامة عدّت\n",
       "stderr_tail": ""
     },
@@ -107,7 +97,7 @@
       "file": "test_gold_local.py",
       "exit": 0,
       "ok": true,
-      "seconds": 2.2,
+      "seconds": 1.0,
       "tail": "اتحسب (1095 يوم)\n   ✅ نصيب الذهب + نصيب الدولار = ١٠٠٪ (53.4 + 46.6)\n   ✅ فيها تحذير إن ده مش إثبات سببية\n\n▶️ ⑤ مفيش look-ahead\n   ✅ value_on(2010-06-15) ⇒ 2010-06-15\n   ✅ value_on(2015-01-05) ⇒ 2015-01-05\n   ✅ value_on(2020-03-20) ⇒ 2020-03-19\n   ✅ value_on(2024-11-01) ⇒ 2024-10-31\n\n▶️ ⑥ العلاوة: لازم ترجع None لو مفيش مرصود\n   ✅ مرصود ناقص ⇒ None (مش صفر)\n   ✅ نظري ناقص ⇒ None (مش صفر)\n   ✅ نظري صفري ⇒ None\n   ✅ علاوة صح: 0.254%\n   ✅ فيها تحذير: العلاوة مش دليل قاطع\n\n▶️ ⑦ النظرية: الأونصة تروي\n   ✅ النظري = XAU × جنيه/دولار ÷ 31.1035\n   ✅ بدون ذهب ⇒ None\n   ✅ معامل النقاء بيتطبّق\n\n▶️ ⑧ الدولار الضمني\n   ✅ الدولار الضمني من السعر المحلي: 56.3165\n   ✅ بدون مرصود ⇒ None\n\n✅ كل الاختبارات عدّت\n",
       "stderr_tail": ""
     },
@@ -115,7 +105,7 @@
       "file": "test_gold_macro.py",
       "exit": 0,
       "ok": true,
-      "seconds": 1.9,
+      "seconds": 1.4,
       "tail": "قل متخيّل ([])\n   ✅ «cbe_policy» مفيش حقل متخيّل ([])\n   ✅ «cbe_inflation» مفيش حقل متخيّل ([])\n   ✅ «xau» مفيش حقل متخيّل ([])\n\n── ⑥ أعمدة الخزانة ──\n   ✅ الخزانة رجّعت نقاط\n   ✅ الصف = (تاريخ, 2Y, 10Y)\n   ✅ 2Y (4.8) ≠ 10Y (5.07) — يعني الأعمدة اتقرت صح\n   ✅ القيم في مدى معقول (2Y=4.8 10Y=5.07)\n\n── ⑦ الكاش على القرص ──\n   ✅ حفظ/قراءة الكاش شغال\n\n── ⑧ حداثة الكاش ──\n   ✅ عمر الكاش ≤ ١٢ ساعة (مش قديم أوي)\n\n── ⑨ اتساق البناء ──\n   ✅ نفس مجموعة العوامل في بناءين\n   ✅ متاح 15 عامل (المطلوب ≥ ١٠)\n\n── ⑩ factors_list ──\n   ✅ فهرس الفئات فيه فئات\n   ✅ كل عامل داخل فئة واحدة بالظبط (15 = 15)\n\n==============================================================\n✅ كل الاختبارات عدّت (15 factor × كل القواعد)\n",
       "stderr_tail": ""
     },
@@ -123,7 +113,7 @@
       "file": "test_gold_scenarios.py",
       "exit": 0,
       "ok": true,
-      "seconds": 2.3,
+      "seconds": 0.9,
       "tail": " «الدولار»\n   ✅ الخلاصة بتغطي «الادخار»\n\n── ⑧٫ب نص الإسناد ──\n   ✅ 30 يوم: مفيش كلمة إنجليزية في نص الإسناد\n   ✅ 30 يوم: المساهمتين الاتنين موجودين\n   ✅ 365 يوم: مفيش كلمة إنجليزية في نص الإسناد\n   ✅ 365 يوم: المساهمتين الاتنين موجودين\n   ✅ 1095 يوم: مفيش كلمة إنجليزية في نص الإسناد\n   ✅ 1095 يوم: المساهمتين الاتنين موجودين\n\n── ⑨ محرك العملة ──\n   ✅ سيناريو العملة موجود\n   ✅ خطوات العملة: 4\n   ✅ الدولار -5.0% ⇒ الجرام بينزل (-322 ج.م)\n   ✅ الدولار -2.0% ⇒ الجرام بينزل (-129 ج.م)\n   ✅ الدولار +2.0% ⇒ الجرام بيزيد (+129 ج.م)\n   ✅ الدولار +5.0% ⇒ الجرام بيزيد (+322 ج.م)\n   ✅ مكتوب إنه حسابي مش توقّع\n\n==============================================================\n✅ كل اختبارات السيناريوهات عدّت\n",
       "stderr_tail": ""
     },
@@ -139,15 +129,15 @@
       "file": "test_index_api.py",
       "exit": 0,
       "ok": true,
-      "seconds": 15.8,
-      "tail": "\n   EGX100  return=42.16% dd=-25.72% vol=45.5% pts=245\n   EGX33   return=50.9% dd=-16.59% vol=34.97% pts=245\n   summary: {'best_return': 'EGX33', 'worst_drawdown': 'EGX70'}\n\n=== 5) المكونات ===\n   EGX30 components: 31\n      COMI    وزن=29.65% نتيج��=None قرار=None قطاع=\n      TMGH    وزن=9.65% نتيج��=None قرار=None قطاع=\n      ETEL    وزن=7.73% نتيج��=None قرار=None قطاع=\n      EAST    وزن=5.79% نتيج��=None قرار=None قطاع=\n      FWRY    وزن=5.45% نتيج��=None قرار=None قطاع=\n\n=== 6) أخطاء ===\n   ✅ كل الاختبارات نجحت\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: unavailable | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n\n✅ SAVED: 0 stocks | 14 tickers | 0 live | phase=pre\n",
+      "seconds": 1.2,
+      "tail": "→ 1168 يوم، 13 مرحلة، return=495.09%, dd=-27.62%\n\n=== 4) المقارنة ===\n   EGX30   return=29.48% dd=-14.57% vol=25.84% pts=245\n   EGX70   return=38.49% dd=-30.28% vol=53.58% pts=245\n   EGX100  return=42.16% dd=-25.72% vol=45.5% pts=245\n   EGX33   return=50.9% dd=-16.59% vol=34.97% pts=245\n   summary: {'best_return': 'EGX33', 'worst_drawdown': 'EGX70'}\n\n=== 5) المكونات ===\n   EGX30 components: 31\n      COMI    وزن=29.65% نتيج��=None قرار=None قطاع=\n      TMGH    وزن=9.65% نتيج��=None قرار=None قطاع=\n      ETEL    وزن=7.73% نتيج��=None قرار=None قطاع=\n      EAST    وزن=5.79% نتيج��=None قرار=None قطاع=\n      FWRY    وزن=5.45% نتيج��=None قرار=None قطاع=\n\n=== 6) أخطاء ===\n   ✅ كل الاختبارات نجحت\n",
       "stderr_tail": ""
     },
     {
       "file": "test_index_history_refresh_guard.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.5,
+      "seconds": 0.1,
       "tail": "PASS extract: _maybe_refresh_index_history موجود                \nPASS ① كل التواريخ القديمة باقية                                قديم=100 جديد=102 مفقود=0\nPASS ② الصفوف نمت (100 ⇒ 102)                                   102\nPASS ③ series مرآة لـrows (الحارس META.SERIES_ALIAS)            \nPASS ④ count يطابق الصفوف                                       102\nPASS ⑤ from يطابق أول طابع                                      \nPASS ⑥ to يطابق آخر طابع                                        \n\n7/7 ناجح\n",
       "stderr_tail": ""
     },
@@ -155,25 +145,25 @@
       "file": "test_opp_api01.py",
       "exit": 0,
       "ok": true,
-      "seconds": 3.0,
+      "seconds": 1.0,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "_and_explain) ... ok\ntest_list_returns_items (__main__.TestOppApi.test_list_returns_items) ... ok\ntest_list_unknown_strategy_404 (__main__.TestOppApi.test_list_unknown_strategy_404) ... ok\ntest_missing_risk_stock_is_not_a_confirmed_opportunity (__main__.TestOppApi.test_missing_risk_stock_is_not_a_confirmed_opportunity) ... ok\ntest_strategies_returns_nine_without_secrets (__main__.TestOppApi.test_strategies_returns_nine_without_secrets) ... ok\ntest_summary (__main__.TestOppApi.test_summary) ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.885s\n\nOK\n"
+      "stderr_tail": "_and_explain) ... ok\ntest_list_returns_items (__main__.TestOppApi.test_list_returns_items) ... ok\ntest_list_unknown_strategy_404 (__main__.TestOppApi.test_list_unknown_strategy_404) ... ok\ntest_missing_risk_stock_is_not_a_confirmed_opportunity (__main__.TestOppApi.test_missing_risk_stock_is_not_a_confirmed_opportunity) ... ok\ntest_strategies_returns_nine_without_secrets (__main__.TestOppApi.test_strategies_returns_nine_without_secrets) ... ok\ntest_summary (__main__.TestOppApi.test_summary) ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.505s\n\nOK\n"
     },
     {
       "file": "test_opp_freshness13.py",
       "exit": 0,
       "ok": true,
-      "seconds": 16.7,
+      "seconds": 14.5,
       "tail": "\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n  TV Scanner error: network down\n  TV Scanner: 1/1 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=1/1 | cols_req=71 | cols_recv=1 | rsi=None | pe=None | ema20=None\n",
-      "stderr_tail": "_free_items_are_brief_but_pro_have_details (__main__.TestTierContract.test_free_items_are_brief_but_pro_have_details) ... ok\ntest_pro_gets_full_list_with_details (__main__.TestTierContract.test_pro_gets_full_list_with_details) ... ok\ntest_same_calculation_for_both_plans (__main__.TestTierContract.test_same_calculation_for_both_plans)\n⛔⛔⛔ مافيش اختلاف في دقة الحساب بين الباقتين. ... ok\ntest_summary_and_strategies_carry_plan (__main__.TestTierContract.test_summary_and_strategies_carry_plan) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 2.602s\n\nOK\n"
+      "stderr_tail": "_free_items_are_brief_but_pro_have_details (__main__.TestTierContract.test_free_items_are_brief_but_pro_have_details) ... ok\ntest_pro_gets_full_list_with_details (__main__.TestTierContract.test_pro_gets_full_list_with_details) ... ok\ntest_same_calculation_for_both_plans (__main__.TestTierContract.test_same_calculation_for_both_plans)\n⛔⛔⛔ مافيش اختلاف في دقة الحساب بين الباقتين. ... ok\ntest_summary_and_strategies_carry_plan (__main__.TestTierContract.test_summary_and_strategies_carry_plan) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 1.155s\n\nOK\n"
     },
     {
       "file": "test_opp_live01.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.4,
+      "seconds": 0.1,
       "tail": "",
-      "stderr_tail": "rce_and_time) ... ok\ntest_pro_only_list_is_explicit (__main__.TestPlanSeparation.test_pro_only_list_is_explicit) ... ok\ntest_public_strategy_marks_pro_only (__main__.TestPlanSeparation.test_public_strategy_marks_pro_only) ... ok\ntest_items_have_no_weights (__main__.TestSecrets.test_items_have_no_weights) ... ok\ntest_public_strategy_has_no_weights (__main__.TestSecrets.test_public_strategy_has_no_weights) ... ok\ntest_reasons_are_simplified (__main__.TestSecrets.test_reasons_are_simplified) ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 0.024s\n\nOK\n"
+      "stderr_tail": "rce_and_time) ... ok\ntest_pro_only_list_is_explicit (__main__.TestPlanSeparation.test_pro_only_list_is_explicit) ... ok\ntest_public_strategy_marks_pro_only (__main__.TestPlanSeparation.test_public_strategy_marks_pro_only) ... ok\ntest_items_have_no_weights (__main__.TestSecrets.test_items_have_no_weights) ... ok\ntest_public_strategy_has_no_weights (__main__.TestSecrets.test_public_strategy_has_no_weights) ... ok\ntest_reasons_are_simplified (__main__.TestSecrets.test_reasons_are_simplified) ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 0.025s\n\nOK\n"
     },
     {
       "file": "test_pattern_challenges.py",
@@ -211,23 +201,23 @@
       "file": "test_pin_auth.py",
       "exit": 0,
       "ok": true,
-      "seconds": 22.2,
-      "tail": "m, changer@example.com, ghost2@example.com, karim@example.com, oldpin@example.com, p10@example.com, p9@example.com, probe0@example.com, probe1@example.com, probe2@example.com, probe3@example.com, probe4@example.com, staleowner@example.com, victim@example.com\n   حقول مستخدم باسورد: ['bio_at', 'bio_hash', 'bio_hashes', 'created', 'email', 'email_confirmed', 'email_confirmed_at', 'email_hash', 'id', 'last_login', 'login_count', 'login_log', 'name', 'pending_devs', 'pin_changed', 'pin_first_at', 'pin_hash', 'pin_idx', 'pin_idx_id', 'pin_ok_at', 'pin_salt', 'pin_set', 'portfolio', 'session_seen', 'token_epoch', 'watch']\n   ملف القفل: /tmp/pintest_m4kiupcm/pinlock.json (45 سجل)\n\n✅ 40 نجح · 0 فشل\n\n",
+      "seconds": 14.5,
+      "tail": "m, changer@example.com, ghost2@example.com, karim@example.com, oldpin@example.com, p10@example.com, p9@example.com, probe0@example.com, probe1@example.com, probe2@example.com, probe3@example.com, probe4@example.com, staleowner@example.com, victim@example.com\n   حقول مستخدم باسورد: ['bio_at', 'bio_hash', 'bio_hashes', 'created', 'email', 'email_confirmed', 'email_confirmed_at', 'email_hash', 'id', 'last_login', 'login_count', 'login_log', 'name', 'pending_devs', 'pin_changed', 'pin_first_at', 'pin_hash', 'pin_idx', 'pin_idx_id', 'pin_ok_at', 'pin_salt', 'pin_set', 'portfolio', 'session_seen', 'token_epoch', 'watch']\n   ملف القفل: /tmp/pintest_bam301me/pinlock.json (45 سجل)\n\n✅ 40 نجح · 0 فشل\n\n",
       "stderr_tail": ""
     },
     {
       "file": "test_pin_challenge.py",
       "exit": 0,
       "ok": true,
-      "seconds": 80.7,
-      "tail": "| ema20=None\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: unavailable | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n  ✅\n✅ SAVED: 0 stocks | 14 tickers | 0 live | phase=pre\n\n=============================================\nOCTA Update @ 2026-11-19T01:05:44.821553Z\nMarket: pre → every 600s\n=============================================\n  TV Scanner: 0/251 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=0/251 | cols_req=71 | cols_recv=0 | rsi=None | pe=None | ema20=None\n منطق التقييم والأرقام المالية ما اتغيّرتش\n\n▸ 📄  بعد كل اللي فات\n   مستخدمين: 7\n   ملف القفل: /tmp/chaltest_q0etofr9/pinlock.json\n   ملف الكود: /tmp/chaltest_q0etofr9/pinchal.json\n   توكين فتح باقيين: 0\n\n✅ 31 نجح · 0 فشل\n\n",
+      "seconds": 58.3,
+      "tail": "لاتة القديمة\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: unavailable | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n\n✅ SAVED: 0 stocks | 14 tickers | 0 live | phase=pre\n\n=============================================\nOCTA Update @ 2026-11-19T01:17:20.394925Z\n  ✅Market: pre → every 600s\n=============================================\n  TV Scanner: 0/251 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=0/251 | cols_req=71 | cols_recv=0 | rsi=None | pe=None | ema20=None\n منطق التقييم والأرقام المالية ما اتغيّرتش\n\n▸ 📄  بعد كل اللي فات\n   مستخدمين: 7\n   ملف القفل: /tmp/chaltest_6_c0_jbe/pinlock.json\n   ملف الكود: /tmp/chaltest_6_c0_jbe/pinchal.json\n   توكين فتح باقيين: 0\n\n✅ 31 نجح · 0 فشل\n\n",
       "stderr_tail": ""
     },
     {
       "file": "test_r20_az31_36.py",
       "exit": 0,
       "ok": true,
-      "seconds": 1.0,
+      "seconds": 0.5,
       "tail": "قبل\n  ✅ AZ36-03 · التفعيل من غير توكن أدمن ⇒ 401\n  ✅ AZ36-02a · فشل التخزين ⇒ 503 (مش 404)\n  ✅ AZ36-02b · مافيش نجاح وهمي\n  ✅ AZ36-02c · الحساب ما اتغيّرش بعد فشل الحفظ\n\n────────────────────────────────────────────────────────────────\n  AZ32 — تراكم مفاتيح الـrate limit\n────────────────────────────────────────────────────────────────\n  ✅ AZ32-00 · اتحقن 50 مفتاح قديم\n  ✅ AZ32-01 · المفاتيح المنتهية اتنضفت بالعمر (TTL)\n  ✅ AZ32-02a · سقف المفاتيح موجود ومضبوط\n  ✅ AZ32-02b · period التنضيف مضبوط\n  ✅ AZ32-03 · حد الـrate limit لسه شغّال بعد التنظيف\n\n================================================================\n  النتيجة: 35/35\n================================================================\n",
       "stderr_tail": ""
     },
@@ -243,7 +233,7 @@
       "file": "test_recipe_filter.py",
       "exit": 0,
       "ok": true,
-      "seconds": 1.2,
+      "seconds": 0.4,
       "tail": " بتفضل\n\n⑧ وزن المحور في المساهمات\n  ✅ 'axis_weight' اتشال\n  ✅ 'contribution' فاضل (نتيجة مش وصفة)\n  ✅ 'score' فاضل\n  ✅ مفيش أي مفتاح وزن في الرد\n  ✅ 'weight' لسه موجود للأخبار (وزن الأهمية مش وصفة)\n  ✅ POST /api/calibration محمي بتوكن الأدمن\n  ✅ GET /api/calibration لسه مفتوح للواجهة\n\n⑨ اختبارات رجعية — مسارات التسرّب المتبقية\n  ✅ رد المعايرة ما فيهوش 'old_weights'\n  ✅ رد المعايرة ما فيهوش 'new_weights'\n  ✅ ملاحظات الفلتر ما بتطبعش رقم العتبة\n  ✅ ⓘ حدود معروفة (D-028): خصم المخاطرة ظاهر للمستخدم\n  ✅ ⓘ /api/calibration قراءة بس (POST بيرجع 405)\n  ✅ حماية /api/calibration موجودة (خط دفاع)\n  ✅ 'close_picks' مخفي (أوزان فرعية)\n\n══════════════════════════════════════════════\n✅ كل الاختبارات عدّت\n",
       "stderr_tail": ""
     },
@@ -251,9 +241,9 @@
       "file": "test_round14_release.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.9,
+      "seconds": 1.0,
       "tail": "990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n  TV Scanner: 3/10 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=3/10 | cols_req=71 | cols_recv=1 | rsi=None | pe=None | ema20=None\n  ⛔ جلب ناقص: 3/10 (30.0%) — الحالة: تغطية جزئية\n  ⛔ فشل تنضيف الطلب (RuntimeError): sanitizerdown\n",
-      "stderr_tail": "tion_is_excluded)\n⛔ السهم ماعندوش تقييم في الاستراتيجية المطلوبة ⇒ ما يدخلش. ... ok\ntest_free_limit_is_five_and_pro_is_twenty (__main__.TestTierSameData.test_free_limit_is_five_and_pro_is_twenty) ... ok\ntest_pro_label_does_not_claim_all_eligible (__main__.TestTierSameData.test_pro_label_does_not_claim_all_eligible)\n⛔⛔⛔ ما نقولش «كل الأسهم المؤهلة» — المحرّك بيعرض أفضل ٢٠. ... ok\ntest_shared_stocks_have_identical_results (__main__.TestTierSameData.test_shared_stocks_have_identical_results) ... ok\n\n----------------------------------------------------------------------\nRan 27 tests in 0.170s\n\nOK\n"
+      "stderr_tail": "tion_is_excluded)\n⛔ السهم ماعندوش تقييم في الاستراتيجية المطلوبة ⇒ ما يدخلش. ... ok\ntest_free_limit_is_five_and_pro_is_twenty (__main__.TestTierSameData.test_free_limit_is_five_and_pro_is_twenty) ... ok\ntest_pro_label_does_not_claim_all_eligible (__main__.TestTierSameData.test_pro_label_does_not_claim_all_eligible)\n⛔⛔⛔ ما نقولش «كل الأسهم المؤهلة» — المحرّك بيعرض أفضل ٢٠. ... ok\ntest_shared_stocks_have_identical_results (__main__.TestTierSameData.test_shared_stocks_have_identical_results) ... ok\n\n----------------------------------------------------------------------\nRan 27 tests in 0.163s\n\nOK\n"
     },
     {
       "file": "test_round15_coverage_states.py",
@@ -275,9 +265,9 @@
       "file": "test_round15_opp_perms.py",
       "exit": 0,
       "ok": true,
-      "seconds": 1.3,
+      "seconds": 1.1,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "opp_path (__main__.TestSessionGate.test_anonymous_is_401_on_every_opp_path)\n⛔ بيكشف: مسار /api/opp/* بيرجّع بيانات لزائر بلا جلسة. ... ok\ntest_invalid_token_is_401_on_every_opp_path (__main__.TestSessionGate.test_invalid_token_is_401_on_every_opp_path)\n⛔ بيكشف: توكن مزوّر/منتهي يمرّ من فتحة الـauth. ... ok\ntest_route_guard_blocks_even_if_global_gate_is_off (__main__.TestSessionGate.test_route_guard_blocks_even_if_global_gate_is_off)\n⛔ بيكشف: الاعتماد على البوابة العامة بس (بدون guard جوّه ... ok\n\n----------------------------------------------------------------------\nRan 32 tests in 0.284s\n\nOK\n"
+      "stderr_tail": "opp_path (__main__.TestSessionGate.test_anonymous_is_401_on_every_opp_path)\n⛔ بيكشف: مسار /api/opp/* بيرجّع بيانات لزائر بلا جلسة. ... ok\ntest_invalid_token_is_401_on_every_opp_path (__main__.TestSessionGate.test_invalid_token_is_401_on_every_opp_path)\n⛔ بيكشف: توكن مزوّر/منتهي يمرّ من فتحة الـauth. ... ok\ntest_route_guard_blocks_even_if_global_gate_is_off (__main__.TestSessionGate.test_route_guard_blocks_even_if_global_gate_is_off)\n⛔ بيكشف: الاعتماد على البوابة العامة بس (بدون guard جوّه ... ok\n\n----------------------------------------------------------------------\nRan 32 tests in 0.291s\n\nOK\n"
     },
     {
       "file": "test_round15_price_label.py",
@@ -293,7 +283,7 @@
       "ok": true,
       "seconds": 0.6,
       "tail": "[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n  ⛔ فشل تنضيف الطلب (RuntimeError): R15-SIMULATED-FAILURE\n  ⛔ فشل التنظيف الاحتياطي (RuntimeError): R15-SIMULATED-FAILURE\n  ⛔ فشل تنضيف الطلب (RuntimeError): R15-SIMULATED-FAILURE\n  ⛔ فشل التنظيف الاحتياطي (RuntimeError): R15-SIMULATED-FAILURE\n  ⛔ فشل تنضيف الطلب (RuntimeError): R15-SIMULATED-FAILURE\n\n======================================================================\n✅ مافيش expectedFailure — كل الفحوصات عدّت.\n======================================================================\n",
-      "stderr_tail": "act_under_test (__main__.TestQueryGuardEndToEnd.test_final_json_is_the_artifact_under_test)\n⛔ ⑥ الفحص على الرد النهائي (مش على QUERY_STRING بس). ... ok\ntest_long_value_is_truncated_in_response (__main__.TestQueryGuardEndToEnd.test_long_value_is_truncated_in_response)\n⛔ ③ آلاف المحارف: الرد النهائي ما يحملش القيمة كاملة. ... ok\ntest_primary_failure_yields_clean_response (__main__.TestQueryGuardEndToEnd.test_primary_failure_yields_clean_response)\n⛔ ④ لو المعالج الأساسي وقع ⇒ الرد يفضل نظيف. ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 0.027s\n\nOK\n"
+      "stderr_tail": "act_under_test (__main__.TestQueryGuardEndToEnd.test_final_json_is_the_artifact_under_test)\n⛔ ⑥ الفحص على الرد النهائي (مش على QUERY_STRING بس). ... ok\ntest_long_value_is_truncated_in_response (__main__.TestQueryGuardEndToEnd.test_long_value_is_truncated_in_response)\n⛔ ③ آلاف المحارف: الرد النهائي ما يحملش القيمة كاملة. ... ok\ntest_primary_failure_yields_clean_response (__main__.TestQueryGuardEndToEnd.test_primary_failure_yields_clean_response)\n⛔ ④ لو المعالج الأساسي وقع ⇒ الرد يفضل نظيف. ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 0.026s\n\nOK\n"
     },
     {
       "file": "test_round16_contract_wiring.py",
@@ -301,15 +291,15 @@
       "ok": true,
       "seconds": 0.6,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "uth) ... ok\ntest_long_query_is_400_not_401_when_anonymous (__main__.TestQueryLimitsBeforeAuth.test_long_query_is_400_not_401_when_anonymous)\n⛔ الطلب الكبير يترفض بـ400 (حدّ) مش 401 (جلسة) ⇒ ... ok\ntest_normal_query_still_reaches_auth (__main__.TestQueryLimitsBeforeAuth.test_normal_query_still_reaches_auth)\n⛔ الحد مش بيقصّ الطلبات العادية ⇒ 401 (مافيش جلسة) زي ما كان. ... ok\ntest_too_many_params_is_400_before_auth (__main__.TestQueryLimitsBeforeAuth.test_too_many_params_is_400_before_auth) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.040s\n\nOK\n"
+      "stderr_tail": "uth) ... ok\ntest_long_query_is_400_not_401_when_anonymous (__main__.TestQueryLimitsBeforeAuth.test_long_query_is_400_not_401_when_anonymous)\n⛔ الطلب الكبير يترفض بـ400 (حدّ) مش 401 (جلسة) ⇒ ... ok\ntest_normal_query_still_reaches_auth (__main__.TestQueryLimitsBeforeAuth.test_normal_query_still_reaches_auth)\n⛔ الحد مش بيقصّ الطلبات العادية ⇒ 401 (مافيش جلسة) زي ما كان. ... ok\ntest_too_many_params_is_400_before_auth (__main__.TestQueryLimitsBeforeAuth.test_too_many_params_is_400_before_auth) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.035s\n\nOK\n"
     },
     {
       "file": "test_round16_legacy_weights.py",
       "exit": 0,
       "ok": true,
-      "seconds": 15.9,
+      "seconds": 16.6,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n[ipo] 24 طرح\n[logos] boot error: 'list' object has no attribute 'keys'\n",
-      "stderr_tail": "كانت **بتعدّي** الفلتر بالاسم ⇒ الرد العام ... ok\ntest_liquidity_threshold_is_recoverable_from_exposed_fields (__main__.TestRecipeNotRecoverable.test_liquidity_threshold_is_recoverable_from_exposed_fields)\n⛔ بيكشف (بالرقم): محور السيولة + خصم الفلاتر ⇒ عتبة السيولة ... ok\ntest_risk_penalty_multiplier_is_recoverable_from_exposed_fields (__main__.TestRecipeNotRecoverable.test_risk_penalty_multiplier_is_recoverable_from_exposed_fields)\n⛔ بيكشف (بالرقم): risk_penalty + محور الأمان ⇒ معامل خصم ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 6.198s\n\nOK\n"
+      "stderr_tail": "كانت **بتعدّي** الفلتر بالاسم ⇒ الرد العام ... ok\ntest_liquidity_threshold_is_recoverable_from_exposed_fields (__main__.TestRecipeNotRecoverable.test_liquidity_threshold_is_recoverable_from_exposed_fields)\n⛔ بيكشف (بالرقم): محور السيولة + خصم الفلاتر ⇒ عتبة السيولة ... ok\ntest_risk_penalty_multiplier_is_recoverable_from_exposed_fields (__main__.TestRecipeNotRecoverable.test_risk_penalty_multiplier_is_recoverable_from_exposed_fields)\n⛔ بيكشف (بالرقم): risk_penalty + محور الأمان ⇒ معامل خصم ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 5.964s\n\nOK\n"
     },
     {
       "file": "test_round16_price_freshness.py",
@@ -317,15 +307,15 @@
       "ok": true,
       "seconds": 0.1,
       "tail": "",
-      "stderr_tail": "_time (__main__.TestPriceAgeTruth.test_price_age_is_not_the_fetch_time)\n⛔ عمر السعر ≠ وقت استلام البيانات (Fetch ≠ Price). ... ok\ntest_row_shows_price_age_even_when_price_ts_exists (__main__.TestPriceAgeTruth.test_row_shows_price_age_even_when_price_ts_exists)\n⛔ الجولة ١٦ — عمر السعر لازم يبان في الصف (ثواني/دقائق). ... ok\ntest_row_without_price_ts_has_no_fake_age (__main__.TestPriceAgeTruth.test_row_without_price_ts_has_no_fake_age)\n⛔ مافيش price_ts ⇒ العمر مجهول (مش صفر) والوصف مش لحظي. ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.030s\n\nOK\n"
+      "stderr_tail": "_time (__main__.TestPriceAgeTruth.test_price_age_is_not_the_fetch_time)\n⛔ عمر السعر ≠ وقت استلام البيانات (Fetch ≠ Price). ... ok\ntest_row_shows_price_age_even_when_price_ts_exists (__main__.TestPriceAgeTruth.test_row_shows_price_age_even_when_price_ts_exists)\n⛔ الجولة ١٦ — عمر السعر لازم يبان في الصف (ثواني/دقائق). ... ok\ntest_row_without_price_ts_has_no_fake_age (__main__.TestPriceAgeTruth.test_row_without_price_ts_has_no_fake_age)\n⛔ مافيش price_ts ⇒ العمر مجهول (مش صفر) والوصف مش لحظي. ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 0.034s\n\nOK\n"
     },
     {
       "file": "test_round16_query_limits.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.7,
+      "seconds": 0.6,
       "tail": "an_query_failed\n  ⛔ فشل التنظيف الاحتياطي (RuntimeError): apply_safe_query_failed\n  ⛔ رفض الطلب (param_name_too_long): الـquery تجاوز الحدود المسموحة\n  ⛔ رفض الطلب (query_too_long): الـquery تجاوز الحدود المسموحة\n  ⛔ رفض الطلب (param_value_too_long): الـquery تجاوز الحدود المسموحة\n  ⛔ رفض الطلب (too_many_params): الـquery تجاوز الحدود المسموحة\n  ⛔ فشل تنضيف الطلب (RuntimeError): apply_clean_query_failed\n  ⛔ فشل التنظيف الاحتياطي (RuntimeError): apply_safe_query_failed\n  ⛔ رفض الطلب (too_many_params): الـquery تجاوز الحدود المسموحة\n\n======================================================================\n✅ كل الفحوصات عدّت.\n======================================================================\n",
-      "stderr_tail": "d_without_leak (__main__.TestQueryLimitEndToEnd.test_many_params_are_rejected_without_leak)\n⛔ ② ٥٠٠ معاملة ⇒ رفض واضح + مافيش قيمة خام في الرد. ... ok\ntest_query_string_write_failure_is_rejected (__main__.TestQueryLimitEndToEnd.test_query_string_write_failure_is_rejected)\n⛔ ⑤ فشل كتابة request.query_string ⇒ رفض ٤٠٠ صريح. ... ok\ntest_route_never_runs_on_rejected_request (__main__.TestQueryLimitEndToEnd.test_route_never_runs_on_rejected_request)\n⛔ الـroute **ما شغّاش** بالقيمة غير النضيفة. ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 0.026s\n\nOK\n"
+      "stderr_tail": "d_without_leak (__main__.TestQueryLimitEndToEnd.test_many_params_are_rejected_without_leak)\n⛔ ② ٥٠٠ معاملة ⇒ رفض واضح + مافيش قيمة خام في الرد. ... ok\ntest_query_string_write_failure_is_rejected (__main__.TestQueryLimitEndToEnd.test_query_string_write_failure_is_rejected)\n⛔ ⑤ فشل كتابة request.query_string ⇒ رفض ٤٠٠ صريح. ... ok\ntest_route_never_runs_on_rejected_request (__main__.TestQueryLimitEndToEnd.test_route_never_runs_on_rejected_request)\n⛔ الـroute **ما شغّاش** بالقيمة غير النضيفة. ... ok\n\n----------------------------------------------------------------------\nRan 17 tests in 0.034s\n\nOK\n"
     },
     {
       "file": "test_round17_n1_row_state.py",
@@ -339,7 +329,7 @@
       "file": "test_round17_n2_coverage.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.1,
+      "seconds": 0.2,
       "tail": "",
       "stderr_tail": "ayload_publishes_coverage_acceptable (__main__.TestN2CoverageHonesty.test_payload_publishes_coverage_acceptable)\n⛔ العقد لازم ينشر «مقبولة» (المحرك + كل قائمة). ... ok\ntest_source_label_distinguishes_complete (__main__.TestN2CoverageHonesty.test_source_label_distinguishes_complete)\n⛔ مصدر البيانات: fresh+كاملة ⇒ live · fresh+مقبولة ⇒ partial. ... ok\ntest_unavailable_when_no_coverage (__main__.TestN2CoverageHonesty.test_unavailable_when_no_coverage)\n⛔ مافيش تغطية ⇒ غير متاحة (ومش «مقبولة»). ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.003s\n\nOK\n"
     },
@@ -347,9 +337,9 @@
       "file": "test_round17_n3_contract.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.8,
+      "seconds": 0.7,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "tOnMissingRoutes.test_detail_publishes_freshness_contract)\n⛔ بيكشف: /api/opp/detail مافيش فيه عقد الحداثة/التغطية. ... ok\ntest_explain_publishes_freshness_contract (__main__.TestOppContractOnMissingRoutes.test_explain_publishes_freshness_contract)\n⛔ بيكشف: /api/opp/explain مافيش فيه عقد الحداثة/التغطية. ... ok\ntest_summary_publishes_freshness_contract (__main__.TestOppContractOnMissingRoutes.test_summary_publishes_freshness_contract)\n⛔ بيكشف: /api/opp/summary مافيش فيه عقد الحداثة/التغطية. ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.173s\n\nOK\n"
+      "stderr_tail": "tOnMissingRoutes.test_detail_publishes_freshness_contract)\n⛔ بيكشف: /api/opp/detail مافيش فيه عقد الحداثة/التغطية. ... ok\ntest_explain_publishes_freshness_contract (__main__.TestOppContractOnMissingRoutes.test_explain_publishes_freshness_contract)\n⛔ بيكشف: /api/opp/explain مافيش فيه عقد الحداثة/التغطية. ... ok\ntest_summary_publishes_freshness_contract (__main__.TestOppContractOnMissingRoutes.test_summary_publishes_freshness_contract)\n⛔ بيكشف: /api/opp/summary مافيش فيه عقد الحداثة/التغطية. ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.148s\n\nOK\n"
     },
     {
       "file": "test_round17_n4_session_match.py",
@@ -379,7 +369,7 @@
       "file": "test_round17_p3_contract_pick.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.7,
+      "seconds": 0.6,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
       "stderr_tail": "n_both_present)\n⛔ مفيش ارتجاع: أولوية القائمة على الباك. ... ok\ntest_list_zero_is_not_treated_as_missing (__main__.TestP3ContractPick.test_list_zero_is_not_treated_as_missing)\n⛔ الصفر = قيمة موجودة (مش «مفيش»). ... ok\ntest_missing_everywhere_is_none (__main__.TestP3ContractPick.test_missing_everywhere_is_none)\n⛔ مافيش أي مصدر ⇒ None (مش '' ولا 0). ... ok\ntest_none_in_list_falls_back_to_payload (__main__.TestP3ContractPick.test_none_in_list_falls_back_to_payload)\n⛔ `None` = مش معطى ⇒ الباك. ... ok\n\n----------------------------------------------------------------------\nRan 7 tests in 0.001s\n\nOK\n"
     },
@@ -403,15 +393,15 @@
       "file": "test_round18_analysis_truth.py",
       "exit": 0,
       "ok": true,
-      "seconds": 0.6,
+      "seconds": 1.5,
       "tail": "  📋 القايمة: 251 سهم من الملفات (271 اسم · 296 له تقييم)\n  AI disk cache: 0 entries\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "ain__.TestWatchListNoDuplicates.test_counts_are_unique) ... ok\ntest_read_path_does_not_write (__main__.TestWatchListNoDuplicates.test_read_path_does_not_write) ... ok\ntest_watch_rows_keep_their_own_data (__main__.TestWatchListNoDuplicates.test_watch_rows_keep_their_own_data) ... ok\ntest_failed_write_is_not_success (__main__.TestWatchWriteTruth.test_failed_write_is_not_success) ... ok\ntest_successful_write_reports_success (__main__.TestWatchWriteTruth.test_successful_write_reports_success) ... ok\n\n----------------------------------------------------------------------\nRan 27 tests in 0.022s\n\nOK\n"
+      "stderr_tail": "ain__.TestWatchListNoDuplicates.test_counts_are_unique) ... ok\ntest_read_path_does_not_write (__main__.TestWatchListNoDuplicates.test_read_path_does_not_write) ... ok\ntest_watch_rows_keep_their_own_data (__main__.TestWatchListNoDuplicates.test_watch_rows_keep_their_own_data) ... ok\ntest_failed_write_is_not_success (__main__.TestWatchWriteTruth.test_failed_write_is_not_success) ... ok\ntest_successful_write_reports_success (__main__.TestWatchWriteTruth.test_successful_write_reports_success) ... ok\n\n----------------------------------------------------------------------\nRan 27 tests in 0.049s\n\nOK\n"
     },
     {
       "file": "test_round18_sec_failopen.py",
       "exit": 0,
       "ok": true,
-      "seconds": 1.2,
+      "seconds": 14.8,
       "tail": "_sec032_unsigned_token_is_rejected\n  ✅ SEC-004  test_sec004_no_raw_recovery_code_on_disk\n  ✅ SEC-004  test_sec004_user_pin_is_hashed_only\n  [ADMIN] mint_session → r18_010@example.test (ttl 600s)\n  ✅ SEC-010  test_sec010_mint_session_cookie_max_age_is_600\n  ✅ SEC-019  test_sec019_chat_requires_login\n  ✅ SEC-019  test_sec019_analyze_requires_login\n  ✅ SEC-019  test_sec019_ai_cost_ceiling_is_enforced\n  ✅ SEC-019  test_sec019_ai_cost_limit_default_is_fail_closed\n  ✅ SEC-019  test_sec019_chat_length_limits_still_enforced\n\n==================================================================\n  النتيجة: 19 ناجح / 0 فاشل  (الإجمالي 19)\n==================================================================\n",
       "stderr_tail": ""
     },
@@ -420,7 +410,7 @@
       "exit": 0,
       "ok": true,
       "seconds": 0.1,
-      "tail": "مافيش ملف اتكتب\n\n▶️ ② مجلد فاضي ⇒ return 1\nمفيش ملفات شموع في: /tmp/pat_scan_cikz1dud/empty\n   ✅ رجع 1\n\n▶️ ③ مسح حقيقي + universe\n=== مسح الأنماط اليومي ===\nأسهم مفحوصة: 2 · جاهزة: 2 · ناقصة: 0 · مفيش نمط: 2 · إشارات: 0\nمفيش أنماط دلوقتي.\n\nاتكتب في: /tmp/pat_scan_cikz1dud/s3.json (0 إشارة · 0.0 ثانية)\n   ✅ رجع 0\n   ✅ الملف اتكتب\n   ✅ في المفتاح: generated_at\n   ✅ في المفتاح: asof\n   ✅ في المفتاح: count\n   ✅ في المفتاح: items\n   ✅ count = عدد العناصر\n   ✅ universe.json مااتحسبش سهم\n\n▶️ ④ insufficiency بيتحسب وبيكمّل\n   ✅ اتفحص سهمين\n   ✅ واحد ناقص\n   ✅ واحد جاهز\n   ✅ السبب مكتوب: {'سلسلة قصيرة: 50 < 120 شمعة': 1}\n\n▶️ ⑤ مفيش إشارات ⇒ count=0\n   ✅ مفيش نمط\n   ✅ مفيش عناصر\n\n✅ كل الاختبارات عدّت\n",
+      "tail": "مافيش ملف اتكتب\n\n▶️ ② مجلد فاضي ⇒ return 1\nمفيش ملفات شموع في: /tmp/pat_scan_vyp45pck/empty\n   ✅ رجع 1\n\n▶️ ③ مسح حقيقي + universe\n=== مسح الأنماط اليومي ===\nأسهم مفحوصة: 2 · جاهزة: 2 · ناقصة: 0 · مفيش نمط: 2 · إشارات: 0\nمفيش أنماط دلوقتي.\n\nاتكتب في: /tmp/pat_scan_vyp45pck/s3.json (0 إشارة · 0.0 ثانية)\n   ✅ رجع 0\n   ✅ الملف اتكتب\n   ✅ في المفتاح: generated_at\n   ✅ في المفتاح: asof\n   ✅ في المفتاح: count\n   ✅ في المفتاح: items\n   ✅ count = عدد العناصر\n   ✅ universe.json مااتحسبش سهم\n\n▶️ ④ insufficiency بيتحسب وبيكمّل\n   ✅ اتفحص سهمين\n   ✅ واحد ناقص\n   ✅ واحد جاهز\n   ✅ السبب مكتوب: {'سلسلة قصيرة: 50 < 120 شمعة': 1}\n\n▶️ ⑤ مفيش إشارات ⇒ count=0\n   ✅ مفيش نمط\n   ✅ مفيش عناصر\n\n✅ كل الاختبارات عدّت\n",
       "stderr_tail": ""
     },
     {
@@ -428,39 +418,39 @@
       "exit": 0,
       "ok": true,
       "seconds": 21.1,
-      "tail": "لتوكن اتولد جوّه القفل)\n\n══════════════════════════════════════════════════════════════════\n  النتيجة: 66 ناجح / 0 فاشل  (الإجمالي 66)\n══════════════════════════════════════════════════════════════════\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: fresh | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n  cache write err: [Errno 2] No such file or directory: '/tmp/octa_sec01_u_gxw_am/cache.json'\n  BT save err: [Errno 2] No such file or directory: '/tmp/octa_sec01_u_gxw_am/backtest_snapshots.json'\n  📸 BT snapshot: 2026-11-19 — 20 سهم\n\n✅ SAVED: 287 stocks | 14 tickers | 287 live | phase=pre\n  🥇 أعلى: SAIB +19.76%\n[usd] ✅ الكاش اتسخّن\n[starta] 276/276 cached\n[warmup] starta ok\n",
+      "tail": "═══════════════════\n  ✅ ⛔ مافيش deadlock (التوكن اتولد جوّه القفل)\n\n══════════════════════════════════════════════════════════════════\n  النتيجة: 66 ناجح / 0 فاشل  (الإجمالي 66)\n══════════════════════════════════════════════════════════════════\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: fresh | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n  cache write err: [Errno 2] No such file or directory: '/tmp/octa_sec01_jh8mp1y5/cache.json'\n  BT save err: [Errno 2] No such file or directory: '/tmp/octa_sec01_jh8mp1y5/backtest_snapshots.json'\n  📸 BT snapshot: 2026-11-19 — 20 سهم\n\n✅ SAVED: 287 stocks | 14 tickers | 287 live | phase=pre\n  🥇 أعلى: SAIB +19.76%\n[usd] ✅ الكاش اتسخّن\n",
       "stderr_tail": ""
     },
     {
       "file": "test_security_batch02.py",
-      "exit": 1,
-      "ok": false,
-      "seconds": 4.7,
-      "tail": "لosh ⇒ تعذّر فحص جلسة الأدمن\n  ✅ دخول الحساب المنتهي (Pro منتهي)\n  ✅ ⛔ Pro منتهي مابيفتحش واجهات Pro\n  ✅ /api/alerts/test ⇒ مرفوض بلا صلاحية\n  ✅ /api/backtest/snapshot ⇒ مرفوض بلا صلاحية\n\n────────────────────────────────────────────────────────────────\n  ⑨) تنظيف — الحساب المؤقت اتشال (عشان الاختبار يفضل قابل للتكرار)\n────────────────────────────────────────────────────────────────\n  ✅ الحساب المؤقت اتشال\n  ✅ سطر الحساب المؤقت اتشال من users.json\n\n════════════════════════════════════════════════════════════════\n  النتيجة: 61 ناجح / 1 فاشل  (الإجمالي 62)\n\n  ❌ الفاشل:\n     - STAGE_ADMIN_TOKEN مش متظبطلosh ⇒ تعذّر فحص جلسة الأدمن\n════════════════════════════════════════════════════════════════\n",
+      "exit": 0,
+      "ok": true,
+      "seconds": 4.8,
+      "tail": "───────────────\n  ✅ mint_session اشتغل\n  ✅ ⛔ كوكي الأدمن مدته ≤ ١٥ دقيقة (مش ٣٠ يوم)\n  ✅ رجع توكن تشخيص\n  ✅ دخول الحساب المنتهي (Pro منتهي)\n  ✅ ⛔ Pro منتهي مابيفتحش واجهات Pro\n  ✅ /api/alerts/test ⇒ مرفوض بلا صلاحية\n  ✅ /api/backtest/snapshot ⇒ مرفوض بلا صلاحية\n\n────────────────────────────────────────────────────────────────\n  ⑨) تنظيف — الحساب المؤقت اتشال (عشان الاختبار يفضل قابل للتكرار)\n────────────────────────────────────────────────────────────────\n  ✅ الحساب المؤقت اتشال\n  ✅ سطر الحساب المؤقت اتشال من users.json\n\n════════════════════════════════════════════════════════════════\n  النتيجة: 64 ناجح / 0 فاشل  (الإجمالي 64)\n════════════════════════════════════════════════════════════════\n",
       "stderr_tail": ""
     },
     {
       "file": "test_security_bgstore.py",
       "exit": 0,
       "ok": true,
-      "seconds": 4.0,
+      "seconds": 4.4,
       "tail": "ا فقد بيانات\n────────────────────────────────────────────────────────────────\n  ✅ ⑤aRegister:a clear 503 instead of a fake success\n  ✅ ⑤aRegister:ok=false\n  ✅ ⑤bLogin:not a misleading 401 (wrong PIN)\n  ✅ ⑤bLogin:a clear 503\n  ✅ ⑤cNo overwrite:the corrupt file was left untouched\n  ✅ ⑤cNo data loss:the file size is unchanged\n\n────────────────────────────────────────────────────────────────\n  ⑥ بعد الإصلاح: البيانات سليمة والدخول شغّال تاني\n────────────────────────────────────────────────────────────────\n  ✅ ⑥Restore:the file is byte-identical to the backup\n  ✅ ⑥Restore:login works again\n================================================================\n  النتيجة: 16 ناجح / 0 فاشل  (الإجمالي 16)\n",
       "stderr_tail": ""
     },
     {
       "file": "test_security_p0.py",
-      "exit": 1,
-      "ok": false,
-      "seconds": 21.7,
-      "tail": "y طويل ⇒ رد متوقع\n  ✅ ② limit مفتوح ⇒ رد متوقع\n  ✅ ③ جسم ضخم ⇒ 413/400\n  ✅ ④ رسالة شات طويلة ⇒ 400\n  ✅ ⑤ تاريخ طويل ⇒ 400\n  ✅ ⑥ المصدر المحدد ⇒ Allow-Credentials=true\n  ✅ ⑥ النطاق المؤقت ⇒ مافيش كوكي\n  ✅ ⑥ مصدر غريب ⇒ مافيش CORS\n\n────────────────────────────────────────────────────────────────\n  سلامة عامة\n────────────────────────────────────────────────────────────────\n  ✅ الـstaging شغّال\n  ✅ المسارات المحمية شغّالة\n\n════════════════════════════════════════════════════════════════\n  النتيجة: 30 ناجح / 3 فاشل  (الإجمالي 33)\n\n  ❌ الفاشل:\n     - ⓪ جلسة أدمن (mint_session) اتصدرت\n     - ① مافيش جلسة أدمن\n     - ② مافيش جلسة أدمن\n════════════════════════════════════════════════════════════════\n",
+      "exit": 0,
+      "ok": true,
+      "seconds": 22.0,
+      "tail": "الـquery + حدود الحجم + CORS\n────────────────────────────────────────────────────────────────\n  ✅ ① query طويل ⇒ رد متوقع\n  ✅ ② limit مفتوح ⇒ رد متوقع\n  ✅ ③ جسم ضخم ⇒ 413/400\n  ✅ ④ رسالة شات طويلة ⇒ 400\n  ✅ ⑤ تاريخ طويل ⇒ 400\n  ✅ ⑥ المصدر المحدد ⇒ Allow-Credentials=true\n  ✅ ⑥ النطاق المؤقت ⇒ مافيش كوكي\n  ✅ ⑥ مصدر غريب ⇒ مافيش CORS\n\n────────────────────────────────────────────────────────────────\n  سلامة عامة\n────────────────────────────────────────────────────────────────\n  ✅ الـstaging شغّال\n  ✅ المسارات المحمية شغّالة\n\n════════════════════════════════════════════════════════════════\n  النتيجة: 34 ناجح / 0 فاشل  (الإجمالي 34)\n════════════════════════════════════════════════════════════════\n",
       "stderr_tail": ""
     },
     {
       "file": "test_signup_flow.py",
       "exit": 0,
       "ok": true,
-      "seconds": 14.3,
-      "tail": "=\nOCTA Update @ 2026-11-19T01:07:17.899007Z\nMarket: pre → every 600s\n=============================================\n  TV Scanner: 0/251 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=0/251 | cols_req=71 | cols_recv=0 | rsi=None | pe=None | ema20=None\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: unavailable | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n\n✅ SAVED: 0 stocks | 14 tickers | 0 live | phase=pre\n\n=============================================\nOCTA Update @ 2026-11-19T01:07:17.902407Z\nMarket: pre → every 600s\n=============================================\n  TV Scanner: 0/251 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=0/251 | cols_req=71 | cols_recv=0 | rsi=None | pe=None | ema20=None\n",
+      "seconds": 14.9,
+      "tail": "=\nOCTA Update @ 2026-11-19T01:19:08.691894Z\nMarket: pre → every 600s\n=============================================\n  TV Scanner: 0/251 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=0/251 | cols_req=71 | cols_recv=0 | rsi=None | pe=None | ema20=None\n  🎯 محرّك الفرص: 9 استراتيجية | الحداثة: unavailable | عمر السوق: pre\n  🔬 السوق لسه مفتوح — التحليل بعد القفل بيبدأ بعد 14:30\n\n✅ SAVED: 0 stocks | 14 tickers | 0 live | phase=pre\n\n=============================================\nOCTA Update @ 2026-11-19T01:19:08.695250Z\nMarket: pre → every 600s\n=============================================\n  TV Scanner: 0/251 سهم | أخطاء تحقق: 0\n  🔍 DIAG: rows=0/251 | cols_req=71 | cols_recv=0 | rsi=None | pe=None | ema20=None\n",
       "stderr_tail": ""
     },
     {
@@ -469,7 +459,7 @@
       "ok": true,
       "seconds": 0.7,
       "tail": "",
-      "stderr_tail": "وبة الفلتر بره سقف الـ22 ... ok\ntest_reference_sample (__main__.TestCapEffective.test_reference_sample) ... ok\ntest_score_range (__main__.TestCapEffective.test_score_range) ... ok\ntest_weights_unchanged (__main__.TestCapEffective.test_weights_unchanged)\n⛔ الأوزان والعتبات ما اتغيّرتش ... ok\ntest_final_is_computed_after_cap (__main__.TestSourceGuard.test_final_is_computed_after_cap) ... ok\ntest_no_penalty_subtracted_before_cap (__main__.TestSourceGuard.test_no_penalty_subtracted_before_cap) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.371s\n\nOK\n"
+      "stderr_tail": "وبة الفلتر بره سقف الـ22 ... ok\ntest_reference_sample (__main__.TestCapEffective.test_reference_sample) ... ok\ntest_score_range (__main__.TestCapEffective.test_score_range) ... ok\ntest_weights_unchanged (__main__.TestCapEffective.test_weights_unchanged)\n⛔ الأوزان والعتبات ما اتغيّرتش ... ok\ntest_final_is_computed_after_cap (__main__.TestSourceGuard.test_final_is_computed_after_cap) ... ok\ntest_no_penalty_subtracted_before_cap (__main__.TestSourceGuard.test_no_penalty_subtracted_before_cap) ... ok\n\n----------------------------------------------------------------------\nRan 9 tests in 0.410s\n\nOK\n"
     },
     {
       "file": "test_tree_hygiene.py",
@@ -491,7 +481,7 @@
       "file": "tools/test_data_integrity_guard.py",
       "exit": 0,
       "ok": true,
-      "seconds": 6.1,
+      "seconds": 5.8,
       "tail": " المشاكل: SYNTH: طابع زمني مكرّر: 2024-01-03 ⭐\n  ⑩    │ الكتابة الذرّية: تحديث شرعي يكتب الملف كامل ⭐        │ FAIL/OK   │ ✅ صح\n       │                                                      │           │   ↳Assertions اللي فشلت: count=11 · rows=11 · to=2024-01-11 · ملف مؤ ⭐\n  ⑥    │ الملف الحقيقي مقابل الأساس الحقيقي                   │ PASS      │ ✅ صح\n       │                                                      │           │   ↳Assertions اللي فشلت: مافيش ⭐\n  --------------------------------------------------------------------------\n  النتيجة: 15/15 ⭐\n  ✅ كل الحالات سلوكها متوقّع ⭐ (وكل حالة فشلت بسبب عيبها ⭐)\n==============================================================================\n",
       "stderr_tail": ""
     },
@@ -499,7 +489,7 @@
       "file": "tools/test_data_integrity_proofs_r24.py",
       "exit": 0,
       "ok": true,
-      "seconds": 4.0,
+      "seconds": 3.9,
       "tail": "     │ FAIL/OK  │ ✅ صح\n       │                                                        │          │   ↳Assertions اللي فشلت: exit=1 · الملف=متطابق ⭐ · ملف مؤقّت متبقّ ⭐\n  ⑦ج   │ ملف الإنتاج (data/index_history.json) ما اتلمسش        │ FAIL/OK  │ ✅ صح\n       │                                                        │          │   ↳Assertions اللي فشلت: sha256 قبل=0fc20dfeb274b428 · بعد=0fc20df ⭐\n  --------------------------------------------------------------------------\n  النتيجة: 16/16 ⭐\n  ملف الإنتاج: sha256 قبل=0fc20dfeb274b428 · بعد=0fc20dfeb274b428 ⭐\n  ✅ كل الحالات سلوكها متوقّع ⭐ (وكل حالة فشلت بسبب عيبها ⭐)\n==============================================================================\n",
       "stderr_tail": ""
     },
@@ -509,7 +499,7 @@
       "ok": true,
       "seconds": 0.5,
       "tail": "==============================\n  ➕ استكمال TradingView: 0 سهم ناقص أضيفوا\n[warmup] starta ok\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[logos] boot thread started\n[LOGOS] 0/0 logo cached\n[logos] ✅ {'count': 0, 'total': 0}\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "ect_unknown_strategy)\n⛔ المسار الحيّ (HTTP) كان محمي من الأصل — برهان إنه لسه محمي. ... ok\ntest_none_strategy_does_not_fall_back_to_balanced (__main__.TestStrategySelection.test_none_strategy_does_not_fall_back_to_balanced) ... ok\ntest_score_all_strategies_keeps_all_eight (__main__.TestStrategySelection.test_score_all_strategies_keeps_all_eight) ... ok\ntest_unknown_strategy_does_not_fall_back_to_balanced (__main__.TestStrategySelection.test_unknown_strategy_does_not_fall_back_to_balanced) ... ok\n\n----------------------------------------------------------------------\nRan 77 tests in 0.269s\n\nOK\n"
+      "stderr_tail": "ect_unknown_strategy)\n⛔ المسار الحيّ (HTTP) كان محمي من الأصل — برهان إنه لسه محمي. ... ok\ntest_none_strategy_does_not_fall_back_to_balanced (__main__.TestStrategySelection.test_none_strategy_does_not_fall_back_to_balanced) ... ok\ntest_score_all_strategies_keeps_all_eight (__main__.TestStrategySelection.test_score_all_strategies_keeps_all_eight) ... ok\ntest_unknown_strategy_does_not_fall_back_to_balanced (__main__.TestStrategySelection.test_unknown_strategy_does_not_fall_back_to_balanced) ... ok\n\n----------------------------------------------------------------------\nRan 77 tests in 0.248s\n\nOK\n"
     },
     {
       "file": "tools/test_peg_availability_r24.py",
@@ -523,7 +513,7 @@
       "file": "tools/test_r25_clock_routes.py",
       "exit": 0,
       "ok": true,
-      "seconds": 6.7,
+      "seconds": 6.9,
       "tail": "===============================================================\n  📊 نتائج الساعة الصناعية (قياسات حقيقية):\n     /api/opp/summary                 T0: fresh (age=0) · T+1h: stale (age=3600) ⭐\n     /api/opp/strategies              T0: fresh (age=0) · T+1h: stale (age=3600) ⭐\n     /api/opp/list/{key}              T0: fresh (age=0) · T+1h: stale (age=3600) ⭐\n     /api/opp/detail/{key}/{code}     T0: fresh (age=0) · T+1h: stale (age=3600) ⭐\n     /api/opp/explain/{key}/{code}    T0: fresh (age=0) · T+1h: stale (age=3600) ⭐\n     البرهان السالب: الإخفاقات قبل=10 · بعد=0 ⭐\n======================================================================\n  النتيجة: 22 ناجح / 0 فاشل  (الإجمالي 22)\n  RESULT: CLEAN\n",
       "stderr_tail": ""
     },
@@ -531,16 +521,16 @@
       "file": "tools/test_r25_concurrency.py",
       "exit": 0,
       "ok": true,
-      "seconds": 28.5,
-      "tail": "ية ⭐)  — A=1 B=1\n\n======================================================================\n  📊 نتائج التزامن (قياسات حقيقية):\n     الحمل المتزامن                 120 طلب في 2.74s ⭐\n     انتخاب القائد                  A=1 · B=0 ⭐ (واحد بس ⭐)\n     التعافي بعد إعادة التشغيل      القائد الجديد=1 ⭐ (تعافّي بعد الموت ⭐)\n     أقفال البيانات                 كُتب=30 · موجود=30 · مفقود=0 ⭐\n     سلامة الملف                    قراءات=97 · قراءات تالفة=0 ⭐\n     برهان الذرّية                  الإخفاقات قبل=1 · بعد=0 ⭐\n     برهان القائد                   الإخفاقات قبل=1 · بعد=0 ⭐\n======================================================================\n  النتيجة: 29 ناجح / 0 فاشل  (الإجمالي 29)\n  RESULT: CLEAN\n",
+      "seconds": 28.6,
+      "tail": "ة ⭐)  — A=1 B=1\n\n======================================================================\n  📊 نتائج التزامن (قياسات حقيقية):\n     الحمل المتزامن                 120 طلب في 2.12s ⭐\n     انتخاب القائد                  A=1 · B=0 ⭐ (واحد بس ⭐)\n     التعافي بعد إعادة التشغيل      القائد الجديد=1 ⭐ (تعافّي بعد الموت ⭐)\n     أقفال البيانات                 كُتب=30 · موجود=30 · مفقود=0 ⭐\n     سلامة الملف                    قراءات=167 · قراءات تالفة=0 ⭐\n     برهان الذرّية                  الإخفاقات قبل=1 · بعد=0 ⭐\n     برهان القائد                   الإخفاقات قبل=1 · بعد=0 ⭐\n======================================================================\n  النتيجة: 29 ناجح / 0 فاشل  (الإجمالي 29)\n  RESULT: CLEAN\n",
       "stderr_tail": ""
     },
     {
       "file": "tools/test_r25_fault_injection.py",
       "exit": 0,
       "ok": true,
-      "seconds": 6.2,
-      "tail": "✅ 🧨c بدون الحماية: نفس الفحص **فشل** ⭐ (الاختبار حسّاس ⭐)  — expected failures>0 got 2\n  ✅ 🧨d بعد رجوع الحماية: الفحص رجع يعدّي ⭐\n\n======================================================================\n  📊 الخط الزمني الحقيقي لعودة المصدر:\n     طبيعي            status=200 ·     4.13ms ⭐\n     مهلة             status=503 ·     1.64ms ⭐\n     خطأ خادم ٥xx     status=503 ·     1.44ms ⭐\n     رد تالف          status=503 ·     1.37ms ⭐\n     عودة المصدر      status=200 ·     1.57ms ⭐\n     زمن التعافي بعد عودة المصدر: 2.81ms ⭐\n     البرهان السالب: الإخفاقات قبل=2 · بعد=0 ⭐\n======================================================================\n  النتيجة: 24 ناجح / 0 فاشل  (الإجمالي 24)\n  RESULT: CLEAN\n",
+      "seconds": 6.1,
+      "tail": "✅ 🧨c بدون الحماية: نفس الفحص **فشل** ⭐ (الاختبار حسّاس ⭐)  — expected failures>0 got 2\n  ✅ 🧨d بعد رجوع الحماية: الفحص رجع يعدّي ⭐\n\n======================================================================\n  📊 الخط الزمني الحقيقي لعودة المصدر:\n     طبيعي            status=200 ·     4.10ms ⭐\n     مهلة             status=503 ·     1.94ms ⭐\n     خطأ خادم ٥xx     status=503 ·     1.45ms ⭐\n     رد تالف          status=503 ·     1.69ms ⭐\n     عودة المصدر      status=200 ·     1.65ms ⭐\n     زمن التعافي بعد عودة المصدر: 3.14ms ⭐\n     البرهان السالب: الإخفاقات قبل=2 · بعد=0 ⭐\n======================================================================\n  النتيجة: 24 ناجح / 0 فاشل  (الإجمالي 24)\n  RESULT: CLEAN\n",
       "stderr_tail": ""
     },
     {
@@ -555,32 +545,32 @@
       "file": "tools/test_r25_metrics_board.py",
       "exit": 0,
       "ok": true,
-      "seconds": 11.0,
-      "tail": "شل مع تخزين تالف ⭐\n  ✅ 🧨b العطل اتحقن ⭐  — 200\n   الإخفاقات مع الحماية=0 · بدونها=1 ⭐\n  ✅ 🧨c بدون الحماية: نفس الفحص **فشل** ⭐ (الاختبار حسّاس ⭐)  — expected failures>0 got 1\n  ✅ 🧨d بعد رجوع الحماية: الفحص رجع يعدّي ⭐\n\n======================================================================\n  📊 لوحة القياس الحقيقية (من السيرفر المعزول ⭐):\n     health                   n=12 p50=0.088ms p95=0.108ms ⭐\n     prices                   n=7 p50=0.053ms p95=0.098ms ⭐\n     قواعد التنبيه            8 قاعدة · حدود موثّقة ⭐\n     البرهان السالب           الإخفاقات قبل=1 · بعد=0 ⭐\n======================================================================\n  النتيجة: 49 ناجح / 0 فاشل  (الإجمالي 49)\n  RESULT: CLEAN\n",
+      "seconds": 11.1,
+      "tail": "شل مع تخزين تالف ⭐\n  ✅ 🧨b العطل اتحقن ⭐  — 200\n   الإخفاقات مع الحماية=0 · بدونها=1 ⭐\n  ✅ 🧨c بدون الحماية: نفس الفحص **فشل** ⭐ (الاختبار حسّاس ⭐)  — expected failures>0 got 1\n  ✅ 🧨d بعد رجوع الحماية: الفحص رجع يعدّي ⭐\n\n======================================================================\n  📊 لوحة القياس الحقيقية (من السيرفر المعزول ⭐):\n     health                   n=12 p50=0.078ms p95=0.094ms ⭐\n     prices                   n=7 p50=0.053ms p95=0.077ms ⭐\n     قواعد التنبيه            8 قاعدة · حدود موثّقة ⭐\n     البرهان السالب           الإخفاقات قبل=1 · بعد=0 ⭐\n======================================================================\n  النتيجة: 49 ناجح / 0 فاشل  (الإجمالي 49)\n  RESULT: CLEAN\n",
       "stderr_tail": ""
     },
     {
       "file": "tools/test_r25_perf_latency.py",
       "exit": 0,
       "ok": true,
-      "seconds": 5.5,
-      "tail": "ms p95=    2.08ms p99=    5.03ms\n     /api/ranking             p50=    1.55ms p95=    1.74ms p99=    1.84ms\n     /api/ready               p50=    1.68ms p95=    5.64ms p99=    7.34ms\n     /api/strategies          p50=    1.69ms p95=    1.78ms p99=    1.79ms\n     /api/top-movers          p50=    1.59ms p95=    7.24ms p99=    9.74ms\n     الحمل الصناعي            p50=   23.45ms p95=  110.21ms p99=  136.30ms (4 عمال · 1.21s)\n     الذاكرة                  قبل=82.44MB بعد=82.44MB فرق=0.00MB\n     حد الطلبات               429 مع الحماية=20 · بدونها=0 ⭐ (البرهان السالب ⭐)\n======================================================================\n  النتيجة: 23 ناجح / 0 فاشل  (الإجمالي 23)\n  RESULT: CLEAN\n",
+      "seconds": 5.7,
+      "tail": "ms p95=    1.53ms p99=    1.56ms\n     /api/ranking             p50=    1.58ms p95=    1.65ms p99=    1.66ms\n     /api/ready               p50=    1.21ms p95=    1.27ms p99=    1.28ms\n     /api/strategies          p50=    1.68ms p95=    1.77ms p99=    1.98ms\n     /api/top-movers          p50=    1.43ms p95=    1.49ms p99=    1.62ms\n     الحمل الصناعي            p50=   10.47ms p95=  115.75ms p99=  195.21ms (4 عمال · 1.10s)\n     الذاكرة                  قبل=78.55MB بعد=78.55MB فرق=0.00MB\n     حد الطلبات               429 مع الحماية=20 · بدونها=0 ⭐ (البرهان السالب ⭐)\n======================================================================\n  النتيجة: 23 ناجح / 0 فاشل  (الإجمالي 23)\n  RESULT: CLEAN\n",
       "stderr_tail": ""
     },
     {
       "file": "tools/test_r25_storage_durability.py",
       "exit": 0,
       "ok": true,
-      "seconds": 19.5,
-      "tail": "ص **فشل** ⭐ (الاختبار حسّاس ⭐)  — expected failures>0 got 1\n  ✅ 🧨d بعد رجوع الحماية: الفحص رجع يعدّي ⭐\n\n======================================================================\n  📊 نتائج التخزين (قياسات حقيقية):\n     التخزين الدائم                 إعادة التشغيل في 0.80s ⭐\n     النسخ والاسترجاع               12 ملف · أرشيف 2994 بايت ⭐\n     الكتابة الذرّية                قراءات=78 · تالفة=0 ⭐\n     بيانات قديمة                   freshness=stale · age=3600 ⭐\n     فشل المصدر                     تعافي 2.89ms ⭐\n     البرهان السالب                 الإخفاقات قبل=1 · بعد=0 ⭐\n======================================================================\n  النتيجة: 39 ناجح / 0 فاشل  (الإجمالي 39)\n  RESULT: CLEAN\n",
+      "seconds": 18.9,
+      "tail": " **فشل** ⭐ (الاختبار حسّاس ⭐)  — expected failures>0 got 1\n  ✅ 🧨d بعد رجوع الحماية: الفحص رجع يعدّي ⭐\n\n======================================================================\n  📊 نتائج التخزين (قياسات حقيقية):\n     التخزين الدائم                 إعادة التشغيل في 1.25s ⭐\n     النسخ والاسترجاع               12 ملف · أرشيف 2996 بايت ⭐\n     الكتابة الذرّية                قراءات=123 · تالفة=0 ⭐\n     بيانات قديمة                   freshness=stale · age=3600 ⭐\n     فشل المصدر                     تعافي 2.83ms ⭐\n     البرهان السالب                 الإخفاقات قبل=1 · بعد=0 ⭐\n======================================================================\n  النتيجة: 39 ناجح / 0 فاشل  (الإجمالي 39)\n  RESULT: CLEAN\n",
       "stderr_tail": ""
     },
     {
       "file": "tools/test_round23_clean_clone.py",
       "exit": 0,
       "ok": true,
-      "seconds": 245.3,
-      "tail": "=== اختبار النسخ النظيف — الجولة 23 ===\n--- الباك ---\n--- الواجهة ---\n\nالباك   : 55/57 ملف · 352 حالة · اعتماديات: عجلات محلية (21 ⭐) ✅ · \nالواجهة: 579 ناجح / 0 فاشل · \n   ⛔ test_security_batch02.py · server-dependent · ════════════════════════════════════════════════════════════════\n   ⛔ test_security_p0.py · server-dependent · ════════════════════════════════════════════════════════════════\nالنتيجة: ✅\n",
+      "seconds": 246.0,
+      "tail": "=== اختبار النسخ النظيف — الجولة 23 ===\n--- الباك ---\n--- الواجهة ---\n\nالباك   : 57/57 ملف · 352 حالة · اعتماديات: عجلات محلية (21 ⭐) ✅ · \nالواجهة: 579 ناجح / 0 فاشل · \nالنتيجة: ✅\n",
       "stderr_tail": ""
     },
     {
@@ -589,7 +579,7 @@
       "ok": true,
       "seconds": 0.1,
       "tail": "",
-      "stderr_tail": "ldGateContract.test_r24_circular_margin_is_marked_as_such)\n⛔ سجل الجولة ٢٤: الهامش «صفر» كان **دائري بالبناء**. ... ok\ntest_readings_are_independent_and_roughly_simultaneous (__main__.GoldGateContract.test_readings_are_independent_and_roughly_simultaneous)\n⛔ القراءات التلاتة: مستقلة · موثّقة التوقيت · في نفس اللحظة. ... ok\ntest_series_internal_consistency_is_intact (__main__.GoldGateContract.test_series_internal_consistency_is_intact)\n⛔ السلسلة نفسها سليمة: الجرام = ذهب × دولار ÷ 31.1035. ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.055s\n\nOK\n"
+      "stderr_tail": "ldGateContract.test_r24_circular_margin_is_marked_as_such)\n⛔ سجل الجولة ٢٤: الهامش «صفر» كان **دائري بالبناء**. ... ok\ntest_readings_are_independent_and_roughly_simultaneous (__main__.GoldGateContract.test_readings_are_independent_and_roughly_simultaneous)\n⛔ القراءات التلاتة: مستقلة · موثّقة التوقيت · في نفس اللحظة. ... ok\ntest_series_internal_consistency_is_intact (__main__.GoldGateContract.test_series_internal_consistency_is_intact)\n⛔ السلسلة نفسها سليمة: الجرام = ذهب × دولار ÷ 31.1035. ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.046s\n\nOK\n"
     },
     {
       "file": "tools/test_round24_growth_source_audit.py",
@@ -597,7 +587,7 @@
       "ok": true,
       "seconds": 1.2,
       "tail": "==============================\n  ➕ استكمال TradingView: 0 سهم ناقص أضيفوا\n[warmup] starta ok\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[logos] boot thread started\n[LOGOS] 0/0 logo cached\n[logos] ✅ {'count': 0, 'total': 0}\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "o_earnings_growth (__main__.GrowthSourceAudit.test_scanner_columns_carry_no_earnings_growth)\n⛔ مافيش عمود في الـscanner بيغذّي `ni_growth`. ... ok\ntest_snapshot_items_have_no_ni_growth (__main__.GrowthSourceAudit.test_snapshot_items_have_no_ni_growth)\n⛔ ولا سطر في لقطة البيانات المنشورة فيه الحقل. ... ok\ntest_starta_source_is_the_only_real_growth_provider (__main__.GrowthSourceAudit.test_starta_source_is_the_only_real_growth_provider)\n📌 توثيق: المصدر الحقيقي لنمو الأرباح = `startamarkets` ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 1.104s\n\nOK\n"
+      "stderr_tail": "o_earnings_growth (__main__.GrowthSourceAudit.test_scanner_columns_carry_no_earnings_growth)\n⛔ مافيش عمود في الـscanner بيغذّي `ni_growth`. ... ok\ntest_snapshot_items_have_no_ni_growth (__main__.GrowthSourceAudit.test_snapshot_items_have_no_ni_growth)\n⛔ ولا سطر في لقطة البيانات المنشورة فيه الحقل. ... ok\ntest_starta_source_is_the_only_real_growth_provider (__main__.GrowthSourceAudit.test_starta_source_is_the_only_real_growth_provider)\n📌 توثيق: المصدر الحقيقي لنمو الأرباح = `startamarkets` ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 1.068s\n\nOK\n"
     },
     {
       "file": "tools/test_round24_rel_volume_states.py",
@@ -605,7 +595,7 @@
       "ok": true,
       "seconds": 0.2,
       "tail": "==============================\n  ➕ استكمال TradingView: 0 سهم ناقص أضيفوا\n[warmup] starta ok\n[tg] enabled=True token=set chat=2073907990\n[octa] ✅ ready\n[logos] boot thread started\n[LOGOS] 0/0 logo cached\n[logos] ✅ {'count': 0, 'total': 0}\n[gold_signal] مسجّل: /api/gold/signal · /deep · /learn\n[gold] ✅ محرك إشارة الذهب متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[usd] ✅ محرك ذكاء الدولار متركّب\n[radar] ✅ مساح الرادار متركّب\n[pattern] ✅ المهمة اليومية شغّالة\n[pattern] ✅ محرك الأنماط متركّب\n[plans] ✅ مسارات الاشتراكات متركّبة\n[zones] ✅ خريطة المستويات متركّبة\n[challenges] ✅ تحدي اليوم متركّب\n[studio] ✅ الاستوديو متركّب\n[data_full] loaded 285 shares (skipped 11 non-equity)\n[warm] data_full: 285 سهم\n",
-      "stderr_tail": "main__.RelVolumeStates.test_zero_and_missing_are_distinguishable)\n⛔ الصفر والناقص **مختلفين** في المحركين (مش نفس الرقم). ... ok\ntest_zero_is_published_as_zero_not_missing (__main__.RelVolumeStates.test_zero_is_published_as_zero_not_missing)\n⛔ الصفر الحقيقي = معلوم كصفر (0.0) — مش None. ... ok\ntest_zero_keeps_the_neutral_policy_in_the_liquidity_band (__main__.RelVolumeStates.test_zero_keeps_the_neutral_policy_in_the_liquidity_band)\n⛔ سياسة الدرجة ما اتغيّرتش: الصفر = محايد (15) زي الناقص. ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.130s\n\nOK\n"
+      "stderr_tail": "main__.RelVolumeStates.test_zero_and_missing_are_distinguishable)\n⛔ الصفر والناقص **مختلفين** في المحركين (مش نفس الرقم). ... ok\ntest_zero_is_published_as_zero_not_missing (__main__.RelVolumeStates.test_zero_is_published_as_zero_not_missing)\n⛔ الصفر الحقيقي = معلوم كصفر (0.0) — مش None. ... ok\ntest_zero_keeps_the_neutral_policy_in_the_liquidity_band (__main__.RelVolumeStates.test_zero_keeps_the_neutral_policy_in_the_liquidity_band)\n⛔ سياسة الدرجة ما اتغيّرتش: الصفر = محايد (15) زي الناقص. ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 0.133s\n\nOK\n"
     }
   ]
 }
