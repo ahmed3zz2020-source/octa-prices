@@ -530,7 +530,17 @@ def c_fund_quality(item):
 
 
 def c_growth(item):
-    """نمو الأرباح وتحسن الأداء."""
+    """نمو وتطور الأداء — إيرادات وأرباح (لو متاحة ⭐) وأداء سعر.
+
+    🛡️🛡️ الجولة ٢٥ (R25 · F-24-01) ⭐ — ⛔ **ممنوع** عرض أداء السعر
+       على أنه **نمو أرباح الشركة** ⭐.
+       📌 `perf_3m` = **أداء السعر** ⭐ (مش نمو أرباح ⭐) ⇒ ⛔ ما ينفعش
+          يتلخبط معاه ⭐ ⇒ التسمية بقت **صريحة** ⭐.
+       📌 `ni_growth` = نمو الأرباح الحقيقي ⭐ — ⛔ لو ناقص ⭐ ⇒
+          ⭐ **معلَن غير متاح** ⭐ (مش بديل مخترع ⭐).
+       ⭐⭐ الدرجة نفسها ⭐ **ما اتغيرتش** ⭐ (نفس المعادلة ⭐ بالظبط ⭐)
+          ⭐ ⇒ ⛔ مفيش تغيير في الترتيب ⭐ (تغيير المنهجية محتاج إذن ⭐).
+    """
     p3 = _f(item.get("perf_3m"))
     rev = _f(item.get("revenue_growth"))
     ni = _f(item.get("ni_growth"))
@@ -538,8 +548,11 @@ def c_growth(item):
         return None
     parts = [x for x in (p3, rev, ni) if x is not None]
     r = 0.5 + (sum(parts) / len(parts)) / 40.0
-    return _clamp(r), {"perf_3m": p3, "revenue_growth": rev, "ni_growth": ni}, \
-        "معدل نمو الأرباح"
+    ev = {"perf_3m": p3, "revenue_growth": rev, "ni_growth": ni,
+          "earnings_growth_available": ni is not None}
+    note = ("نمو الأرباح والإيرادات وأداء السعر" if ni is not None
+            else "نمو الإيرادات وأداء السعر ٣ شهور (نمو الأرباح غير متاح)")
+    return _clamp(r), ev, note
 
 
 def c_catalyst(item):
@@ -647,7 +660,11 @@ def c_debt(item):
 
 
 def c_growth_profit(item):
-    """نمو الأرباح والتدفقات النقدية."""
+    """النمو والتدفقات النقدية.
+
+    🛡️ R25 (F-24-01) ⭐: التسمية بتقول الحقيقة ⭐ — لو نمو الأرباح
+       ناقص ⭐ ⇒ **غير متاح** ⭐ (مش أداء سعر متسمي نمو ⭐).
+    """
     g = c_growth(item)
     cf = c_cfo(item)
     if g is None and cf is None:
@@ -659,7 +676,9 @@ def c_growth_profit(item):
         ev.update(g[1])
     if cf:
         ev.update(cf[1])
-    return _clamp(r), ev, "نمو الأرباح مدعوماً بالتدفق النقدي"
+    return _clamp(r), ev, ("النمو (أرباح وإيرادات وسعر) مدعوماً بالتدفق النقدي"
+                            if ev.get("earnings_growth_available")
+                            else "نمو الإيرادات وأداء السعر مدعوم بالتدفق النقدي (نمو الأرباح غير متاح)")
 
 
 def c_reinvest(item):

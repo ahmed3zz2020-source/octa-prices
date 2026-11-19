@@ -172,7 +172,7 @@ def phase1_cloudflare_permissions():
                 "extra": "Cloudflare أضاف/documentation_url/ في رد ٤٠٣ ⭐ "
                          "والرسالة بتقول المشكلة ⭐",
                 "also_possible": "9109 Unauthorized to access requested resource ⭐ "
-                                 "أو 403 «zones [...] are not authorized» ⭐",
+                                 "أو 403 «zones […] are not authorized» ⭐",
             },
             "verified": "مستند ⭐ (Cloudflare API · Rulesets) ⭐",
         },
@@ -233,7 +233,7 @@ def phase1_cloudflare_permissions():
                 "error_code": 10000,
                 "message": "Forbidden ⭐ (سلطة ناقصة ⭐) ⭐",
                 "extra": "لو التوكن مربوط بالحساب بس مش المنطقة ⭐ ⇒ "
-                         "«zones [...] are not authorized» ⭐",
+                         "«zones […] are not authorized» ⭐",
                 "also_possible": None,
             },
             "verified": "مستند ⭐",
@@ -249,9 +249,9 @@ def phase1_cloudflare_permissions():
         },
         {
             "file": "WAF-RULES.md §6.1 (خط جولة ٢٣) ⭐",
-            "was": "POST .../rulesets/phases/http_request_firewall_custom/entry?dry_run=true ⭐",
-            "now": "POST .../rulesets/{ruleset_id}/rules?dry_run=true ⭐ "
-                   "(أو POST .../rulesets?dry_run=true ⭐) ⭐",
+            "was": "POST …/rulesets/phases/http_request_firewall_custom/entry?dry_run=true ⭐",
+            "now": "POST …/rulesets/{ruleset_id}/rules?dry_run=true ⭐ "
+                   "(أو POST …/rulesets?dry_run=true ⭐) ⭐",
             "why": "المعامل dry_run بيتقبل على عمليات POST/PUT/PATCH/DELETE ⭐ "
                    "المدعومة ⭐ ⇒ لازم يكون على نفس عملية التعديل ⭐",
         },
