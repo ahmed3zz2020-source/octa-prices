@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🛡️ حارس بوّابات الـCI (Round 23) — يثبت إن ملف الـCI **مش ممرّر**
+🛡️ حارس بوّابات الـCI (Round 23 + الجولة ٢٦) — يثبت إن ملف الـCI **مش ممرّر**
 
 🎯 الغرض: الـCI اللي كان في الجولة ٢٢ كان **بيلفّ الفشل**:
    · `pip install || echo`      ⇒ فشل التثبيت مش بيفشل الـjob
@@ -11,6 +11,21 @@
 
 📌 هذا الحارس **بيقرأ ملف الـCI نفسه** وبيفشل لو لقى أي حاجة من دي.
 
+⛔ الجولة ٢٦ (R26) — فحوصات جديدة ⭐:
+   ① `fetch-depth: 0` لازم يكون **جوه `with:`** ⭐ (في كل خطوة checkout ⭐)
+      — والمفتاح المجهول في الخطوة مش مسموح ⭐
+   ② التصنيف لازم يكون **أربع حالات صريحة**: passed · failed · skipped ·
+      blocked ⭐ ⇒ والمتخطى/المحجوب **مش نجاح** ⭐
+   ③ لازم فيه **بصمة مرشح** واحدة (OCTA_CANDIDATE_SHA) + فحص
+      `git merge-base --is-ancestor` ⭐
+   ④ لازم فيه فحص **YAML** (yaml.safe_load) ⭐ + فحص **تعريف الـActions**
+      (actionlint أو المدقّق الداخلي) ⭐
+   ⑤ لازم فيه **بوابة ملفات حسّاسة** (users.json · data_markets.js ·
+      *.sqlite · ملفات الأسرار) ⭐
+   ⑥ لازم الـCI **ينفّذ الاختبارات الحقيقية** بالمُصنِّف ⭐
+   ⑦ (بروفايل الواجهة) لازم `node --test assets/tests/*.test.js` ⭐ +
+      **بناء النسخة النهائية** (build:preview / build:prod) ⭐
+
 ⛔ مفيش أي اتصال بالشبكة · مفيش أي سر · مفيش أي تعديل على الملفات.
 
 ── التشغيل ───────────────────────────────────────────────
@@ -18,6 +33,7 @@
    python3 tools/test_ci_gates.py path/to/ci.yml        # ملف واحد
    python3 tools/test_ci_gates.py --git-ref ci/octa-ci-r23
    python3 tools/test_ci_gates.py --json
+   python3 tools/test_ci_gates.py --self-test           # على الملفات الحقيقية
 
 ── ليه `--git-ref` مهم ───────────────────────────────────
    فرع الكود بيحمل **نسخة main بالظبط** من ملف الـCI (عشان الدفع
@@ -30,6 +46,9 @@ import os
 import re
 import subprocess
 import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
 
 # ══════════════════════════════════════════════════════════════
 #  العلامة اللي بتقول: ده ملف CI فيه البوابات الحقيقية
@@ -306,6 +325,218 @@ def check_workflow(wf, findings):
                          "uses لتطبيق نشر/نشر حزم — ممنوع في الـCI"))
 
 
+# ══════════════════════════════════════════════════════════════
+#  ③ قواعد الجولة ٢٦ (R26) — الملف الحقيقي لازم يفي بيها
+# ══════════════════════════════════════════════════════════════
+R26_RULES = {
+    "backend": {
+        "checkout_depth": True,
+        "candidate": True,
+        "states": True,
+        "yaml_lint": True,
+        "definition_lint": True,
+        "sensitive_gate": True,
+        "real_tests": True,
+        "node_tests": False,
+        "build": False,
+    },
+    "frontend": {
+        "checkout_depth": True,
+        "candidate": True,
+        "states": True,
+        "yaml_lint": True,
+        "definition_lint": True,
+        "sensitive_gate": True,
+        "real_tests": True,
+        "node_tests": True,
+        "build": True,
+    },
+}
+
+STATES = ("passed", "failed", "skipped", "blocked")
+
+
+def scan_steps(body):
+    """بيرجّع خطوات الـjob مع مفاتيح `with:` (اللي جوّهها)."""
+    out = []
+    cur = None
+    step_indent = None
+    key_indent = None
+    in_with = False
+    for raw in body.splitlines():
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(raw) - len(raw.lstrip(" "))
+        if stripped.startswith("- ") and (step_indent is None or indent == step_indent):
+            step_indent = indent
+            key_indent = indent + 2
+            in_with = False
+            cur = {"name": "", "uses": "", "run": "", "with_keys": {},
+                   "has_with": False, "keys": []}
+            out.append(cur)
+            rest = stripped[2:].strip()
+            m = re.match(r"^(name|uses|run|with|id|if)\s*:\s*(.*)$", rest)
+            if m:
+                k, v = m.group(1), m.group(2).strip()
+                if k == "name":
+                    cur["name"] = v
+                elif k == "uses":
+                    cur["uses"] = v
+                elif k == "run":
+                    cur["run"] = v
+                elif k == "with":
+                    cur["has_with"] = True
+                    in_with = True
+            continue
+        if cur is None:
+            continue
+        if indent == key_indent:
+            m = re.match(r"^([A-Za-z0-9_.\-]+)\s*:\s*(.*)$", stripped)
+            if not m:
+                in_with = False
+                continue
+            k, v = m.group(1), m.group(2).strip()
+            cur["keys"].append(k)
+            if k == "name":
+                cur["name"] = v
+            elif k == "uses":
+                cur["uses"] = v
+            elif k == "run":
+                cur["run"] = v
+            elif k == "with":
+                cur["has_with"] = True
+                in_with = True
+            else:
+                in_with = False
+            continue
+        if indent > key_indent and in_with:
+            m = re.match(r"^([A-Za-z0-9_.\-]+)\s*:\s*(.*)$", stripped)
+            if m:
+                cur["with_keys"][m.group(1)] = m.group(2).strip()
+    return out
+
+
+def _states_in_text(text):
+    low = text.lower()
+    return [s for s in STATES if s in low]
+
+
+def check_r26(wf, findings):
+    """قاعدة ③: قواعد الجولة ٢٦ (٦٢)."""
+    rules = R26_RULES.get(wf.profile)
+    if rules is None:
+        return
+    text = wf.text
+    steps = []
+    for job_id, body in wf.jobs:
+        for st in scan_steps(body):
+            st["job"] = job_id
+            steps.append(st)
+
+    # ① fetch-depth جوّه with: في كل خطوة checkout
+    if rules.get("checkout_depth"):
+        checkouts = [s for s in steps if "actions/checkout" in s["uses"]]
+        if not checkouts:
+            findings.append((wf.path, "-", "-",
+                             "مفيش أي خطوة actions/checkout في الملف"))
+        for st in checkouts:
+            depth = st["with_keys"].get("fetch-depth")
+            if depth is None:
+                findings.append((
+                    wf.path, st["job"], st["name"],
+                    "خطوة checkout من غير `fetch-depth` جوّه `with:` — "
+                    "التاريخ الناقص بيقفل فحص بصمة المرشح"))
+            elif str(depth).strip().strip("'\"" ) != "0":
+                findings.append((
+                    wf.path, st["job"], st["name"],
+                    "fetch-depth لازم يبقى 0 (تاريخ كامل) — الموجود %s"
+                    % depth))
+            for k in st["keys"]:
+                if k in ("fetch-depth", "python-version", "node-version",
+                         "cache", "repository", "ref", "token"):
+                    findings.append((
+                        wf.path, st["job"], st["name"],
+                        "`%s` واقف برّه `with:` — الـworkflow مش بيتقراش" % k))
+
+    # ③ بصمة المرشح
+    if rules.get("candidate"):
+        env_ok = re.search(
+            r"^env:\s*$.*?^\s+OCTA_CANDIDATE_SHA\s*:", text, re.M | re.S)
+        if not env_ok:
+            findings.append((wf.path, "-", "-",
+                             "مفيش `env: OCTA_CANDIDATE_SHA` في أعلى الملف"))
+        if "merge-base --is-ancestor" not in text:
+            findings.append((
+                wf.path, "-", "-",
+                "مفيش فحص `git merge-base --is-ancestor` — "
+                "النتايج مش مربوطة بعائلة المرشح"))
+
+    # ② التصنيف الرباعي
+    if rules.get("states"):
+        found = _states_in_text(text)
+        if len(found) < len(STATES):
+            # ممكن يكون المُصنِّف في أداة منفصلة
+            ok_tool = False
+            for rel in ("tools/ci_result_classifier.py",):
+                p = os.path.join(ROOT, rel)
+                if not os.path.isfile(p):
+                    continue
+                src = read(p)
+                if len(_states_in_text(src)) >= len(STATES) and \
+                        "ci_result_classifier.py" in text:
+                    ok_tool = True
+                    break
+            if not ok_tool:
+                findings.append((
+                    wf.path, "-", "-",
+                    "التصنيف لازم يكون أربع حالات صريحة "
+                    "(passed · failed · skipped · blocked)"))
+
+    # ④ فحص YAML + تعريف الـActions
+    if rules.get("yaml_lint") and "yaml.safe_load" not in text:
+        findings.append((wf.path, "-", "-",
+                         "مفيش خطوة فحص YAML (yaml.safe_load)"))
+    if rules.get("definition_lint"):
+        if "actionlint" not in text and "ci_workflow_lint.py" not in text:
+            findings.append((
+                wf.path, "-", "-",
+                "مفيش فحص لتعريف الـActions (actionlint أو "
+                "tools/ci_workflow_lint.py)"))
+
+    # ⑤ بوابة الملفات الحسّاسة
+    if rules.get("sensitive_gate"):
+        for needle, label in (("users.json", "users.json"),
+                              ("data_markets.js", "data_markets.js"),
+                              ("sqlite", "*.sqlite")):
+            if needle not in text:
+                findings.append((wf.path, "-", "-",
+                                 "بوابة الملفات الحسّاسة ناقصة: %s" % label))
+
+    # ⑥ تنفيذ الاختبارات الحقيقية
+    if rules.get("real_tests"):
+        if rules.get("node_tests"):
+            if "node --test" not in text:
+                findings.append((wf.path, "-", "-",
+                                 "مفيش تشغيل node --test في الملف"))
+            if "assets/tests" not in text:
+                findings.append((wf.path, "-", "-",
+                                 "مفيش أي إشارة لملفات assets/tests"))
+        else:
+            if "ci_result_classifier.py" not in text:
+                findings.append((
+                    wf.path, "-", "-",
+                    "مفيش استخدام للمُصنِّف (tools/ci_result_classifier.py) "
+                    "في تشغيل اختبارات الباك"))
+
+    # ⑦ بناء النسخة النهائية (بروفايل الواجهة)
+    if rules.get("build"):
+        if "build:preview" not in text and "build:prod" not in text:
+            findings.append((
+                wf.path, "-", "-",
+                "مفيش اختبار للبناء النهائي (build:preview / build:prod)"))
+
+
 def check_profile(wf, findings):
     """قاعدة ②: البروفايل الإلزامي (لملفات الـCI الحقيقية فقط)."""
     prof = PROFILES.get(wf.profile)
@@ -413,6 +644,66 @@ def read(path):
 
 
 # ══════════════════════════════════════════════════════════════
+#  الفحص الذاتي (على الملفات الحقيقية في المستودع)
+# ══════════════════════════════════════════════════════════════
+def self_test():
+    """بيفحص **ملفات الـworkflow الحقيقية** في المستودع ⭐
+    (مش مرآة نصية ⭐) وبيتأكد إن الأدوات موجودة ⭐."""
+    findings = []
+    real_dir = os.path.join(ROOT, ".github", "workflows")
+    if not os.path.isdir(real_dir):
+        print("⛔ مفيش مجلد .github/workflows في المستودع")
+        return 2
+    files = collect([real_dir], None)
+    if not files:
+        print("⛔ مفيش أي ملف workflow في %s" % real_dir)
+        return 2
+    gated = []
+    for path, text in files:
+        wf = Workflow(path, text)
+        check_workflow(wf, findings)
+        if wf.marked:
+            gated.append(wf)
+            check_profile(wf, findings)
+            check_r26(wf, findings)
+    if not gated:
+        findings.append(("*" + os.pathsep + "*", "-", "-",
+                         "مفيش أي ملف workflow حقيقي فيه علامة %s" % MARKER))
+    # أدوات الـCI لازم تكون موجودة
+    for rel in ("tools/ci_result_classifier.py", "tools/ci_workflow_lint.py",
+                "tools/test_ci_alt_gates.py", "tools/ci_isolated_tests.json"):
+        if not os.path.isfile(os.path.join(ROOT, rel)):
+            findings.append((rel, "-", "-", "أداة الـCI ناقصة: %s" % rel))
+    # ملف الـCI بتاع الواجهة (لو موجود) لازم يمرّ
+    fe = os.path.join(ROOT, "ci-workflow", "octa-ci-fe.yml")
+    if os.path.isfile(fe):
+        wf = Workflow(fe, read(fe))
+        check_workflow(wf, findings)
+        if wf.marked:
+            check_profile(wf, findings)
+            check_r26(wf, findings)
+    print("═" * 72)
+    print("🛡️ الفحص الذاتي — على ملفات الـworkflow الحقيقية ⭐")
+    print("═" * 72)
+    print("📂 ملفات حقيقية اتفحصت: %d" % len(files))
+    for p, _ in files:
+        print("   · %s" % p)
+    print("🚪 ملفات فيها البوابات الحقيقية: %d" % len(gated))
+    for w in gated:
+        print("   · %s  [بروفايل: %s]" % (w.path, w.profile))
+    if os.path.isfile(fe):
+        print("   · %s" % fe)
+    print("")
+    if not findings:
+        print("✅ الفحص الذاتي عدّى — البوابات الحقيقية موجودة وسليمة")
+        return 0
+    print("❌ لقيت %d مشكلة:" % len(findings))
+    for f in findings:
+        print("   ⛔ [%s] %s — %s" % (f[0], f[2] or f[1], f[3]))
+    return 1
+
+
+# ══════════════════════════════════════════════════════════════
 #  main
 # ══════════════════════════════════════════════════════════════
 def main(argv=None):
@@ -423,7 +714,12 @@ def main(argv=None):
     ap.add_argument("--git-ref", default="",
                     help="افحص ملف الـCI من فرع/كوميت معيّن بدل الشجرة")
     ap.add_argument("--json", action="store_true", help="ناتج JSON")
+    ap.add_argument("--self-test", action="store_true",
+                    help="فحص ذاتي على ملفات .github/workflows الحقيقية")
     args = ap.parse_args(argv)
+
+    if args.self_test:
+        return self_test()
 
     paths = args.paths or [os.path.join(".github", "workflows")]
     files = collect(paths, args.git_ref or None)
@@ -439,6 +735,7 @@ def main(argv=None):
         if wf.marked:
             gated.append(wf)
             check_profile(wf, findings)
+            check_r26(wf, findings)
 
     if not gated:
         findings.append(("*" + os.pathsep + "*", "-", "-",
@@ -457,7 +754,7 @@ def main(argv=None):
         return 0 if ok else 1
 
     print("═" * 72)
-    print("🛡️ حارس بوّابات الـCI — الجولة ٢٣")
+    print("🛡️ حارس بوّابات الـCI — الجولة ٢٦")
     print("═" * 72)
     print("📂 ملفات اتفحصت: %d" % len(files))
     for p, _ in files:
