@@ -1,0 +1,110 @@
+{
+  "version": "r26.1",
+  "updated_at": "2026-11-19",
+  "currency": "EGP",
+  "default_plan": "free",
+  "provider": "mock",
+  "provider_note": "المزوّد الحالي صناعي (محاكاة محلية داخل الكود) — مافيش تحصيل حقيقي ومافيش بيانات بطاقات.",
+  "checkout_valid_hours": 24,
+  "plans": {
+    "free": {
+      "name": "المجانية",
+      "tagline": "تجربة أساسية للمتابعة",
+      "sellable": false,
+      "periods": [
+        {"code": "monthly", "days": 30, "price": 0}
+      ],
+      "features": [
+        "٥ فرص يومياً في صفحة الفرص",
+        "٣ تنبيهات سعر",
+        "٣ أسهم في قائمة المتابعة",
+        "من غير RealView"
+      ],
+      "entitlements": {
+        "max_opportunities": 5,
+        "max_alerts": 3,
+        "max_watchlist": 3,
+        "realview": false,
+        "export": false,
+        "api_access": false,
+        "support_priority": "standard"
+      }
+    },
+    "basic": {
+      "name": "أساسي",
+      "tagline": "للمتابعة اليومية",
+      "sellable": true,
+      "periods": [
+        {"code": "monthly", "days": 30, "price": 350},
+        {"code": "yearly", "days": 365, "price": 3500}
+      ],
+      "features": [
+        "٢٠ فرصة يومياً في صفحة الفرص",
+        "١٠ تنبيهات سعر",
+        "١٠ أسهم في قائمة المتابعة",
+        "بدون RealView"
+      ],
+      "entitlements": {
+        "max_opportunities": 20,
+        "max_alerts": 10,
+        "max_watchlist": 10,
+        "realview": false,
+        "export": false,
+        "api_access": false,
+        "support_priority": "standard"
+      }
+    },
+    "pro": {
+      "name": "محترف",
+      "tagline": "كل أدوات التحليل",
+      "sellable": true,
+      "periods": [
+        {"code": "monthly", "days": 30, "price": 700},
+        {"code": "yearly", "days": 365, "price": 7000}
+      ],
+      "features": [
+        "٦٠ فرصة يومياً في صفحة الفرص",
+        "٥٠ تنبيهاً",
+        "٥٠ سهماً في قائمة المتابعة",
+        "RealView",
+        "تصدير CSV"
+      ],
+      "entitlements": {
+        "max_opportunities": 60,
+        "max_alerts": 50,
+        "max_watchlist": 50,
+        "realview": true,
+        "export": true,
+        "api_access": false,
+        "support_priority": "priority"
+      }
+    },
+    "enterprise": {
+      "name": "مؤسسات",
+      "tagline": "الحد الأقصى وبناء الفريق",
+      "sellable": true,
+      "periods": [
+        {"code": "monthly", "days": 30, "price": 1500},
+        {"code": "yearly", "days": 365, "price": 15000}
+      ],
+      "features": [
+        "كل الفرص المتاحة بلا حد عملي",
+        "٢٠٠ تنبيه",
+        "قائمة متابعة بلا حد عملي",
+        "RealView",
+        "تصدير CSV",
+        "وصول API",
+        "دعم فني مخصص"
+      ],
+      "entitlements": {
+        "max_opportunities": 999,
+        "max_alerts": 200,
+        "max_watchlist": 999,
+        "realview": true,
+        "export": true,
+        "api_access": true,
+        "support_priority": "dedicated"
+      }
+    }
+  }
+}
