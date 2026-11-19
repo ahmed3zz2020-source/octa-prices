@@ -125,7 +125,7 @@ FAIL_MARK_EN_RE = re.compile(r"^FAIL\b", re.M)
 #     (دليل إن الحارس كشف العيب ⭐) ⭐)
 VERDICT_PATTERNS = [
     (re.compile(r"RESULT\s*:\s*FAIL", re.I), "الحكم في الإخراج: RESULT: FAIL"),
-    (re.compile(r"^\s*FAILED\s*\(", re.M), "الحكم في الإخراج: FAILED (...)"),
+    (re.compile(r"^\s*FAILED\s*\(", re.M), "الحكم في الإخراج: FAILED (نقطة)"),
     (re.compile(r"^\s*FAILED\b", re.M), "الحكم في الإخراج: FAILED"),
 ]
 VERDICT_RATIO_RE = re.compile(
