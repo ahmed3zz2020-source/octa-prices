@@ -45,3 +45,4 @@ git_pii_scan_result.json
 #    (بتتولّد من الاختبارات ⭐ ⇒ مش بتتسلّم ⭐)
 users.json
 users.lock
+pinlock.json

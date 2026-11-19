@@ -10,7 +10,21 @@
 # ══════════════════════════════════════════════════════════════
 set -u
 PORT="${STAGE_PORT:-8099}"
+
+# ⛔⛔⛔ الجولة ٢٦ — تصفير **مجلد البيانات** كمان ⭐
+#   📌 السبب المقيس ⭐: تصفير السيرفر بس خلّى ملفات الحالة (users.json ⭐
+#  (Session ⭐ Portfolio ⭐) من الملف السابق ⭐ ⇒ ٣ اختبارات أمنية فشلت
+#   في التشغيل الجماعي ⭐ (بينما كل واحد منفردة ناجح ⭐).
+#   📌 الحل ⭐: نرجّع مجلد البيانات من نسخة الريبو ⭐ (نظيفة ⭐ ومعتمدة ⭐)
+#   ⇒ كل ملف اختبار يبدأ من نفس الحالة ⭐ ⇒ النتيجة حتمية ⭐.
+DATA_DIR="${OCTA_DATA_DIR:-}"
+REPO_DIR="${CI_REPO_DIR:-$(pwd)}"
+if [ -n "$DATA_DIR" ] && [ -d "$DATA_DIR" ] && [ -d "$REPO_DIR/data" ]; then
+  find "$DATA_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+  cp -r "$REPO_DIR/data/." "$DATA_DIR/" 2>/dev/null || true
+fi
 pkill -9 -f "tools/staging/run_staging.py" 2>/dev/null || true
+
 for _i in $(seq 1 40); do
   if curl -s -m 2 -o /dev/null "http://127.0.0.1:${PORT}/api/health"; then
     exit 0
