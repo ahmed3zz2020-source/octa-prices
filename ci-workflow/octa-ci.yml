@@ -7,8 +7,11 @@ name: OCTA CI — الجولة ٢٦ (بوابات حقيقية)
 #      مالوش scope اسمه `workflow`.
 #    ⇒ فرع الـCI هو المكان الصح للـCI الحقيقي، ويننشر بتوكن
 #      عنده scope `workflow`.
-#    ⇒ نسخة مطابقة من الملف ده في `ci-workflow/octa-ci.yml` ⭐
-#      (هي اللي بتتنشر على فرع الـCI ⭐).
+#    ⇒ نسخة النشر (نفس المحتوى ⭐) في `ci-workflow/octa-ci.yml` ⭐
+#      وهي اللي بتتنشر على فرع الـCI ⭐.
+#    ⭐ والأهم ⭐: الملف ده هو اللي الحارس بيفحصه ⭐
+#      (`python3 tools/test_ci_gates.py .github/workflows/ci.yml` ⭐)
+#      ⇒ لازم يبقى نضيف ⭐ (مش نسخة main ⭐).
 #
 # ⛔ قواعد الـCI (كلها متحقَّقة آلياً بـ tools/test_ci_gates.py):
 #   ① `pip install -r requirements.txt` = **بوابة صارمة**: لو فشل
@@ -206,6 +209,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "${{ runner.temp }}/octa-ci-data"
+          # ⛔⛔⛔ نسخة من البيانات المرجعية ⭐
+          #    الاختبارات بتشتغل على نسخة ⭐ ⇒ مستحيل تكتسّح data/ ⭐
+          #    (وبتبقى البيانات الأساسية متاحة للاختبارات ⭐)
+          cp -r data/. "${{ runner.temp }}/octa-ci-data/"
           find data -maxdepth 1 -name '*.json' -type f -print0 \
             | xargs -0 sha256sum > "${{ runner.temp }}/octa-data-before.sha256"
           echo "OCTA_DATA_BEFORE=${{ runner.temp }}/octa-data-before.sha256" >> "$GITHUB_ENV"
