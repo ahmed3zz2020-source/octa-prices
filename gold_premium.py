@@ -86,6 +86,13 @@ def implied_egp_per_usd(observed_gram, xau_usd):
        ومعروف سعر الذهب العالمي: (الجرام × 31.1035) ÷ XAU.
     📌 ده **مش** سعر صرف رسمي — ده فحص اتساق: لو قرب من سعر الصرف الرسمي
        ⇒ السعر المحلي **محسوب** من الذهب العالمي × الصرف (مش «علاوة»).
+    ⛔⛔⛔ (الجولة ٢٥ · R24-I14) — الرقم ده **مشتقّ من سعر الذهب**:
+       ⛔ ممنوع يُستخدم لإثبات إن فرق التسعير المحلي = صفر — لأن
+       (الجرام ÷ (أونصة × (الجرام×31.1035 ÷ أونصة) ÷ 31.1035)) = ١ **بالبناء**
+       ⇒ النتيجة صفر مهما كان السعر المرصود (برهان: ٥٠٠٠ أو ٩٠٠٠ ج.م
+       ⇒ هامش ٠٫٠٠٠٠٪ في الحالتين).
+       ✅ لازم صرف **مستقل** (مش مشتقّ من الذهب) ⇒ انظر `gold_parity.py`
+          (decompose_drift · detect_circular_fx).
     """
     if not observed_gram or not xau_usd:
         return None
@@ -114,7 +121,7 @@ def decompose(series, days=365, observed_series=None, as_of=None):
     if len(s) < 30:
         return {"ok": False, "error": "السلسلة قصيرة جداً للتحليل"}
     last = s[-1]
-    # ن找到 أول نقطة قبل target
+    # ⛔ بندور على أول نقطة قبل التاريخ المستهدف
     try:
         target = (datetime.datetime.strptime(last["d"], "%Y-%m-%d").date()
                   - datetime.timedelta(days=int(days)))

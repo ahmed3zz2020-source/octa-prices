@@ -21,8 +21,14 @@
   ⭐ مكانها هنا: فحوص **حتمية** عن سلامة السلسلة نفسها
      (الوحدات · تزايد التواريخ · نافذة الحداثة · النطاقات المعقولة)
      ⇒ نفس التغطية القوية · بس **من غير سعر حيّ**.
+🛡️ الجولة ٢٥ (R25 · Phase 7 · R24-I14) — قياس التكافؤ بمصادر مستقلة:
+  ⑫ تفكيك الانحراف بثلاث قراءات **مستقلة** (حتمي · أرقام اصطناعية):
+     رجل السعر · رجل العملة · فرق التسعير المحلي — مع كاشف **دورية**
+     (لو سعر الصرف اتحسب من سعر الذهب ⇒ يتكشف ويُرفض).
+  ⑬ حارس سياسة الحد: حد الانحراف **١٫٥٪** ما ينفعش يترفع (المالك رفض
+     رفعه لـ٥٪) — والاختبار الحيّ لازم يبقى مقسوم بـsources مستقلة.
 """
-import os, sys, math, datetime
+import os, re, sys, math, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -230,6 +236,133 @@ check(dec_a.get("ok") and dec_a.get("to") <= cut,
       "as_of=%s ⇒ الفترة بتتقفل عنده (%s)" % (cut, dec_a.get("to")))
 dec_b = gp.decompose(s, days=365)
 check(dec_b.get("to") > cut, "من غير as_of ⇒ الفترة لآخر السلسلة (%s)" % dec_b.get("to"))
+
+# ═════════════ ⑫ قياس التكافؤ بمصادر مستقلة (حتمي — من غير شبكة) ═════════════
+# 📌 (الجولة ٢٥ · R24-I14) — السبب القديم كان **دائري**:
+#    سعر الصرف الضمني كان بيتحسب من السعر المحلي نفسه، وبعدين
+#    نفس الرقم كان بيُستخدم لإثبات إن الهامش المحلي = صفر
+#    ⇒ النتيجة كانت **بالضرورة** صفر مهما كان السعر المرصود.
+#    ⛔ الفحوص دي حتمية بالكامل (أرقام اصطناعية · مافيش شبكة).
+section("⑫ قياس التكافؤ بمصادر مستقلة (حتمي — مافيش شبكة)")
+try:
+    import gold_parity as gpar
+    sys.path.insert(0, os.path.join(HERE, "tools"))
+    import r24_gold_drift_isolation as r24
+except Exception as e:
+    check(False, "وحدات القياس المستقل مش متاحة: %s" % str(e)[:80])
+    gpar = None
+
+if gpar is not None:
+    # ── البيانات الاصطناعية (ثابتة · مافيش شبكة) ──
+    S = {"d": "2026-01-02", "xau": 3000.0, "egp_per_usd": 50.0,
+         "gram": round(3000.0 * 50.0 / T, 4),
+         "effective_date_cairo": "2026-01-03"}
+    GOLD_NOW = 3100.0      # ذهب عالمي (مزوّد مستقل) · دولار/أونصة
+    FX_NOW = 52.0          # صرف مستقل (عملة) · جنيه/دولار
+    LOCAL = 5500.0         # جرام محلي مرصود · جنيه/جرام
+    exp_gold = (GOLD_NOW / S["xau"] - 1) * 100
+    exp_fx = (FX_NOW / S["egp_per_usd"] - 1) * 100
+    exp_parity = GOLD_NOW * FX_NOW / T
+    exp_prem = (LOCAL / exp_parity - 1) * 100
+    exp_drift = (S["gram"] / LOCAL - 1) * 100
+
+    dec = gpar.decompose_drift(S, GOLD_NOW, FX_NOW, LOCAL)
+    check(dec.get("ok"), "التفكيك اشتغل على بيانات اصطناعية")
+    check(abs(round(dec.get("gold_leg_pct") or 0, 4) - round(exp_gold, 4)) < 1e-9,
+          "رجل الذهب %+.4f%% (المتوقع %+.4f%%)"
+          % (dec.get("gold_leg_pct") or 0, exp_gold))
+    check(abs(round(dec.get("fx_leg_pct") or 0, 4) - round(exp_fx, 4)) < 1e-9,
+          "رجل العملة %+.4f%% (المتوقع %+.4f%%)"
+          % (dec.get("fx_leg_pct") or 0, exp_fx))
+    check(dec.get("local_premium_pct") is not None
+          and abs(round(dec["local_premium_pct"], 4) - round(exp_prem, 4)) < 1e-9,
+          "العلاوة المحلية %+.4f%% (المتوقع %+.4f%%) — رقم **مقاس**"
+          % (dec.get("local_premium_pct") or 0, exp_prem))
+    check(abs(round(dec.get("drift_pct") or 0, 4) - round(exp_drift, 4)) < 1e-9,
+          "الانحراف %+.4f%% (المتوقع %+.4f%%)"
+          % (dec.get("drift_pct") or 0, exp_drift))
+    check(dec.get("identity_holds") is True,
+          "الهوية اللوغاريتمية قاعدة: خطأ %.2e (≤1e-8)"
+          % (dec.get("identity_error_ratio") or 0))
+    check(dec.get("fx_is_independent") is True,
+          "الصرف المستقل اتقبل كـ«مستقل» (مش مشتقّ من الذهب)")
+
+    # ── ⛔ البرهان السالب (١): حقن اشتقاق دائري لازم يتكشف ──
+    fx_circ = LOCAL * T / GOLD_NOW          # ⛔ ده بالظبط الاشتقاق الدائري
+    det = gpar.detect_circular_fx(fx_circ, LOCAL, GOLD_NOW)
+    check(det.get("circular") is True,
+          "⛔ كاشف الدورية: صرف مشتقّ من سعر الذهب اتكشف (فرق %.4f%%)"
+          % (det.get("diff_pct") or 0))
+    det_ok = gpar.detect_circular_fx(FX_NOW, LOCAL, GOLD_NOW)
+    check(det_ok.get("circular") is False,
+          "صرف مستقل حقيقي ما اتحسبش دائري (فرق %.4f%%)"
+          % (det_ok.get("diff_pct") or 0))
+
+    # ── ⛔ البرهان السالب (٢): مع الصرف الدائري ⇒ مافيش «هامش = صفر» ──
+    dec_c = gpar.decompose_drift(S, GOLD_NOW, fx_circ, LOCAL)
+    check(dec_c.get("local_premium_pct") is None,
+          "⛔ مع صرف دائري ⇒ العلاوة **مش** رقم (مش صفر كاذب)")
+    check(dec_c.get("fx_is_independent") is False
+          and bool(dec_c.get("premium_reason")),
+          "⛔ مع صرف دائري ⇒ السبب مكتوب: %s"
+          % str(dec_c.get("premium_reason"))[:70])
+
+    # ── ⛔ البرهان السالب (٣): أداة الجولة ٢٤ ما رجعتش «هامش = صفر» ──
+    loc_fix = {"gram_24_reference": LOCAL, "ounce_usd": GOLD_NOW, "karats": {}}
+    try:
+        d1 = r24.decompose(S, loc_fix, None, None,
+                           fx_independent=FX_NOW, gold_independent=GOLD_NOW)
+        check(d1.get("local_margin_pct") is not None
+              and abs(round(d1["local_margin_pct"], 4) - round(exp_prem, 4)) < 1e-9,
+              "⛔ أداة العزل: الهامش %s%% (المتوقع %+.4f%%) — **مش** صفر بالبناء"
+              % (d1.get("local_margin_pct"), exp_prem))
+        d2 = r24.decompose(S, loc_fix, None, None,
+                           fx_independent=fx_circ, gold_independent=GOLD_NOW)
+        check(d2.get("circular_fx_detected") is True
+              and d2.get("local_margin_pct") is None,
+              "⛔ أداة العسل: الصرف الدائري اترفض (الهامش = None مش صفر)")
+    except TypeError as e:
+        check(False, "⛔ أداة العزل بتقبل صرف مستقل (وإلا مش بتعرف تقيس "
+                     "الهامش من غير دورية): %s" % str(e)[:80])
+    try:
+        repro = r24.circular_repro()
+        check(all(r.get("old_circular_margin_is_zero") for r in repro),
+              "⛔ إعادة إنتاج العيب القديم: الصيغة الدورية بتطلع ٠٫٠٠٠٠٪ "
+              "لكل سعر مرصود (%d حالات)" % len(repro))
+        check(all(abs(r.get("new_independent_margin_pct") or 0) > 1e-6
+                  for r in repro),
+              "✅ الصيغة المستقلة بتطلع هامش حقيقي ≠ صفر لكل سعر مرصود")
+    except AttributeError as e:
+        check(False, "⛔ أداة العزل عندها إعادة إنتاج العيب القديم: %s"
+              % str(e)[:80])
+
+    # ── التصنيف: بنقول «أثر» مش «سبب» ──
+    cls = gpar.classify_drift(dec)
+    check(cls.get("dominant_leg") is not None and "سبب مؤكد" in (cls.get("statement") or ""),
+          "التصنيف بيصرّح إنه إسهام حسابي مش سبب مؤكد")
+
+# ═════════════ ⑬ حارس حدود الانحراف (سياسة المالك) ═════════════
+section("⑬ حارس حدود الانحراف")
+try:
+    live_src = open(os.path.join(HERE, "test_gold_live_price.py"),
+                    encoding="utf-8").read()
+except Exception:
+    live_src = ""
+check("OCTA_LIVE_GOLD_TOLERANCE_PCT" in live_src
+      and '"1.5"' in live_src,
+      "حد الانحراف الحيّ لسه ١٫٥٪ (الافتراضي ما اتغيّرش)")
+# 📌 الحارس بيستخدم تعبير نمطي (مش نص حرفي) عشان ما يقعش في مرجع ذاتي
+_five_pct_re = re.compile(r"\b[A-Z_]*TOLERANCE[A-Z_]*\s*=\s*5(\.0+)?\b")
+check(_five_pct_re.search(live_src) is None,
+      "مافيش حد انحراف ٥٪ في الاختبار الحيّ")
+try:
+    contract_src = open(os.path.join(HERE, "tools",
+                                     "test_round24_gold_gate_contract.py"),
+                         encoding="utf-8").read()
+except Exception:
+    contract_src = ""
+check(_five_pct_re.search(contract_src) is None,
+      "مافيش حد انحراف ٥٪ في عقد الجولة ٢٤")
 
 print("\n" + "=" * 62)
 if fails:
