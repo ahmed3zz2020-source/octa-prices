@@ -132,7 +132,7 @@
 ⛔ **الوصف الصحيح**: **انعكاس نص داخل JSON** (content-type
 `application/json`) ⇒ **مش تنفيذ HTML في المتصفح**.
 مافيش أي مسار في `update_prices.py` بيرجّع `text/html` ولا فيه
-`render_template`؛ الـbackend بيرجّع JSON فقط (＋ بايتات صور على
+`render_template`؛ الـbackend بيرجّع JSON فقط (+ بايتات صور على
 `/api/tvlogo/<logoid>` و`/logos/<fn>`). صفحة الواجهة HTML بيقدّمها
 الـWorker/proxy مش التطبيق ده.
 

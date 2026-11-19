@@ -396,7 +396,7 @@ class TestFinalScoreNaN(unittest.TestCase):
         r_gone = up.final_score(it_gone, tech, fund, liq, PEERS)
         self.assertEqual(
             r_nan["axes"].get("risk"), r_gone["axes"].get("risk"),
-            "NaN في البيتا ⇒ نفس النتيجة تماماً как ما البيتا ناقص ⭐ "
+            "NaN في البيتا ⇒ نفس النتيجة تماماً زي ما البيتا ناقص ⭐ "
             "(مؤشر غير صالح مش أفضل أمان ⭐)")
         self.assertEqual(r_nan["risk_inputs"], r_gone["risk_inputs"],
                          "المؤشر غير الصالح لازم يتشال من عدّاد المؤشرات ⭐")

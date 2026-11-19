@@ -151,7 +151,7 @@ SYSTEM_PROMPT = """أنت محرك التحليل المالي OCTA — خبير
   - حجم سوقي < 1 مليار → 35
 
 **risk** = 100 - (Beta × 15 + volatility × 3 + نسبة الدين × 3)
-  - ⚠️ لاحظ: المحور ده عكسي — يعني，风险 أعلى = رقم أقل
+  - ⚠️ لاحظ: المحور ده عكسي — يعني، الخطر أعلى = رقم أقل
 
 **news** = 45 افتراضياً (لأن ما فيش أخبار provided)
   - لو في خبر ايجابي في analysis_pass → ترفع
@@ -220,7 +220,7 @@ def call_gemini(code, name, item=None):
         )
         if conf < 55:
             user_msg += (
-                f"\n\n⚠️ تنبيه: البيانات ضعيفة — لو حقل写着 'غير متاح'"
+                f"\n\n⚠️ تنبيه: البيانات ضعيفة — لو حقل مكتوب 'غير متاح'"
                 f" ما تخمّنش قيمته. اكتب confidence منخفض (أقل من 40)."
             )
         user_msg += (
@@ -643,7 +643,7 @@ def facts_text(item):
     add("أداء 3 شهور", "perf_3m", pct=True)
     add("أداء السنة", "perf_y", pct=True)
 
-    f.append("\n  【التحليل المالي — أرقام حقيقية】")
+    f.append("\n  «التحليل المالي — أرقام حقيقية»")
     add("مضاعف الربحية", "pe")
     add("مضاعف الكتاب", "pb")
     add("العائد على حقوق الملكية", "roe", pct=True)
@@ -653,7 +653,7 @@ def facts_text(item):
     add("ربحية السهم", "eps")
     add("القيمة السوقية", "mkt_cap", "ج.م", dec=0)
 
-    f.append("\n  【المخاطرة والسيولة】")
+    f.append("\n  «المخاطرة والسيولة»")
     add("معامل المخاطرة (Beta)", "beta")
     add("التقلب اليومي", "volatility", pct=True)
     add("حجم نسبي مقابل 10 أيام", "rel_volume")
@@ -1354,7 +1354,7 @@ def liquidity_score(item):
     else:
         activity = 15
 
-    # تأكيد:交易日 نشط = حجم متوسط كافي
+    # تأكيد: يوم التداول نشط = حجم متوسط كافي
     if vol60 and vol > 0:
         if vol60 > 1_000_000:
             activity = min(30, activity + 3)
@@ -1555,10 +1555,10 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
         decision_why = "نتيجة جيدة عموماً"
     elif final >= 52:
         decision = "احتفظ"
-        decision_why = "محايد — في ожидание"
+        decision_why = "محايد — في انتظار"
     elif axes["fundamental"] >= 65:
         decision = "احتفظ"
-        decision_why = "أساسيات كويسة لكنOw分红"
+        decision_why = "أساسيات كويسة لكن بدون توزيعات"
     else:
         decision = "بيع"
         decision_why = "نتيجة ضعيفة"
@@ -1968,7 +1968,7 @@ MATERIAL_KEYWORDS = {
                  "Bankruptcy", "Delisting", "Suspend"],
     "high": ["توزيعات", "أرباح", "نتائج", "ارتفاع", "انخفاض", "توسع", "دخول سوق",
              "Earnings", "Dividend", "Profit", "Revenue", "Expansion"],
-    "medium": ["اتفاق", "شراكة", "استثمار", "تحديث", "ت让自己的",
+    "medium": ["اتفاق", "شراكة", "استثمار", "تحديث", "ت",
                "Agreement", "Partnership", "Investment", "Update"],
 }
 
@@ -2089,7 +2089,7 @@ def news_engine(item, sector_name=None):
 def explain_score(item, tech=None, fund=None, liq=None, news=None, sent=None, risk=None, pfit=None, final=None):
     """
     كل نتيجة لازم تكون قابلة للتفسير. المستخدم يضغط على أي رقم
-    ويعرف: كم权重 له، وكم بيساهم، وليه.
+    ويعرف: كم وزن له، وكم بيساهم، وليه.
     """
     if not item: return None
 
@@ -2308,7 +2308,7 @@ def opportunity_engine(item, tech=None, fund=None, liq=None):
     if tv_all is not None and tv_all > 0.1:
         mom += 6
 
-    # ═══ 4)来个 مفيد من الأساسيات (Fundamental Catalyst) — 20 وزن ═══
+    # ═══ 4) مفيد من الأساسيات (Fundamental Catalyst) — 20 وزن ═══
     cat = 0.0
     if pe is not None and pe > 0 and pe < 12:
         cat += 12; pos.append(f"P/E {pe:.1f} — تحت التقييم العادل")
@@ -2900,7 +2900,7 @@ SCENARIOS = {
     },
     "illiquid": {
         "name_ar": "سيولة جافة",
-        "desc": "الحجم配售 على 80% + سيولة ضعيفة",
+        "desc": "الحجم على 80% + سيولة ضعيفة",
         "shocks": {"rel_volume": 0.25, "mkt_cap_mult": 0.1, "volatility": 1.4, "perf_1m": -5},
     },
     "high_vol": {

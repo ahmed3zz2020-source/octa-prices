@@ -124,7 +124,7 @@ class TestRiskMissingPolicy(unittest.TestCase):
         with_risk = final_score(self._item(True), _tech(80), _fund(80), _liq(80), ss)
         without = final_score(self._item(False), _tech(80), _fund(80), _liq(80), ss)
         self.assertLessEqual(without["final_score"], with_risk["final_score"],
-                             "السهم الناقص，不得 ياخد نتيجة أعلى من السهم الكامل")
+                             "السهم الناقص، ما ينفعش ياخد نتيجة أعلى من السهم الكامل")
 
     def test_zero_risk_is_real_value_not_missing(self):
         """⛔ مخاطرة 0 = مخاطرة شديدة (مش نقص بيانات)"""

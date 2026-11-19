@@ -9,7 +9,7 @@
  ① **مفيش look-ahead**: كل مؤشر بيتحسب على البيانات حتى تاريخه بس.
  ② **المؤشر بيتحسب لو البيانات كفاية**: ATR محتاج OHLC ⇒ لو السلسلة
     close بس ⇒ ATR = None + سبب (مش مخترع ولا مصفّر).
- ③ **مفيش احتمالات مخترعة**: مفيش «احتمال ٨٠٪» — либо قياس، либо «غير متاح».
+ ③ **مفيش احتمالات مخترعة**: مفيش «احتمال ٨٠٪» — إما قياس، إما «غير متاح».
  ④ **الدعم ما بيضمنش ارتداد** — والواجهة لازم تقول كده.
  ⑤ **المستويات موثّقة**: كل منطقة بتقول ليه مهمة (عدد الردود · التكرار ·
     الحداثة · توافق الإطار الزمني · قربها من متوسط متحرك).
@@ -20,7 +20,7 @@
    · زخم: RSI14 · MACD(12,26,9) · ROC
    · تقلب: ATR14 · Bollinger(20,2) · التقلب التاريخي
    · بنية: قمم/قيعان · HH/HL/LH/LL · تجمّعات · اختراقات
-   · دعم ومقاومة: تجميع القمم/القيعان +打分 موثّق + كشف الكسر
+   · دعم ومقاومة: تجميع القمم/القيعان + تقييم موثّق + كشف الكسر
 ═══════════════════════════════════════════════════════════════
 """
 import math
@@ -414,7 +414,7 @@ def zones(bars, atr_val=None, price=None, k=SWING_K, max_each=ZONE_MAX):
                    key=lambda z: -z["score"])[:max_each]
     below = sorted([z for z in res_lo if z["center"] < cur],
                    key=lambda z: -z["score"])[:max_each]
-    # أقرب مستوى死不: الأقرب من فوق والأقرب من تحت
+    # أقرب مستوى حيّ: الأقرب من فوق والأقرب من تحت
     nearest_res = min(above, key=lambda z: abs(z["distance_pct"])) if above else None
     nearest_sup = max(below, key=lambda z: z["center"]) if below else None
     if not above:
@@ -428,7 +428,7 @@ def zones(bars, atr_val=None, price=None, k=SWING_K, max_each=ZONE_MAX):
         "resistance": above, "support": below,
         "nearest_resistance": nearest_res, "nearest_support": nearest_sup,
         "method": {
-            "swing_rule": "fractal ب半个 قطر %d (٢ شمعة كل جهة)" % SWING_K,
+            "swing_rule": "fractal بنصف قطر %d (٢ شمعة كل جهة)" % SWING_K,
             "clustering": "مناطق قريبة بـ %.2f ATR" % ZONE_TOL_ATR,
             "score": ("الردود (×10 حتى ٦) + الحداثة (٢٠ ناقص يوم/١٥) + "
                       "حجم الارتداد (×10 حتى ٣ ATR) + عدد القمم/القيعان (×5 حتى ٤)"),
