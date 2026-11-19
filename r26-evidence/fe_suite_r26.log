@@ -1,0 +1,2864 @@
+TAP version 13
+# Subtest: 🛡️ مفيش حروف صينية/كورية/يابانية في كود المشروع
+ok 1 - 🛡️ مفيش حروف صينية/كورية/يابانية في كود المشروع
+  ---
+  duration_ms: 589.844414
+  type: 'test'
+  ...
+# Subtest: 🛡️ مفيش قوس إغلاق زيادة في CSS (الملف يفضل متوازن)
+ok 2 - 🛡️ مفيش قوس إغلاق زيادة في CSS (الملف يفضل متوازن)
+  ---
+  duration_ms: 103.382604
+  type: 'test'
+  ...
+# Subtest: النص المعتمد موجود حرفياً
+ok 3 - النص المعتمد موجود حرفياً
+  ---
+  duration_ms: 1.423514
+  type: 'test'
+  ...
+# Subtest: حالة عدم التوفّر متفرّدة (متغيّر مستقل عن الخطأ العام)
+ok 4 - حالة عدم التوفّر متفرّدة (متغيّر مستقل عن الخطأ العام)
+  ---
+  duration_ms: 0.385134
+  type: 'test'
+  ...
+# Subtest: 404/405 تتحوّل لحالة «غير متاح» مش خطأ عام
+ok 5 - 404/405 تتحوّل لحالة «غير متاح» مش خطأ عام
+  ---
+  duration_ms: 0.382887
+  type: 'test'
+  ...
+# Subtest: شاشة الحالة الصريحة من غير زر إعادة محاولة
+ok 6 - شاشة الحالة الصريحة من غير زر إعادة محاولة
+  ---
+  duration_ms: 1.887206
+  type: 'test'
+  ...
+# Subtest: الرسالة العامة بتفضل زي ما هي لبقية الأخطاء
+ok 7 - الرسالة العامة بتفضل زي ما هي لبقية الأخطاء
+  ---
+  duration_ms: 0.403516
+  type: 'test'
+  ...
+# Subtest: إعادة التحميل بتمسح حالة عدم التوفّر
+ok 8 - إعادة التحميل بتمسح حالة عدم التوفّر
+  ---
+  duration_ms: 0.212253
+  type: 'test'
+  ...
+# Subtest: ① عمود التقييم = درجة ٠-١٠٠ — مش حجم التداول
+ok 9 - ① عمود التقييم = درجة ٠-١٠٠ — مش حجم التداول
+  ---
+  duration_ms: 7.202283
+  type: 'test'
+  ...
+# Subtest: ② التقييم بيستخدم المضاعف المحدّث على السعر الحالي
+ok 10 - ② التقييم بيستخدم المضاعف المحدّث على السعر الحالي
+  ---
+  duration_ms: 2.847061
+  type: 'test'
+  ...
+# Subtest: ③ محاور المحرك من الطبقة الحية — مش من السجل القديم
+ok 11 - ③ محاور المحرك من الطبقة الحية — مش من السجل القديم
+  ---
+  duration_ms: 2.92221
+  type: 'test'
+  ...
+# Subtest: ④ مفيش كود بيرجع «حجم التداول» كدرجة ذراع
+ok 12 - ④ مفيش كود بيرجع «حجم التداول» كدرجة ذراع
+  ---
+  duration_ms: 3.505291
+  type: 'test'
+  ...
+# Subtest: ⑤ الجدول بيوضح إن كل الأرقام درجات من ٠ لـ ١٠٠
+ok 13 - ⑤ الجدول بيوضح إن كل الأرقام درجات من ٠ لـ ١٠٠
+  ---
+  duration_ms: 7.164566
+  type: 'test'
+  ...
+# Subtest: ⑥ «الفرق» = «—» للمحاور اللي مش داخل في المجموع
+ok 14 - ⑥ «الفرق» = «—» للمحاور اللي مش داخل في المجموع
+  ---
+  duration_ms: 3.597916
+  type: 'test'
+  ...
+# Subtest: ⑦ التقييم مش داخل في المجموع — والأساسي داخل
+ok 15 - ⑦ التقييم مش داخل في المجموع — والأساسي داخل
+  ---
+  duration_ms: 2.786566
+  type: 'test'
+  ...
+# Subtest: ⑧ الكارت بيعرض عنوان الخبر ونصّه
+ok 16 - ⑧ الكارت بيعرض عنوان الخبر ونصّه
+  ---
+  duration_ms: 42.722574
+  type: 'test'
+  ...
+# Subtest: ⑨ مفيش «بورصة هالان» ولا «المصدر» في كارت الأخبار
+ok 17 - ⑨ مفيش «بورصة هالان» ولا «المصدر» في كارت الأخبار
+  ---
+  duration_ms: 2.823132
+  type: 'test'
+  ...
+# Subtest: ⑩ عنوان القائمة يقول الفلتر الحالي
+ok 18 - ⑩ عنوان القائمة يقول الفلتر الحالي
+  ---
+  duration_ms: 3.193447
+  type: 'test'
+  ...
+# Subtest: ⑫ الشركة الخاسرة (مضاعف ٠) بتاخد أسوأ درجة — مش ٩٥
+ok 19 - ⑫ الشركة الخاسرة (مضاعف ٠) بتاخد أسوأ درجة — مش ٩٥
+  ---
+  duration_ms: 5.294508
+  type: 'test'
+  ...
+# Subtest: ⑪ parseHalaText بيفصل العنوان ونص الإعلان
+ok 20 - ⑪ parseHalaText بيفصل العنوان ونص الإعلان
+  ---
+  duration_ms: 3.016367
+  type: 'test'
+  ...
+# Subtest: ⑬ البحث في محور الأخبار يشتغل بالكود
+ok 21 - ⑬ البحث في محور الأخبار يشتغل بالكود
+  ---
+  duration_ms: 2.66807
+  type: 'test'
+  ...
+# Subtest: ⑭ بحث مالوش نتيجة ⇒ رسالة واضحة
+ok 22 - ⑭ بحث مالوش نتيجة ⇒ رسالة واضحة
+  ---
+  duration_ms: 2.36027
+  type: 'test'
+  ...
+# Subtest: ⑮ الجدول بيشرح الفرق بين درجة الذراع والمجموع
+ok 23 - ⑮ الجدول بيشرح الفرق بين درجة الذراع والمجموع
+  ---
+  duration_ms: 2.351749
+  type: 'test'
+  ...
+# Subtest: الواجهة بتتحمّل من غير crash
+ok 24 - الواجهة بتتحمّل من غير crash
+  ---
+  duration_ms: 6.48534
+  type: 'test'
+  ...
+# Subtest: الكارت بيعرض الرمز والاسم والقطاع والمستويات
+ok 25 - الكارت بيعرض الرمز والاسم والقطاع والمستويات
+  ---
+  duration_ms: 15.388205
+  type: 'test'
+  ...
+# Subtest: الاتجاه الهبوطي بيتعرض بعلامة ▼
+ok 26 - الاتجاه الهبوطي بيتعرض بعلامة ▼
+  ---
+  duration_ms: 4.383909
+  type: 'test'
+  ...
+# Subtest: ⛔ مفيش undefined ولا NaN في أي جزء من الصفحة
+ok 27 - ⛔ مفيش undefined ولا NaN في أي جزء من الصفحة
+  ---
+  duration_ms: 7.953358
+  type: 'test'
+  ...
+# Subtest: ⛔ بيانات ناقصة (من غير أسعار) ⇒ مفيش undefined/NaN
+ok 28 - ⛔ بيانات ناقصة (من غير أسعار) ⇒ مفيش undefined/NaN
+  ---
+  duration_ms: 3.570749
+  type: 'test'
+  ...
+# Subtest: زرار «صعود» بيبعت POST بالـbody الصح
+ok 29 - زرار «صعود» بيبعت POST بالـbody الصح
+  ---
+  duration_ms: 7.839741
+  type: 'test'
+  ...
+# Subtest: زرار «هبوط» بيبعت vote=down
+ok 30 - زرار «هبوط» بيبعت vote=down
+  ---
+  duration_ms: 4.392577
+  type: 'test'
+  ...
+# Subtest: مفيش تصويت تاني بعد أول صوت (الزرار مقفول)
+ok 31 - مفيش تصويت تاني بعد أول صوت (الزرار مقفول)
+  ---
+  duration_ms: 5.338371
+  type: 'test'
+  ...
+# Subtest: التحدي المتحل ⇒ الزرارين مقفولين
+ok 32 - التحدي المتحل ⇒ الزرارين مقفولين
+  ---
+  duration_ms: 4.115654
+  type: 'test'
+  ...
+# Subtest: النتيجة بتعرض النتيجة والسبب والتصحيح
+ok 33 - النتيجة بتعرض النتيجة والسبب والتصحيح
+  ---
+  duration_ms: 4.549136
+  type: 'test'
+  ...
+# Subtest: النتيجة المتعادلة بتتقال «متعادل»
+ok 34 - النتيجة المتعادلة بتتقال «متعادل»
+  ---
+  duration_ms: 3.161128
+  type: 'test'
+  ...
+# Subtest: ⛔ 403 ⇒ شاشة «باقة مدفوعة» مش جدول فاضي
+ok 35 - ⛔ 403 ⇒ شاشة «باقة مدفوعة» مش جدول فاضي
+  ---
+  duration_ms: 13.086464
+  type: 'test'
+  ...
+# Subtest: ⛔ 401 ⇒ «لازم تسجّل دخول»
+ok 36 - ⛔ 401 ⇒ «لازم تسجّل دخول»
+  ---
+  duration_ms: 3.626631
+  type: 'test'
+  ...
+# Subtest: ⛔ challenge = null ⇒ رسالة واضحة (مش شاشة فاضية)
+ok 37 - ⛔ challenge = null ⇒ رسالة واضحة (مش شاشة فاضية)
+  ---
+  duration_ms: 3.468562
+  type: 'test'
+  ...
+# Subtest: ⛔ status=no_challenge ⇒ نفس الرسالة
+ok 38 - ⛔ status=no_challenge ⇒ نفس الرسالة
+  ---
+  duration_ms: 3.155324
+  type: 'test'
+  ...
+# Subtest: ⛔ status=hidden ⇒ «لوحة المتصدرين هتفتح بعد ٣ مصوّتين»
+ok 39 - ⛔ status=hidden ⇒ «لوحة المتصدرين هتفتح بعد ٣ مصوّتين»
+  ---
+  duration_ms: 3.148156
+  type: 'test'
+  ...
+# Subtest: لوحة المتصدرين بتعرض الجدول + «ترتيبك» في الأول
+ok 40 - لوحة المتصدرين بتعرض الجدول + «ترتيبك» في الأول
+  ---
+  duration_ms: 6.242679
+  type: 'test'
+  ...
+# Subtest: ⛔ مفيش سحب أفقي في لوحة المتصدرين (مفيش wrapper سحب)
+ok 41 - ⛔ مفيش سحب أفقي في لوحة المتصدرين (مفيش wrapper سحب)
+  ---
+  duration_ms: 3.082075
+  type: 'test'
+  ...
+# Subtest: ⛔ مفيش اسم أداة ذكاء اصطناعي في نصوص الصفحة
+ok 42 - ⛔ مفيش اسم أداة ذكاء اصطناعي في نصوص الصفحة
+  ---
+  duration_ms: 11.141464
+  type: 'test'
+  ...
+# Subtest: ⛔ مفيش معالجات inline في ملف الصفحة
+ok 43 - ⛔ مفيش معالجات inline في ملف الصفحة
+  ---
+  duration_ms: 1.458444
+  type: 'test'
+  ...
+# Subtest: ⛔ مفيش معالجات inline في صفحة التحديات بالـHTML
+ok 44 - ⛔ مفيش معالجات inline في صفحة التحديات بالـHTML
+  ---
+  duration_ms: 3.24325
+  type: 'test'
+  ...
+# Subtest: ⛔ كل طلبات الـAPI بتعدّي على octaFetch
+ok 45 - ⛔ كل طلبات الـAPI بتعدّي على octaFetch
+  ---
+  duration_ms: 4.294138
+  type: 'test'
+  ...
+# Subtest: تنسيق الأرقام: الأسعار والنسب والتواريخ
+ok 46 - تنسيق الأرقام: الأسعار والنسب والتواريخ
+  ---
+  duration_ms: 2.441446
+  type: 'test'
+  ...
+# Subtest: خطوط السعر: الدخول والوقف والهدف
+ok 47 - خطوط السعر: الدخول والوقف والهدف
+  ---
+  duration_ms: 7.400458
+  type: 'test'
+  ...
+# Subtest: معطيات الرسم: تاريخ التحدي + المستويات
+ok 48 - معطيات الرسم: تاريخ التحدي + المستويات
+  ---
+  duration_ms: 2.123031
+  type: 'test'
+  ...
+# Subtest: ⛔ الصفحة مسجّلة في الخمسة أماكن (element + TOOL_PAGES + KEEP + TOOLS + hook)
+ok 49 - ⛔ الصفحة مسجّلة في الخمسة أماكن (element + TOOL_PAGES + KEEP + TOOLS + hook)
+  ---
+  duration_ms: 10.913755
+  type: 'test'
+  ...
+# Subtest:  bioSecret متعرّف مرة واحدة بس (التاني كان بيلغي الأول)
+ok 50 -  bioSecret متعرّف مرة واحدة بس (التاني كان بيلغي الأول)
+  ---
+  duration_ms: 2.114515
+  type: 'test'
+  ...
+# Subtest:  bioSecret بيحفظ نسخة في الكوكي (so مسح localStorage ما يغيّرش الجهاز)
+ok 51 -  bioSecret بيحفظ نسخة في الكوكي (so مسح localStorage ما يغيّرش الجهاز)
+  ---
+  duration_ms: 0.465926
+  type: 'test'
+  ...
+# Subtest:  طلب الكود (verify) بيبعت الجهاز (device) — عشان الباك يسجّله
+ok 52 -  طلب الكود (verify) بيبعت الجهاز (device) — عشان الباك يسجّله
+  ---
+  duration_ms: 0.439597
+  type: 'test'
+  ...
+# Subtest:  تسجيل الدخول بالـPIN بيبعت الجهاز كمان
+ok 53 -  تسجيل الدخول بالـPIN بيبعت الجهاز كمان
+  ---
+  duration_ms: 0.317662
+  type: 'test'
+  ...
+# Subtest:  مفيش تعريف مكرر ل bioSecret في أي ملف تاني
+ok 54 -  مفيش تعريف مكرر ل bioSecret في أي ملف تاني
+  ---
+  duration_ms: 144.580471
+  type: 'test'
+  ...
+# Subtest: صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
+ok 55 - صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
+  ---
+  duration_ms: 56.072324
+  type: 'test'
+  ...
+# Subtest: صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
+ok 56 - صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
+  ---
+  duration_ms: 3.776333
+  type: 'test'
+  ...
+# Subtest: صف حيّ ⇒ مفيش وسم تحذير
+ok 57 - صف حيّ ⇒ مفيش وسم تحذير
+  ---
+  duration_ms: 3.051352
+  type: 'test'
+  ...
+# Subtest: inconsistent numeric coverage must be visible in rendered criteria panel
+ok 58 - inconsistent numeric coverage must be visible in rendered criteria panel
+  ---
+  duration_ms: 1.749138
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — 429: رسالة خطأ + ⛔ الجلسة سليمة (مافيش logout)
+ok 59 - المرحلة ٢ — 429: رسالة خطأ + ⛔ الجلسة سليمة (مافيش logout)
+  ---
+  duration_ms: 74.199164
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — 403: نفس القاعدة (الجلسة سليمة)
+ok 60 - المرحلة ٢ — 403: نفس القاعدة (الجلسة سليمة)
+  ---
+  duration_ms: 1.49821
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — 503: نفس القاعدة (الجلسة سليمة)
+ok 61 - المرحلة ٢ — 503: نفس القاعدة (الجلسة سليمة)
+  ---
+  duration_ms: 1.520159
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — 401: رفض صريح ⇒ تنظيف + صفحة دخول (ومفيش عرض بيانات)
+ok 62 - المرحلة ٢ — 401: رفض صريح ⇒ تنظيف + صفحة دخول (ومفيش عرض بيانات)
+  ---
+  duration_ms: 1.466338
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — انقطاع الشبكة: ⛔⛔ ممنوع يمسح جلسة المستخدم
+ok 63 - المرحلة ٢ — انقطاع الشبكة: ⛔⛔ ممنوع يمسح جلسة المستخدم
+  ---
+  duration_ms: 1.400153
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — رد غير صالح (مش JSON): خطأ واضح + ⛔ مافيش logout
+ok 64 - المرحلة ٢ — رد غير صالح (مش JSON): خطأ واضح + ⛔ مافيش logout
+  ---
+  duration_ms: 3.332189
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — فحص الجلسة: انقطاع الشبكة ⇒ ⛔ مافيش صفحة دخول + ⛔ مافيش مسح
+ok 65 - المرحلة ٢ — فحص الجلسة: انقطاع الشبكة ⇒ ⛔ مافيش صفحة دخول + ⛔ مافيش مسح
+  ---
+  duration_ms: 9.9765
+  type: 'test'
+  ...
+# Subtest: المرحلة ٢ — فحص الجلسة: 401 ⇒ تنظيف + صفحة دخول + ⛔ مافيش عرض
+ok 66 - المرحلة ٢ — فحص الجلسة: 401 ⇒ تنظيف + صفحة دخول + ⛔ مافيش عرض
+  ---
+  duration_ms: 6.023355
+  type: 'test'
+  ...
+# Subtest: AZ35: من غير جلسة ⇒ مافيش 200 فيه محتوى لوحة
+ok 67 - AZ35: من غير جلسة ⇒ مافيش 200 فيه محتوى لوحة
+  ---
+  duration_ms: 65.426442
+  type: 'test'
+  ...
+# Subtest: AZ35: الملف العام الوحيد = صفحة الدخول (مافيش بيانات إدارة)
+ok 68 - AZ35: الملف العام الوحيد = صفحة الدخول (مافيش بيانات إدارة)
+  ---
+  duration_ms: 5.454188
+  type: 'test'
+  ...
+# Subtest: AZ35: مافيش بريد حقيقي في أي أصل عام من الـmgmt
+ok 69 - AZ35: مافيش بريد حقيقي في أي أصل عام من الـmgmt
+  ---
+  duration_ms: 25.548803
+  type: 'test'
+  ...
+# Subtest: AZ35: الأصل المحمي ⇒ no-store/private (مافيش كاش مشترك)
+ok 70 - AZ35: الأصل المحمي ⇒ no-store/private (مافيش كاش مشترك)
+  ---
+  duration_ms: 19.042892
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# Subtest: AZ35: نسخة الكوكي بعد الخروج ⇒ 401 (إبطال من جهة السيرفر)
+ok 71 - AZ35: نسخة الكوكي بعد الخروج ⇒ 401 (إبطال من جهة السيرفر)
+  ---
+  duration_ms: 71.959935
+  type: 'test'
+  ...
+# Subtest: الواجهة: بتحمّل وبترتّب الأسهم وبترسم الجدول
+ok 72 - الواجهة: بتحمّل وبترتّب الأسهم وبترسم الجدول
+  ---
+  duration_ms: 552.53132
+  type: 'test'
+  ...
+# Subtest: الواجهة: فتح سهم بيرسم الكروت والشارت
+ok 73 - الواجهة: فتح سهم بيرسم الكروت والشارت
+  ---
+  duration_ms: 391.358452
+  type: 'test'
+  ...
+# Subtest: الواجهة: الفلترة بالكلمة وبالحد الأدنى بيشتغلوا
+ok 74 - الواجهة: الفلترة بالكلمة وبالحد الأدنى بيشتغلوا
+  ---
+  duration_ms: 219.405618
+  type: 'test'
+  ...
+# Subtest: الواجهة: لما الباك يكون واقع — الفلتر بيشتغل من جسر TradingView
+ok 75 - الواجهة: لما الباك يكون واقع — الفلتر بيشتغل من جسر TradingView
+  ---
+  duration_ms: 170.962564
+  type: 'test'
+  ...
+# Subtest: guard: صفحة Smart Money لازم تكون في KEEP (وإلا بتتمسح)
+ok 76 - guard: صفحة Smart Money لازم تكون في KEEP (وإلا بتتمسح)
+  ---
+  duration_ms: 6.734895
+  type: 'test'
+  ...
+# Subtest: guard: بلوك السكربتات في index.html مفيش فيه تكرار
+ok 77 - guard: بلوك السكربتات في index.html مفيش فيه تكرار
+  ---
+  duration_ms: 2.936118
+  type: 'test'
+  ...
+# Subtest: كارت الاستراتيجية: موجود في آخر الصفحة وفيه الشرح كامل
+ok 78 - كارت الاستراتيجية: موجود في آخر الصفحة وفيه الشرح كامل
+  ---
+  duration_ms: 213.435693
+  type: 'test'
+  ...
+# Subtest: فلتر «توافق ٤ محاور» بيشتغل وبيقلّل النتائج
+ok 79 - فلتر «توافق ٤ محاور» بيشتغل وبيقلّل النتائج
+  ---
+  duration_ms: 284.02956
+  type: 'test'
+  ...
+# Subtest: فلتر «أظهر ناقص البيانات» بيشتغل
+ok 80 - فلتر «أظهر ناقص البيانات» بيشتغل
+  ---
+  duration_ms: 238.541579
+  type: 'test'
+  ...
+# Subtest: مفيش id مكرر في index.html
+ok 81 - مفيش id مكرر في index.html
+  ---
+  duration_ms: 9.267159
+  type: 'test'
+  ...
+# Subtest: فلتر تجميع مؤسسي: بيبقّي اللي تدفقه ≥ ٨٠٪ بس
+ok 82 - فلتر تجميع مؤسسي: بيبقّي اللي تدفقه ≥ ٨٠٪ بس
+  ---
+  duration_ms: 254.370532
+  type: 'test'
+  ...
+# Subtest: فلتر العائد الشهري: بيشتغل وبيقلّل
+ok 83 - فلتر العائد الشهري: بيشتغل وبيقلّل
+  ---
+  duration_ms: 236.600235
+  type: 'test'
+  ...
+# Subtest: فلتر نطاق السعر: بيشتغل
+ok 84 - فلتر نطاق السعر: بيشتغل
+  ---
+  duration_ms: 323.896499
+  type: 'test'
+  ...
+# Subtest: تصفير الفلاتر: بيرجّع كل حاجة
+ok 85 - تصفير الفلاتر: بيرجّع كل حاجة
+  ---
+  duration_ms: 288.54498
+  type: 'test'
+  ...
+# [OCTA] السيرفر اتمنع: railway - production_origin_in_preview
+# Subtest: P0-01 · وضع الإغلاق الآمن + من غير قائمة ⇒ مافيش سيرفرات ولا اتصال بالإنتاج
+ok 86 - P0-01 · وضع الإغلاق الآمن + من غير قائمة ⇒ مافيش سيرفرات ولا اتصال بالإنتاج
+  ---
+  duration_ms: 33.461262
+  type: 'test'
+  ...
+# Subtest: P0-01 · وضع الإغلاق الآمن + قائمة محقونة ⇒ السيرفر التجريبي هو المستخدم
+ok 87 - P0-01 · وضع الإغلاق الآمن + قائمة محقونة ⇒ السيرفر التجريبي هو المستخدم
+  ---
+  duration_ms: 3.742049
+  type: 'test'
+  ...
+# Subtest: P0-01 · من غير علامة الإغلاق (الإنتاج) ⇒ السلوك القديم ما يتغيّرش
+ok 88 - P0-01 · من غير علامة الإغلاق (الإنتاج) ⇒ السلوك القديم ما يتغيّرش
+  ---
+  duration_ms: 2.355844
+  type: 'test'
+  ...
+# Subtest: P0-01 · ⛔ الجولة ٢٣ (R23) · من غير علامة الإغلاق (معاينة) ⇒ مافيش ارتجاع للإنتاج
+ok 89 - P0-01 · ⛔ الجولة ٢٣ (R23) · من غير علامة الإغلاق (معاينة) ⇒ مافيش ارتجاع للإنتاج
+  ---
+  duration_ms: 3.148621
+  type: 'test'
+  ...
+# Subtest: P0-01 · فشل الطلب في وضع الإغلاق الآمن ⇒ إعادة المحاولة ما تروحش للإنتاج
+ok 90 - P0-01 · فشل الطلب في وضع الإغلاق الآمن ⇒ إعادة المحاولة ما تروحش للإنتاج
+  ---
+  duration_ms: 10.679945
+  type: 'test'
+  ...
+# Subtest: 401 من الباك الحي ⇒ يمرّ زي ما هو (مش 503 «الباك ميت»)
+not ok 91 - 401 من الباك الحي ⇒ يمرّ زي ما هو (مش 503 «الباك ميت»)
+  ---
+  duration_ms: 3.70161
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:76:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:35:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:77:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: 403 من الباك ⇒ يمرّ زي ما هو
+not ok 92 - 403 من الباك ⇒ يمرّ زي ما هو
+  ---
+  duration_ms: 8.961797
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:85:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:35:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:86:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: فشل الشبكة ⇒ 503 صريح «الباك غير متاح» (مش 401 كاذب)
+not ok 93 - فشل الشبكة ⇒ 503 صريح «الباك غير متاح» (مش 401 كاذب)
+  ---
+  duration_ms: 4.311645
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:92:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:35:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:93:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: 500 من الباك ⇒ 503 «الباك غير متاح» (مافيش لقطة قديمة)
+not ok 94 - 500 من الباك ⇒ 503 «الباك غير متاح» (مافيش لقطة قديمة)
+  ---
+  duration_ms: 2.505769
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:102:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:35:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:103:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: ردّ 200 JSON من الباك ⇒ يمرّ (الطريق السليم)
+not ok 95 - ردّ 200 JSON من الباك ⇒ يمرّ (الطريق السليم)
+  ---
+  duration_ms: 2.815134
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:111:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:35:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:112:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: مافيش رجوع للقطعة القديمة من غير ظاهر صريح
+not ok 96 - مافيش رجوع للقطعة القديمة من غير ظاهر صريح
+  ---
+  duration_ms: 2.057839
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:120:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:35:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/opp-auth-truth.test.js:121:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: بطاقة المعايير: مافيش undefined ولا أسرار (أوزان/نقاط/عتبة)
+ok 97 - بطاقة المعايير: مافيش undefined ولا أسرار (أوزان/نقاط/عتبة)
+  ---
+  duration_ms: 5.917521
+  type: 'test'
+  ...
+# Subtest: بطاقة السهم: النسبة بس (مافيش نقاط ولا وزن)
+ok 98 - بطاقة السهم: النسبة بس (مافيش نقاط ولا وزن)
+  ---
+  duration_ms: 25.021099
+  type: 'test'
+  ...
+# Subtest: كتلة المصادر + حالة الحداثة من الـpayload الجديد
+ok 99 - كتلة المصادر + حالة الحداثة من الـpayload الجديد
+  ---
+  duration_ms: 1.090629
+  type: 'test'
+  ...
+# Subtest: السوق مفتوح + بيانات قديمة ⇒ اتنين ظاهرين منفصلين
+ok 100 - السوق مفتوح + بيانات قديمة ⇒ اتنين ظاهرين منفصلين
+  ---
+  duration_ms: 0.601794
+  type: 'test'
+  ...
+# Subtest: الواجهة ما تقراش أسرار من الـpayload
+ok 101 - الواجهة ما تقراش أسرار من الـpayload
+  ---
+  duration_ms: 0.387402
+  type: 'test'
+  ...
+# Subtest: كارت السهم: بلا توقيت مصدر ⇒ التسمية ما بتدّعيش لحظية
+ok 102 - كارت السهم: بلا توقيت مصدر ⇒ التسمية ما بتدّعيش لحظية
+  ---
+  duration_ms: 29.428011
+  type: 'test'
+  ...
+# Subtest: كارت السهم: مع توقيت مصدر ⇒ «سعر التداول الآن» (مش «سعر إغلاق»)
+ok 103 - كارت السهم: مع توقيت مصدر ⇒ «سعر التداول الآن» (مش «سعر إغلاق»)
+  ---
+  duration_ms: 3.454857
+  type: 'test'
+  ...
+# Subtest: كارت السهم: بلا توقيت ⇒ «وقت تحديث البيانات» مش «وقت السعر»
+ok 104 - كارت السهم: بلا توقيت ⇒ «وقت تحديث البيانات» مش «وقت السعر»
+  ---
+  duration_ms: 2.089571
+  type: 'test'
+  ...
+# Subtest: كارت السهم: مع توقيت ⇒ «وقت السعر» ومش «وقت تحديث البيانات»
+ok 105 - كارت السهم: مع توقيت ⇒ «وقت السعر» ومش «وقت تحديث البيانات»
+  ---
+  duration_ms: 1.111418
+  type: 'test'
+  ...
+# Subtest: كارت السهم: لو الـAPI بعت تسمية بتدّعي «الآن» ⇒ الواجهة تصحّحها
+ok 106 - كارت السهم: لو الـAPI بعت تسمية بتدّعي «الآن» ⇒ الواجهة تصحّحها
+  ---
+  duration_ms: 1.233168
+  type: 'test'
+  ...
+# Subtest: كارت السهم: سعر قديم ⇒ وسم «سعر قديم» (مش معروض كأنه محدّث)
+ok 107 - كارت السهم: سعر قديم ⇒ وسم «سعر قديم» (مش معروض كأنه محدّث)
+  ---
+  duration_ms: 1.496713
+  type: 'test'
+  ...
+# Subtest: كارت السهم: سعر محدّث ⇒ مافيش وسم «سعر قديم»
+ok 108 - كارت السهم: سعر محدّث ⇒ مافيش وسم «سعر قديم»
+  ---
+  duration_ms: 1.054737
+  type: 'test'
+  ...
+# Subtest: حالة «تغطية جزئية» معروضة + الأرقام
+ok 109 - حالة «تغطية جزئية» معروضة + الأرقام
+  ---
+  duration_ms: 1.365965
+  type: 'test'
+  ...
+# Subtest: حد الباقة معروض «أفضل ٢٠» (مش «كل المؤهل»)
+ok 110 - حد الباقة معروض «أفضل ٢٠» (مش «كل المؤهل»)
+  ---
+  duration_ms: 1.380168
+  type: 'test'
+  ...
+# Subtest: الواجهة ما بتقراش أسرار ولا «كل المؤهل» من الـpayload
+ok 111 - الواجهة ما بتقراش أسرار ولا «كل المؤهل» من الـpayload
+  ---
+  duration_ms: 0.690529
+  type: 'test'
+  ...
+# Subtest: «تغطية جزئية» بتظهر من coverage_status (مش من freshness)
+ok 112 - «تغطية جزئية» بتظهر من coverage_status (مش من freshness)
+  ---
+  duration_ms: 26.679359
+  type: 'test'
+  ...
+# Subtest: الحداثة «قديمة» بتظهر لوحدها من freshness
+ok 113 - الحداثة «قديمة» بتظهر لوحدها من freshness
+  ---
+  duration_ms: 2.895099
+  type: 'test'
+  ...
+# Subtest: الحداثة «غير متاحة» بتظهر لوحدها
+ok 114 - الحداثة «غير متاحة» بتظهر لوحدها
+  ---
+  duration_ms: 1.972158
+  type: 'test'
+  ...
+# Subtest: «قديمة» + «تغطية جزئية» بيبانوا **مع بعض** (مش واحد hides التاني)
+ok 115 - «قديمة» + «تغطية جزئية» بيبانوا **مع بعض** (مش واحد hides التاني)
+  ---
+  duration_ms: 1.021703
+  type: 'test'
+  ...
+# Subtest: عمر السعر معروض جنب الوصف
+ok 116 - عمر السعر معروض جنب الوصف
+  ---
+  duration_ms: 1.980977
+  type: 'test'
+  ...
+# Subtest: مافيش عمر سعر ⇒ مافيش «عمر السعر» (مافيش كذب)
+ok 117 - مافيش عمر سعر ⇒ مافيش «عمر السعر» (مافيش كذب)
+  ---
+  duration_ms: 1.721911
+  type: 'test'
+  ...
+# Subtest: «عمر السعر: غير معروف» ما تظهرش (المصدر ميعطيش توقيت)
+ok 118 - «عمر السعر: غير معروف» ما تظهرش (المصدر ميعطيش توقيت)
+  ---
+  duration_ms: 1.152571
+  type: 'test'
+  ...
+# Subtest: «سعر التداول الآن» ما تظهرش من غير توقيت من المصدر
+ok 119 - «سعر التداول الآن» ما تظهرش من غير توقيت من المصدر
+  ---
+  duration_ms: 0.978054
+  type: 'test'
+  ...
+# Subtest: «آخر سعر معروف» بتظهر مع توقيت من المصدر (لما السعر قديم)
+ok 120 - «آخر سعر معروف» بتظهر مع توقيت من المصدر (لما السعر قديم)
+  ---
+  duration_ms: 1.319752
+  type: 'test'
+  ...
+# Subtest: الواجهة ما بتقراش أسرار
+ok 121 - الواجهة ما بتقراش أسرار
+  ---
+  duration_ms: 0.881343
+  type: 'test'
+  ...
+# Subtest: مافيش ارتجاع لقراءة «partial» من freshness
+ok 122 - مافيش ارتجاع لقراءة «partial» من freshness
+  ---
+  duration_ms: 0.353187
+  type: 'test'
+  ...
+# Subtest: تغطية ناقصة بس مقبولة ⇒ «تغطية مقبولة» (مش «جزئية»)
+ok 123 - تغطية ناقصة بس مقبولة ⇒ «تغطية مقبولة» (مش «جزئية»)
+  ---
+  duration_ms: 27.629501
+  type: 'test'
+  ...
+# Subtest: تغطية ناقصة تحت العتبة ⇒ «تغطية جزئية»
+ok 124 - تغطية ناقصة تحت العتبة ⇒ «تغطية جزئية»
+  ---
+  duration_ms: 2.695629
+  type: 'test'
+  ...
+# Subtest: تغطية كاملة ⇒ مفيش كلمة «جزئية» ولا «مقبولة»
+ok 125 - تغطية كاملة ⇒ مفيش كلمة «جزئية» ولا «مقبولة»
+  ---
+  duration_ms: 2.109185
+  type: 'test'
+  ...
+# Subtest: من غير coverage_acceptable (عقد قديم) ⇒ «جزئية» (الافتراضي الآمن)
+ok 126 - من غير coverage_acceptable (عقد قديم) ⇒ «جزئية» (الافتراضي الآمن)
+  ---
+  duration_ms: 0.746707
+  type: 'test'
+  ...
+# Subtest: صف من دفعة قديمة (data_state=stale) ⇒ وسم «سعر قديم» ظاهر
+ok 127 - صف من دفعة قديمة (data_state=stale) ⇒ وسم «سعر قديم» ظاهر
+  ---
+  duration_ms: 1.666175
+  type: 'test'
+  ...
+# Subtest: صف حيّ ⇒ مفيش وسم «سعر قديم»
+ok 128 - صف حيّ ⇒ مفيش وسم «سعر قديم»
+  ---
+  duration_ms: 1.259404
+  type: 'test'
+  ...
+# Subtest: وصف «آخر سعر معروف» (من غير دليل جلسات) بيتعرض زي ما هو
+ok 129 - وصف «آخر سعر معروف» (من غير دليل جلسات) بيتعرض زي ما هو
+  ---
+  duration_ms: 0.934163
+  type: 'test'
+  ...
+# Subtest: صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
+ok 130 - صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
+  ---
+  duration_ms: 26.638675
+  type: 'test'
+  ...
+# Subtest: صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
+ok 131 - صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
+  ---
+  duration_ms: 2.972257
+  type: 'test'
+  ...
+# Subtest: صف حيّ ⇒ مفيش وسم تحذير
+ok 132 - صف حيّ ⇒ مفيش وسم تحذير
+  ---
+  duration_ms: 2.078159
+  type: 'test'
+  ...
+# Subtest: تناقض الأرقام ⇒ تحذير «أرقام التغطية غير متسقة» ظاهر
+ok 133 - تناقض الأرقام ⇒ تحذير «أرقام التغطية غير متسقة» ظاهر
+  ---
+  duration_ms: 29.34074
+  type: 'test'
+  ...
+# Subtest: التحذير فيه الأرقام المنشورة كلّها (مش نص فاضي)
+ok 134 - التحذير فيه الأرقام المنشورة كلّها (مش نص فاضي)
+  ---
+  duration_ms: 3.651134
+  type: 'test'
+  ...
+# Subtest: التحذير **مكمّل** لوسم «تغطية جزئية» (الاتنين يبانوا)
+ok 135 - التحذير **مكمّل** لوسم «تغطية جزئية» (الاتنين يبانوا)
+  ---
+  duration_ms: 2.405093
+  type: 'test'
+  ...
+# Subtest: تناقض + ادّعاء «كاملة» ⇒ ممنوع (تناقض «جزئية» + تحذير)
+ok 136 - تناقض + ادّعاء «كاملة» ⇒ ممنوع (تناقض «جزئية» + تحذير)
+  ---
+  duration_ms: 1.136337
+  type: 'test'
+  ...
+# Subtest: أرقام متسقة ⇒ مافيش تحذير تناقض
+ok 137 - أرقام متسقة ⇒ مافيش تحذير تناقض
+  ---
+  duration_ms: 0.821991
+  type: 'test'
+  ...
+# Subtest: من غير `coverage_consistent` ⇒ مافيش تحذير (الافتراضي الآمن)
+ok 138 - من غير `coverage_consistent` ⇒ مافيش تحذير (الافتراضي الآمن)
+  ---
+  duration_ms: 1.410169
+  type: 'test'
+  ...
+# Subtest: تناقض من غير أرقام منشودة ⇒ التحذير بيبان (من غير أرقام مختلقة)
+ok 139 - تناقض من غير أرقام منشودة ⇒ التحذير بيبان (من غير أرقام مختلقة)
+  ---
+  duration_ms: 0.699864
+  type: 'test'
+  ...
+# Subtest: الدرجة الجديدة (score) بتترجم صح
+ok 140 - الدرجة الجديدة (score) بتترجم صح
+  ---
+  duration_ms: 1.248937
+  type: 'test'
+  ...
+# Subtest: توافق عكسي: لو الرد فيه opportunity بس، بتفضل تترجم
+ok 141 - توافق عكسي: لو الرد فيه opportunity بس، بتفضل تترجم
+  ---
+  duration_ms: 0.473654
+  type: 'test'
+  ...
+# Subtest: لو فيه score = 0 و opportunity = 70 ⇒ الجديد له الأولوية
+ok 142 - لو فيه score = 0 و opportunity = 70 ⇒ الجديد له الأولوية
+  ---
+  duration_ms: 1.494787
+  type: 'test'
+  ...
+# Subtest: القيم الفارغة بترجع null (مش صفر)
+ok 143 - القيم الفارغة بترجع null (مش صفر)
+  ---
+  duration_ms: 0.370383
+  type: 'test'
+  ...
+# Subtest: المسار القديم بيستخدم الدالة الجديدة ومش الحقل القديم مباشرة
+ok 144 - المسار القديم بيستخدم الدالة الجديدة ومش الحقل القديم مباشرة
+  ---
+  duration_ms: 0.713478
+  type: 'test'
+  ...
+# Subtest: رسالة «المحرك غير متاح مؤقتًا» معتمدة في شاشة الفرص
+ok 145 - رسالة «المحرك غير متاح مؤقتًا» معتمدة في شاشة الفرص
+  ---
+  duration_ms: 0.202765
+  type: 'test'
+  ...
+# Subtest: P3-01 · الـfetch بيرمي استثناء ⇒ 503 + why:api_unreachable
+not ok 146 - P3-01 · الـfetch بيرمي استثناء ⇒ 503 + why:api_unreachable
+  ---
+  duration_ms: 4.070805
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:118:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:43:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:119:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: P3-01 · الرد ما فيهوش عنوان الـAPI الداخلي (ولا كلمة سرّية)
+not ok 147 - P3-01 · الرد ما فيهوش عنوان الـAPI الداخلي (ولا كلمة سرّية)
+  ---
+  duration_ms: 3.12038
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:132:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:43:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:133:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: P3-02 · رد 530 من الـedge ⇒ 503 صريح (مش 530 ولا صفحة إنجليزية)
+not ok 148 - P3-02 · رد 530 من الـedge ⇒ 503 صريح (مش 530 ولا صفحة إنجليزية)
+  ---
+  duration_ms: 3.061895
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:146:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:43:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:147:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-03 · لوج الفشل ما فيهوش العنوان الداخلي (مفتاح بدل عنوان)
+not ok 149 - P3-03 · لوج الفشل ما فيهوش العنوان الداخلي (مفتاح بدل عنوان)
+  ---
+  duration_ms: 2.08755
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:163:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:43:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:164:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-04 · المسار السليم بيفضل ٢٠٠ (مفيش ارتجاع)
+not ok 150 - P3-04 · المسار السليم بيفضل ٢٠٠ (مفيش ارتجاع)
+  ---
+  duration_ms: 2.033037
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:181:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:43:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:182:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-05 · لا ارتجاع — طلب POST بيفضل بيوصل جسمه
+not ok 151 - P3-05 · لا ارتجاع — طلب POST بيفضل بيوصل جسمه
+  ---
+  duration_ms: 2.061602
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:191:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:43:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:193:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-06 · فشل الـAPI ما بيطلبهوش من الإنتاج
+not ok 152 - P3-06 · فشل الـAPI ما بيطلبهوش من الإنتاج
+  ---
+  duration_ms: 2.15787
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:213:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:43:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-api-unreachable.test.js:215:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-L1 · isApiDown بتفرّق بين عطل البنية وعطل المستخدم
+ok 153 - P3-L1 · isApiDown بتفرّق بين عطل البنية وعطل المستخدم
+  ---
+  duration_ms: 2.032077
+  type: 'test'
+  ...
+# Subtest: P3-L2 · رد api_unreachable ⇒ رسالة محدّدة (مش «باسورد غلط»)
+ok 154 - P3-L2 · رد api_unreachable ⇒ رسالة محدّدة (مش «باسورد غلط»)
+  ---
+  duration_ms: 3.646579
+  type: 'test'
+  ...
+# Subtest: P3-L2 · رد api_unreachable ⇒ مافيش خصم من عدّاد المحاولات
+ok 155 - P3-L2 · رد api_unreachable ⇒ مافيش خصم من عدّاد المحاولات
+  ---
+  duration_ms: 0.981132
+  type: 'test'
+  ...
+# Subtest: P3-L3 · ⛔ لا ارتجاع — الباسورد الغلط بيفضل زي ما هو
+ok 156 - P3-L3 · ⛔ لا ارتجاع — الباسورد الغلط بيفضل زي ما هو
+  ---
+  duration_ms: 0.692872
+  type: 'test'
+  ...
+# Subtest: P3-L3 · ⛔ لا ارتجاع — فشل الشبكة بيفضل «الشبكة ضعيفة»
+ok 157 - P3-L3 · ⛔ لا ارتجاع — فشل الشبكة بيفضل «الشبكة ضعيفة»
+  ---
+  duration_ms: 0.521014
+  type: 'test'
+  ...
+# Subtest: P3-L4 · المودال: api_unreachable ⇒ رسالة محدّدة
+ok 158 - P3-L4 · المودال: api_unreachable ⇒ رسالة محدّدة
+  ---
+  duration_ms: 0.728561
+  type: 'test'
+  ...
+# Subtest: P3-L5 · ⛔ لا ارتجاع — المودال: خطأ تاني بيفضل «حصل خطأ»
+ok 159 - P3-L5 · ⛔ لا ارتجاع — المودال: خطأ تاني بيفضل «حصل خطأ»
+  ---
+  duration_ms: 0.414109
+  type: 'test'
+  ...
+# Subtest: P3-L6 · ⛔ رسالة «الباسورد غلط» موجودة (ما اتمسحتش)
+ok 160 - P3-L6 · ⛔ رسالة «الباسورد غلط» موجودة (ما اتمسحتش)
+  ---
+  duration_ms: 0.213063
+  type: 'test'
+  ...
+# Subtest: P3-L6 · ⛔ رسالة «مقدرناش نبعت الكود» موجودة (الإيميل زي ما هو)
+ok 161 - P3-L6 · ⛔ رسالة «مقدرناش نبعت الكود» موجودة (الإيميل زي ما هو)
+  ---
+  duration_ms: 0.400423
+  type: 'test'
+  ...
+# Subtest: P3-L6 · ⛔ «السيرفر بطيء» ما اتحوّلش لرسالة البنية
+ok 162 - P3-L6 · ⛔ «السيرفر بطيء» ما اتحوّلش لرسالة البنية
+  ---
+  duration_ms: 0.728598
+  type: 'test'
+  ...
+# Subtest: P3-L7 · ⛔ مافيش عنوان داخلي ولا سر في ملفات الواجهة الجديدة
+ok 163 - P3-L7 · ⛔ مافيش عنوان داخلي ولا سر في ملفات الواجهة الجديدة
+  ---
+  duration_ms: 0.468605
+  type: 'test'
+  ...
+# Subtest: P3-P1 · health 200 + mail_configured:true ⇒ api:up · mail:on
+not ok 164 - P3-P1 · health 200 + mail_configured:true ⇒ api:up · mail:on
+  ---
+  duration_ms: 6.671093
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:108:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:109:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: P3-P1 · mail_configured:false ⇒ mail:off
+not ok 165 - P3-P1 · mail_configured:false ⇒ mail:off
+  ---
+  duration_ms: 2.459222
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:120:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:121:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: P3-P1 · من غير mail_configured ⇒ mail:unknown (مش تخمين)
+not ok 166 - P3-P1 · من غير mail_configured ⇒ mail:unknown (مش تخمين)
+  ---
+  duration_ms: 15.56904
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:130:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:131:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P2 · health 403 ⇒ api:up · mail:unknown
+not ok 167 - P3-P2 · health 403 ⇒ api:up · mail:unknown
+  ---
+  duration_ms: 5.316646
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:143:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:144:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P2 · health 401 ⇒ api:up · mail:unknown
+not ok 168 - P3-P2 · health 401 ⇒ api:up · mail:unknown
+  ---
+  duration_ms: 2.377111
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:153:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:154:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P3 · الـfetch بيرمي ⇒ api:down · mail:unknown (ومفيش 530)
+not ok 169 - P3-P3 · الـfetch بيرمي ⇒ api:down · mail:unknown (ومفيش 530)
+  ---
+  duration_ms: 2.481408
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:166:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:167:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P3 · رد 530 من الـedge ⇒ api:down
+not ok 170 - P3-P3 · رد 530 من الـedge ⇒ api:down
+  ---
+  duration_ms: 3.812326
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:175:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:176:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P3 · من غير وجهة API (fail-closed) ⇒ api:down
+not ok 171 - P3-P3 · من غير وجهة API (fail-closed) ⇒ api:down
+  ---
+  duration_ms: 2.010223
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:184:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:185:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P3 · الـAPI بياكل الوقت ⇒ timeout واضح ⇒ api:down
+not ok 172 - P3-P3 · الـAPI بياكل الوقت ⇒ timeout واضح ⇒ api:down
+  ---
+  duration_ms: 7.238948
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:194:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:198:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P4 · متاح بلا تسجيل دخول (من غير كوكي)
+not ok 173 - P3-P4 · متاح بلا تسجيل دخول (من غير كوكي)
+  ---
+  duration_ms: 2.930921
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:217:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:218:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P4 · مافيش كتابة — الطلب المرسل GET على /api/health بس
+not ok 174 - P3-P4 · مافيش كتابة — الطلب المرسل GET على /api/health بس
+  ---
+  duration_ms: 2.012814
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:227:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:229:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P4 · مافيش بيانات مستخدمين في الرد
+not ok 175 - P3-P4 · مافيش بيانات مستخدمين في الرد
+  ---
+  duration_ms: 2.13071
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:242:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:243:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: P3-P5 · السر الداخلي ما يوصلش للمتصفح من غير سبب
+not ok 176 - P3-P5 · السر الداخلي ما يوصلش للمتصفح من غير سبب
+  ---
+  duration_ms: 1.999642
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:253:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:36:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/p3-preflight.test.js:254:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: 🛡️ كل صفحة في TOOL_PAGES لازم تكون في KEEP (عشان ما تتمسحش)
+ok 177 - 🛡️ كل صفحة في TOOL_PAGES لازم تكون في KEEP (عشان ما تتمسحش)
+  ---
+  duration_ms: 9.904662
+  type: 'test'
+  ...
+# Subtest: 🛡️ كل أداة في شريط الأدوات لازم ليها صفحة في index.html
+ok 178 - 🛡️ كل أداة في شريط الأدوات لازم ليها صفحة في index.html
+  ---
+  duration_ms: 7.932969
+  type: 'test'
+  ...
+# Subtest: 🛡️ كل صفحة في KEEP لازم موجودة في index.html
+ok 179 - 🛡️ كل صفحة في KEEP لازم موجودة في index.html
+  ---
+  duration_ms: 7.684859
+  type: 'test'
+  ...
+# Subtest: 🛡️ صفحة الرادار مش جوّه \#homeHidden من غير rescue
+ok 180 - 🛡️ صفحة الرادار مش جوّه \#homeHidden من غير rescue
+  ---
+  duration_ms: 6.5432
+  type: 'test'
+  ...
+# Subtest: 🛡️ كل صفحة page-* في الـHTML لازم تكون في KEEP (ما تمسحش مع homeHidden)
+ok 181 - 🛡️ كل صفحة page-* في الـHTML لازم تكون في KEEP (ما تمسحش مع homeHidden)
+  ---
+  duration_ms: 6.001784
+  type: 'test'
+  ...
+# Subtest: الصفحات المعلّقة ما تتحمّلش وقت فتح الموقع
+ok 182 - الصفحات المعلّقة ما تتحمّلش وقت فتح الموقع
+  ---
+  duration_ms: 8.950658
+  type: 'test'
+  ...
+# Subtest: الفلتر (screener) ما بيحمّلش الداتا الكبيرة وقت الفتح
+ok 183 - الفلتر (screener) ما بيحمّلش الداتا الكبيرة وقت الفتح
+  ---
+  duration_ms: 5.275252
+  type: 'test'
+  ...
+# Subtest: صفحات octaPageInit بتنده التهيئة الصح
+ok 184 - صفحات octaPageInit بتنده التهيئة الصح
+  ---
+  duration_ms: 3.422665
+  type: 'test'
+  ...
+# Subtest: البوابة بتستخدم الـfetch الخام (مش الطابور)
+ok 185 - البوابة بتستخدم الـfetch الخام (مش الطابور)
+  ---
+  duration_ms: 6.690061
+  type: 'test'
+  ...
+# Subtest: مفتاح الكاش بيحافظ على المعاملات
+ok 186 - مفتاح الكاش بيحافظ على المعاملات
+  ---
+  duration_ms: 2.245747
+  type: 'test'
+  ...
+# Subtest: مسارات التحديث ما تتكاشش
+ok 187 - مسارات التحديث ما تتكاشش
+  ---
+  duration_ms: 6.099135
+  type: 'test'
+  ...
+# Subtest: الصفحة الرئيسية بتستخدم /api/rank بدل data_full
+ok 188 - الصفحة الرئيسية بتستخدم /api/rank بدل data_full
+  ---
+  duration_ms: 2.730542
+  type: 'test'
+  ...
+# Subtest: ① من غير PREVIEW_KV ⇒ 503 صريح (مافيش نجاح وهمي)
+ok 189 - ① من غير PREVIEW_KV ⇒ 503 صريح (مافيش نجاح وهمي)
+  ---
+  duration_ms: 39.587939
+  type: 'test'
+  ...
+# Subtest: ①ب من غير سر الجلسات ⇒ 503 صريح
+ok 190 - ①ب من غير سر الجلسات ⇒ 503 صريح
+  ---
+  duration_ms: 1.342395
+  type: 'test'
+  ...
+# Subtest: ①ج المعاينة مش شغّالة ⇒ المسار بيرجع للفرع القديم (null)
+ok 191 - ①ج المعاينة مش شغّالة ⇒ المسار بيرجع للفرع القديم (null)
+  ---
+  duration_ms: 0.610438
+  type: 'test'
+  ...
+# Subtest: ② تسجيل كامل ⇒ حساب ⭐ جلسة ⭐ كوكي ⭐
+ok 192 - ② تسجيل كامل ⇒ حساب ⭐ جلسة ⭐ كوكي ⭐
+  ---
+  duration_ms: 99.437482
+  type: 'test'
+  ...
+# Subtest: ②ب باسورد مش ٤ أرقام ⇒ 400
+ok 193 - ②ب باسورد مش ٤ أرقام ⇒ 400
+  ---
+  duration_ms: 5.164452
+  type: 'test'
+  ...
+# Subtest: ③ دخول بالباسورد + جهاز مسجّل ⇒ جلسة ⭐
+ok 194 - ③ دخول بالباسورد + جهاز مسجّل ⇒ جلسة ⭐
+  ---
+  duration_ms: 617.796513
+  type: 'test'
+  ...
+# Subtest: ③ب من أنا بالجلسة ⭐ — ومن غير جلسة ⇒ 401 ⭐
+ok 195 - ③ب من أنا بالجلسة ⭐ — ومن غير جلسة ⇒ 401 ⭐
+  ---
+  duration_ms: 84.980626
+  type: 'test'
+  ...
+# Subtest: ③ج ⭐ إبطال فوري ⭐ — بعد الخروج الجلسة القديمة ماتت
+ok 196 - ③ج ⭐ إبطال فوري ⭐ — بعد الخروج الجلسة القديمة ماتت
+  ---
+  duration_ms: 198.957311
+  type: 'test'
+  ...
+# Subtest: ③د ⭐ تجديد الجلسة ⭐ — القديم يموت والجديد شغّال
+ok 197 - ③د ⭐ تجديد الجلسة ⭐ — القديم يموت والجديد شغّال
+  ---
+  duration_ms: 97.310561
+  type: 'test'
+  ...
+# Subtest: ③هـ ⭐ CSRF ⭐ — طلب من أصل خارجي يترفض
+ok 198 - ③هـ ⭐ CSRF ⭐ — طلب من أصل خارجي يترفض
+  ---
+  duration_ms: 1.187204
+  type: 'test'
+  ...
+# Subtest: ③و ⭐ كوكي مزوّر ⭐ ⇒ 401
+ok 199 - ③و ⭐ كوكي مزوّر ⭐ ⇒ 401
+  ---
+  duration_ms: 2.492218
+  type: 'test'
+  ...
+# Subtest: ④ ⭐ الأسعار من لقطة المعاينة ⭐ (من غير اتصال بالإنتاج)
+ok 200 - ④ ⭐ الأسعار من لقطة المعاينة ⭐ (من غير اتصال بالإنتاج)
+  ---
+  duration_ms: 1.237389
+  type: 'test'
+  ...
+# Subtest: ④ب ⭐ الترتيب ⭐ — 401 للزائر ⭐ + نتائج للمسجّل ⭐
+ok 201 - ④ب ⭐ الترتيب ⭐ — 401 للزائر ⭐ + نتائج للمسجّل ⭐
+  ---
+  duration_ms: 104.537128
+  type: 'test'
+  ...
+# Subtest: ⑤ ⭐ المحفظة معزولة بين الحسابات ⭐
+ok 202 - ⑤ ⭐ المحفظة معزولة بين الحسابات ⭐
+  ---
+  duration_ms: 186.571943
+  type: 'test'
+  ...
+# Subtest: ⑤ب ⭐ التنبيهات: منع التكرار ⭐ + عزل بين الحسابات ⭐
+ok 203 - ⑤ب ⭐ التنبيهات: منع التكرار ⭐ + عزل بين الحسابات ⭐
+  ---
+  duration_ms: 55.575318
+  type: 'test'
+  ...
+# Subtest: ⑥ مسار مش مغطّى ⇒ 501 صريح (مافيش 503 غامض)
+ok 204 - ⑥ مسار مش مغطّى ⇒ 501 صريح (مافيش 503 غامض)
+  ---
+  duration_ms: 0.671971
+  type: 'test'
+  ...
+# Subtest: لقطة الفرص ما بتتنسخش لو مفتاحها الخاص مطفي
+ok 205 - لقطة الفرص ما بتتنسخش لو مفتاحها الخاص مطفي
+  ---
+  duration_ms: 40.893006
+  type: 'test'
+  ...
+# Subtest: مفتاح Alpha مستقل — Opus=1 مع Alpha=0 ما ينسخش Alpha
+ok 206 - مفتاح Alpha مستقل — Opus=1 مع Alpha=0 ما ينسخش Alpha
+  ---
+  duration_ms: 35.049137
+  type: 'test'
+  ...
+# Subtest: بناء الإنتاج ما بينسخش أي لقطة مهما كانت المتغيّرات
+ok 207 - بناء الإنتاج ما بينسخش أي لقطة مهما كانت المتغيّرات
+  ---
+  duration_ms: 39.656271
+  type: 'test'
+  ...
+# Subtest: حارس النشر يرفض بناء إنتاجي فيه لقطات
+ok 208 - حارس النشر يرفض بناء إنتاجي فيه لقطات
+  ---
+  duration_ms: 78.345782
+  type: 'test'
+  ...
+# Subtest: حارس النشر يعدّي بناء إنتاجي نضيف
+ok 209 - حارس النشر يعدّي بناء إنتاجي نضيف
+  ---
+  duration_ms: 74.969287
+  type: 'test'
+  ...
+# Subtest: سكربتات البناء: مسار إنتاجي مستقل ومبني على fail-closed
+ok 210 - سكربتات البناء: مسار إنتاجي مستقل ومبني على fail-closed
+  ---
+  duration_ms: 0.221708
+  type: 'test'
+  ...
+# Subtest: deploy.sh بيختار البناء حسب الهدف
+ok 211 - deploy.sh بيختار البناء حسب الهدف
+  ---
+  duration_ms: 2.792655
+  type: 'test'
+  ...
+# Subtest: مصدر copy-data.js فيه استقلال المتغيّرات + قفل الإنتاج
+ok 212 - مصدر copy-data.js فيه استقلال المتغيّرات + قفل الإنتاج
+  ---
+  duration_ms: 0.209553
+  type: 'test'
+  ...
+# Subtest: مصدر check-dist.js فيه حارس اللقطات للإنتاج
+ok 213 - مصدر check-dist.js فيه حارس اللقطات للإنتاج
+  ---
+  duration_ms: 0.339051
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# Subtest: R18-A01: جلسة الأدمن المنسوخة تُبطَل عند تسجيل الخروج
+ok 214 - R18-A01: جلسة الأدمن المنسوخة تُبطَل عند تسجيل الخروج
+  ---
+  duration_ms: 53.18366
+  type: 'test'
+  ...
+# Subtest: R18-A02: الأصل المحمي ما يحملش سياسة كاش عامة
+ok 215 - R18-A02: الأصل المحمي ما يحملش سياسة كاش عامة
+  ---
+  duration_ms: 7.628669
+  type: 'test'
+  ...
+# Subtest: R18-A03: عامل الخدمة ما يحفظش القشرة المحمية في الكاش
+ok 216 - R18-A03: عامل الخدمة ما يحفظش القشرة المحمية في الكاش
+  ---
+  duration_ms: 5.666932
+  type: 'test'
+  ...
+# Subtest: R18-A04: كوكي بترميز غير صالح يرجّع 401 من غير خطأ سيرفر
+ok 217 - R18-A04: كوكي بترميز غير صالح يرجّع 401 من غير خطأ سيرفر
+  ---
+  duration_ms: 3.6291
+  type: 'test'
+  ...
+# Subtest: R18-A05: مسار إداري غير موجود بيحافظ على 404/204 من غير 502
+ok 218 - R18-A05: مسار إداري غير موجود بيحافظ على 404/204 من غير 502
+  ---
+  duration_ms: 8.044744
+  type: 'test'
+  ...
+# Subtest: R18-A06: قرار المحرك ومستوى الخطورة من الـAPI يُعرضان كنص
+ok 219 - R18-A06: قرار المحرك ومستوى الخطورة من الـAPI يُعرضان كنص
+  ---
+  duration_ms: 3.534302
+  type: 'test'
+  ...
+# Subtest: R18-A07: رفض الجلسة الصريح ما يرسمش بيانات إدارة مخزّنة
+ok 220 - R18-A07: رفض الجلسة الصريح ما يرسمش بيانات إدارة مخزّنة
+  ---
+  duration_ms: 3.594655
+  type: 'test'
+  ...
+# Subtest: R20-A11Y-01: the a11y sweep module exists and defines sweep()
+ok 221 - R20-A11Y-01: the a11y sweep module exists and defines sweep()
+  ---
+  duration_ms: 44.232231
+  type: 'test'
+  ...
+# Subtest: R20-A11Y-02: the sweep is loaded by index.html
+ok 222 - R20-A11Y-02: the sweep is loaded by index.html
+  ---
+  duration_ms: 2.956098
+  type: 'test'
+  ...
+# Subtest: R20-A11Y-03: the sweep adds an accessible name to a bare input
+ok 223 - R20-A11Y-03: the sweep adds an accessible name to a bare input
+  ---
+  duration_ms: 2.038696
+  type: 'test'
+  ...
+# Subtest: R20-A11Y-04: every form control in the source has an accessible name path
+ok 224 - R20-A11Y-04: every form control in the source has an accessible name path
+  ---
+  duration_ms: 90.526177
+  type: 'test'
+  ...
+# Subtest: R20-F01: logout on instance A revokes the session on instance B
+ok 225 - R20-F01: logout on instance A revokes the session on instance B
+  ---
+  duration_ms: 111.636402
+  type: 'test'
+  ...
+# Subtest: R20-F02: the revocation key is a signed hash, never the raw cookie
+ok 226 - R20-F02: the revocation key is a signed hash, never the raw cookie
+  ---
+  duration_ms: 13.46413
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# Subtest: R20-F03: without KV the worker still works (single instance fallback)
+ok 227 - R20-F03: without KV the worker still works (single instance fallback)
+  ---
+  duration_ms: 60.15217
+  type: 'test'
+  ...
+# Subtest: R20-F04: /api/health reports whether revocation is shared (booleans only)
+ok 228 - R20-F04: /api/health reports whether revocation is shared (booleans only)
+  ---
+  duration_ms: 9.823467
+  type: 'test'
+  ...
+# Subtest: R22-DO-01: logout on instance A revokes the session on instance B immediately (no propagation window)
+ok 229 - R22-DO-01: logout on instance A revokes the session on instance B immediately (no propagation window)
+  ---
+  duration_ms: 67.438332
+  type: 'test'
+  ...
+# Subtest: R22-DO-02: the DO path is used when REVOKE_DO is bound (and the KV is the fallback when it is not)
+ok 230 - R22-DO-02: the DO path is used when REVOKE_DO is bound (and the KV is the fallback when it is not)
+  ---
+  duration_ms: 22.982838
+  type: 'test'
+  ...
+# Subtest: R22-DO-03: a DO error fails closed (the session is REFUSED, never 200)
+ok 231 - R22-DO-03: a DO error fails closed (the session is REFUSED, never 200)
+  ---
+  duration_ms: 32.399585
+  type: 'test'
+  ...
+# Subtest: R22-DO-04: /api/health reports revoke_shared=true and revoke_strong=true when REVOKE_DO is bound
+ok 232 - R22-DO-04: /api/health reports revoke_shared=true and revoke_strong=true when REVOKE_DO is bound
+  ---
+  duration_ms: 4.878105
+  type: 'test'
+  ...
+# Subtest: R22-DO-05: RevokeDO stores the flag on POST /revoke and reports it on GET /check
+ok 233 - R22-DO-05: RevokeDO stores the flag on POST /revoke and reports it on GET /check
+  ---
+  duration_ms: 5.225887
+  type: 'test'
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
+# Subtest: R22-DO-06: the KV safety net still refuses the session when the DO write failed
+ok 234 - R22-DO-06: the KV safety net still refuses the session when the DO write failed
+  ---
+  duration_ms: 12.074811
+  type: 'test'
+  ...
+# Subtest: R22-DO-07: the DO id is a signed hash — never the raw cookie
+ok 235 - R22-DO-07: the DO id is a signed hash — never the raw cookie
+  ---
+  duration_ms: 12.059836
+  type: 'test'
+  ...
+# Subtest: R21-KV-01: a KV outage must NOT crash the worker (session stays usable)
+ok 236 - R21-KV-01: a KV outage must NOT crash the worker (session stays usable)
+  ---
+  duration_ms: 54.120648
+  type: 'test'
+  ...
+# [octa-mgmt] logout: KV witness write failed
+# Subtest: R21-KV-02: a KV write failure during logout must not 500
+ok 237 - R21-KV-02: a KV write failure during logout must not 500
+  ---
+  duration_ms: 9.584268
+  type: 'test'
+  ...
+# [octa-mgmt] logout: KV witness write failed
+# Subtest: R21-KV-03: with KV down, the in-memory revocation still applies on that instance
+ok 238 - R21-KV-03: with KV down, the in-memory revocation still applies on that instance
+  ---
+  duration_ms: 8.662295
+  type: 'test'
+  ...
+# Subtest: R21-KV-04: stale KV reads must NOT silently accept a revoked session
+ok 239 - R21-KV-04: stale KV reads must NOT silently accept a revoked session
+  ---
+  duration_ms: 11.692422
+  type: 'test'
+  ...
+# Subtest: R21-KV-05: after propagation, the other instance rejects the session
+ok 240 - R21-KV-05: after propagation, the other instance rejects the session
+  ---
+  duration_ms: 7.923924
+  type: 'test'
+  ...
+# Subtest: R21-KV-06: a revoked session must not be re-accepted by reading an old value
+ok 241 - R21-KV-06: a revoked session must not be re-accepted by reading an old value
+  ---
+  duration_ms: 6.549144
+  type: 'test'
+  ...
+# Subtest: R21-KV-07: with a Durable Object the revocation is strongly consistent (no window)
+ok 242 - R21-KV-07: with a Durable Object the revocation is strongly consistent (no window)
+  ---
+  duration_ms: 10.155655
+  type: 'test'
+  ...
+# Subtest: R21-KV-08: /api/health reports whether revocation is strongly consistent
+ok 243 - R21-KV-08: /api/health reports whether revocation is strongly consistent
+  ---
+  duration_ms: 4.306331
+  type: 'test'
+  ...
+# [R23-DO-INT] worker under test: /run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/mgmt/worker.js  (RevokeDO class: present)
+# Subtest: R23-DO-INT-00: the worker under test ships a durable RevokeDO class (strong-consistency source)
+ok 244 - R23-DO-INT-00: the worker under test ships a durable RevokeDO class (strong-consistency source)
+  ---
+  duration_ms: 1.2691
+  type: 'test'
+  ...
+# Subtest: R23-DO-INT-01: a real logout on instance A invalidates the session on instance B immediately, while the KV replica is still stale
+ok 245 - R23-DO-INT-01: a real logout on instance A invalidates the session on instance B immediately, while the KV replica is still stale
+  ---
+  duration_ms: 33.388595
+  type: 'test'
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
+# Subtest: R23-DO-INT-02: a DO failure fails closed — the session is REFUSED, never accepted
+ok 246 - R23-DO-INT-02: a DO failure fails closed — the session is REFUSED, never accepted
+  ---
+  duration_ms: 16.644769
+  type: 'test'
+  ...
+# Subtest: R23-DO-INT-03: the DO is NOT required for correctness today — the KV fallback still revokes across instances
+ok 247 - R23-DO-INT-03: the DO is NOT required for correctness today — the KV fallback still revokes across instances
+  ---
+  duration_ms: 6.720632
+  type: 'test'
+  ...
+# Subtest: R23-DO-INT-04: without the DO the eventually-consistent KV leaves a window in which instance B still accepts the revoked session (the risk the DO removes)
+ok 248 - R23-DO-INT-04: without the DO the eventually-consistent KV leaves a window in which instance B still accepts the revoked session (the risk the DO removes)
+  ---
+  duration_ms: 188.044852
+  type: 'test'
+  ...
+# Subtest: R23-DO-INT-05: the panel shell is gated — no session ⇒ 302 to /login.html, and a revoked session is refused too
+ok 249 - R23-DO-INT-05: the panel shell is gated — no session ⇒ 302 to /login.html, and a revoked session is refused too
+  ---
+  duration_ms: 10.505722
+  type: 'test'
+  ...
+# Subtest: R23-DO-INT-06: /api/health reports revoke_strong only when the DO binding is present
+ok 250 - R23-DO-INT-06: /api/health reports revoke_strong only when the DO binding is present
+  ---
+  duration_ms: 0.947608
+  type: 'test'
+  ...
+# Subtest: R23-E1 · ⛔ فشل الشبكة ⇒ «الشبكة ضعيفة» (مش «الباسورد غلط»)
+ok 251 - R23-E1 · ⛔ فشل الشبكة ⇒ «الشبكة ضعيفة» (مش «الباسورد غلط»)
+  ---
+  duration_ms: 4.736533
+  type: 'test'
+  ...
+# Subtest: R23-E1 · ⛔ PIN غلط ⇒ شاشة «الباسورد غلط» (مش رسالة شبكة)
+ok 252 - R23-E1 · ⛔ PIN غلط ⇒ شاشة «الباسورد غلط» (مش رسالة شبكة)
+  ---
+  duration_ms: 1.074256
+  type: 'test'
+  ...
+# Subtest: R23-E1 · ⛔ البنية نازلة (503) ⇒ رسالة محدّدة (مش «باسورد غلط»)
+ok 253 - R23-E1 · ⛔ البنية نازلة (503) ⇒ رسالة محدّدة (مش «باسورد غلط»)
+  ---
+  duration_ms: 0.650024
+  type: 'test'
+  ...
+# Subtest: R23-E1 · ⛔ خطأ الوجهة (DNS) ⇒ رسالة **مختلفة** عن الشبكة
+ok 254 - R23-E1 · ⛔ خطأ الوجهة (DNS) ⇒ رسالة **مختلفة** عن الشبكة
+  ---
+  duration_ms: 0.610051
+  type: 'test'
+  ...
+# Subtest: R23-E1 · ⛔ خطأ الوجهة (مش رادّة) ⇒ رسالة **مختلفة** عن الشبكة
+ok 255 - R23-E1 · ⛔ خطأ الوجهة (مش رادّة) ⇒ رسالة **مختلفة** عن الشبكة
+  ---
+  duration_ms: 0.790878
+  type: 'test'
+  ...
+# Subtest: R23-E1 · ⛔ المعاينة المقفولة ⇒ رسالة **مختلفة** عن الشبكة
+ok 256 - R23-E1 · ⛔ المعاينة المقفولة ⇒ رسالة **مختلفة** عن الشبكة
+  ---
+  duration_ms: 0.676173
+  type: 'test'
+  ...
+# Subtest: R23-E1 · ⛔ الفصل بين كل الحالات: النصوص مختلفة تماماً
+ok 257 - R23-E1 · ⛔ الفصل بين كل الحالات: النصوص مختلفة تماماً
+  ---
+  duration_ms: 3.492515
+  type: 'test'
+  ...
+# Subtest: R23-E2 · ⛔ فشل الشبكة ⇒ مافيش مسح للجلسة (ولا خصم من المحاولات)
+ok 258 - R23-E2 · ⛔ فشل الشبكة ⇒ مافيش مسح للجلسة (ولا خصم من المحاولات)
+  ---
+  duration_ms: 0.542105
+  type: 'test'
+  ...
+# Subtest: R23-E2 · ⛔ خطأ الوجهة ⇒ برضه مافيش مسح للجلسة
+ok 259 - R23-E2 · ⛔ خطأ الوجهة ⇒ برضه مافيش مسح للجلسة
+  ---
+  duration_ms: 0.731722
+  type: 'test'
+  ...
+# Subtest: R23-E2 · ⛔ السيرفر نازل (5xx) ⇒ التوكن يفضل مكانه
+ok 260 - R23-E2 · ⛔ السيرفر نازل (5xx) ⇒ التوكن يفضل مكانه
+  ---
+  duration_ms: 0.762884
+  type: 'test'
+  ...
+# Subtest: R23-E2 · ⛔ مسار فشل الشبكة (catch) ⇒ مافيش logoutLocal
+ok 261 - R23-E2 · ⛔ مسار فشل الشبكة (catch) ⇒ مافيش logoutLocal
+  ---
+  duration_ms: 0.413582
+  type: 'test'
+  ...
+# Subtest: R23-E3 · ⛔ انتهاء الجلسة ⇒ رسالة «انتهت جلستك» (مختلفة عن PIN غلط)
+ok 262 - R23-E3 · ⛔ انتهاء الجلسة ⇒ رسالة «انتهت جلستك» (مختلفة عن PIN غلط)
+  ---
+  duration_ms: 0.518118
+  type: 'test'
+  ...
+# Subtest: R23-E3 · ⛔ ثلاث حالات الخطأ نصوصها مختلفة (شبكة · PIN · انتهاء جلسة)
+ok 263 - R23-E3 · ⛔ ثلاث حالات الخطأ نصوصها مختلفة (شبكة · PIN · انتهاء جلسة)
+  ---
+  duration_ms: 0.963506
+  type: 'test'
+  ...
+# Subtest: R23-E4 · ⛔ المودال: خطأ الوجهة ⇒ رسالة محدّدة (مش «الاتصال فشل»)
+ok 264 - R23-E4 · ⛔ المودال: خطأ الوجهة ⇒ رسالة محدّدة (مش «الاتصال فشل»)
+  ---
+  duration_ms: 1.749507
+  type: 'test'
+  ...
+# Subtest: R23-E4 · ⛔ المودال: الخطأ العادي بيفضل «حصل خطأ» (ما اتغيّرش)
+ok 265 - R23-E4 · ⛔ المودال: الخطأ العادي بيفضل «حصل خطأ» (ما اتغيّرش)
+  ---
+  duration_ms: 1.416816
+  type: 'test'
+  ...
+# Subtest: R23-F1 · ⛔ المعاينة المقفولة ⇒ مافيش أي نداء API بيخرج
+ok 266 - R23-F1 · ⛔ المعاينة المقفولة ⇒ مافيش أي نداء API بيخرج
+  ---
+  duration_ms: 44.890605
+  type: 'test'
+  ...
+# Subtest: R23-F2 · ⛔ المعاينة + قائمة فيها الإنتاج ⇒ التطبيق ما بيستخدمهاش
+ok 267 - R23-F2 · ⛔ المعاينة + قائمة فيها الإنتاج ⇒ التطبيق ما بيستخدمهاش
+  ---
+  duration_ms: 1.171247
+  type: 'test'
+  ...
+# Subtest: R23-F2 · ⛔ الـfailover ما بيحوّلش للإنتاج
+ok 268 - R23-F2 · ⛔ الـfailover ما بيحوّلش للإنتاج
+  ---
+  duration_ms: 1.039178
+  type: 'test'
+  ...
+# Subtest: R23-F2 · ⛔ حتى بدور Gateway ⇒ ما بيقدرش يعمل طلب للإنتاج
+ok 269 - R23-F2 · ⛔ حتى بدور Gateway ⇒ ما بيقدرش يعمل طلب للإنتاج
+  ---
+  duration_ms: 1.571868
+  type: 'test'
+  ...
+# Subtest: R23-F2 · ⛔ من غير الحارس (لسه بيحمّل) ⇒ شبكة الأمان بتمنع الإنتاج
+ok 270 - R23-F2 · ⛔ من غير الحارس (لسه بيحمّل) ⇒ شبكة الأمان بتمنع الإنتاج
+  ---
+  duration_ms: 0.983582
+  type: 'test'
+  ...
+# Subtest: R23-F3 · ⛔ الإنتاج + failover لوجهة المعاينة ⇒ اتمنع
+ok 271 - R23-F3 · ⛔ الإنتاج + failover لوجهة المعاينة ⇒ اتمنع
+  ---
+  duration_ms: 0.910534
+  type: 'test'
+  ...
+# Subtest: R23-F3 · ⛔ الإنتاج: نداء مباشر لوجهة المعاينة ⇒ اتمنع
+ok 272 - R23-F3 · ⛔ الإنتاج: نداء مباشر لوجهة المعاينة ⇒ اتمنع
+  ---
+  duration_ms: 1.011672
+  type: 'test'
+  ...
+# Subtest: R23-F4 · ⛔ الإنتاج: نداء عادي لنفس الأصل ⇒ يعدّي عادي
+ok 273 - R23-F4 · ⛔ الإنتاج: نداء عادي لنفس الأصل ⇒ يعدّي عادي
+  ---
+  duration_ms: 17.837032
+  type: 'test'
+  ...
+# Subtest: R23-F5 · ⛔ الـfailover بيستشير الحارس قبل ما يبدّل
+ok 274 - R23-F5 · ⛔ الـfailover بيستشير الحارس قبل ما يبدّل
+  ---
+  duration_ms: 0.844236
+  type: 'test'
+  ...
+# Subtest: R23-F5 · ⛔ اختيار السيرفر النشط بيستشير الحارس
+ok 275 - R23-F5 · ⛔ اختيار السيرفر النشط بيستشير الحارس
+  ---
+  duration_ms: 0.732167
+  type: 'test'
+  ...
+# Subtest: R23-F5 · ⛔ الـfailover المباشر (direct) بيستشير الحارس
+ok 276 - R23-F5 · ⛔ الـfailover المباشر (direct) بيستشير الحارس
+  ---
+  duration_ms: 0.374532
+  type: 'test'
+  ...
+# Subtest: R23-G1 · وضع المعاينة: أي دومين غير الإنتاج = معاينة
+ok 277 - R23-G1 · وضع المعاينة: أي دومين غير الإنتاج = معاينة
+  ---
+  duration_ms: 2.213068
+  type: 'test'
+  ...
+# Subtest: R23-G1 · وضع الإنتاج: دومين OCTA الحقيقي
+ok 278 - R23-G1 · وضع الإنتاج: دومين OCTA الحقيقي
+  ---
+  duration_ms: 0.340804
+  type: 'test'
+  ...
+# Subtest: R23-G1 · الوضع الصريح بيتقدّم على الكشف من الدومين
+ok 279 - R23-G1 · الوضع الصريح بيتقدّم على الكشف من الدومين
+  ---
+  duration_ms: 2.13277
+  type: 'test'
+  ...
+# Subtest: R23-G2 · ⛔ المعاينة + وجهة إنتاج ⇒ مرفوض (مش ارتجاع صامت)
+ok 280 - R23-G2 · ⛔ المعاينة + وجهة إنتاج ⇒ مرفوض (مش ارتجاع صامت)
+  ---
+  duration_ms: 1.047251
+  type: 'test'
+  ...
+# Subtest: R23-G2 · ⛔ المعاينة + وجهة الإنتاج المدسوسة في العقدة ⇒ مرفوض
+ok 281 - R23-G2 · ⛔ المعاينة + وجهة الإنتاج المدسوسة في العقدة ⇒ مرفوض
+  ---
+  duration_ms: 0.360028
+  type: 'test'
+  ...
+# Subtest: R23-G2 · ⛔ المعاينة + subrange من الإنتاج ⇒ مرفوض برضه
+ok 282 - R23-G2 · ⛔ المعاينة + subrange من الإنتاج ⇒ مرفوض برضه
+  ---
+  duration_ms: 0.262103
+  type: 'test'
+  ...
+# Subtest: R23-G2 · المعاينة + وجهة منفصلة ⇒ مسموحة
+ok 283 - R23-G2 · المعاينة + وجهة منفصلة ⇒ مسموحة
+  ---
+  duration_ms: 0.51074
+  type: 'test'
+  ...
+# Subtest: R23-G3 · ⛔ الإنتاج + وجهة المعاينة ⇒ مرفوض
+ok 284 - R23-G3 · ⛔ الإنتاج + وجهة المعاينة ⇒ مرفوض
+  ---
+  duration_ms: 0.31888
+  type: 'test'
+  ...
+# Subtest: R23-G3 · الإنتاج + نفس الأصل (الـworker) ⇒ مسموح
+ok 285 - R23-G3 · الإنتاج + نفس الأصل (الـworker) ⇒ مسموح
+  ---
+  duration_ms: 0.713485
+  type: 'test'
+  ...
+# Subtest: R23-G3 · الإنتاج + وجهة الإنتاج ⇒ مسموحة
+ok 286 - R23-G3 · الإنتاج + وجهة الإنتاج ⇒ مسموحة
+  ---
+  duration_ms: 0.841435
+  type: 'test'
+  ...
+# Subtest: R23-G4 · ⛔ المعاينة من غير عقدة ⇒ fail closed
+ok 287 - R23-G4 · ⛔ المعاينة من غير عقدة ⇒ fail closed
+  ---
+  duration_ms: 0.355087
+  type: 'test'
+  ...
+# Subtest: R23-G4 · ⛔ المعاينة من غير وجهة ⇒ fail closed
+not ok 288 - R23-G4 · ⛔ المعاينة من غير وجهة ⇒ fail closed
+  ---
+  duration_ms: 1.437924
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-origin-guard.test.js:130:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-origin-guard.test.js:135:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R23-G4 · ⛔ عقدة بلا وجهة مثبّتة ⇔ وجهة من العامل مقبولة
+ok 289 - R23-G4 · ⛔ عقدة بلا وجهة مثبّتة ⇔ وجهة من العامل مقبولة
+  ---
+  duration_ms: 0.296262
+  type: 'test'
+  ...
+# Subtest: R23-G4 · ⛔ تعارض بين العامل والعقدة ⇒ fail closed
+ok 290 - R23-G4 · ⛔ تعارض بين العامل والعقدة ⇒ fail closed
+  ---
+  duration_ms: 0.316529
+  type: 'test'
+  ...
+# Subtest: R23-G4 · ⛔ نفق مؤقت ⇒ مرفوض (النفق ده السبب الحقيقي للـ530)
+ok 291 - R23-G4 · ⛔ نفق مؤقت ⇒ مرفوض (النفق ده السبب الحقيقي للـ530)
+  ---
+  duration_ms: 0.23215
+  type: 'test'
+  ...
+# Subtest: R23-G4 · نفق مؤقت مرفوض في الإنتاج برضه
+ok 292 - R23-G4 · نفق مؤقت مرفوض في الإنتاج برضه
+  ---
+  duration_ms: 0.324458
+  type: 'test'
+  ...
+# Subtest: R23-G5 · 🩺 DNS مش موجود (NXDOMAIN) ⇒ «خطأ DNS» مش 530 عام
+ok 293 - R23-G5 · 🩺 DNS مش موجود (NXDOMAIN) ⇒ «خطأ DNS» مش 530 عام
+  ---
+  duration_ms: 0.438882
+  type: 'test'
+  ...
+# Subtest: R23-G5 · 🩺 /api/health مش رادٍ ⇒ «الوجهة مش موصولة»
+ok 294 - R23-G5 · 🩺 /api/health مش رادٍ ⇒ «الوجهة مش موصولة»
+  ---
+  duration_ms: 0.365332
+  type: 'test'
+  ...
+# Subtest: R23-G5 · 🩺 الوجهة سليمة ⇒ ok
+ok 295 - R23-G5 · 🩺 الوجهة سليمة ⇒ ok
+  ---
+  duration_ms: 0.300756
+  type: 'test'
+  ...
+# Subtest: R23-G5 · 🩺 مفيش وجهة ⇒ origin_missing (مش صمت)
+ok 296 - R23-G5 · 🩺 مفيش وجهة ⇒ origin_missing (مش صمت)
+  ---
+  duration_ms: 0.207565
+  type: 'test'
+  ...
+# Subtest: R23-G6 · الحارس: في المعاينة ⇒ أي نداء لوجهة إنتاج مرفوض
+ok 297 - R23-G6 · الحارس: في المعاينة ⇒ أي نداء لوجهة إنتاج مرفوض
+  ---
+  duration_ms: 0.570744
+  type: 'test'
+  ...
+# Subtest: R23-G6 · الحارس: في المعاينة ⇒ نداءات نفس الأصل مسموحة
+ok 298 - R23-G6 · الحارس: في المعاينة ⇒ نداءات نفس الأصل مسموحة
+  ---
+  duration_ms: 0.279652
+  type: 'test'
+  ...
+# Subtest: R23-G6 · الحارس: المعاينة المقفولة ⇒ كل نداء API مرفوض
+ok 299 - R23-G6 · الحارس: المعاينة المقفولة ⇒ كل نداء API مرفوض
+  ---
+  duration_ms: 0.227108
+  type: 'test'
+  ...
+# Subtest: R23-G6 · الحارس: في الإنتاج ⇒ نداء وجهة المعاينة مرفوض
+ok 300 - R23-G6 · الحارس: في الإنتاج ⇒ نداء وجهة المعاينة مرفوض
+  ---
+  duration_ms: 0.287578
+  type: 'test'
+  ...
+# Subtest: R23-G7 · فشل عادي ⇒ «شبكة» (مش خطأ وجهة)
+ok 301 - R23-G7 · فشل عادي ⇒ «شبكة» (مش خطأ وجهة)
+  ---
+  duration_ms: 0.235971
+  type: 'test'
+  ...
+# Subtest: R23-G7 · رفض الحارس ⇒ كود الحارس نفسه
+ok 302 - R23-G7 · رفض الحارس ⇒ كود الحارس نفسه
+  ---
+  duration_ms: 0.190961
+  type: 'test'
+  ...
+# Subtest: R23-G7 · فحص فاشل ⇒ كود الفحص (DNS/مش رادّة) مش «شبكة»
+ok 303 - R23-G7 · فحص فاشل ⇒ كود الفحص (DNS/مش رادّة) مش «شبكة»
+  ---
+  duration_ms: 0.177978
+  type: 'test'
+  ...
+# Subtest: R23-G7 · فحص سليم + فشل شبكة ⇒ «شبكة» (مش خطأ وجهة)
+ok 304 - R23-G7 · فحص سليم + فشل شبكة ⇒ «شبكة» (مش خطأ وجهة)
+  ---
+  duration_ms: 0.189757
+  type: 'test'
+  ...
+# Subtest: R23-G8 · العقدة موجودة وصحيحة
+ok 305 - R23-G8 · العقدة موجودة وصحيحة
+  ---
+  duration_ms: 0.198525
+  type: 'test'
+  ...
+# Subtest: R23-G8 · ⛔ وجهة المعاينة في العقدة ما ينفعش تكون إنتاج ولا نفق
+ok 306 - R23-G8 · ⛔ وجهة المعاينة في العقدة ما ينفعش تكون إنتاج ولا نفق
+  ---
+  duration_ms: 0.228062
+  type: 'test'
+  ...
+# Subtest: R23-G8 · ⛔ كل مضيفات الإنتاج متسجّلة في العقدة وفي الحارس
+ok 307 - R23-G8 · ⛔ كل مضيفات الإنتاج متسجّلة في العقدة وفي الحارس
+  ---
+  duration_ms: 0.223978
+  type: 'test'
+  ...
+# Subtest: R23-G9 · ⛔ قائمة مضيفات الإنتاج في octa-api.js = قائمة الحارس
+ok 308 - R23-G9 · ⛔ قائمة مضيفات الإنتاج في octa-api.js = قائمة الحارس
+  ---
+  duration_ms: 1.350558
+  type: 'test'
+  ...
+# Subtest: R23-G10 · قواميس البوابة = قواميس الحارس (نفس الأكواد)
+ok 309 - R23-G10 · قواميس البوابة = قواميس الحارس (نفس الأكواد)
+  ---
+  duration_ms: 0.516971
+  type: 'test'
+  ...
+# Subtest: R23-G10 · ⛔ مفيش «...» نصّي في ملفات الرحلة (قاعدة نظافة المستودع)
+ok 310 - R23-G10 · ⛔ مفيش «...» نصّي في ملفات الرحلة (قاعدة نظافة المستودع)
+  ---
+  duration_ms: 20.127596
+  type: 'test'
+  ...
+# Subtest: R23-01: كل صيغ مسار لقطة الفرص ⇒ 404 (المقاسة حيًّا ⭐)
+not ok 311 - R23-01: كل صيغ مسار لقطة الفرص ⇒ 404 (المقاسة حيًّا ⭐)
+  ---
+  duration_ms: 4.229544
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:112:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:51:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:113:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: R23-02: كل صيغ مسار لقطة Alpha ⇒ 404
+not ok 312 - R23-02: كل صيغ مسار لقطة Alpha ⇒ 404
+  ---
+  duration_ms: 2.926456
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:120:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:51:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:121:13)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: R23-03: ⭐⭐ برهان سالب ⭐⭐ — الدالة القديمة (مطابقة تامة) بتتجاوز ⭐
+not ok 313 - R23-03: ⭐⭐ برهان سالب ⭐⭐ — الدالة القديمة (مطابقة تامة) بتتجاوز ⭐
+  ---
+  duration_ms: 5.310043
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:128:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:51:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:141:15)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: R23-04: المسارات السليمة تفضل شغالة ⭐ (بلوك أضيق ⭐ مش بلوك عام ⭐)
+not ok 314 - R23-04: المسارات السليمة تفضل شغالة ⭐ (بلوك أضيق ⭐ مش بلوك عام ⭐)
+  ---
+  duration_ms: 2.416544
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:149:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot use import statement outside a module'
+  code: 'ERR_TEST_FAILURE'
+  name: 'SyntaxError'
+  stack: |-
+    new Function (<anonymous>)
+    makeWorker (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:51:14)
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r23-snapshot-path-normalization.test.js:151:15)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: false }
+# Subtest: R24-I04-01: a broken revocation write must NOT produce a false success
+ok 315 - R24-I04-01: a broken revocation write must NOT produce a false success
+  ---
+  duration_ms: 49.90296
+  type: 'test'
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: false }
+# Subtest: R24-I04-02: after a failed revocation write the session is REFUSED anyway
+ok 316 - R24-I04-02: after a failed revocation write the session is REFUSED anyway
+  ---
+  duration_ms: 22.26193
+  type: 'test'
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: false }
+# Subtest: R24-I04-03: a SILENT revocation write failure is also not a success
+ok 317 - R24-I04-03: a SILENT revocation write failure is also not a success
+  ---
+  duration_ms: 8.429094
+  type: 'test'
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
+# Subtest: R24-I04-04: when the authoritative DO fails, a KV witness success is NOT a success
+ok 318 - R24-I04-04: when the authoritative DO fails, a KV witness success is NOT a success
+  ---
+  duration_ms: 17.332633
+  type: 'test'
+  ...
+# Subtest: R24-I04-05: a successful DO revocation is a real success
+ok 319 - R24-I04-05: a successful DO revocation is a real success
+  ---
+  duration_ms: 6.23327
+  type: 'test'
+  ...
+# Subtest: R24-I04-06: a logout without a session is not a false failure
+ok 320 - R24-I04-06: a logout without a session is not a false failure
+  ---
+  duration_ms: 2.537903
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# Subtest: R24-I04-07: without a shared store the logout is fail-closed in production, memory-mode outside it
+ok 321 - R24-I04-07: without a shared store the logout is fail-closed in production, memory-mode outside it
+  ---
+  duration_ms: 11.118202
+  type: 'test'
+  ...
+# Subtest: R24-I05-01: the KV marker TTL covers the remaining session lifetime + margin
+ok 322 - R24-I05-01: the KV marker TTL covers the remaining session lifetime + margin
+  ---
+  duration_ms: 63.33996
+  type: 'test'
+  ...
+# Subtest: R24-I05-02: an hour later the marker must still be there (no fail-open)
+ok 323 - R24-I05-02: an hour later the marker must still be there (no fail-open)
+  ---
+  duration_ms: 13.708843
+  type: 'test'
+  ...
+# Subtest: R24-I05-03: the Durable Object marker carries an expiration (session end + margin)
+ok 324 - R24-I05-03: the Durable Object marker carries an expiration (session end + margin)
+  ---
+  duration_ms: 3.903863
+  type: 'test'
+  ...
+# Subtest: R24-I05-04: an unknown revocation state fails closed (the session is REFUSED)
+ok 325 - R24-I05-04: an unknown revocation state fails closed (the session is REFUSED)
+  ---
+  duration_ms: 7.135684
+  type: 'test'
+  ...
+# Subtest: R24-I05-05: the DO path still revokes instantly across instances
+ok 326 - R24-I05-05: the DO path still revokes instantly across instances
+  ---
+  duration_ms: 17.329951
+  type: 'test'
+  ...
+# Subtest: R24-I06-01: a FORGED cookie never reaches the storage (zero calls)
+ok 327 - R24-I06-01: a FORGED cookie never reaches the storage (zero calls)
+  ---
+  duration_ms: 60.111176
+  type: 'test'
+  ...
+# Subtest: R24-I06-02: an EXPIRED cookie never reaches the storage (zero calls)
+ok 328 - R24-I06-02: an EXPIRED cookie never reaches the storage (zero calls)
+  ---
+  duration_ms: 5.393151
+  type: 'test'
+  ...
+# Subtest: R24-I06-03: a MALFORMED cookie never reaches the storage (zero calls)
+ok 329 - R24-I06-03: a MALFORMED cookie never reaches the storage (zero calls)
+  ---
+  duration_ms: 5.095783
+  type: 'test'
+  ...
+# Subtest: R24-I06-04: a valid cookie hits the DO first, then the KV witness
+ok 330 - R24-I06-04: a valid cookie hits the DO first, then the KV witness
+  ---
+  duration_ms: 13.019609
+  type: 'test'
+  ...
+# Subtest: R24-I06-05: without the DO the KV witness is the only call
+ok 331 - R24-I06-05: without the DO the KV witness is the only call
+  ---
+  duration_ms: 5.199782
+  type: 'test'
+  ...
+# Subtest: R24-I06-06: a forged cookie is refused on a protected API too
+ok 332 - R24-I06-06: a forged cookie is refused on a protected API too
+  ---
+  duration_ms: 32.989726
+  type: 'test'
+  ...
+# Subtest: R25-LOGIN-01: every login path is served without a session
+ok 333 - R25-LOGIN-01: every login path is served without a session
+  ---
+  duration_ms: 45.272044
+  type: 'test'
+  ...
+# Subtest: R25-LOGIN-02: the redirect target of a protected page is itself public
+ok 334 - R25-LOGIN-02: the redirect target of a protected page is itself public
+  ---
+  duration_ms: 4.486164
+  type: 'test'
+  ...
+# Subtest: R25-LOGIN-03: the assets config must not redirect the login page
+ok 335 - R25-LOGIN-03: the assets config must not redirect the login page
+  ---
+  duration_ms: 16.685231
+  type: 'test'
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
+# Subtest: R25-I09-01: a failed Durable Object write must NOT be masked by a KV success
+ok 336 - R25-I09-01: a failed Durable Object write must NOT be masked by a KV success
+  ---
+  duration_ms: 66.235896
+  type: 'test'
+  ...
+# Subtest: R25-I09-02: when the authoritative source confirms, the logout succeeds
+ok 337 - R25-I09-02: when the authoritative source confirms, the logout succeeds
+  ---
+  duration_ms: 21.866581
+  type: 'test'
+  ...
+# Subtest: R25-I09-03: a KV-only success must never claim immediate revocation
+ok 338 - R25-I09-03: a KV-only success must never claim immediate revocation
+  ---
+  duration_ms: 19.544381
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# [octa-mgmt] logout: no shared revocation source (production)
+# Subtest: R25-I10-01: in production with no shared revocation source it must fail closed
+ok 339 - R25-I10-01: in production with no shared revocation source it must fail closed
+  ---
+  duration_ms: 36.909109
+  type: 'test'
+  ...
+# Subtest: R25-I10-02: outside production the single-instance behaviour is kept and documented
+ok 340 - R25-I10-02: outside production the single-instance behaviour is kept and documented
+  ---
+  duration_ms: 58.306538
+  type: 'test'
+  ...
+# Subtest: R25-I10-03: the production config must declare APP_ENV=production (fail-closed guard)
+ok 341 - R25-I10-03: the production config must declare APP_ENV=production (fail-closed guard)
+  ---
+  duration_ms: 2.149884
+  type: 'test'
+  ...
+# [octa-mgmt] logout: cookie rejected before storage { reason: 'signature' }
+# Subtest: R25-I11-01: a FORGED cookie must never reach the Durable Object or the KV
+ok 342 - R25-I11-01: a FORGED cookie must never reach the Durable Object or the KV
+  ---
+  duration_ms: 28.184234
+  type: 'test'
+  ...
+# [octa-mgmt] logout: cookie rejected before storage { reason: 'shape' }
+# Subtest: R25-I11-02: an EXPIRED cookie must not consume Durable Object or KV resources
+ok 343 - R25-I11-02: an EXPIRED cookie must not consume Durable Object or KV resources
+  ---
+  duration_ms: 3.979479
+  type: 'test'
+  ...
+# Subtest: R25-I11-03: a MALFORMED cookie must not reach the storage
+ok 344 - R25-I11-03: a MALFORMED cookie must not reach the storage
+  ---
+  duration_ms: 4.740087
+  type: 'test'
+  ...
+# Subtest: R25-I11-04: a VALID cookie still revokes through the shared store
+ok 345 - R25-I11-04: a VALID cookie still revokes through the shared store
+  ---
+  duration_ms: 10.503511
+  type: 'test'
+  ...
+# [octa-mgmt] logout: cookie rejected before storage { reason: 'signature' }
+# Subtest: R25-I11-05: the cookie must always be cleared, even on a rejected one
+ok 346 - R25-I11-05: the cookie must always be cleared, even on a rejected one
+  ---
+  duration_ms: 14.560845
+  type: 'test'
+  ...
+# Subtest: R25-PV-01 · المعاينة المعزولة: /api/health محلي وبيقول مصدره بصراحة
+not ok 347 - R25-PV-01 · المعاينة المعزولة: /api/health محلي وبيقول مصدره بصراحة
+  ---
+  duration_ms: 47.15294
+  type: 'test'
+  location: '/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r25-preview-isolated.test.js:73:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    local preview health must be 200
+    
+    500 !== 200
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 200
+  actual: 500
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/assets/tests/r25-preview-isolated.test.js:77:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: R25-PV-02 · ⛔ الإنتاج ما يتغيّرش: من غير متغيّر الوضع ⇒ الفحص يفضل من الـproxy
+ok 348 - R25-PV-02 · ⛔ الإنتاج ما يتغيّرش: من غير متغيّر الوضع ⇒ الفحص يفضل من الـproxy
+  ---
+  duration_ms: 29.165791
+  type: 'test'
+  ...
+# Subtest: R25-PV-03 · المسارات التانية مش بتتردّ بالفحص المحلي
+ok 349 - R25-PV-03 · المسارات التانية مش بتتردّ بالفحص المحلي
+  ---
+  duration_ms: 4.767356
+  type: 'test'
+  ...
+# Subtest: R25-PV-04 · ⭐ عقد المعاينة: وجهة ثابتة ⭐ مش نفق ⭐ ومش الإنتاج
+ok 350 - R25-PV-04 · ⭐ عقد المعاينة: وجهة ثابتة ⭐ مش نفق ⭐ ومش الإنتاج
+  ---
+  duration_ms: 1.799081
+  type: 'test'
+  ...
+# Subtest: R25-PV-05 · متغيّر وضع المعاينة موجود في إعدادات المعاينة ومش في الإنتاج
+ok 351 - R25-PV-05 · متغيّر وضع المعاينة موجود في إعدادات المعاينة ومش في الإنتاج
+  ---
+  duration_ms: 2.884204
+  type: 'test'
+  ...
+# Subtest: R25-PV-06 · ⭐⭐ البرهان السالب ⭐: شيل الكتبة ⇔ الرد المحلي يختفي
+ok 352 - R25-PV-06 · ⭐⭐ البرهان السالب ⭐: شيل الكتبة ⇔ الرد المحلي يختفي
+  ---
+  duration_ms: 12.418696
+  type: 'test'
+  ...
+# Subtest: R25-PV-07 · ⭐⭐ البرهان السالب ⭐: الأساس (الرج قبل المرحلة ⭐) مفيش المود المحلي
+ok 353 - R25-PV-07 · ⭐⭐ البرهان السالب ⭐: الأساس (الرج قبل المرحلة ⭐) مفيش المود المحلي
+  ---
+  duration_ms: 83.513913
+  type: 'test'
+  ...
+# Subtest: R26-KV-01 · مساحة إبطال جلسات الأدمن ⛔ مختلفة ⭐ عن مساحة كاش السوق
+ok 354 - R26-KV-01 · مساحة إبطال جلسات الأدمن ⛔ مختلفة ⭐ عن مساحة كاش السوق
+  ---
+  duration_ms: 1.041962
+  type: 'test'
+  ...
+# Subtest: R26-KV-02 · مساحة الإبطال ⭐ هي المخصّصة ⭐ (octa-session-revocation)
+ok 355 - R26-KV-02 · مساحة الإبطال ⭐ هي المخصّصة ⭐ (octa-session-revocation)
+  ---
+  duration_ms: 0.365181
+  type: 'test'
+  ...
+# Subtest: R26-KV-03 · عاملو الموقع ⛔ ما يربطوش ⭐ REVOKE_KV ⭐ (مفيش امتياز زيادة ⭐)
+ok 356 - R26-KV-03 · عاملو الموقع ⛔ ما يربطوش ⭐ REVOKE_KV ⭐ (مفيش امتياز زيادة ⭐)
+  ---
+  duration_ms: 0.258743
+  type: 'test'
+  ...
+# Subtest: R26-KV-04 · لوحة الأدمن تعلن APP_ENV=production ⭐ (fail-closed ⭐)
+ok 357 - R26-KV-04 · لوحة الأدمن تعلن APP_ENV=production ⭐ (fail-closed ⭐)
+  ---
+  duration_ms: 0.232653
+  type: 'test'
+  ...
+# Subtest: R26-KV-05 · لوحة الأدمن مربوطة بالـDO ⭐ + الـmigration ⭐ (المرجع القوي ⭐)
+ok 358 - R26-KV-05 · لوحة الأدمن مربوطة بالـDO ⭐ + الـmigration ⭐ (المرجع القوي ⭐)
+  ---
+  duration_ms: 0.315503
+  type: 'test'
+  ...
+# Subtest: R26-KV-06 · كاش السوق ⭐ مشترك ⭐ بين المعاينة والإنتاج ⭐ (قرار مقصود ⭐)
+ok 359 - R26-KV-06 · كاش السوق ⭐ مشترك ⭐ بين المعاينة والإنتاج ⭐ (قرار مقصود ⭐)
+  ---
+  duration_ms: 0.224075
+  type: 'test'
+  ...
+# Subtest: R26-KV-07 · مفاتيح الإبطال ⭐ namespace منفصل ⭐ ⇒ ⭐ مافيش خلط ⭐
+ok 360 - R26-KV-07 · مفاتيح الإبطال ⭐ namespace منفصل ⭐ ⇒ ⭐ مافيش خلط ⭐
+  ---
+  duration_ms: 1.697409
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# Subtest: R26-S-01: in production with no Durable Object the login must fail closed
+ok 361 - R26-S-01: in production with no Durable Object the login must fail closed
+  ---
+  duration_ms: 55.739835
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# Subtest: R26-S-02: a KV alone must not be enough to issue or accept a session in production
+ok 362 - R26-S-02: a KV alone must not be enough to issue or accept a session in production
+  ---
+  duration_ms: 7.503885
+  type: 'test'
+  ...
+# Subtest: R26-S-03: in production with the Durable Object the login succeeds
+ok 363 - R26-S-03: in production with the Durable Object the login succeeds
+  ---
+  duration_ms: 5.898551
+  type: 'test'
+  ...
+# [octa-mgmt] login: revocation source not ready { production: true }
+# [octa-mgmt] login: revocation source not ready { production: true }
+# [octa-mgmt] login: revocation source not ready { production: true }
+# [octa-mgmt] login: revocation source not ready { production: true }
+# [octa-mgmt] login: revocation source not ready { production: true }
+# [octa-mgmt] login: revocation source not ready { production: true }
+# Subtest: R26-S-04: an UNKNOWN environment must be treated as production (fail closed)
+ok 364 - R26-S-04: an UNKNOWN environment must be treated as production (fail closed)
+  ---
+  duration_ms: 11.043441
+  type: 'test'
+  ...
+# [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
+# Subtest: R26-S-05: a failed Durable Object write is never masked by a KV success
+ok 365 - R26-S-05: a failed Durable Object write is never masked by a KV success
+  ---
+  duration_ms: 7.242924
+  type: 'test'
+  ...
+# Subtest: R26-S-06: when the Durable Object confirms, the logout succeeds even if the KV fails
+ok 366 - R26-S-06: when the Durable Object confirms, the logout succeeds even if the KV fails
+  ---
+  duration_ms: 5.837847
+  type: 'test'
+  ...
+# [octa-mgmt] logout: no shared revocation source (production)
+# Subtest: R26-S-07: with both stores missing in production the logout fails closed
+ok 367 - R26-S-07: with both stores missing in production the logout fails closed
+  ---
+  duration_ms: 4.787504
+  type: 'test'
+  ...
+# Subtest: R26-S-08: a Durable Object READ failure must not accept the session
+ok 368 - R26-S-08: a Durable Object READ failure must not accept the session
+  ---
+  duration_ms: 5.211732
+  type: 'test'
+  ...
+# Subtest: R26-S-09: changing the password invalidates the existing sessions
+ok 369 - R26-S-09: changing the password invalidates the existing sessions
+  ---
+  duration_ms: 6.665129
+  type: 'test'
+  ...
+# Subtest: R26-S-10: rotating SESSION_SECRET invalidates the existing sessions
+ok 370 - R26-S-10: rotating SESSION_SECRET invalidates the existing sessions
+  ---
+  duration_ms: 6.043798
+  type: 'test'
+  ...
+# Subtest: R26-S-11: after a Worker restart the revocation is still visible (the DO is the reference)
+ok 371 - R26-S-11: after a Worker restart the revocation is still visible (the DO is the reference)
+  ---
+  duration_ms: 13.911495
+  type: 'test'
+  ...
+# Subtest: R26-S-12: reusing an old session after the logout must fail
+ok 372 - R26-S-12: reusing an old session after the logout must fail
+  ---
+  duration_ms: 7.499034
+  type: 'test'
+  ...
+# Subtest: R26-S-13: concurrent session checks must agree (no mixed answers)
+ok 373 - R26-S-13: concurrent session checks must agree (no mixed answers)
+  ---
+  duration_ms: 24.432751
+  type: 'test'
+  ...
+# Subtest: R26-S-14: a logout during the renewal window must not resurrect the session
+ok 374 - R26-S-14: a logout during the renewal window must not resurrect the session
+  ---
+  duration_ms: 6.108514
+  type: 'test'
+  ...
+# Subtest: R26-S-15: a cross-site logout must be refused with zero storage calls
+ok 375 - R26-S-15: a cross-site logout must be refused with zero storage calls
+  ---
+  duration_ms: 3.549132
+  type: 'test'
+  ...
+# Subtest: R26-S-16: a cross-site Origin on the logout must be refused
+ok 376 - R26-S-16: a cross-site Origin on the logout must be refused
+  ---
+  duration_ms: 4.077198
+  type: 'test'
+  ...
+# Subtest: R26-S-17: a same-origin logout must still work
+ok 377 - R26-S-17: a same-origin logout must still work
+  ---
+  duration_ms: 8.046506
+  type: 'test'
+  ...
+# Subtest: R26-S-18: the interface worker logout must refuse a cross-site request
+ok 378 - R26-S-18: the interface worker logout must refuse a cross-site request
+  ---
+  duration_ms: 10.669798
+  type: 'test'
+  ...
+# [octa-mgmt] logout: cookie rejected before storage { reason: 'signature' }
+# Subtest: R26-S-19: a forged cookie must not reach the storage and must be refused
+ok 379 - R26-S-19: a forged cookie must not reach the storage and must be refused
+  ---
+  duration_ms: 3.407242
+  type: 'test'
+  ...
+# Subtest: R26-S-20: an expired cookie must not reach the storage
+ok 380 - R26-S-20: an expired cookie must not reach the storage
+  ---
+  duration_ms: 3.40501
+  type: 'test'
+  ...
+# Subtest: R26-S-21: /api/health reports revocation_ready=false in production without the Durable Object
+ok 381 - R26-S-21: /api/health reports revocation_ready=false in production without the Durable Object
+  ---
+  duration_ms: 2.044056
+  type: 'test'
+  ...
+# Subtest: R26-S-22: /api/health reports revocation_ready=true when the Durable Object is bound
+ok 382 - R26-S-22: /api/health reports revocation_ready=true when the Durable Object is bound
+  ---
+  duration_ms: 1.831047
+  type: 'test'
+  ...
+# Subtest: R26-S-23: in production a KV-only session is REFUSED even though the KV says "not revoked"
+ok 383 - R26-S-23: in production a KV-only session is REFUSED even though the KV says "not revoked"
+  ---
+  duration_ms: 3.901047
+  type: 'test'
+  ...
+# Subtest: R26-S-24: outside production the KV-only session is accepted (the preview mode is unchanged)
+ok 384 - R26-S-24: outside production the KV-only session is accepted (the preview mode is unchanged)
+  ---
+  duration_ms: 3.006709
+  type: 'test'
+  ...
+# Subtest: R26 · المقاسات المعتمدة (١٣): تجاوز · تداخل · قص · لمس · تباين · ARIA
+ok 385 - R26 · المقاسات المعتمدة (١٣): تجاوز · تداخل · قص · لمس · تباين · ARIA
+  ---
+  duration_ms: 283490.233012
+  type: 'test'
+  ...
+# Subtest: R26 · لوحة المفاتيح: ترتيب منطقي + تركيز مرئي + Escape
+ok 386 - R26 · لوحة المفاتيح: ترتيب منطقي + تركيز مرئي + Escape
+  ---
+  duration_ms: 23524.027518
+  type: 'test'
+  ...
+# Subtest: R26 · الأداء: LCP وزمن التحميل على ١٣ مقاساً
+ok 387 - R26 · الأداء: LCP وزمن التحميل على ١٣ مقاساً
+  ---
+  duration_ms: 92921.965504
+  type: 'test'
+  ...
+# Subtest: R26 · الأداء: شبكة بطيئة (Fast 3G) — LCP وزمن التفاعل
+ok 388 - R26 · الأداء: شبكة بطيئة (Fast 3G) — LCP وزمن التفاعل
+  ---
+  duration_ms: 15384.88718
+  type: 'test'
+  ...
+# Subtest: R26 · تسجيل الدخول: السرعة من أول ضغطة لحد فتح التطبيق
+ok 389 - R26 · تسجيل الدخول: السرعة من أول ضغطة لحد فتح التطبيق
+  ---
+  duration_ms: 3633.212145
+  type: 'test'
+  ...
+# Subtest: R26 · ١٠٠ طلب متوازي: الردود صحيحة المحتوى
+ok 390 - R26 · ١٠٠ طلب متوازي: الردود صحيحة المحتوى
+  ---
+  duration_ms: 1023.521802
+  type: 'test'
+  ...
+# Subtest: R26 · ثبات الذاكرة: RSS بعد ٣٠٠ طلب
+ok 391 - R26 · ثبات الذاكرة: RSS بعد ٣٠٠ طلب
+  ---
+  duration_ms: 928.697854
+  type: 'test'
+  ...
+# Subtest: R26 · البرهان: طلب التحقق من الجلسة بيوصل /api/auth/me (مش عنوان غلط)
+ok 392 - R26 · البرهان: طلب التحقق من الجلسة بيوصل /api/auth/me (مش عنوان غلط)
+  ---
+  duration_ms: 8329.15516
+  type: 'test'
+  ...
