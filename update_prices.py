@@ -7707,6 +7707,37 @@ def peg_score(pe, growth_pct):
     return pts, v
 
 
+def _raw_ratio_bad(raw):
+    """⛔ المضاعف (P/E · P/B) **موجود بس مش صالح** ⇒ True ⭐.
+
+    🛡️🛡️ الجولة ٢٦ (R26 · المتطلب ١) — ⛔ تلات حالات مختلفة ⭐:
+       ① `missing` ⇒ الحقل غايب ⭐ · نص زي "N/A" ⭐ ⇒ **مش بيانات** ⭐
+          (مش حالة سيئة ⭐ ⋆ مش بيانات موجودة ⭐).
+       ② `bad` ⇒ رقم موجود ⭐ بس سالب/صفر ⭐ · NaN ⭐ · ±Inf ⭐
+          ⇒ ⛔ **أسوأ نطاق** ⭐.
+       ③ `ok` ⇒ رقم موجب صالح ⭐.
+    📌 الفرق بين ① و② مهم ⭐: «مش معروف» ≠ «معروف وبيحكي معلومة سيئة» ⭐.
+    """
+    if raw is None or isinstance(raw, bool):
+        return False
+    if isinstance(raw, str):
+        s = raw.strip()
+        if not s:
+            return False
+        try:
+            f = float(s)
+        except (TypeError, ValueError):
+            return False          # "N/A" · نص ⇒ مش بيانات
+    else:
+        try:
+            f = float(raw)
+        except (TypeError, ValueError):
+            return False
+    if f != f or f in (float("inf"), float("-inf")):
+        return True               # NaN/Inf ⇒ غير صالح
+    return f <= 0                 # سالب/صفر ⇒ غير صالح
+
+
 def fundamental_score(item, peers_map=None):
     """بيانات الشركة → نتيجة 0-100 + حالة تقييم + قيمة عادلة"""
     if not item: return None
@@ -7829,6 +7860,12 @@ def fundamental_score(item, peers_map=None):
         total = round(max(0, min(100, prof_s + val_s + health_s + conf_s)), 1)
 
     # حالة التقييم
+    # 🛡️🛡️ الجولة ٢٦ (R26 · المتطلب ١) — ⛔ **أسوأ نطاق + تسمية صادقة** ⭐
+    # 📌 العيب المقاس ⭐: `P <= 0` (شركة خاسرة ⭐) كان بياخد نفس تسمية
+    #    «بيانات ناقصة» ⭐ ⇒ المستخدم بيقرأ إن **البيانات مش موجودة** ⭐
+    #    واللي فعلي إن الشركة **خاسرة** ⭐ (أسوأ نطاق ⭐).
+    # 📌 التسمية الجديدة ⭐: منفصلة بين «مش موجود» ⭐ و«موجود بس
+    #    مش صالح» ⭐ — زي قاعدة «المفقود ≠ الصفر» ⭐.
     if P is not None and P > 0:
         if ppe:
             ratio = P / ppe
@@ -7837,6 +7874,9 @@ def fundamental_score(item, peers_map=None):
         else:
             vs = "مُسعّر بأقل من قيمته" if P < 12 else \
                  ("مُسعّر بشكل عادل" if P < 25 else "مُسعّر بأعلى من قيمته")
+    elif _raw_ratio_bad(item.get("pe")):
+        vs = "غير صالح — مضاعف الربحية غير موجب (شركة خاسرة)"
+        neg.append("مضاعف الربحية غير صالح — التقييم في أسوأ نطاق")
     else:
         vs = "غير محدد (بيانات ناقصة)"
 
@@ -13952,7 +13992,22 @@ def _starta_stats():
     lst = _jget(STARTA_LIST)
     if not lst:
         return _STARTA["d"]
-    codes = [s.get("symbol") for s in lst if s.get("symbol")]
+    # 🛡️🛡️ الجولة ٢٦ (R26) — ⛔ شكل الاستجابة مش مضمون ⭐
+    # 📌 العيب المقاس ⭐: لو المصدر رجّع **object** بدل مصفوفة ⭐
+    #    (رد خطأ من المصدر ⭐ · أو رد ملفوف ⭐)
+    #    ⇒ `for s in lst` بتلف على **المفاتيح** (نصوص ⭐) ⭐
+    #    ⇒ `s.get("symbol")` ⇒ **AttributeError** ⭐
+    #    ⇒ ⛔ 500 على `/api/egx_full` ⭐ (مسار أساسي في الموقع ⭐) ⭐.
+    # 📌 السلوك الصحيح ⭐: مصدر مش متاح ⭐ ⇒ **نتيجة صريحة** ⭐
+    #    (بيانات المصدر = {}) ⭐ مش استثناء ⭐.
+    if not isinstance(lst, list):
+        print("[starta] ⚠️ شكل الاستجابة مش مصفوفة (%s) — نتجاهلها"
+              % type(lst).__name__)
+        return _STARTA["d"]
+    items = [s for s in lst if isinstance(s, dict)]
+    codes = [s.get("symbol") for s in items if s.get("symbol")]
+    if not codes:
+        return _STARTA["d"]
     out, done = {}, [0]
 
     def one(c):

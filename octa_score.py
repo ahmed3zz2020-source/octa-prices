@@ -83,8 +83,21 @@ AXIS_WEIGHTS = {
 
 def tech_score(item):
     def _n(v, d=None):
-        try: return float(v) if v is not None else d
-        except (TypeError, ValueError): return d
+        """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»).
+
+        🛡️🛡️ الجولة ٢٦ (R26) — ⛔ `float("nan")` كان بيمرّ ⭐ ⇒
+           `min(100, nan)` ⇒ **100** ⭐ (أعلى درجة ⭐) ⭐ ⛔.
+        📌 القاعدة: NaN/±Inf ⇒ **مش بيانات** ⭐ (d) ⭐.
+        """
+        if v is None or isinstance(v, bool):
+            return d
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return d
+        if f != f or f in (float("inf"), float("-inf")):
+            return d
+        return f
     """
     يحوّل 43 مؤشر فني → نتيجة 0-100 مع تفسير كامل.
     المبدأ: كل نقطة ليها وزن وليها سبب — مفيش رقم بلا مبرر.
@@ -695,11 +708,30 @@ def final_score(item, tech=None, fund=None, liq=None, sector_stats=None):
     if not item: return None
 
     def _n(v, d=50.0):
-        """يحوّل أي قيمة لرقم — حماية كاملة من القيم النصية والقيمة الفارغة"""
+        """يحوّل أي قيمة لرقم — حماية كاملة من القيم النصية والقيمة الفارغة
+
+        🛡️🛡️ الجولة ٢٦ (R26) — ⛔ NaN/±Inf ⇒ **مش بيانات** ⭐.
+        📌 العيب المقاس ⭐: `float("nan")` كان بيمرّ ⭐ ⇒
+           `max(0.0, min(100.0, nan))` ⇒ `min(100, nan)` = **100** ⭐
+           ⇒ ⛔ **محور فني NaN ⇒ الدرجة 100** ⭐ (أعلى درجة ⭐) ⭐ ⛔ ⛔.
+        📌 القاعدة المعتمدة ⭐:
+           · القيمة غائبة/نصية ⇒ نفس السلوك القديم ⭐ (d ⭐).
+           · NaN/±Inf ⇒ **None** ⭐ ⇒ المحور **مش متاح** ⭐
+             (مش 100 ⭐ ⋆ مش 0 ⭐) ⭐ ⇒ والسهم بيطلع غير مؤهل ⭐
+             بدل ما ياخد أعلى درجة ⭐.
+        ⛔ مافيش تغيير في أي وزن ولا عتبة ⭐ — حماية فقط ⭐.
+        """
         if v is None:
             return None if d is None else float(d)
-        try: return float(v)
-        except (TypeError, ValueError): return None if d is None else float(d)
+        if isinstance(v, bool):
+            return None if d is None else float(d)
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return None if d is None else float(d)
+        if f != f or f in (float("inf"), float("-inf")):
+            return None if d is None else float(d)
+        return f
 
     axes = {}
     reasons = []
