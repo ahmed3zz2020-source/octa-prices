@@ -409,18 +409,85 @@ def price_label_for(market_phase="unknown", stale=False, data_state=None,
 
 
 def _f(v, d=None):
+    """رقم صالح ومحدود — NaN/inf/نص/bool ⇒ d (مش «بيانات موجودة»).
+
+    🛡️🛡️ الجولة ٢٦ (R26 · محركات) — ⛔ **NaN/Inf مش رقم** ⭐.
+    📌 العيب المقاس ⭐: `float("nan")` و`float("inf")` كانوا **بيعدّوا
+       أرقام صحيحة** ⭐ ⇒ `_f` بترجّعهم زي ما هم ⭐ ⇒ وبيموشوا في
+       `_clamp` ⭐.
+    📌 ليه ده كان خطير ⭐: `min(1.0, nan)` في بايثون بترجّع **1.0** ⭐
+       (لأن `nan < 1.0`=False) ⇒ `max(0.0, 1.0)` = **1.0** ⭐ ⇒
+       ⛔ NaN كان بيوصل لـ**أفضل** نطاق ⭐ (مش أسوئه ⭐).
+    📌 القاعدة ⭐: `None`/نص/NaN/±Inf ⇒ **مش بيانات** ⭐ (d) ⭐.
+       والصفر الحقيقي (0.0) بيفضل 0.0 ⭐ (قيمة معروفة ⭐).
+    """
+    if v is None or isinstance(v, bool):
+        return d
     try:
-        if v is None:
-            return d
-        return float(v)
+        f = float(v)
     except (TypeError, ValueError):
         return d
+    if f != f or f in (float("inf"), float("-inf")):
+        return d
+    return f
 
 
 def _clamp(x, lo=0.0, hi=1.0):
+    """قصّ على النطاق — و⛔ NaN/±Inf ⇒ **None** (مش أحسن نطاق ⭐).
+
+    🛡️🛡️ الجولة ٢٦ (R26) — ⛔ `min(hi, nan)` ⇒ `hi` ⭐ ⇒ NaN كان
+       بيوصل لأعلى نقطة ⭐ (1.0) ⭐ ⛔ ⛔ ⛔.
+    📌 القاعدة ⭐: القيمة غير الصالحة **ما تتقصّش** ⭐ ⇒ بترجّع None ⭐
+       (ناقص) ⭐ مش أعلى نقطة ⭐.
+    📌 مافيش تغيير في أي وزن ولا عتبة ⭐ — حماية فقط ⭐.
+    """
     if x is None:
         return None
-    return max(lo, min(hi, x))
+    try:
+        f = float(x)
+    except (TypeError, ValueError):
+        return None
+    if f != f or f in (float("inf"), float("-inf")):
+        return None
+    return max(lo, min(hi, f))
+
+
+def _ratio_state(raw):
+    """⛔ حالة مضاعف (P/E · P/B) ⇒ (kind, value) ⭐.
+
+    🛡️🛡️ الجولة ٢٦ (R26 · المتطلب ١) — تلات حالات **مختلفة** ⭐:
+       ① `missing` ⇒ **مش بيانات** ⭐ (مفيش الحقل · نص زي "N/A" ⭐)
+          ⇒ مافيش له effect ⭐ (مش جهل ⋆ مش سيء ⭐).
+       ② `bad` ⇒ **رقم موجود بس مش صالح للتقييم** ⭐
+          (سالب/صفر ⭐ · NaN ⭐ · ±Inf ⭐)
+          ⇒ ⛔ **أسوأ نطاق** ⭐ (مش محايد ⋆ مش أحسن ⭐).
+       ③ `ok` ⇒ رقم موجب صالح ⭐ ⇒ بيندرج في الشرايف العادية ⭐.
+
+    📌 ليه التمييز ده مهم ⭐: شركة بتخسر (P/E سالب ⭐) **أسوأ** من
+       شركة مش مفحوصة (P/E ناقص ⭐) ⭐ — وفي الأول كنا بنعامل الاتنين
+       بنفس الطريقة ⭐ ⇒ الشركة الخاسرة كانت بتاخد **نطاق محايد** ⭐
+       ⇒ وأحياناً **أحسن** من شركة غالية فعلاً ⭐ ⛔.
+    """
+    if raw is None or isinstance(raw, bool):
+        return "missing", None
+    if isinstance(raw, str):
+        s = raw.strip()
+        if not s:
+            return "missing", None
+        try:
+            f = float(s)
+        except (TypeError, ValueError):
+            return "missing", None          # "N/A" · نص ⇒ مش بيانات
+    else:
+        try:
+            f = float(raw)
+        except (TypeError, ValueError):
+            return "missing", None
+    if f != f or f in (float("inf"), float("-inf")):
+        return "bad", None                  # NaN/Inf ⇒ أسوأ نطاق
+    if f <= 0:
+        return "bad", f                     # سالب/صفر ⇒ أسوأ نطاق
+    return "ok", f
 
 
 def load_definitions(path=None):
@@ -570,20 +637,50 @@ def c_catalyst(item):
 
 
 def c_valuation(item):
-    """جاذبية التقييم — PE/PB منخفضين أفضل."""
-    pe = _f(item.get("pe"))
-    pb = _f(item.get("pb"))
+    """جاذبية التقييم — PE/PB منخفضين أفضل.
+
+    🛡️🛡️ الجولة ٢٦ (R26 · المتطلب ١) — ⛔ **القيمة غير الصالحة ⇒
+       أسوأ نطاق** ⭐ (مش محايد ⋆ مش أحسن ⭐).
+    📌 العيب المقاس ⭐: `pe <= 0` (شركة خاسرة ⭐) كان بيتجاهل خالص ⭐
+       ⇒ النتيجة كانت بتفضل **0.5** (محايد ⭐) ⭐ ⇒ والشركة الخاسرة
+       كانت بتاخد نتيجة **أحسن** من شركة غالية فعلاً ⭐
+       (P/E = 30 ⇒ 0.5333 ⭐ ⛔).
+    📌 العيب التاني ⭐: NaN/Inf كانت بتعدّي `_clamp` ⇒ **1.0** ⭐
+       (أفضل نطاق ⭐) ⭐ ⛔ — اتقفل في `_clamp` (R26) ⭐.
+    📌 القاعدة المعتمدة ⭐:
+       · P/E · P/B موجبين صالحين ⇒ الشريط العادي ⭐ (زي ما هو ⭐).
+       · P/E · P/B سالبين/صفرين/NaN/Inf ⇒ ⛔ **أسوأ نطاق** ⭐
+         (الجزء ده = 0 ⭐) ⭐.
+       · P/E · P/B ناقصين (مفيش الحقل ⭐ · "N/A" ⭐) ⇒ **مش بيانات** ⭐
+         ⇒ مافيش effect ⭐ (محايد ⭐) ⭐.
+    ⛔ مافيش تغيير في أي وزن ولا عتبة ولا سقف ⭐.
+    """
+    pe_state, pe = _ratio_state(item.get("pe"))
+    pb_state, pb = _ratio_state(item.get("pb"))
     up = _f(item.get("upside"))
-    if pe is None and pb is None and up is None:
+    if pe_state == "missing" and pb_state == "missing" and up is None:
         return None
     r = 0.5
-    if pe is not None and pe > 0:
+    if pe_state == "ok":
         r = _clamp(1.0 - (pe - 6.0) / 54.0) * 0.6 + r * 0.4
-    if pb is not None and pb > 0:
+    elif pe_state == "bad":
+        # ⛔ مضاعف غير صالح ⇒ أسوأ نطاق للجزء ده (0) — مش محايد
+        r = 0.0 * 0.6 + r * 0.4
+    if pb_state == "ok":
         r = r * 0.8 + _clamp(1.0 - (pb - 0.6) / 4.4) * 0.2
+    elif pb_state == "bad":
+        r = r * 0.8 + 0.0 * 0.2
     if up is not None:
         r = r * 0.7 + _clamp(0.5 + up / 40.0) * 0.3
-    return _clamp(r), {"pe": pe, "pb": pb, "upside": up}, "مساحة التقييم مقارنة بالسعر"
+    ev = {"pe": pe, "pb": pb, "upside": up,
+          "pe_state": pe_state, "pb_state": pb_state}
+    if pe_state == "bad" or pb_state == "bad":
+        note = "التقييم في أسوأ نطاق — مضاعف غير صالح (سالب/صفر/غير محدود)"
+    elif pe_state == "missing" and pb_state == "missing":
+        note = "مساحة التقييم مقارنة بالسعر (المضاعفات غير متاحة)"
+    else:
+        note = "مساحة التقييم مقارنة بالسعر"
+    return _clamp(r), ev, note
 
 
 def c_funds(item):
