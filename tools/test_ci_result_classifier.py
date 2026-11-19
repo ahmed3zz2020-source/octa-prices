@@ -105,18 +105,32 @@ write(os.path.join(py_dir, "test_skipped.py"),
       "import sys\n"
       "print('  %s %s: محتاج بيئة حيّة')\n"
       "sys.exit(0)\n" % (SKIP_MARK, AR_SKIP))
+# ⛔ ملف بنمط إخراج إنجليزي (PASS/FAIL) ⭐ — لازم يتصنّف صح ⭐
+#    (كان بيتصنّف blocked زوّptime ⭐)
+write(os.path.join(py_dir, "test_english_marks.py"),
+      "# -*- coding: utf-8 -*-\n"
+      "import sys\n"
+      "print('PASS first case')\n"
+      "print('PASS second case')\n"
+      "print('3/3 ناجح')\n"
+      "sys.exit(0)\n")
 
 proc, data = run_classifier(py_dir, "python")
 print("  ── بايثون")
 rec_ok = status_of(data, "test_ok.py")
 rec_bad = status_of(data, "test_bad.py")
 rec_skip = status_of(data, "test_skipped.py")
+rec_en = status_of(data, "test_english_marks.py")
 check(rec_ok.get("status") == "passed",
       "ملف بايثون نجح ⇒ passed", rec_ok.get("status"))
 check(rec_bad.get("status") == "failed",
       "ملف بايثون فشل ⇒ failed", rec_bad.get("status"))
 check(rec_skip.get("status") == "skipped",
       "ملف بايثون تخطّى ⇒ skipped", rec_skip.get("status"))
+check(rec_en.get("status") == "passed",
+      "ملف بنمط PASS/FAIL ⇒ passed (مش blocked ⭐)", rec_en.get("status"))
+check((rec_en.get("cases") or 0) >= 2,
+      "عدد الحالات اتحسب من نمط PASS ⭐", rec_en.get("cases"))
 check(proc.returncode != 0,
       "المتخطى بيخلي بوابة الـjob تفشل ⭐", "rc=%s" % proc.returncode)
 check(data.get("ok") is False, "النتيجة الكلية مش OK مع متخطّى ⭐")

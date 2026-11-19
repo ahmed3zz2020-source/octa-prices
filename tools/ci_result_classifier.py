@@ -115,6 +115,9 @@ PYTEST_SKIP_RE = re.compile(r"(\d+)\s+skipped")
 
 OK_MARK = "✅"
 FAIL_MARK = "❌"
+# ⛔ علامات إنجليزية (نمط تاني مستخدم في المستودع ⭐)
+OK_MARK_EN_RE = re.compile(r"^PASS\b", re.M)
+FAIL_MARK_EN_RE = re.compile(r"^FAIL\b", re.M)
 
 # ⛔ مراجع git اللي اختبارات البرهان السالب بتعتمد عليها ⭐
 #    (زي R25-PV-07 في الواجهة ⭐) ⇒ لو المرجع مش موجود ⭐
@@ -157,9 +160,9 @@ def _missing_git_refs(root, rel):
 
 
 def _count_marks(text):
-    """عدد علامات النجاح/الفشل في السكربتات المخصّصة."""
-    ok = text.count(OK_MARK)
-    bad = text.count(FAIL_MARK)
+    """عدد علامات النجاح/الفشل في السكربتات المخصّصة (عربي + إنجليزي)."""
+    ok = text.count(OK_MARK) + len(OK_MARK_EN_RE.findall(text))
+    bad = text.count(FAIL_MARK) + len(FAIL_MARK_EN_RE.findall(text))
     return ok, bad
 
 
@@ -259,10 +262,15 @@ def classify_python(rc, out, err, declared=None):
     if skip_hits:
         return (STATUS_SKIPPED, skip_hits[0], ok_marks + bad_marks,
                 len(SKIP_MARK_RE.findall(text)))
-    if ok_marks == 0 and bad_marks == 0:
-        # ⛔ مفيش أي إخراج ⇒ ما نعرفش النتيجة ⇒ blocked مش نجاح صامت
+    # ⛔ مفيش أي إخراج إطلاقاً ⇒ ما نعرفش النتيجة ⇒ blocked مش نجاح صامت ⭐
+    if not text.strip():
         return (STATUS_BLOCKED,
                 "مفيش أي إخراج من الاختبار — النتيجة غير معروفة", 0, 0)
+    # ⛔ فيه علامات فشل رغم إن الكود خرج ٠ ⇒ مش نجاح ⭐
+    if bad_marks:
+        return (STATUS_FAILED,
+                "فيه %d علامة فشل رغم إن الكود خرج ٠" % bad_marks,
+                ok_marks + bad_marks, 0)
     if declared is not None and declared > 0 and ok_marks + bad_marks < declared:
         return (STATUS_BLOCKED,
                 "اتنفّذ %d من %d حالة معلنة — رجوع صامت محتمل"
