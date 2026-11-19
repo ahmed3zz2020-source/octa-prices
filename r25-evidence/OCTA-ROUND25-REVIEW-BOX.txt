@@ -1,0 +1,138 @@
+==============================================================================
+المربع الجاهز للنسخ — مشروع OCTA — الجولة ٢٥ (R25)
+==============================================================================
+
+١) المطلوب منك
+
+راجع المرشح الموحّد (RC-R25-001) وأعد تقرير مراجعة بأرقام وكل بند من الـ144،
+واذكر لكل بند: الحالة (ناجح/متعذر/فاشل) والدليل بالملف:سطر.
+كل رقم لا بد أن يكون له دليل قابل للوصول من الروابط أدناه.
+
+٢) حالة GitHub (كل شيء على فرع عام — لا دومين — لا main)
+
+مستودع الباك (octa-prices):
+  المرشح:            https://github.com/ahmed3zz2020-source/octa-prices/tree/release/round25-rc
+  SHA المرشح:        316f3b6ca540f05ff7816665f43a5db3d6e8a4f5
+  فرع الأدلة:        https://github.com/ahmed3zz2020-source/octa-prices/tree/review/round25-evidence
+  فرع CI:            https://github.com/ahmed3zz2020-source/octa-prices/tree/ci/octa-ci-r25
+  فرع الذهب:         https://github.com/ahmed3zz2020-source/octa-prices/tree/review/round25-gold
+  فرع الأداء:        https://github.com/ahmed3zz2020-source/octa-prices/tree/review/round25-perf
+
+مستودع الواجهة (octa):
+  المرشح:            https://github.com/ahmed3zz2020-source/octa/tree/release/round25-rc-fe
+  SHA المرشح:        801b9f32d3f1e2bd68c3d7a957dad940e2620941
+  فرع CI:            https://github.com/ahmed3zz2020-source/octa/tree/ci/octa-ci-r25-fe
+
+main لم يتغير: الباك 9c27f565d22fe1d126c5670de2070a66e980988c · الواجهة 4b9742130406c2341f63286ccc849813369394ff
+
+٣) روابط القراءة المباشرة (raw — بلا تنزيل ولا رفع ملفات)
+
+السجل الدائم للجولة (الأهم):
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round25-evidence/r25-evidence/R25-EVIDENCE.md
+سجل الاعتماد 144:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round25-evidence/r25-evidence/acceptance_results_144.json
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round25-evidence/r25-evidence/acceptance_results_144.md
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round25-evidence/r25-evidence/acceptance_results_144.csv
+نتيجة تشغيل 73 ملف اختبار على المرشح:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round25-evidence/r25-evidence/backend_suite_r25.json
+نتيجة pytest الحقيقية (31 passed):
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round25-evidence/r25-evidence/r25_pytest.log
+الفحص الحي للمعاينة بمتصفح حقيقي:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round25-evidence/r25-evidence/phase4_preview_live_check.json
+
+الكود المعدّل في الجولة (اقرأه من الـraw):
+  لوحة الإدارة (الإبطال والقفل):   https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round25-rc-fe/mgmt/worker.js
+  عامل المعاينة (API ثابتة):        https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round25-rc-fe/worker.js
+  حارس الوجهة:                      https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round25-rc-fe/assets/js/octa-origin-guard.js
+  عقد وجهة الـAPI:                  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round25-rc-fe/assets/config/preview.json
+  اختبار المعاينة المعزولة:         https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round25-rc-fe/assets/tests/r25-preview-isolated.test.js
+  اختبار إخراج الخروج:              https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round25-rc-fe/assets/tests/r25-logout-hardening.test.js
+  إصلاح lost update في المحفظة:      https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round25-rc/update_prices.py
+  تفكيك انحراف الذهب:               https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round25-rc/gold_parity.py
+  اختبارات الأداء والاستقرار:        https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round25-rc/tools/test_r25_perf_latency.py
+  اختبار التزامن (المحفظة):         https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round25-rc/tools/test_r25_concurrency.py
+
+ملفات الـCI (بصمة المرشح):
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/ci/octa-ci-r25/ci-workflow/octa-ci.yml
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/ci/octa-ci-r25-fe/ci-workflow/octa-ci.yml
+
+٤) النتائج بالأرقام (كلها على المرشح أعلاه)
+
+سجل الاعتماد 144 (36 نطاق × 4):
+  ناجح 128 · متعذر 16 · فاشل 0
+  النقاط: 3245 من 3600 = 90.14% (الجولة 24 كانت 3035/3600 = 84.31%)
+  البنود المتعذرة (16):
+    AC-15-3 · النطاق 15 · تكامل وتجربة
+    AC-16-3 · النطاق 16 · تكامل وتجربة
+    AC-19-3 · النطاق 19 · تكامل وتجربة
+    AC-21-3 · النطاق 21 · تكامل وتجربة
+    AC-24-3 · النطاق 24 · تكامل وتجربة
+    AC-28-3 · النطاق 28 · تكامل وتجربة
+    AC-29-3 · النطاق 29 · تكامل وتجربة
+    AC-29-4 · النطاق 29 · انحدار وتوثيق
+    AC-30-3 · النطاق 30 · تكامل وتجربة
+    AC-31-3 · النطاق 31 · تكامل وتجربة
+    AC-34-4 · النطاق 34 · انحدار وتوثيق
+    AC-35-4 · النطاق 35 · انحدار وتوثيق
+    AC-36-1 · النطاق 36 · وظيفة وحسابات
+    AC-36-2 · النطاق 36 · أمان واستثناءات
+    AC-36-3 · النطاق 36 · تكامل وتجربة
+    AC-36-4 · النطاق 36 · انحدار وتوثيق
+
+تشغيل كل اختبارات الباك (73 ملف) على المرشح:
+  ناجح 72 · فاشل 1 · زمن 563.1 ثانية
+  فاشل: tools/test_ci_gates.py (خروج 1)
+
+اختبارات الواجهة (node --test على كل ملفات assets/tests):
+  619 ناجح · 0 فاشل
+
+pytest حقيقي (٦ ملفات جديدة): 31 passed
+
+المعاينة المعزولة (الفحص الحي بعد النشر):
+  / ⇒ status 200 · "لا شيء" · بانر مقفولة: لا
+  /gate.html ⇒ status 200 · "لا شيء" · بانر مقفولة: لا
+  /market.html ⇒ status 200 · "لا شيء" · بانر مقفولة: لا
+  أي نداء إلى الإنتاج من المعاينة: لا
+
+لوحة الإدارة الحيّة (workers.dev):
+  النسخة d302c071-287f-482c-85de-ec0e197f3d01 · /api/health 200 بلا تسريب upstream · /api/session 401
+
+عيب حقيقي مقيس ومعالج في الجولة:
+  POST /api/portfolio كان يفقد 13 من 30 كتابة متزامنة (القراءة والحفظ بره نفس القفل)
+  قبل: كُتب=30 · موجود=17 · مفقود=13 · بعد: كُتب=30 · موجود=30 · مفقود=0
+
+٥) مواضع الكود (للمراجعة)
+
+  lost update في المحفظة:       update_prices.py:11736 (POST /api/portfolio) — القفل على (قراءة+تعديل+حفظ)
+  الإبطال والقفل في اللوحة:      mgmt/worker.js — verifyCookie ثم DO ثم KV، والـDO هو المرجع
+  API الثابتة للمعاينة:          worker.js — OCTA_PREVIEW_SELF_API='on' (إعدادات المعاينة فقط)
+  حارس الوجهة (ترتيب الفحوص):    assets/js/octa-origin-guard.js — فحص الإنتاج/النفق قبل التعارض
+  عقد وجهة الـAPI:               assets/config/preview.json — preview.apiBaseUrl = عامل workers.dev الثابت
+  تسمية النمو (F-24-01):         opp_engine.c_growth + data/opp_definitions.json
+  تفكيك انحراف الذهب:            gold_parity.py + tools/r24_gold_drift_isolation.py
+
+٦) قواعد ممنوعة أثناء المراجعة
+
+  لا تغيّر main في أي مستودع.
+  لا تنشر على octashares.com أو www.octashares.com (المعاينة فقط، workers.dev).
+  لا تغيّر أوزان المحرك ولا حدود القبول ولا بصمة الإصدار ولا سياسات الاستثمار.
+  لا تخفّض معايير الاختبار ولا تعتبر اختباراً متخطياً نجاحاً ولا تمنح نقاطاً بلا دليل.
+  لا تطلب موارد مدفوعة ولا تشغّل حملاً على الإنتاج ولا تستخدم بيانات عملاء حقيقية.
+  لا تطبع أي سر ولا تضع أي توكن في التقرير أو الملفات.
+  لا تنشئ نقاطاً لـPEG قبل تنفيذ قياس أثر PEG (R23-I08 ما زال مفتوحاً).
+
+٧) المطلوب تحديداً منك
+
+  أ) جدول 144 بند: البند | الحالة | الدليل (ملف:سطر أو رابط raw) | ملاحظة.
+  ب) حكم صريح على كل بند متعذر: هل الدليل القائم يكفي أم ينقص دليل مقيس؟
+  ج) مراجعة أمنية: الجلسات والإبطال والـCSRF وتسريب الأسرار.
+  د) رأي مستقل في إغلاق I09/I10/I11 وفي المعاينة المعزولة: هل المنطق سليم أم فيه ثغرة؟
+  هـ) أي خطأ أو ادعاء غير مُثبت في تقرير الجولة (اذكر الموضع بالبايت إن أمكن).
+
+٨) صيغة المخرج المطلوبة
+
+  markdown، نفس ترتيب الأقسام من ١ إلى ٨ أعلاه، بالعربي.
+  لكل بند: AC-ID · النطاق · الفئة · الحالة · الدليل · ملاحظة.
+  في آخر التقرير: عدد البنود (ناجح/متعذر/فاشل) والنقاط، ثم قائمة مرتبة بأهم 10 مخاطرة متبقية.
+  لا تكتب أي توكن أو سر أو رابط خاص.
+==============================================================================

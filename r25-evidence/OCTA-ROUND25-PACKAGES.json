@@ -1,0 +1,92 @@
+{
+  "round": "R25",
+  "rc_id": "RC-R25-001",
+  "backend_rc": "316f3b6ca540f05ff7816665f43a5db3d6e8a4f5",
+  "frontend_rc": "801b9f32d3f1e2bd68c3d7a957dad940e2620941",
+  "ci_backend": "95b25f1ca1e096004262e9dd005ce1da8ff27ae1",
+  "ci_frontend": "d5845727b62887c31220f9b6e89b39ff830e7ea8",
+  "packages": [
+    {
+      "zip": "OCTA-ROUND25-DELIVERY.zip",
+      "bytes": 1277021,
+      "md5": "71df2d12e9e1630ceff846451b8bcb3a",
+      "sha256": "3a692a4d16aeb94f86b09328bf9bf5a3fcf0e860ebd4c07285448f7d20220299",
+      "files": 12,
+      "scanned": 10,
+      "secret_hits": 0,
+      "dirty_text": [
+        "backend_suite_r25.json",
+        "bundles/octa-ci-r25-fe-workflow.bundle",
+        "bundles/octa-ci-r25-workflow.bundle"
+      ]
+    },
+    {
+      "zip": "OCTA-ROUND25-BACKEND.zip",
+      "bytes": 1599701,
+      "md5": "081104e84e62b1f118b702a8ce17c840",
+      "sha256": "caa6f207501a7fe8c52e6731df0a888c96d20c767658e2a109cbaca64b44825c",
+      "files": 357,
+      "scanned": 179,
+      "secret_hits": 0,
+      "dirty_text": [
+        "PATTERN_ENGINE.md",
+        "PROJECT_STATE.md",
+        "data/gold_factors.json",
+        "data/index_config.json",
+        "data_full.json",
+        "gold_history.py",
+        "gold_macro.py",
+        "gold_scenarios.py",
+        "gold_signal.py",
+        "gold_technical.py",
+        "index_engine.py",
+        "pattern_detector.py",
+        "r25-evidence/backend_suite_r25.json",
+        "test_charts_api.py",
+        "test_egx_ttl.py",
+        "test_engine_safety01.py",
+        "test_gold_history.py",
+        "test_gold_technical.py",
+        "test_index_api.py",
+        "test_pattern_daily.py",
+        "test_round15_maildown_enum.py",
+        "test_strategy_cap01.py",
+        "tools/acceptance_center.py",
+        "tools/run_pattern_collect.py",
+        "tools/test_data_integrity_guard.py"
+      ]
+    },
+    {
+      "zip": "OCTA-ROUND25-FRONTEND.zip",
+      "bytes": 5827232,
+      "md5": "85c00f5380543f201862541fedd9b775",
+      "sha256": "823c52dfbb070ec00b9565cb08bbc9a2ef6a9b088cb6ecc77c2c3f57c79d9f37",
+      "files": 475,
+      "scanned": 419,
+      "secret_hits": 0,
+      "dirty_text": [
+        "assets/tests/radar.test.js",
+        "data/alpha_snapshot.json",
+        "data/market_names.js",
+        "data_full.json",
+        "dist/data/alpha_snapshot.json",
+        "dist/data/market_names.js",
+        "mgmt/tests/test_panel_e2e.py",
+        "tools/xss_dom_check.py"
+      ]
+    },
+    {
+      "zip": "OCTA-ROUND25-CI.zip",
+      "bytes": 1220038,
+      "md5": "81e96ed1a1f1b13076ed3297955bd50b",
+      "sha256": "b253589816ad7405b8bd5327fe7f24f1a1bc5c4fe0c9ef98ee8681514a2ba670",
+      "files": 7,
+      "scanned": 6,
+      "secret_hits": 0,
+      "dirty_text": [
+        "octa-ci-r25-fe-workflow.bundle",
+        "octa-ci-r25-workflow.bundle"
+      ]
+    }
+  ]
+}
