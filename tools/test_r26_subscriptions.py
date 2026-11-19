@@ -54,6 +54,11 @@ import subscription_api as SA  # noqa: E402
 import subscription_core as SC  # noqa: E402
 
 BASE_SHA = "316f3b6ca540f05ff7816665f43a5db3d6e8a4f5"
+# ⭐ R26 · فحص السلامة يقارن **مرحلة الاشتراكات نفسها** ⭐
+# ★ الأسباب: قبل دمج الاشتراكات بمرحلة المحركات ⭐
+#   ⇒ الفحص تاتط على نطاق المرحلة ولا على شجرة الشجرة ⭐
+#   (إلا يموت إصلاح الفحص بقياس المرشّح كله ⭐)
+SUB_SHA = "7e97797"
 PLAN_FILE = ROOT / "data" / "subscription_plans.json"
 PRIVACY_DOC = ROOT / "docs" / "privacy_and_retention.md"
 
@@ -243,7 +248,7 @@ def test_00_safety():
         except Exception:
             return ""
 
-    changed = [l.strip() for l in git("diff", "--name-only", BASE_SHA).split()
+    changed = [l.strip() for l in git("diff", "--name-only", BASE_SHA, SUB_SHA).split()
                if l.strip()]
     allowed = {"subscription_core.py", "subscription_api.py",
                "data/subscription_plans.json",
@@ -257,10 +262,10 @@ def test_00_safety():
                     "pattern_detector.py", "gold_signal.py", "data_full.json",
                     "data/opp_definitions.json"]
     dirty = [f for f in engine_files
-             if git("diff", "--stat", BASE_SHA, "--", f).strip()]
+             if git("diff", "--stat", BASE_SHA, SUB_SHA, "--", f).strip()]
     ok(not dirty, "مافيش تغيير في المحرك ولا حدود القبول ولا البيانات", dirty)
 
-    numstat = git("diff", "--numstat", BASE_SHA, "--", "update_prices.py")
+    numstat = git("diff", "--numstat", BASE_SHA, SUB_SHA, "--", "update_prices.py")
     added = 0
     for line in numstat.strip().splitlines():
         parts = line.split("\t")
