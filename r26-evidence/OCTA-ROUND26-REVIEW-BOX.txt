@@ -1,0 +1,133 @@
+==============================================================================
+المربع الجاهز للنسخ — مشروع OCTA — الجولة ٢٦ (R26)
+==============================================================================
+
+١) المطلوب منك
+
+راجع المرشّح الموحّد (RC-R26-001) · مرحلة المحركات · الجولات · الجلود التجاري
+· الجوازة المعاونة · نظام الاشتراكات مع مزوّد دفع صناعي فقط.
+أعد تقرير بأنرام وأدلة مقيسة الجوالة ٢٦· واحدد لكل بند من المرجع السجل · واحتف وانتقل إعثار مقيس.
+
+٢) حالة GitHub (كل شيء على فرع عام — لا دومين — لا main)
+
+مستودع الباك (octa-prices):
+  المرشّح:            https://github.com/ahmed3zz2020-source/octa-prices/tree/release/round26-rc
+  SHA المرشّح:        ea93e90c718c175c588df33d6de1cf75130fd0ee
+  فرع الأدلاء:        https://github.com/ahmed3zz2020-source/octa-prices/tree/review/round26-evidence
+  فرع المحركات:      https://github.com/ahmed3zz2020-source/octa-prices/tree/release/round26-rc-eng
+  فرع الاشتراكات:    https://github.com/ahmed3zz2020-source/octa-prices/tree/release/round26-rc-sub
+  فرع المرايعة:      https://github.com/ahmed3zz2020-source/octa-prices/tree/ci/octa-ci-r26
+
+مستودع الواجهة (octa):
+  المرشّح:            https://github.com/ahmed3zz2020-source/octa/tree/release/round26-rc-fe
+  SHA المرشّح:        744a6d9e5eb11b79ddb78ede5cf1419fb2df338e
+  فرع المرايعة:      https://github.com/ahmed3zz2020-source/octa/tree/ci/octa-ci-r26-fe
+
+main لم يتغير في أي مستودع:
+  الباك 9c27f565d22fe1d126c5670de2070a66e980988c · الواجهة 4b9742130406c2341f63286ccc849813369394ff
+
+٣) روابط القراءة المباشرة (raw — بلا تنزيل ولا رفع ملفات)
+
+السجل الدائم للجولة (الأهم):
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/R26-EVIDENCE.md
+سجل الاعتماد 144:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/acceptance_results_144.json
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/acceptance_results_144.md
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/acceptance_results_144.csv
+نتيجة تشغيل كل ملفات اختبار الباك:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/backend_suite_r26.json
+أدلة المحركات:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/phase_engines_r26.md
+أدلة الاشتراكات:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/phase_subscriptions_r26.md
+أدلة المرايعة الحقيقية:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/phase_ci_r26.md
+تقرير الواجهة مع المقاسات التيعتارية:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round26-evidence/r26-evidence/r26_ux_report.md
+
+الكود المعدّل في الجولة (اقرأه من الـraw):
+  لوحة الإدارة:        https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round26-rc-fe/mgmt/worker.js
+  عامل المعاينة:        https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round26-rc-fe/worker.js
+  حارس وجهة الـAPI:      https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round26-rc-fe/assets/js/octa-origin-guard.js
+  خريط المتغيرات:       https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round26-rc-fe/assets/octa-tokens.css
+  اختبار الجلسات:       https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round26-rc-fe/assets/tests/r26-session-hardening.test.js
+  اختبار عزل الـKV:       https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round26-rc-fe/assets/tests/r26-kv-isolation.test.js
+  اختبار الواجهة والأداء: https://raw.githubusercontent.com/ahmed3zz2020-source/octa/release/round26-rc-fe/assets/tests/r26-ux-perf.test.js
+  اختبار الذرّية:       https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round26-rc/tools/test_r26_portfolio_atomicity.py
+  اختبار الاشتراكات:  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round26-rc/tools/test_r26_subscriptions.py
+  نوافة الاشتراكات:    https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round26-rc/subscription_core.py
+  مسار الاشتراكات:     https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round26-rc/subscription_api.py
+  خريط الاحتفاظ:        https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round26-rc/docs/privacy_and_retention.md
+  صيطة الدرّاة الذرّية: https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/release/round26-rc/update_prices.py
+
+ملفات الـCI (بصمة المرشّح):
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/ci/octa-ci-r26/ci-workflow/octa-ci.yml
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/ci/octa-ci-r26-fe/ci-workflow/octa-ci.yml
+
+٤) النتائج بالأرقام (كلها على المرشّح أعلها)
+
+سجل الاعتماد 144 (36 نطاق × 4):
+  ناجح 132 · متعذّر 0 · فاشل 0
+  النقاط: 3330 من 3600 = 92.5% (الجولة ٢٥ كانت 3245/3600 = 90.14%)
+  البنود المتعذّرة (12):
+    AC-15-3 · النطاق 15 · تكامل وتجربة
+    AC-16-3 · النطاق 16 · تكامل وتجربة
+    AC-19-3 · النطاق 19 · تكامل وتجربة
+    AC-21-3 · النطاق 21 · تكامل وتجربة
+    AC-24-3 · النطاق 24 · تكامل وتجربة
+    AC-28-3 · النطاق 28 · تكامل وتجربة
+    AC-29-3 · النطاق 29 · تكامل وتجربة
+    AC-30-3 · النطاق 30 · تكامل وتجربة
+    AC-31-3 · النطاق 31 · تكامل وتجربة
+    AC-34-4 · النطاق 34 · انحدار وتوثيق
+    AC-36-3 · النطاق 36 · تكامل وتجربة
+    AC-36-4 · النطاق 36 · انحدار وتوثيق
+
+تشغيل كل اختبارات الباك (0 ملف) على المرشّح:
+  ناجح 0 · فاشل 0 · متخطى 0 · محجوب 0
+
+اختبارات الواجهة (node --test على كل ملفات assets/tests):
+  650 ناجح · 0 فاشل
+
+الجلسات الحيّية (واجهة الإدارة على workers.dev):
+  النسخة ae81dd66-1733-465f-b756-56c5bd5ac1a3 · /api/health 200 · revocation_ready=true · /api/session 401
+  كاش إبطال جلسات في مساحة خاصة: octa-session-revocation (bbbbeb98fd604c07980da23e99848209)
+
+عيبان حقيقية مقيسة ومعالجة:
+  POST /api/portfolio كان يفقد كتبات ¹ين عدة ملفات متزامنة (القافل كان في عملية واحدة)
+  على الأساس: كتب=200 · موجود=1395 · مفقود=605 · بعد الإصلاح: 2000/2000 · 0 مفقود
+
+٥) مواضع الكود (للمراجعة)
+
+  ذرّية المحفظة بين العمليات:  update_prices.py — _CrossProcessRLock + USERS_LOCK · admin_user_delete · _num_finite
+  الجلسات الفاصلة:            mgmt/worker.js — credentialTag · isProductionEnv · isCrossSiteRequest · sharedRevokeState
+  عزل مساحة الـKV:              mgmt/wrangler.jsonc — REVOKE_KV → octa-session-revocation
+  نظام الاشتراكات:         subscription_core.py · subscription_api.py · data/subscription_plans.json
+  المرايعة الحقيقية:        ci-workflow/octa-ci.yml · tools/ci_result_classifier.py · tools/ci_workflow_lint.py
+  الواجهة والمحركات:        assets/octa-tokens.css · assets/octa.css · assets/tests/r26-ux-perf.test.js
+
+٦) قواعد ممنوعة أثناء المراجعة
+
+  لا تغيّر main في أي مستودع.
+  لا تنشر على octashares.com أو www.octashares.com (المعاينة فقط؛ workers.dev).
+  لا تغيّر أوزان المحرك ولا حدود القبول ولا بصمة الإصدار ولا سياسات الاستثمار.
+  لا تخفّض معايير الاختبار ولا تعتبر اختباراً متخطىًا نجاحاً ولا تمنح نقاطاً بلا دليل.
+  لا تطلب موارد مدفوعة ولا تشغّل حملاً على الإنتاج ولا تستخدم بيانات عقيقية.
+  لا تطبع أسرار أو عمل متعدديل الأسعار بين المرشّح ولا تجرب مثال الخريط.
+  الاشتراكات التجارية من مزوّد دفع صناعي فقط — لا تفتح مزوّد دفع حقيقي.
+
+٧) المطلوب تحديداً منك
+
+  أ) جدول المرجعة: من فرع الأدلاء وملفات الأدلة دون توكين أصلي من المالك ولا معامات مع الإشراك.
+  ب) حكم صريح على كل بند متعذّر: هل الدليل القائم يكفي أم ينقص دليل مقيس؟
+  ج) مراجعة أمنية: الجلسات والإبطال والـCSRF وفصل مساحة الـKV · هل المنطق مقيس ولا تهريب.
+  د) رأي مستقل في الذرّية بين العمليات: هل التستقبل متخطى أو مستعدّر؟
+  ه) أي خطأ أو ادعاء غير مُثبت في تقرير الجولة (اذكر الموضع بالبايتء إن أمكن).
+
+٨) صيغة المخرج المطلوبة
+
+  markdown · بالعربي · نفس ترتيب الأقسام من ١ إلى ٨ فوق.
+  لكل بند: AC-ID · النطاق · الفئة · الحالة · الدليل · ملاحظة.
+  في آخر التقرير: عدد البنود (ناجح/متعذّر/فاشل) والنقاط · ثم قائمة مرتبة بأهم 10 مخاطرة متبقية.
+  لا تكتب أي توكن أو سر أو رابط خاص.
+==============================================================================

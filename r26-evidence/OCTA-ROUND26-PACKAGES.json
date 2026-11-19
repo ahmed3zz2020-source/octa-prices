@@ -1,0 +1,50 @@
+{
+  "round": "R26",
+  "rc_id": "RC-R26-001",
+  "backend_rc": "ea93e90c718c175c588df33d6de1cf75130fd0ee",
+  "frontend_rc": "744a6d9e5eb11b79ddb78ede5cf1419fb2df338e",
+  "ci_backend": "211f57d403280a5aff376075fce73f06312a79ed",
+  "ci_frontend": "41c7085b102e3e4a84f21171bbfb21304b71b540",
+  "packages": [
+    {
+      "zip": "OCTA-ROUND26-DELIVERY.zip",
+      "bytes": 1694852,
+      "md5": "c99c3e325493341cebc49f260b7c524b",
+      "sha256": "34ea979bfc7d49c189a9dcd6d2b4b3019d27e4295c3221d61916e2c1424df7dd",
+      "files": 38,
+      "scanned": 38,
+      "secret_hits": 0,
+      "dirty_text": []
+    },
+    {
+      "zip": "OCTA-ROUND26-BACKEND.zip",
+      "bytes": 1574009,
+      "md5": "de6b35054a379cc442020cef07ecefb2",
+      "sha256": "dc8fe5742ea4dd100a801ffd5e859d578eb468b4c0bb119d2c8d618bda808ccc",
+      "files": 370,
+      "scanned": 370,
+      "secret_hits": 0,
+      "dirty_text": []
+    },
+    {
+      "zip": "OCTA-ROUND26-FRONTEND.zip",
+      "bytes": 5214104,
+      "md5": "1140f03fa2a05f55341e5962d7ca83fa",
+      "sha256": "9349e8e5740cb56af993bfaad2a14ec24a565303bf34705e2dd6d0bb0303bba5",
+      "files": 383,
+      "scanned": 383,
+      "secret_hits": 0,
+      "dirty_text": []
+    },
+    {
+      "zip": "OCTA-ROUND26-CI.zip",
+      "bytes": 50083,
+      "md5": "6a49746ff3e50dd51ac1fd06419b50b0",
+      "sha256": "ee9d213a2163b3584826d2e17fcce97437e23fb7f29c027360b2aef172188b34",
+      "files": 12,
+      "scanned": 12,
+      "secret_hits": 0,
+      "dirty_text": []
+    }
+  ]
+}
