@@ -1,0 +1,77 @@
+{
+  "base_url": "https://octa-preview.ahmed3zz2020.workers.dev",
+  "email": "r26.browser.9a01d0b2@example.com",
+  "results": [
+    {
+      "ok": true,
+      "label": "① الصفحة العامة اتفتحت (فلتر السوق ⭐)"
+    },
+    {
+      "ok": true,
+      "label": "①ب فيه زرار الدخول ⭐"
+    },
+    {
+      "ok": true,
+      "label": "①ج اتعمل حساب تجريبي من جوّه المتصفح ⭐"
+    },
+    {
+      "ok": true,
+      "label": "③ صفحة السوق المصري اتحمّلت"
+    },
+    {
+      "ok": true,
+      "label": "④ صفحة الأسهم اتفتحت"
+    },
+    {
+      "ok": true,
+      "label": "⑤ صفحة المحركات اتفتحت"
+    },
+    {
+      "ok": true,
+      "label": "⑥ صفحة الفلاتر اتفتحت"
+    },
+    {
+      "ok": true,
+      "label": "⑦ محرك الفرص اتفتحت"
+    },
+    {
+      "ok": true,
+      "label": "⑧ صفحة المحفظة اتفتحت"
+    },
+    {
+      "ok": true,
+      "label": "⑨ شارت الذهب اتفتح (كانفس ⭐)"
+    },
+    {
+      "ok": true,
+      "label": "⑩ RealView اتفتح"
+    },
+    {
+      "ok": true,
+      "label": "⑪ اتضاف تنبيه من جوه المتصفح ⭐"
+    },
+    {
+      "ok": true,
+      "label": "⑫ اتسجّل الخروج والكوكي اتمسح ⭐"
+    },
+    {
+      "ok": true,
+      "label": "⑫ب اتعمل دخول تاني ⭐"
+    },
+    {
+      "ok": true,
+      "label": "⑬ مافيش استثناء JavaScript في الرحلة ⭐"
+    }
+  ],
+  "passed": 15,
+  "failed": 0,
+  "steps": [
+    {
+      "step": "market",
+      "url": "https://octa-preview.ahmed3zz2020.workers.dev/markets",
+      "text_len": 5292
+    }
+  ],
+  "js_errors": [],
+  "shots": "/workspace/output/OCTA-ROUND26-EVIDENCE/shots-preview"
+}

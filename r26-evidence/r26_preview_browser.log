@@ -3,37 +3,15 @@
   [PASS] ①ج اتعمل حساب تجريبي من جوّه المتصفح ⭐  — 200
   [PASS] ③ صفحة السوق المصري اتحمّلت  — https://octa-preview.ahmed3zz2020.workers.dev/markets
   [PASS] ④ صفحة الأسهم اتفتحت  — https://octa-preview.ahmed3zz2020.workers.dev/stocks
-  [PASS] ⑤ صفحة المحركات اتفتحت  — 4939
+  [PASS] ⑤ صفحة المحركات اتفتحت  — 4650
   [PASS] ⑥ صفحة الفلاتر اتفتحت  — https://octa-preview.ahmed3zz2020.workers.dev/filters#filter
   [PASS] ⑦ محرك الفرص اتفتحت  — https://octa-preview.ahmed3zz2020.workers.dev/tools
   [PASS] ⑧ صفحة المحفظة اتفتحت  — https://octa-preview.ahmed3zz2020.workers.dev/money#money
   [PASS] ⑨ شارت الذهب اتفتح (كانفس ⭐)  — canvas=0
   [PASS] ⑩ RealView اتفتح  — https://octa-preview.ahmed3zz2020.workers.dev/verdict#verdict
-Traceback (most recent call last):
-  File "/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/tools/r26_preview_browser_journey.py", line 233, in <module>
-    sys.exit(main())
-             ^^^^^^
-  File "/run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r18fe/tools/r26_preview_browser_journey.py", line 178, in main
-    api = page.evaluate("""async () => {
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/playwright/sync_api/_generated.py", line 9413, in evaluate
-    self._sync(
-  File "/usr/local/lib/python3.11/dist-packages/playwright/_impl/_sync_base.py", line 115, in _sync
-    return task.result()
-           ^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/playwright/_impl/_page.py", line 474, in evaluate
-    return await self._main_frame.evaluate(expression, arg)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/playwright/_impl/_frame.py", line 346, in evaluate
-    await self._channel.send(
-  File "/usr/local/lib/python3.11/dist-packages/playwright/_impl/_connection.py", line 76, in send
-    return await self._connection.wrap_api_call(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
-    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
-playwright._impl._errors.Error: Page.evaluate: Error: وجهة الـAPI نفق مؤقت — اتمنعت. النفق بيتموت وبيسيب خطأ 530.
-    at _guardBlock (https://octa-preview.ahmed3zz2020.workers.dev/assets/js/octa-api.js?v=202611192208:200:17)
-    at window.fetch (https://octa-preview.ahmed3zz2020.workers.dev/assets/js/octa-api.js?v=202611192208:723:35)
-    at eval (eval at evaluate (:311:30), <anonymous>:2:27)
-    at UtilityScript.evaluate (<anonymous>:318:18)
-    at UtilityScript.<anonymous> (<anonymous>:1:44)
+  [PASS] ⑪ اتضاف تنبيه من جوه المتصفح ⭐  — 200
+  [PASS] ⑫ اتسجّل الخروج والكوكي اتمسح ⭐  — 200
+  [PASS] ⑫ب اتعمل دخول تاني ⭐  — 200
+  [PASS] ⑬ مافيش استثناء JavaScript في الرحلة ⭐
+
+RESULT: 15/15 PASS · 0 FAIL
