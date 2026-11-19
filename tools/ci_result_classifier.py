@@ -521,6 +521,20 @@ def cmd_run(args):
     if not files:
         print("⛔ مفيش أي ملف اختبار اتكتشف")
         return 2
+    # ⭐ R26 · ترتيب الملفات المُلوّثة من نهاية نقولة البيئة ⭐
+    #    ★ السبب: بعض التسجيل بيسجّل حالة البيئة المشتركة ⭐
+    #    (بتسجيل عالمي بيسجّل حالة المشتركة في البيئة ⭐)
+    #    ⇒ لمفايل التسجيل يتشغل في النهاية ☑
+    last = []
+    keep = []
+    for rel in files:
+        if args.last and any(rel.endswith(pat) for pat in args.last):
+            last.append(rel)
+        else:
+            keep.append(rel)
+    if last:
+        files = keep + last
+        print("🔄 ملفات مُخلّدة تتشغلف من في النهاية: %s" % ", ".join(last))
     child = _child_path()
     env_extra = json.loads(args.env) if args.env else {}
     # 🐞🛡️ ١٩ نوفمبر ٢٠٢٦ (R26) — السجل ⭐
@@ -643,6 +657,8 @@ def main(argv=None):
     run.add_argument("--kind", choices=("python", "node"), default="python")
     run.add_argument("--root", default=".")
     run.add_argument("--pattern", action="append", default=[])
+    run.add_argument("--last", action="append", default=[],
+                     help="ملفات تشغلف في النهاية (تلوث الحالة)")
     run.add_argument("--out", default="")
     run.add_argument("--timeout", type=int, default=900)
     run.add_argument("--env", default="",
