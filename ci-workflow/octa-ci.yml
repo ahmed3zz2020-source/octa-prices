@@ -7,6 +7,8 @@ name: OCTA CI — الجولة ٢٦ (بوابات حقيقية)
 #      مالوش scope اسمه `workflow`.
 #    ⇒ فرع الـCI هو المكان الصح للـCI الحقيقي، ويننشر بتوكن
 #      عنده scope `workflow`.
+#    ⇒ نسخة مطابقة من الملف ده في `ci-workflow/octa-ci.yml` ⭐
+#      (هي اللي بتتنشر على فرع الـCI ⭐).
 #
 # ⛔ قواعد الـCI (كلها متحقَّقة آلياً بـ tools/test_ci_gates.py):
 #   ① `pip install -r requirements.txt` = **بوابة صارمة**: لو فشل
@@ -122,7 +124,7 @@ jobs:
           PY
 
       - name: "🛡️ حارس الـCI (لازم ملف الـCI نفسه نضيف)"
-        run: python3 tools/test_ci_gates.py ci-workflow/octa-ci.yml
+        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
 
   # ══════════════════════════════════════════════════════════════
   # ② كل اختبارات الباك (كل ملف موجود — بلا استبعاد صامت)
@@ -193,6 +195,10 @@ jobs:
             exit 1
           fi
           echo "✅ الـstaging شغّال على 127.0.0.1:8099 (بيانات وهمية ١٠٠٪)"
+          # ⛔ توكن الأدمن ⭐ — اختبارات الأمان محتاجاه ⭐
+          #    (من غيره ⇒ mint_session بيرجّع 401 ⭐ ⇒ فشل وهمي ⭐)
+          echo "STAGE_ADMIN_TOKEN=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8'))['admin_token'])" "$STAGE_DIR/staging-config.json")" >> "$GITHUB_ENV"
+          echo "🔒 توكن الأدمن اتسجّل للخطوات الجاية ⭐"
 
       - name: "🔒 تثبيت البيانات المرجعية (قبل الجولة) ⭐"
         env:
@@ -317,6 +323,9 @@ jobs:
             exit 1
           fi
           echo "✅ الـstaging شغّال"
+          # ⛔ توكن الأدمن ⭐ — اختبارات العقد محتاجاه ⭐
+          echo "STAGE_ADMIN_TOKEN=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1],encoding='utf-8'))['admin_token'])" "$STAGE_DIR/staging-config.json")" >> "$GITHUB_ENV"
+          echo "🔒 توكن الأدمن اتسجّل للخطوات الجاية ⭐"
 
       - name: "🖥️ اختبارات عقد الواجهة (المسارات اللي الواجهة بتستهلكها ⭐)"
         env:
@@ -455,7 +464,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: "📦 pip install -r requirements.txt (بوابةصارمة)"
+      - name: "📦 pip install -r requirements.txt (بوابة صارمة)"
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
@@ -467,7 +476,7 @@ jobs:
         run: python3 test_tree_hygiene.py
 
       - name: "🛡️ حارس بوّابات الـCI (tools/test_ci_gates.py)"
-        run: python3 tools/test_ci_gates.py ci-workflow/octa-ci.yml
+        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
 
   # ══════════════════════════════════════════════════════════════
   # ⑥ سلامة البيانات (بوابة مستقلة)

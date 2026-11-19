@@ -1,0 +1,424 @@
+name: OCTA Interface CI — الجولة ٢٦ (بوابات حقيقية)
+
+# OCTA-CI-GATES-V1 profile=frontend
+#
+# 📌 الملف ده بتاع **مستودع الواجهة** ⭐
+#    ⇒ لازم يتنسخ على `.github/workflows/ci.yml` في مستودع الواجهة
+#      (على فرع الـCI · عشان الدفع محتاج scope اسمه `workflow` ⭐).
+#
+# ⛔ قواعد الـCI (كلها متحقَّقة آلياً بـ tools/test_ci_gates.py):
+#   ① `npm ci` = **بوابة صارمة**: لو فشل الـjob فشل وكل خطوة بعده
+#      اتخطّت (مفيش continue-on-error · مفيش `|| true` · مفيش
+#      `|| npm install` كبديل).
+#   ② **كل** ملف اختبار موجود في المستودع بيشتغل (مفيش استبعاد
+#      صامت · مفيش `--test-name-pattern` · مفيش حذف ملفات اختبار).
+#   ③ ⛔ التصنيف **أربع حالات صريحة**: Passed · Failed · Skipped ·
+#      Blocked ⭐ ⇒ والمتخطى (Skipped) **مش نجاح** ⭐ ⇒ بيتحسب
+#      **فشل** في بوابة الـjob (كود خروج مخالف للصفر ⭐).
+#      ⭐Blocked = الملف رجع صامت من غير ما يكمّل (زي absence مرجع
+#      git في اختبارات البرهان السالب ⭐) ⇒ مش نجاح ⭐.
+#   ④ ⛔ ⛔ **بناء النسخة النهائية** جوّه الـCI ⭐
+#      (`npm run build:preview` · `npm run build:prod` ⭐).
+#   ⑤ ⛔ **بوابة dist الحسّاسة**: مفيش `users.json` · مفيش
+#      `data_markets.js` · مفيش `*.sqlite` · مفيش أي ملف أسرار
+#      داخل نسخة الإنتاج ⭐ ⇒ وجودها = فشل ⭐.
+#   ⑥ ⛔ كل نتيجة مربوطة ببصمة المرشح (OCTA_CANDIDATE_SHA) ⭐.
+#   ⑦ مفيش أسرار · مفيش نشر · مفيش دفع · مفيش موارد مدفوعة.
+
+on:
+  push:
+    branches:
+      - main
+      - 'ci/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  # ⛔ بصمة المرشح (الجولة ٢٦) — المصدر الواحد لكل النتائج ⭐
+  #    (لازم يتحدّث لما المرشح يتغيّر ⭐)
+  OCTA_CANDIDATE_SHA: '801b9f32d3f1e2bd68c3d7a957dad940e2620941'
+
+jobs:
+  # ══════════════════════════════════════════════════════════════
+  # ① البوابة الأولى: تثبيت الاعتماديات (صارم)
+  # ══════════════════════════════════════════════════════════════
+  dependency-install:
+    name: "📦 ١) تثبيت الاعتماديات — بوابة صارمة"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+            exit 1
+          fi
+          echo "PASS: الـSHA من عائلة المرشح"
+
+      - name: "🔒 البوابة الكاملة (نطاق الفرق = ملفات الـCI بس)"
+        run: |
+          set -euo pipefail
+          UNEXPECTED=""
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            case "$f" in
+              .github/workflows/*|tools/test_ci_*|tools/ci_*|tools/copy-data.js) ;;
+              *) UNEXPECTED="$UNEXPECTED$f " ;;
+            esac
+          done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "⛔ ملفات خارج نطاق الـCI اتغيّرت عن المرشح:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "PASS: الشجرة المختبَرة = المرشح + ملفات الـCI بس"
+
+      - name: "🟢 تجهيز Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: "📦 npm ci (فشل التثبيت ⇒ فشل الـjob)"
+        run: |
+          set -euo pipefail
+          echo "📦 تثبيت الاعتماديات من package-lock.json…"
+          npm ci --no-audit --no-fund
+          echo "✅ التثبيت خلص بنجاح"
+
+      - name: "🔬 تحقّق إن التثبيت تمّ فعلاً (npm ls)"
+        run: |
+          set -euo pipefail
+          npm ls --depth=0
+          node --version
+          npm --version
+
+      - name: "🛡️ حارس الـCI (لازم ملف الـCI نفسه نضيف)"
+        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+
+  # ══════════════════════════════════════════════════════════════
+  # ② كل اختبارات الواجهة (كل ملف موجود — بلا استبعاد صامت)
+  # ══════════════════════════════════════════════════════════════
+  frontend-suite:
+    name: "🧪 ٢) اختبارات الواجهة — كل الملفات (تصنيف أربع حالات ⭐)"
+    needs: dependency-install
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+            exit 1
+          fi
+          echo "PASS: الـSHA من عائلة المرشح"
+
+      - name: "🔒 البوابة الكاملة (نطاق الفرق = ملفات الـCI بس)"
+        run: |
+          set -euo pipefail
+          UNEXPECTED=""
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            case "$f" in
+              .github/workflows/*|tools/test_ci_*|tools/ci_*|tools/copy-data.js) ;;
+              *) UNEXPECTED="$UNEXPECTED$f " ;;
+            esac
+          done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "⛔ ملفات خارج نطاق الـCI اتغيّرت عن المرشح:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "PASS: الشجرة المختبَرة = المرشح + ملفات الـCI بس"
+
+      - name: "🟢 تجهيز Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: "📦 npm ci (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+
+      - name: "🧪 تنفيذ الاختبارات الحقيقية (node --test assets/tests/*.test.js ⭐)"
+        run: |
+          set -euo pipefail
+          OUT_DIR="$RUNNER_TEMP/octa-fe-results"
+          mkdir -p "$OUT_DIR"
+          : > "$OUT_DIR/summary.jsonl"
+          TOTAL=0
+          PASSED=0
+          FAILEDN=0
+          SKIPPEDN=0
+          BLOCKEDN=0
+          for f in assets/tests/*.test.js; do
+            NAME="$(basename "$f")"
+            LOG="$OUT_DIR/$NAME.log"
+            if node --test "$f" > "$LOG" 2>&1; then
+              RC=0
+            else
+              RC=$?
+            fi
+            PASS="$(awk '/^# pass /{print $3; exit}' "$LOG")"
+            FAILC="$(awk '/^# fail /{print $3; exit}' "$LOG")"
+            SKIPC="$(awk '/^# skipped /{print $3; exit}' "$LOG")"
+            TODOC="$(awk '/^# todo /{print $3; exit}' "$LOG")"
+            TESTS="$(awk '/^# tests /{print $3; exit}' "$LOG")"
+            PASS="${PASS:-0}"
+            FAILC="${FAILC:-0}"
+            SKIPC="${SKIPC:-0}"
+            TODOC="${TODOC:-0}"
+            TESTS="${TESTS:-0}"
+            EXECUTED=$((PASS + FAILC))
+            DECLARED="$(awk '/^[[:space:]]*(test|it)\(/ {c++} END {print c+0}' "$f")"
+            # ⛔⛔⛔ بوابة مراجع git ⭐ (R26) ⭐
+            #    اختبارات البرهان السالب بتعتمد على **مرجع git** ⭐
+            #    ⇒ لو المرجع مش موجود ⭐ الاختبار بيرجع **صامت** ⭐
+            #    ⇒ الغياب لازم يبقى نتيجة **موثّقة** (blocked) ⭐
+            #       مش نجاح صامت ⭐
+            MISSING_REF=""
+            while IFS= read -r ref; do
+              [ -z "$ref" ] && continue
+              if ! git cat-file -e "${ref}^{commit}" 2>/dev/null; then
+                MISSING_REF="$MISSING_REF $ref"
+              fi
+            done < <(awk '
+              {
+                line = $0
+                low = tolower(line)
+                n = split("show cat-file rev-parse merge-base diff checkout", verbs, " ")
+                for (i = 1; i <= n; i++) {
+                  p = index(low, verbs[i])
+                  if (p > 0) {
+                    rest = substr(line, p + length(verbs[i]))
+                    if (match(rest, /[0-9a-f]{7,40}/)) {
+                      print substr(rest, RSTART, RLENGTH)
+                    }
+                  }
+                }
+              }
+            ' "$f" | sort -u)
+            if [ "$RC" -ne 0 ] || [ "$FAILC" -gt 0 ]; then
+              STATUS=failed
+              FAILEDN=$((FAILEDN + 1))
+            elif [ -n "$MISSING_REF" ]; then
+              STATUS=blocked
+              BLOCKEDN=$((BLOCKEDN + 1))
+            elif [ "$SKIPC" -gt 0 ] || [ "$TODOC" -gt 0 ]; then
+              STATUS=skipped
+              SKIPPEDN=$((SKIPPEDN + 1))
+            elif [ "$DECLARED" -gt 0 ] && [ "$EXECUTED" -lt "$DECLARED" ]; then
+              STATUS=blocked
+              BLOCKEDN=$((BLOCKEDN + 1))
+            elif [ "$EXECUTED" -eq 0 ]; then
+              STATUS=blocked
+              BLOCKEDN=$((BLOCKEDN + 1))
+            else
+              STATUS=passed
+              PASSED=$((PASSED + 1))
+            fi
+            TOTAL=$((TOTAL + 1))
+            printf '{"file":"%s","status":"%s","rc":%s,"declared":%s,"executed":%s,"pass":%s,"fail":%s,"skipped":%s}\n' \
+              "$NAME" "$STATUS" "$RC" "$DECLARED" "$EXECUTED" "$PASS" "$FAILC" \
+              "$((SKIPC + TODOC))" >> "$OUT_DIR/summary.jsonl"
+            echo "$NAME · $STATUS · rc=$RC · declared=$DECLARED · executed=$EXECUTED"
+          done
+          echo ""
+          echo "📊 اختبارات الواجهة: $TOTAL ملف · $PASSED نجح · $FAILEDN فشل · $SKIPPEDN متخطى · $BLOCKEDN محجوب"
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "⛔ مفيش أي ملف اختبار اتنفّذ"
+            exit 1
+          fi
+          if [ "$TOTAL" -ne "$PASSED" ]; then
+            echo "⛔⛔⛔ فيه ملفات مش ناجحة ⭐ ⇒ المتخطى (Skipped) مش نجاح ⭐ ⇒ الـjob بيفشل ⭐"
+            exit 1
+          fi
+          echo "✅ كل اختبارات الواجهة عدّت"
+
+  # ══════════════════════════════════════════════════════════════
+  # ③ حُرّاس المستودع (نظافة النص · XSS · تعريف الـCI · YAML)
+  # ══════════════════════════════════════════════════════════════
+  hygiene-guards:
+    name: "🧹 ٣) حُرّاس المستودع — نظافة النص + XSS + تعريف الـCI + YAML ⭐"
+    needs: frontend-suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+            exit 1
+          fi
+          echo "PASS: الـSHA من عائلة المرشح"
+
+      - name: "🟢 تجهيز Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: "📦 npm ci (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+
+      - name: "🧰 تجهيز مدقّق YAML (PyYAML في بيئة معزولة ⭐)"
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/octa-lint"
+          "$RUNNER_TEMP/octa-lint/bin/python" -m pip install \
+            --disable-pip-version-check --no-cache-dir pyyaml
+          echo "✅ مدقّق YAML جاهز"
+
+      - name: "📐 فحص صحّة YAML لكل ملف workflow (yaml.safe_load ⭐)"
+        run: |
+          set -euo pipefail
+          COUNT=0
+          for f in .github/workflows/*.yml; do
+            "$RUNNER_TEMP/octa-lint/bin/python" -c \
+              "import sys, yaml; yaml.safe_load(open(sys.argv[1], encoding='utf-8')); print('YAML OK: ' + sys.argv[1])" \
+              "$f"
+            COUNT=$((COUNT + 1))
+          done
+          if [ "$COUNT" -eq 0 ]; then
+            echo "⛔ مفيش أي ملف workflow اتفحص"
+            exit 1
+          fi
+          echo "✅ اتفحص $COUNT ملف workflow"
+
+      - name: "🔍 فحص تعريف الـActions (actionlint · أو البديل الأدق ⭐)"
+        run: |
+          set -euo pipefail
+          if command -v actionlint >/dev/null 2>&1; then
+            echo "🔍 actionlint متاح — بنشغّله"
+            actionlint .github/workflows/*.yml
+          else
+            echo "ℹ️ actionlint مش متاح — بنشغّل حارس الـCI (فحص تعريف الملف ⭐)"
+            python3 tools/test_ci_gates.py .github/workflows/ci.yml
+          fi
+
+      - name: "📤 حارس نظافة النص (حروف تالفة / أسماء أدوات)"
+        run: node tools/check-text-hygiene.js
+
+      - name: "🛡️ جرد XSS + التصنيف"
+        run: node tools/xss-inventory.js --triage ci-xss-triage.md
+
+      - name: "🛡️ حارس بوّابات الـCI (tools/test_ci_gates.py)"
+        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+
+  # ══════════════════════════════════════════════════════════════
+  # ④ البناء النهائي + بوابة dist الحسّاسة
+  # ══════════════════════════════════════════════════════════════
+  build-gate:
+    name: "🏗️ ٤) البناء النهائي (preview + prod) + بوابة dist ⭐"
+    needs: hygiene-guards
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "tested_head=$ACTUAL"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+            exit 1
+          fi
+          echo "PASS: الـSHA من عائلة المرشح"
+
+      - name: "🟢 تجهيز Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: "📦 npm ci (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+
+      - name: "🏗️ بناء نسخة المعاينة (build:preview ⭐)"
+        run: npm run build:preview
+
+      - name: "🚧 بوابة dist الحسّاسة (بعد بناء المعاينة ⭐)"
+        run: |
+          set -euo pipefail
+          BAD=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "⛔ ملف حسّاس داخل dist: $f"
+            BAD=1
+          done < <(find dist \
+            \( -name 'users.json' -o -name 'data_markets.js' -o -name '*.sqlite' \
+               -o -name '*.sqlite3' -o -name '*.db' -o -name '.env' \
+               -o -name '*.env' -o -name '*.pem' -o -name '*.key' \
+               -o -iname '*secret*' \) -type f -print)
+          if [ "$BAD" -ne 0 ]; then
+            echo "⛔⛔⛔ ملفات حسّاسة داخل نسخة الإنتاج ⭐ ⇒ الـjob بيفشل ⭐"
+            exit 1
+          fi
+          echo "✅ مفيش أي ملف حسّاس داخل dist ⭐"
+
+      - name: "🏗️ بناء نسخة الإنتاج (build:prod ⭐)"
+        run: npm run build:prod
+
+      - name: "🚧 بوابة dist الحسّاسة (بعد بناء الإنتاج ⭐)"
+        run: |
+          set -euo pipefail
+          BAD=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "⛔ ملف حسّاس داخل dist: $f"
+            BAD=1
+          done < <(find dist \
+            \( -name 'users.json' -o -name 'data_markets.js' -o -name '*.sqlite' \
+               -o -name '*.sqlite3' -o -name '*.db' -o -name '.env' \
+               -o -name '*.env' -o -name '*.pem' -o -name '*.key' \
+               -o -iname '*secret*' \) -type f -print)
+          if [ "$BAD" -ne 0 ]; then
+            echo "⛔⛔⛔ ملفات حسّاسة داخل نسخة الإنتاج ⭐ ⇒ الـjob بيفشل ⭐"
+            exit 1
+          fi
+          echo "✅ مفيش أي ملف حسّاس داخل dist ⭐"
+
+      - name: "📦 حارس نسخة الإنتاج (check-dist)"
+        run: node tools/check-dist.js
+
+      - name: "🔎 التأكد إن مافيش اختبارات في نسخة الإنتاج"
+        run: |
+          set -euo pipefail
+          if [ -d dist/assets/tests ]; then
+            echo "⛔ ملفات اختبارات داخل dist — البناء مرفوض"
+            exit 1
+          fi
+          echo "✅ مافيش اختبارات في نسخة الإنتاج"
