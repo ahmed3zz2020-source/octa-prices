@@ -13686,6 +13686,9 @@ def gold_attribution_api():
             if pr:
                 # ⛔ الاسم الصحيح: الأرقام دي **جنيه لكل دولار** (مش دولار/جنيه)
                 pr["implied_egp_per_usd"] = gp.implied_egp_per_usd(obs, xau_val)
+                # ⛔ الرقم ده **مشتقّ من سعر الذهب** — مش سعر صرف مستقل،
+                #    ومينفعش يُستخدم لإثبات إن فرق التسعير = صفر.
+                pr["implied_egp_per_usd_is_derived_from_gold"] = True
                 pr["fx_used"] = fx_src
                 pr["theoretical_tv_fx"] = round(theo_tv, 2)
                 pr["theoretical_tv_fx_note"] = (
@@ -13700,17 +13703,83 @@ def gold_attribution_api():
             #    لو obs ناقص ⇒ gp.premium بترجّع None ⇒ السطر ده كان
             #    يعمل TypeError ⇒ 502 على /api/gold/local (نور-الكوانت).
             if pr:
-                # 📌 تسمية صريحة: السعر المصري **محسوب** ⇒ «العلاوة» ≈ ٠
+                # 📌 تسمية صريحة: ده **فرق** بين سعر مرصود وسعر مرجعي
+                #    محسوب — مش «علاوة» متأكّدينها.
                 pr["label"] = ("فرق عن السعر المرجعي (هامش التاجر)" if obs >= theo_card
                                else "فرق عن السعر المرجعي")
+                # ⛔⛔⛔ (الجولة ٢٥ · R24-I14) — الكلام القديم كان **دائري**:
+                #    «سعر الصرف الضمني» بيتحسب من السعر المحلي نفسه، وبعدين
+                #    **نفس** الرقم ده بيتستخدم لإثبات إن «مفيش علاوة» ⇒
+                #    النتيجة كانت بالضرورة ≈ ٠ مهما كان السعر المرصود.
+                #    ✅ دلوقتي: الفرق بيتقاس بسعر صرف **مستقل** (مش مشتقّ
+                #    من الذهب) ⇒ رقم حقيقي · وسببه **مش** متأكّد منه.
                 pr["note"] = (
-                    "⚠️ السعر المصري بيتحسب من الذهب العالمي × سعر الصرف الرسمي، "
-                    "فالمفروض يبقى الفرق ≈ ٠ (هو هامش التاجر ودمغة الصياغة بس). "
-                    "يعني **مفيش علاوة حقيقية** في السوق دلوقتي — والفرق ده "
-                    "مش دليل على عرض/طلب.")
-                pr["is_tautology"] = True
+                    "الفرق بين السعر المرصود والسعر المرجعي المحسوب "
+                    "(الذهب العالمي × سعر الصرف). ⛔ الرقم ده **مش** دليل "
+                    "على عرض/طلب، وسببه (هامش الصاغة ولا سعر صرف موازٍ "
+                    "غير مرصود) مش متأكّد من القراءة المتاحة.")
+                pr["is_tautology"] = False
                 pr["dealer_margin_note"] = (
                     "هامش التاجر (شراء→بيع) ≈ ٠٫٨٪ · الفرق بين صاغتين ≈ ٠٫٢٪")
+                # ── ⭐ القياس الصادق: صرف مستقل (مش مشتقّ من الذهب) ──
+                try:
+                    import importlib as _il
+                    gpar = _il.import_module("gold_parity")
+                    _fx = gpar.fx_official()
+                    _gold = gpar.world_gold()
+                    _dec = None
+                    if _fx.get("ok") and _gold.get("ok") and obs:
+                        _dec = gpar.decompose_drift(
+                            last, _gold.get("value"), _fx.get("value"), obs)
+                    pr["independent_fx"] = {
+                        "value": _fx.get("value"), "id": _fx.get("id"),
+                        "url": _fx.get("url"), "field": _fx.get("field"),
+                        "unit": _fx.get("unit"),
+                        "source_timestamp": _fx.get("source_timestamp"),
+                        "provider": _fx.get("provider"),
+                        "independent_of_gold_price": _fx.get("independent_of_gold_price"),
+                        "dispersion_pct": _fx.get("dispersion_pct"),
+                        "cross_checks": _fx.get("cross_checks"),
+                    }
+                    pr["independent_world_gold"] = {
+                        "value": _gold.get("value"), "id": _gold.get("id"),
+                        "url": _gold.get("url"), "field": _gold.get("field"),
+                        "unit": _gold.get("unit"),
+                        "source_timestamp": _gold.get("source_timestamp"),
+                        "provider": _gold.get("provider"),
+                    }
+                    if _dec and _dec.get("ok"):
+                        pr["measured_premium_pct"] = _dec.get("local_premium_pct")
+                        pr["measured_drift_pct"] = _dec.get("drift_pct")
+                        pr["decomposition"] = {
+                            "gold_leg_pct": _dec.get("gold_leg_pct"),
+                            "fx_leg_pct": _dec.get("fx_leg_pct"),
+                            "local_premium_pct": _dec.get("local_premium_pct"),
+                            "identity_holds": _dec.get("identity_holds"),
+                        }
+                        pr["measured_with_independent_fx"] = True
+                        pr["note"] = (
+                            "الفرق **مقاس** بسعر صرف مستقل (%.4f جنيه/دولار · "
+                            "وقت المصدر %s) ⇒ فرق التسعير المحلي %s%%. "
+                            "⛔ سبب الفرق (هامش الصاغة ولا سعر صرف موازٍ غير "
+                            "مرصود) **مش** متأكّد — ومش دليل على عرض/طلب."
+                            % (_fx.get("value") or 0,
+                               _fx.get("source_timestamp") or "-",
+                               ("%.2f" % _dec["local_premium_pct"])
+                               if _dec.get("local_premium_pct") is not None
+                               else "غير قابل للقياس"))
+                    else:
+                        pr["measured_with_independent_fx"] = False
+                        pr["measured_premium_pct"] = None
+                        pr["premium_note"] = (
+                            "مفيش سعر صرف مستقل متاح دلوقتي ⇒ **مافيش** رقم "
+                            "فرق تسعير مقاس (مش صفر).")
+                except Exception as _e:
+                    pr["measured_with_independent_fx"] = False
+                    pr["measured_premium_pct"] = None
+                    pr["premium_note"] = ("فشل القياس المستقل: %s ⇒ مافيش رقم "
+                                          "فرق تسعير (مش صفر)."
+                                          % str(_e)[:80])
                 out["premium"] = pr
                 out["premium_renamed"] = True
             else:

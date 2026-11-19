@@ -10,7 +10,7 @@
  ① **ممنوع نخترع رقم.** لو السحب أو التحليل فشل ⇒ None + سبب مكتوب.
  ② **لازم نفرّق بين سعر الشراء وسعر البيع** — دي مش نفس الرقم.
     (المستخدم بيدفع سعر البيع، والتاجر بيدفع سعر الشراء.)
- ③ **لازم نوثّق وقت آخر تحديث** من `<time datetime="...">` بتاع المصدر
+ ③ **لازم نوثّق وقت آخر تحديث** من الوسم `<time datetime="ISO-8601">` بتاع المصدر
     (ISO + توقيت) — مش وقت السحب بتاعنا.
  ④ ⛔ **مصدر تجاري مش جهة حكومية.** لازم الواجهة تقول كده.
  ⑤ ⚠️ **سعر الجرام المعروض = سعر الجرام ÷ 31.1035** (أونصة تروي).
@@ -70,7 +70,8 @@ def _num(s):
 def parse(html):
     """
     ⛔ بترجع dict أو None. مفيش أرقام مخترعة.
-    البنية: <li data-unit="24" ...> ... شراء <span data-testid="price-figure">7240</span> ...
+    البنية: بلوك لكل عيار: <li data-unit="NN"> فيه سعر الشراء
+    <span data-testid="price-figure">NUMBER</span> و سعر البيع
     """
     if not html or "prices-strip" not in html:
         return None
@@ -91,7 +92,7 @@ def parse(html):
         out["updated_text"] = m2.group(1).strip()
 
     # ③ بلوكات العيارات
-    # كل بلوك: <li ... data-unit="NN" ...> ... </li>
+    # كل بلوك: <li data-unit="NN"> وبيقفل بـ </li>
     for blk in re.split(r'<li[^>]*data-unit="', html)[1:]:
         um = re.match(r'(\d+)', blk)
         if not um:
@@ -256,7 +257,7 @@ if __name__ == "__main__":
         print("   جرام 24 (مرجعي):", d.get("gram_24_reference"))
         for k, v in sorted((d.get("karats") or {}).items()):
             print(f"   {k}K: شراء {v.get('buy')} / بيع {v.get('sell')} {v.get('currency')}")
-        print("   грамات:", gram_prices(d))
+        print("   الجرامات:", gram_prices(d))
         print("   الطزاجة:", freshness(d))
 
 
@@ -270,13 +271,92 @@ if __name__ == "__main__":
 BULLION_URL = "https://goldbullioneg.com/"
 
 
-def _parse_bullion(html):
+def _parse_bullion_new(html):
+    """
+    📌 بنية الصفحة الحالية (٢٠٢٦-١١-١٩): بطاقات أسعار ببلاش-إرج.
+       · كل عيار:  <span class="gbs-fp__kn">عيار ٢١</span>
+                    <span class="gbs-fp__kb">٥٬٧٤٥</span>   ← «شراء» = سعر الشراء **من المحل**
+                    <span class="gbs-fp__ks">٥٬٧٢٥</span>   ← «بيع» = سعر البيع **للمحل**
+       · بطاقات المؤشرات: gbs-fp__tn (الاسم) · gbs-fp__tv (القيمة) · gbs-fp__kn (سعر البيع)
+       ⛔ نفس اصطلاح iSagha: `sell` = السعر اللي العميل بيدفعه ·
+          `buy` = السعر اللي العميل بيستلمه من المحل.
+    """
+    if not html or "gbs-fp__" not in html:
+        return None
+    out = {"source": "goldbullioneg — صاغة مصرية (مرجع سوق)",
+           "source_url": BULLION_URL,
+           "source_type": "commercial_market_reference",
+           "karats": {}, "rows": [],
+           "parse_layout": "cards_v2"}
+    # ① بطاقات العيارات (الترتيب: اسم · شراء · بيع)
+    for m in re.finditer(r'gbs-fp__kn"[^>]*>\s*([^<]{1,24}?)\s*</span>\s*'
+                         r'<span class="gbs-fp__kb"[^>]*>([^<]+)</span>\s*'
+                         r'<span class="gbs-fp__ks"[^>]*>([^<]+)</span>', html):
+        label = m.group(1).strip()
+        kb = _num(m.group(2))       # «شراء» = العميل بيشتري من المحل (هو اللي بيدفع)
+        ks = _num(m.group(3))       # «بيع» = العميل بيبيع للمحل (هو اللي بيستلم)
+        km = re.search(r"(?:عيار|جرام عيار)\s*(\d+)", label)
+        if not km or kb is None or ks is None:
+            continue
+        out["karats"][km.group(1)] = {
+            "buy": ks, "sell": kb, "currency": "ج.م",
+            "note": ("المصدر بيعرض «شراء» (السعر اللي العميل بيدفعه) و«بيع» "
+                     "(السعر اللي بيستلمه) — اتبنوا على نفس اصطلاح iSagha."),
+        }
+    if not out["karats"]:
+        return None
+    # ② بطاقات المؤشرات: الدولار · الأونصة · الجنيه الذهب
+    for m in re.finditer(r'gbs-fp__tn"[^>]*>\s*([^<]{1,24}?)\s*</span>\s*'
+                         r'<span class="gbs-fp__tv"[^>]*>([^<]+)</span>\s*'
+                         r'<span class="gbs-fp__kn"[^>]*>([^<]{1,24}?)</span>', html):
+        label = m.group(1).strip()
+        pv = re.search(r"[0-9][0-9.,]*", m.group(2))
+        primary = _num(pv.group(0)) if pv else None
+        sell_txt = m.group(3).strip()
+        sm = re.search(r"([0-9][0-9.,]*)", sell_txt)
+        sell = _num(sm.group(1)) if sm else None
+        if primary is None:
+            continue
+        if "الدولار" in label:
+            out["usd_egp"] = {"buy": primary, "sell": sell,
+                              "primary": primary, "sell_labeled": sell,
+                              "note": ("الرقم الظاهر في البطاقة + سعر البيع "
+                                       "المذكور تحته — الأرقام كما يعرضها "
+                                       "المصدر بالظبط.")}
+        elif "أونصة" in label:
+            out["ounce_usd"] = {"buy": primary, "sell": sell,
+                                "primary": primary, "sell_labeled": sell}
+        else:
+            out["rows"].append({"label": label[:40], "buy": primary, "sell": sell})
+    # ③ الكارت الرئيسي (عيار ٢١) — تقاطع مع بطاقات العيارات
+    mm = re.search(r'gbs-fp__pl"[^>]*>\s*شراء من المحل\s*</span>\s*'
+                   r'<span class="gbs-fp__big"[^>]*>([^<]+)</span>', html)
+    if mm:
+        out["main_card_sell_21"] = _num(mm.group(1))
+    ms = re.search(r'gbs-fp__pl"[^>]*>\s*بيع للمحل\s*</span>\s*'
+                   r'<span class="gbs-fp__mid"[^>]*>([^<]+)</span>', html)
+    if ms:
+        out["main_card_buy_21"] = _num(ms.group(1))
+    # ⛔ المصدر ما بيعرضش وقت تحديث ثابت ⇒ بنوثّق وقت السحب بس
+    out["updated_iso"] = None
+    out["updated_note"] = ("المصدر ما بيعرضش وقت تحديث ثابت في الصفحة "
+                           "⇒ وقت المصدر غير متاح (وقت السحب هو المرجع).")
+    out["fetched_at"] = datetime.datetime.utcnow().isoformat() + "Z"
+    return out
+
+
+def _parse_bullion_legacy(html):
+    """
+    ⛔ بنية قديمة (جدول `data-val`) — kept كاحتياط لو الموقع رجع ليها.
+       كل سطر: <td> اسم </td> <td class="num" data-val="بيع"> </td> <td class="num td-arrow" data-val="شراء"> </td>
+    """
     if not html or "data-val" not in html:
         return None
     out = {"source": "goldbullioneg — صاغة مصرية (مرجع سوق)",
            "source_url": BULLION_URL,
            "source_type": "commercial_market_reference",
-           "karats": {}, "rows": []}
+           "karats": {}, "rows": [],
+           "parse_layout": "table_v1"}
     # كل سطر: <td> اسم </td> <td class="num" data-val="بيع"> </td> <td class="num td-arrow" data-val="شراء"> </td>
     for m in re.finditer(r'<tr>(.*?)</tr>', html, re.S):
         row = m.group(1)
@@ -308,17 +388,30 @@ def _parse_bullion(html):
     return out
 
 
-def get_second():
+_SECOND_MEM = {"ts": 0, "data": None}
+
+
+def get_second(force=False):
     """المصدر التاني — لو فشل ⇒ None (مش أرقام مخترعة)."""
-    try:
-        html = _http_get(BULLION_URL, timeout=20)
-    except Exception as e:
-        return {"ok": False, "error": str(e)[:100]}
-    d = _parse_bullion(html)
-    if not d:
-        return {"ok": False, "error": "الصفحة رجعت من غير أسعار مفهومة"}
-    d["ok"] = True
-    return d
+    with _LOCK:
+        now = time.time()
+        if (not force and _SECOND_MEM["data"]
+                and (now - _SECOND_MEM["ts"]) < CACHE_TTL):
+            return _SECOND_MEM["data"]
+        try:
+            html = _http_get(BULLION_URL, timeout=20)
+        except Exception as e:
+            return {"ok": False, "error": str(e)[:100],
+                    "fetched_at": datetime.datetime.utcnow().isoformat() + "Z"}
+        # 📌 البنية الحالية (بطاقات) الأول · البنية القديمة (جدول) احتياط
+        d = _parse_bullion_new(html) or _parse_bullion_legacy(html)
+        if not d:
+            return {"ok": False, "error": "الصفحة رجعت من غير أسعار مفهومة",
+                    "fetched_at": datetime.datetime.utcnow().isoformat() + "Z"}
+        d["ok"] = True
+        _SECOND_MEM["data"] = d
+        _SECOND_MEM["ts"] = now
+        return d
 
 
 def cross_check():

@@ -72,8 +72,19 @@ def tv_now(symbol, count=6):
             "close": float(b["c"])}
 
 
-def decompose(series_last, loc, tv_xau, tv_fx):
-    """تفكيك الانحراف: ذهب · دولار · هامش محلي."""
+def decompose(series_last, loc, tv_xau, tv_fx, fx_independent=None,
+              gold_independent=None):
+    """تفكيك الانحراف: ذهب · دولار · هامش محلي.
+
+    ⛔⛔⛔ (الجولة ٢٥ · R24-I14) — **الدورية اتقفلت**:
+       الكود القديم كان بيحسب «سعر الدولار الضمني» من **السعر المحلي
+       نفسه** ⇒ (جرام محلي × 31.1035) ÷ أونصة، وبعدين بيستخدم **نفس**
+       الرقم ده لإثبات إن الهامش المحلي = صفر ⇒ النتيجة كانت **بالضرورة**
+       صفر مهما كان السعر المرصود (برهان: جرام ٦٠٠٠ أو ٩٠٠٠ ⇒ الهامش
+       ٠٫٠٠٠٠٪ في الحالتين).
+       ✅ دلوقتي: الهامش بيتحسب بس لو فيه **صرف مستقل** (مش مشتقّ من
+       الذهب) — ولو مفيش ⇒ `None` + سبب (مش صفر كاذب).
+    """
     gram_series = float(series_last["gram"])
     xau_series = float(series_last["xau"])
     fx_series = float(series_last["egp_per_usd"])
@@ -99,33 +110,72 @@ def decompose(series_last, loc, tv_xau, tv_fx):
         (gram_series / (xau_series * fx_series / T) - 1) * 100, 6)
     # ② الانحراف المقاس (السلسلة ⇦ الحيّ)
     out["drift_pct"] = round((gram_series / gram_live - 1) * 100, 4)
-    # ③ رجل الذهب: سعر الأونصة من **السوق المحلي نفسه** مقابل إغلاق
-    #    السلسلة ⇒ ده الفرق في الذهب بين نقطة السلسلة ووقت القياس.
-    if ounce_live:
-        out["gold_leg_pct"] = round((float(ounce_live) / xau_series - 1) * 100, 4)
+    # ③ رجل الذهب: **قراءة مستقلة** لو متاحة · وإلاSnapshot التليفزيون
+    gold_used = None
+    gold_src = None
+    if gold_independent:
+        gold_used = float(gold_independent)
+        gold_src = "independent_world_gold"
     elif tv_xau and tv_xau.get("close"):
-        out["gold_leg_pct"] = round((tv_xau["close"] / xau_series - 1) * 100, 4)
+        gold_used = float(tv_xau["close"])
+        gold_src = "tradingview_snapshot (نفس مزوّد السلسلة)"
+    if gold_used:
+        out["gold_leg_pct"] = round((gold_used / xau_series - 1) * 100, 4)
+        out["gold_source"] = gold_src
     else:
         out["gold_leg_pct"] = None
+        out["gold_source"] = None
     # ③ب تشخيص: نفس شمعة الـTV وقت القياس (الذهب العالمية ما اتغيّرتش؟)
     if tv_xau and tv_xau.get("close"):
         out["tv_xau_same_bar_pct"] = round(
-            (tv_xau["close"] / xau_series - 1) * 100, 4)
+            (float(tv_xau["close"]) / xau_series - 1) * 100, 4)
     else:
         out["tv_xau_same_bar_pct"] = None
-    # ④ رجل العملة: الفرق بين سعر الصرف الرسمي في السلسلة والضمني من السوق
+    # ④ رجل العملة: **صرف مستقل** (مش مشتقّ من الذهب) ⇒ شرط لازم
+    fx_used = None
+    fx_src = None
+    if fx_independent:
+        fx_used = float(fx_independent)
+        fx_src = "independent_fx"
+    out["fx_used"] = fx_used
+    out["fx_source"] = fx_src
+    # ⑤ ⛔ الرقم المشتقّ من السعر المحلي — للتوثيق بس، **مش** سعر صرف
     if ounce_live:
         implied_fx = gram_live * T / float(ounce_live)
         out["implied_egp_per_usd_from_market"] = round(implied_fx, 4)
-        out["fx_leg_pct"] = round((implied_fx / fx_series - 1) * 100, 4)
-        # ⑤ الهامش المحلي بعد ضبط الدولار الضمني
-        out["local_margin_pct"] = round(
-            (gram_live / (float(ounce_live) * implied_fx / T) - 1) * 100, 4)
+        out["implied_fx_is_derived_from_gold"] = True
+        out["implied_fx_note"] = ("رقم **مشتقّ من السعر المحلي** — مش سعر "
+                                  "صرف مستقل، ومينفعش يُستخدم لإثبات إن "
+                                  "الهامش المحلي = صفر.")
     else:
         out["implied_egp_per_usd_from_market"] = None
-        out["fx_leg_pct"] = None
+        out["implied_fx_is_derived_from_gold"] = True
+    # ⑥ الدورية: هل الصرف المتاح مشتقّ من الذهب؟ (لازم لأ)
+    circular = None
+    if fx_used and gram_live and gold_used:
+        _implied = gram_live * T / float(gold_used)
+        _diff = abs(fx_used / _implied - 1) * 100 if _implied else None
+        circular = bool(_diff is not None and _diff <= 0.01)
+        out["circular_fx_detected"] = circular
+        out["circular_fx_diff_pct"] = round(_diff, 6) if _diff is not None else None
+    else:
+        out["circular_fx_detected"] = None
+    # ⑦ الهامش المحلي: لازم صرف **مستقل** + ذهب مستقل + **مش** دائري
+    if fx_used and gold_used and not circular:
+        out["local_margin_pct"] = round(
+            (gram_live / (gold_used * fx_used / T) - 1) * 100, 4)
+        out["local_margin_note"] = (
+            "الهوامش مقاس بصرف **مستقل** (مش مشتقّ من الذهب) — رقم حقيقي.")
+    elif circular:
         out["local_margin_pct"] = None
-    # ⑥ وحدة الجرام: نسب العيّارات من نفس المصدر الحيّ = النقاء ÷ 24
+        out["local_margin_note"] = (
+            "⛔ الصرف المتاح **مشتقّ من سعر الذهب** ⇒ الهامش غير قابل للقياس "
+            "(مش صفر) — لازم صرف مستقل.")
+    else:
+        out["local_margin_pct"] = None
+        out["local_margin_note"] = (
+            "مفيش صرف مستقل وقت القياس ⇒ **مافيش هامش محسوب** (مش صفر).")
+    # ⑧ وحدة الجرام: نسب العيّارات من نفس المصدر الحيّ = النقاء ÷ 24
     ratios = {}
     karats = loc.get("karats") or {}
     for k, purity in (("14", 14), ("18", 18), ("21", 21)):
@@ -139,7 +189,7 @@ def decompose(series_last, loc, tv_xau, tv_fx):
                      "abs_error": round(abs(float(sell) / gram_live
                                             - purity / 24.0), 6)}
     out["karat_ratio_check"] = ratios
-    # ⑦ الهوية: (1+ذهب)(1+دولار)(1+هامش) = 1/(1+انحراف)
+    # ⑨ الهوية: (1+ذهب)(1+دولار)(1+هامش) = 1/(1+انحراف)
     g = out.get("gold_leg_pct")
     f = out.get("fx_leg_pct")
     m = out.get("local_margin_pct")
@@ -149,6 +199,31 @@ def decompose(series_last, loc, tv_xau, tv_fx):
         out["identity_check_pct"] = round(ident, 6)
         out["identity_error_pp"] = round(abs(ident - out["drift_pct"]), 6)
     return out
+
+
+def circular_repro():
+    """
+    ⛔ **إعادة إنتاج العيب القديم** (R24-I14) — برهان سلبي:
+       الصيغة القديمة (سعر الصرف الضمني مشتقّ من السعر المحلي ⇒ الهامش
+       = ٠) بتطلع **صفر** مهما كان السعر المرصود.
+       ⛔ ومع صيغة مستقلة (صرف مستقل) ⇒ الهامش بيبقى رقم حقيقي.
+    """
+    row = {"d": "2026-01-01", "xau": 3000.0, "egp_per_usd": 50.0,
+           "gram": round(3000.0 * 50.0 / T, 4)}
+    out = []
+    for local_gram in (5000.0, 6000.0, 9000.0):
+        loc = {"gram_24_reference": local_gram, "ounce_usd": 3000.0,
+               "karats": {}}
+        old_implied = local_gram * T / 3000.0
+        old_margin = (local_gram / (3000.0 * old_implied / T) - 1) * 100
+        new = decompose(row, loc, None, None, fx_independent=50.0,
+                        gold_independent=3000.0)
+        out.append({"local_gram": local_gram,
+                    "old_circular_margin_pct": round(old_margin, 10),
+                    "old_circular_margin_is_zero": abs(old_margin) < 1e-9,
+                    "new_independent_margin_pct": new.get("local_margin_pct")})
+    return out
+
 
 
 def negative_proof(series_doc, drift_pct=5.0):
@@ -194,6 +269,26 @@ def negative_proof(series_doc, drift_pct=5.0):
     }
 
 
+def independent_readings():
+    """
+    📌 القراءات **المستقلة** (الجولة ٢٥): ذهب عالمي من مزوّد مستقل ·
+       صرف من مصادر عملة مستقلة · سعر محلي من مرجع السوق.
+    ⛔ مافيش قراءة ⇒ `None` + سبب (مافيش رقم مخترع).
+    """
+    try:
+        import gold_parity as gpar
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:120]}
+    gold = gpar.world_gold(force=True)
+    fx = gpar.fx_official(force=True)
+    loc = gpar.local_gold(force=True)
+    out = {"gold": gold, "fx": fx, "local": loc, "ok": False}
+    out["ok"] = bool(gold.get("ok") and fx.get("ok") and loc.get("ok"))
+    if not out["ok"]:
+        out["error"] = "قراءة مستقلة ناقصة"
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="")
@@ -210,8 +305,28 @@ def main():
         return 2
     tv_xau = tv_now(TV_XAU)
     tv_fx = tv_now(TV_EGP)
-    res = decompose(last, loc, tv_xau, tv_fx)
+    # 📌 القراءات المستقلة (دولار صرف مش مشتقّ من الذهب)
+    ind = independent_readings()
+    res = decompose(last, loc, tv_xau, tv_fx,
+                    fx_independent=(ind.get("fx") or {}).get("value"),
+                    gold_independent=(ind.get("gold") or {}).get("value"))
     res["measured_at_utc"] = _now_iso()
+    res["independent_sources"] = {
+        "gold": {"id": (ind.get("gold") or {}).get("id"),
+                 "url": (ind.get("gold") or {}).get("url"),
+                 "field": (ind.get("gold") or {}).get("field"),
+                 "value": (ind.get("gold") or {}).get("value"),
+                 "source_timestamp": (ind.get("gold") or {}).get("source_timestamp"),
+                 "unit": (ind.get("gold") or {}).get("unit")},
+        "fx": {"id": (ind.get("fx") or {}).get("id"),
+               "url": (ind.get("fx") or {}).get("url"),
+               "field": (ind.get("fx") or {}).get("field"),
+               "value": (ind.get("fx") or {}).get("value"),
+               "source_timestamp": (ind.get("fx") or {}).get("source_timestamp"),
+               "unit": (ind.get("fx") or {}).get("unit"),
+               "cross_checks": (ind.get("fx") or {}).get("cross_checks"),
+               "dispersion_pct": (ind.get("fx") or {}).get("dispersion_pct")},
+    }
     res["series_meta"] = {
         "points": len(doc.get("series") or []),
         "sources": doc.get("sources"),
@@ -224,10 +339,24 @@ def main():
     print("   الحيّ (%s): %.2f ج.م/جرام · أونصة %.2f دولار"
           % (res["live"].get("updated_iso"), res["live"]["gram_24_reference_egp"],
              res["live"].get("ounce_usd") or float("nan")))
-    print("   الانحراف: %+.4f%% · ذهب %s · دولار %s · هامش %s"
-          % (res["drift_pct"], res.get("gold_leg_pct"), res.get("fx_leg_pct"),
+    print("   مستقل — ذهب: %s (وقت %s) · صرف: %s (وقت %s)"
+          % ((ind.get("gold") or {}).get("value"),
+             (ind.get("gold") or {}).get("source_timestamp"),
+             (ind.get("fx") or {}).get("value"),
+             (ind.get("fx") or {}).get("source_timestamp")))
+    print("   الانحراف: %+.4f%% · ذهب %s · هامش محلي %s"
+          % (res["drift_pct"], res.get("gold_leg_pct"),
              res.get("local_margin_pct")))
     print("   الاتساق الداخلي للسلسلة: %+.6f%%" % res["internal_consistency_pct"])
+    print("   الهامش المحلي: %s" % res.get("local_margin_note"))
+
+    print("── إعادة إنتاج العيب القديم (دورية) ──")
+    repro = circular_repro()
+    res["circular_repro"] = repro
+    for row in repro:
+        print("   جرام محلي %.0f ⇒ الهامش القديم %.6f%% · الهامش المستقل %s%%"
+              % (row["local_gram"], row["old_circular_margin_pct"],
+                 row["new_independent_margin_pct"]))
 
     print("── البرهان السالب (انحراف في السلسلة ⇒ الاختبار الحتمي يفشل) ──")
     neg = negative_proof(doc)
