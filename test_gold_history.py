@@ -78,7 +78,7 @@ for _r in (s[0], s[-1]):
     check(abs(_r["usd_per_egp"] * _r["egp_per_usd"] - 1.0) < 1e-6,
           "usd_per_egp هو المقلوب فعلاً (%s)" % _r["d"])
 check(data.get("to", "") >= (datetime.datetime.utcnow() - datetime.timedelta(days=5)).strftime("%Y-%m-%d"),
-      "بتوصل لآخر几天")
+      "بتوصل لآخر أيام")
 check(bool(data.get("sources", {}).get("gold")), "مصدر الذهب موثّق")
 check(bool(data.get("sources", {}).get("fx")), "مصدر سعر الدولار موثّق")
 check(bool(data.get("method", {}).get("formula")), "المعادلة موثّقة")
@@ -99,7 +99,7 @@ print("\n▶️ ③ اتساق الملخص")
 st = gh.stats(data)
 check(st.get("ok") is True, "الملخص اتحسب")
 if st.get("ok"):
-    check(abs(st["times"] - st["last_gram"] / st["first_gram"]) < 0.02, "الض��اعف = آخر/أول")
+    check(abs(st["times"] - st["last_gram"] / st["first_gram"]) < 0.02, "الضّاعف = آخر/أول")
     hi = max(r["gram"] for r in s)
     check(abs(st["all_time_high"]["gram"] - hi) < 0.05, "القمة = أعلى جرام في السلسلة")
     lo = min(r["gram"] for r in s)

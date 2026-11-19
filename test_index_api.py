@@ -98,7 +98,7 @@ st, d = call("/api/indices/<ix_id>/analysis", {"period": "1Y"}, ix_id="EGX30")
 cons = d["constituents"]
 print("   EGX30 components:", len(cons))
 for c in cons[:5]:
-    print(f"      {c['code']:7s} وزن={c['weight']}% نتيج��={c['score']} قرار={c['decision']} قطاع={c['sector']}")
+    print(f"      {c['code']:7s} وزن={c['weight']}% نتيجة={c['score']} قرار={c['decision']} قطاع={c['sector']}")
 check(cons, "مفيش مكونات")
 
 print("\n=== 6) أخطاء ===")

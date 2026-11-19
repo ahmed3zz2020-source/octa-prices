@@ -65,7 +65,7 @@ DEFAULTS = {
     "require_reversal": False,         # لازم إغلاق راجع فوق/تحت المنطقة
 }
 
-# أسماء عربية لل 방향 — بتظهر في التقرير
+# أسماء عربية للاتجاه — بتظهر في التقرير
 DIR_AR = {"up": "صاعد", "down": "هابط"}
 KIND_AR = {"BREAKOUT": "كسر منطقة", "PULLBACK": "ارتداد من منطقة"}
 
@@ -137,7 +137,7 @@ def _has_ohlc(bars):
 
 
 def _age_days(d_from, d_to):
-    """عدد الأيام بين تاريخين (둘هم YYYY-MM-DD) — None لو مش صالحين."""
+    """عدد الأيام بين تاريخين (كلاهما YYYY-MM-DD) — None لو مش صالحين."""
     if not d_from or not d_to:
         return None
     try:

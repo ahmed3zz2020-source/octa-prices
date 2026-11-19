@@ -58,7 +58,7 @@ print("\n▶️ ② RSI + MACD + ROC")
 check(gt.rsi([1, 2, 3, 4, 5], 2) is not None, "RSI محسوب")
 check(gt.rsi([1, 2], 14) is None, "RSI على بيانات ناقصة ⇒ None")
 flat = [10.0] * 40
-check(gt.rsi(flat, 14) == 50.0, f"سعر ثابت ⇒ RSI = 50 (م��م {gt.rsi(flat, 14)})")
+check(gt.rsi(flat, 14) == 50.0, f"سعر ثابت ⇒ RSI = 50 (مقارن بـ{gt.rsi(flat, 14)})")
 m = gt.macd(vals * 5)
 check(m is not None, "MACD اتحسب على سلسلة كافية")
 if m:

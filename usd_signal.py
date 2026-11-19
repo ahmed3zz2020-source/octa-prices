@@ -1754,7 +1754,7 @@ def register(app, require_user=None):
                             "categories_ar": {
                                 "global": "عوامل الدولار العالمي",
                                 "egypt": "عوامل الاقتصاد المصري",
-                                "flow": "عرض、 الطلب على الدولار",
+                                "flow": "عرض، الطلب على الدولار",
                                 "risk": "المخاطر العالمية"},
                             "sources": _sources()})
         except Exception as e:
