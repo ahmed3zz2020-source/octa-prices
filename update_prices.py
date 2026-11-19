@@ -11764,41 +11764,59 @@ def portfolio_api():
             if known and code not in known:
                 return jsonify({"error": f"الرمز {code} غير معروف"}), 400
 
-        pf = u.get("portfolio") or {"holdings": {}, "cash": 0}
-        pf.setdefault("holdings", {})
-
-        if action == "add":
-            try:
-                shares = float(data.get("shares", 0))
-                cost = float(data.get("cost", 0))
-                price = float(data.get("price", 0))
-            except (TypeError, ValueError):
-                return jsonify({"error": "أرقام غير صالحة"}), 400
-            if shares < 0 or cost < 0 or price < 0:
-                return jsonify({"error": "مفيش قيم سالبة"}), 400
-            if shares > 1e9 or cost > 1e7:
-                return jsonify({"error": "القيمة كبيرة أوي"}), 400
-            pf["holdings"][code] = {
-                "shares": shares, "cost": cost, "price": price,
-                "sector": str(data.get("sector") or "أخرى")[:30],
+        # ⭐⭐⭐ الجولة ٢٥ (R25 · المرحلة ٩) — ⛔ lost update ⭐
+        # 📌 العيب المقاس ⭐: ⛔ ١٣ من ٣٠ كتابة متزامنة ضاعت ⭐
+        #    (قياس فعلي ⭐ من اختبار التزامن ⭐).
+        # 📌 السبب ⭐: ⛔ القراءة (u["portfolio"]) والحفظ (_patch_user) ⭐
+        #    كانوا **بره** نفس القفل ⭐ ⇒ ⭐ كل طلب يقرأ نفس النسخة القديمة ⭐
+        #    ⇒ ⭐ وبيكتب فوق التاني ⭐ ⇒ ⭐ ⭐ الكتابات بتضيع ⭐.
+        # ✅ الحل ⭐: ⭐ (قراءة + تعديل + حفظ) كلهم **جوه** USERS_LOCK ⭐
+        #    والقراءة من **أحدث** نسخة ⭐ ⇒ ⭐ مافيش lost update ⭐.
+        # ⛔ USERS_LOCK RLock ⭐ ⇒ التداخل آمن ⭐
+        #    (_patch_user بياخد القفل تاني ⭐).
+        # ⛔ نسخة مستقلة ⭐ (مش نفس dictionaries في الذاكرة ⭐)
+        #    ⇒ ⭐ لو الحفظ فشل ⭐ النسخة الأصلية ما تتغيرش ⭐.
+        with USERS_LOCK:
+            fresh = _load_users().get(str(u["id"])) or u
+            base = fresh.get("portfolio") or {}
+            pf = {
+                "holdings": dict(base.get("holdings") or {}),
+                "cash": base.get("cash", 0),
             }
-        elif action == "remove":
-            pf["holdings"].pop(code, None)
-        elif action == "clear":
-            pf["holdings"] = {}
-            pf["cash"] = 0
-        elif action == "set_cash":
-            try:
-                cash = float(data.get("cash", 0))
-            except (TypeError, ValueError):
-                return jsonify({"error": "قيمة غير صالحة"}), 400
-            if cash < 0 or cash > 1e9:
-                return jsonify({"error": "قيمة غير صالحة"}), 400
-            pf["cash"] = cash
-        else:
-            return jsonify({"error": "action غير معروف"}), 400
+            pf.setdefault("holdings", {})
 
-        saved = _patch_user(u["id"], portfolio=pf)
+            if action == "add":
+                try:
+                    shares = float(data.get("shares", 0))
+                    cost = float(data.get("cost", 0))
+                    price = float(data.get("price", 0))
+                except (TypeError, ValueError):
+                    return jsonify({"error": "أرقام غير صالحة"}), 400
+                if shares < 0 or cost < 0 or price < 0:
+                    return jsonify({"error": "مفيش قيم سالبة"}), 400
+                if shares > 1e9 or cost > 1e7:
+                    return jsonify({"error": "القيمة كبيرة أوي"}), 400
+                pf["holdings"][code] = {
+                    "shares": shares, "cost": cost, "price": price,
+                    "sector": str(data.get("sector") or "أخرى")[:30],
+                }
+            elif action == "remove":
+                pf["holdings"].pop(code, None)
+            elif action == "clear":
+                pf["holdings"] = {}
+                pf["cash"] = 0
+            elif action == "set_cash":
+                try:
+                    cash = float(data.get("cash", 0))
+                except (TypeError, ValueError):
+                    return jsonify({"error": "قيمة غير صالحة"}), 400
+                if cash < 0 or cash > 1e9:
+                    return jsonify({"error": "قيمة غير صالحة"}), 400
+                pf["cash"] = cash
+            else:
+                return jsonify({"error": "action غير معروف"}), 400
+
+            saved = _patch_user(u["id"], portfolio=pf)
         if not saved:
             # ⛔ نفس قاعدة «النجاح = دليل على الكتابة» (MD-054b) —
             #    الحفظ فشل ⇒ ممنوع «ok: true».
