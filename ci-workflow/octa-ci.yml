@@ -237,6 +237,7 @@ jobs:
             --root . \
             --out "$RUNNER_TEMP/octa-backend-results.json" \
             --timeout 2400 \
+            --reset-cmd "bash tools/ci_reset_staging.sh" \
             --last test_signup_flow.py
 
       - name: "🔓 التحقق من البيانات المرجعية (بعد الجولة) ⭐"

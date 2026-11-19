@@ -40,3 +40,8 @@ engine_audit_result.json
 acceptance_center_r20.json
 acceptance_center_r21.json
 git_pii_scan_result.json
+
+# ⛔ الجولة ٢٦ (R26) — ملفات حالة المستخدمين وقت التشغيل ⭐
+#    (بتتولّد من الاختبارات ⭐ ⇒ مش بتتسلّم ⭐)
+users.json
+users.lock
