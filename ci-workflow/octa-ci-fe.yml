@@ -332,6 +332,45 @@ jobs:
       - name: "🛡️ حارس بوّابات الـCI (tools/test_ci_gates.py)"
         run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
 
+      - name: "🧪 🛡️ الملفات المعزولة — بوابة بديلة إلزامية ⭐ (مافيش استبداء صامت ⭐)"
+        run: |
+          set -euo pipefail
+          # ⛔⛔ الملفات المعزولة ⭐ بيحتاجوا مصنكة ⭐ ولا تقنيات النتاج ⭐
+          # ⇒ لكل ملف معزول ⭐ ليه بوابة بديلة إلزامية تشغل جوه المعاينة ⭐
+          python3 tools/ci_result_classifier.py run \
+            --kind node --root . --out "$RUNNER_TEMP/fe-isolated.json" \
+            --timeout 900 \
+            --pattern "mgmt/test_live.py" \
+            --pattern "mgmt/tests/test_panel_e2e.py" \
+            --pattern "test-screener-merge.mjs" \
+            --pattern "test_gold_savings_ui.py" \
+            --pattern "tools/test-data-routing.js" \
+            --pattern "tools/test-halan-news.js" \
+            --pattern "tools/test-index-ui.js" \
+            --pattern "tools/test-news-axis-page.py" \
+            --pattern "tools/test-news-axis-paths.py" \
+            --pattern "tools/test-news-axis-visual.py" \
+            --pattern "tools/test-usd-ui.js" \
+            --pattern "tools/test_gauge.py" \
+            --pattern "tools/test_intel_modal.py" \
+            --pattern "tools/test_preview_isolation.py" \
+            --pattern "tools/test_webapk_update.py" \
+          python3 - <<'PY'
+          import json, os, sys
+          doc = json.load(open(os.environ["RUNNER_TEMP"] + "/fe-isolated.json",
+                               encoding="utf-8"))
+          files = doc.get("files", [])
+          bad = [r for r in files if r.get("status") != "passed"]
+          for r in files:
+              print("📄 %s ⇒ %s ⭐ (%s)" % (r.get("file"),
+                                              r.get("status"),
+                                              r.get("reason", "")))
+          if bad:
+              print("⛔⛔⛔ ملفات معزولة لا عدات بوابة بديلة ⭐")
+              sys.exit(1)
+          print("✅ كل الملفات المعزولة عدت عبر البوابات البديلة ⭐")
+          PY
+
   # ══════════════════════════════════════════════════════════════
   # ④ البناء النهائي + بوابة dist الحسّاسة
   # ══════════════════════════════════════════════════════════════

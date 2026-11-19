@@ -124,7 +124,7 @@ jobs:
           PY
 
       - name: "🛡️ حارس الـCI (لازم ملف الـCI نفسه نضيف)"
-        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+        run: python3 tools/test_ci_gates.py ci-workflow/octa-ci.yml
 
   # ══════════════════════════════════════════════════════════════
   # ② كل اختبارات الباك (كل ملف موجود — بلا استبعاد صامت)
@@ -476,7 +476,7 @@ jobs:
         run: python3 test_tree_hygiene.py
 
       - name: "🛡️ حارس بوّابات الـCI (tools/test_ci_gates.py)"
-        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+        run: python3 tools/test_ci_gates.py ci-workflow/octa-ci.yml
 
   # ══════════════════════════════════════════════════════════════
   # ⑥ سلامة البيانات (بوابة مستقلة)

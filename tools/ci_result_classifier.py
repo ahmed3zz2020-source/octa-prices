@@ -494,7 +494,10 @@ def cmd_run(args):
         return 2
     child = _child_path()
     env_extra = json.loads(args.env) if args.env else {}
-    isolation = load_isolation(root) if args.kind == "python" else {}
+    # 🐞🛡️ ١٩ نوفمبر ٢٠٢٦ (R26) — السجل ⭐
+    # 📗 السجل يشغل لكل نوع ⭐ (باثووي و node ⭐)
+    # ⇒ ⛔⛔ قابل العزل للواجهة تخطي في المستودع الباك ☠ ⭐
+    isolation = load_isolation(root)
     results = []
     print("📂 %s · %d ملف" % (args.kind, len(files)))
     if isolation:
