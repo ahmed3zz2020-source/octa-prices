@@ -218,7 +218,10 @@ jobs:
           echo "OCTA_DATA_BEFORE=${{ runner.temp }}/octa-data-before.sha256" >> "$GITHUB_ENV"
           echo "🔒 بصمات البيانات المرجعية اتسجّلت: $(wc -l < "${{ runner.temp }}/octa-data-before.sha256") ملف ⭐"
 
-      - name: "🧪 تنفيذ الاختبارات الحقيقية (الباك: كل test_*.py في الجذر و tools/) ⭐"
+      - name: "🔄 تصفير البيئة قبل كل ملف (حالة نظيفة ⭐)"
+        run: chmod +x tools/ci_reset_staging.sh
+
+      - name: "🧭 تنفيذ الاختبارات الحقيقية (الباك: كل test_*.py في الجذر و tools/) ⭐"
         env:
           STAGE_URL: "http://127.0.0.1:8099"
           STAGE_CONFIG: "${{ runner.temp }}/octa-staging/staging-config.json"
@@ -233,7 +236,9 @@ jobs:
             --kind python \
             --root . \
             --out "$RUNNER_TEMP/octa-backend-results.json" \
-            --timeout 2400
+            --timeout 2400 \
+            --last test_signup_flow.py \
+            --reset-cmd "bash tools/ci_reset_staging.sh"
 
       - name: "🔓 التحقق من البيانات المرجعية (بعد الجولة) ⭐"
         run: |
