@@ -6063,6 +6063,22 @@ def auth_delete_account():
         if not _save_users(users):
             return _users_write_failed_resp()
 
+    # ⛔⛔⛔ الجولة ٢٦ (R26) — حذف بيانات الاشتراك ⬇️ ⬇️ ⬇️
+    # ⛔ بيانات الاشتراك + محفظة المعاملات + تذاكر الدعم لازم تتمسح
+    #    مع الحساب ⇒ وإلا بتفضل موجودة بيانات مستخدم بعد ما الحساب اتقفل.
+    # 📌 الأثر بيتوثّق في رد الحذف (subscription_purge) وفي إيصال الحذف.
+    _sub_purge = {"deleted": False, "removed": {}, "why": "not_attempted"}
+    try:
+        import subscription_core as _sc_del
+        _rcpt = _sc_del.get_default().purge_user_data(uid)
+        _sub_purge = {"deleted": True,
+                      "removed": _rcpt.get("removed") or {},
+                      "receipt_policy": _rcpt.get("policy") or ""}
+    except Exception as _sub_del_err:
+        print("  ⚠️ [subs] حذف بيانات الاشتراك: %s" % _sub_del_err, flush=True)
+        _sub_purge = {"deleted": False, "removed": {},
+                      "why": "subscription_store_error"}
+
     _send_mail(
         str(rec.get("email") or ""),
         "تم إغلاق حسابك في OCTA",
@@ -6080,6 +6096,7 @@ def auth_delete_account():
         "ok": True,
         "msg": "اتقفل الحساب والبيانات الشخصية اتشالت",
         "deleted": True,
+        "subscription_purge": _sub_purge,
         "retention": {
             "personal_data_removed": True,
             "kept": ["uid_hash", "email_hash", "deleted_at",
@@ -17085,6 +17102,53 @@ try:
     print("[plans] ✅ مسارات الاشتراكات متركّبة", flush=True)
 except Exception as _plans_err:
     print("[plans] ⚠️ مش متركّبة: %s" % _plans_err, flush=True)
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 💳 الجولة ٢٦ (R26) — نظام الاشتراكات الكامل (مزوّد دفع **صناعي**)
+# ══════════════════════════════════════════════════════════════════════
+# ⛔⛔⛔ تحذير: مزوّد الدفع **محاكاة محلية** ⬇️ ⬇️ ⬇️
+# ⛔ مافيش تعاقد مع مزوّد حقيقي · مافيش تحصيل · مافيش بيانات بطاقات.
+# ⛔⛔⛔ مافيش أي تعديل على أوزان المحرك ولا حدود القبول ولا سياسة
+#    الاستثمار ولا بصمة الإصدار — ده كله اشتراكات بس.
+# 📌 التخزين **منفصل** عن users.json (مجلد subscriptions_v2).
+try:
+    import subscription_core as _sub_core
+    import subscription_api as _sub_api
+
+    def _sub_opportunities():
+        """🚦 قائمة الفرص (مرتبة بالنتيجة) — البوابة بتقصّها حسب الباقة."""
+        try:
+            rows = list(LIVE_DATA.get("egx30") or [])
+        except Exception:
+            rows = []
+        out = []
+        for r in rows:
+            if not isinstance(r, dict):
+                continue
+            out.append({
+                "code": r.get("code"),
+                "name": r.get("name"),
+                "decision": r.get("decision"),
+                "score": r.get("final_score"),
+            })
+        out.sort(key=lambda x: -(x.get("score") or 0))
+        return out
+
+    def _sub_alerts_count(user):
+        """🔔 عدد التنبيهات الحالية للمستخدم (لبوابة max_alerts)."""
+        try:
+            return len((user or {}).get("watch") or {})
+        except Exception:
+            return 0
+
+    _sub_engine = _sub_core.get_default()
+    _sub_api.register(app, require_user=require_user, billing=_sub_engine,
+                      opportunities_getter=_sub_opportunities,
+                      alerts_counter=_sub_alerts_count)
+    print("[billing] ✅ نظام الاشتراكات (مزوّد صناعي) متركّب", flush=True)
+except Exception as _billing_err:
+    print("[billing] ⚠️ مش متركّب: %s" % _billing_err, flush=True)
 
 
 # ══════════════════════════════════════════════════════════════════════
