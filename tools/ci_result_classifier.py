@@ -381,7 +381,18 @@ def discover(root, kind, patterns):
     return out
 
 
-def run_one(kind, root, rel, child, timeout, env_extra):
+def run_one(kind, root, rel, child, timeout, env_extra, reset_cmd=None):
+    # ⭐ R26 · تعييض البيئة قبل أي ملف ⭐
+    #    ★ الألفاع يتساطع حالة مشتركة البيئة ⭐
+    #    (التسجيل بيتلوّث حالة المشتركة ⭐)
+    #    ⇒ لوم تحرّك أجل بيئة نظيفة ⭐
+    if reset_cmd:
+        try:
+            subprocess.run(reset_cmd, cwd=root, shell=isinstance(reset_cmd, str),
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                           timeout=180)
+        except Exception:
+            pass
     env = dict(os.environ)
     env.update(env_extra or {})
     env["PYTHONIOENCODING"] = "utf-8"
@@ -550,7 +561,8 @@ def cmd_run(args):
         if rel in isolation:
             rec = run_gate(root, rel, isolation[rel], args.timeout, env_extra)
         else:
-            rec = run_one(args.kind, root, rel, child, args.timeout, env_extra)
+            rec = run_one(args.kind, root, rel, child, args.timeout,
+                          env_extra, args.reset_cmd)
         results.append(rec)
         print("   %-52s %-8s rc=%-4s cases=%-5s skipped=%-4s %s"
               % (rec["file"], rec["status"], rec["rc"], rec["cases"],
@@ -661,6 +673,8 @@ def main(argv=None):
                      help="ملفات تشغلف في النهاية (تلوث الحالة)")
     run.add_argument("--out", default="")
     run.add_argument("--timeout", type=int, default=900)
+    run.add_argument("--reset-cmd", default="",
+                     help="أمر يتنفٍ حالة البيئة قبل كل ملف (عادة البيئة مشتركة ⭐)")
     run.add_argument("--env", default="",
                      help="JSON من متغيّرات البيئة الإضافية")
     run.add_argument("--json", action="store_true")
