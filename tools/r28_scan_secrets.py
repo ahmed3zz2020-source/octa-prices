@@ -90,6 +90,14 @@ class Report:
     scanned_files: int = 0
     scanned_zip_members: int = 0
     errors: list[str] = field(default_factory=list)
+    # ⭐⭐⭐ (R29 · FINDING-15) ⭐⭐⭐ ⛔ حاجب ⭐⭐⭐
+    # 📌 أي خطأ في قراءة عضو ⇒ ⛔ النتيجة **ما تُعتمدش** ⭐ (مش بس خطأ مطبوع ⭐).
+    blocking: list[str] = field(default_factory=list)
+
+    def block(self, msg: str) -> None:
+        """⇦ خطأ يمنع اعتماد المسح ⭐ (لازم يتعالج ⭐)."""
+        self.blocking.append(msg)
+        self.errors.append(msg)
 
     def add(self, f: Finding) -> None:
         self.findings.append(f)
@@ -278,9 +286,10 @@ def scan_zip(path: str, report: Report, siblings=None) -> None:
     try:
         zf = zipfile.ZipFile(path)
     except Exception as exc:  # noqa: BLE001
-        report.errors.append(
-            f"zip open failed for {path}: {exc} ⭐ "
-            f"(المسار غير موجود ⭐ — راجع المسار ⭐)")
+        # ⭐⭐⭐ (R29 · FINDING-15) ⭐⭐⭐ ⛔ الأرشيف اللي ما اتفتحش ⭐ ⇒ ⛔ حاجب ⭐
+        report.block(
+            "zip open failed for %s: %s ⭐ (المسار غير موجود ⭐ — راجع المسار ⭐)"
+            % (path, exc))
         return
     with zf:
         for info in zf.infolist():
@@ -293,7 +302,14 @@ def scan_zip(path: str, report: Report, siblings=None) -> None:
             report.scanned_zip_members += 1
             try:
                 body = zf.read(info)
-            except Exception:  # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001
+                # ⭐⭐⭐ (R29 · FINDING-15) ⭐⭐⭐ ⛔ خطأ قراءة العضو ⭐
+                # 📌 قبل ⭐: `continue` ⭐ ⇒ ⛔ العضو بيتسكت ⭐ ⇒ ⛔ المسح
+                #    بيقول «نظيف» ⭐ مع إن جزء **ما اتقراش** ⭐ ⇒ ⛔ كذب ⭐.
+                # ✅ دلوقتي ⭐: ⛔ الخطأ **ظاهر في النتيجة** ⭐
+                #    ⭐ و ⛔ **يمنع اعتماد المسح** ⭐ لحد ما يتعالج ⭐.
+                report.block("zip member read failed: %s :: %s (%s)"
+                             % (os.path.basename(path), info.filename, exc))
                 continue
             if is_probably_binary(body):
                 continue
@@ -316,7 +332,9 @@ def scan_dir(path: str, report: Report) -> None:
                     continue
                 with open(fpath, "rb") as fh:
                     body = fh.read()
-            except OSError:
+            except OSError as exc:
+                # ⭐⭐⭐ (R29 · FINDING-15) ⭐⭐⭐ ⛔ ملف الدليل اللي ما اتقراش ⭐ ⇒ ⛔ حاجب ⭐
+                report.block("evidence file read failed: %s (%s)" % (fpath, exc))
                 continue
             if is_probably_binary(body):
                 continue
@@ -357,6 +375,11 @@ def main(argv: Iterable[str] | None = None) -> int:
         by_fp.setdefault(f.fingerprint, []).append(f)
 
     payload = {
+        # ⭐⭐⭐ (R29 · FINDING-15) ⭐⭐⭐ ⛔ الاعتماد ⭐⭐⭐
+        # 📌 `ok` ⭐ = مفيش أخطاء حاجبة ⭐ ⇒ ⛔ المسح ما يُعتمدش ⭐
+        #    لو عضو في أرشيف أو ملف في الأدلة ما اتقراش ⭐.
+        "ok": not report.blocking,
+        "blocking": report.blocking,
         "summary": {
             "distinct_secrets": len(by_fp),
             "total_findings": len(report.findings),
@@ -364,6 +387,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             "scanned_worktree_files": report.scanned_files,
             "scanned_zip_members": report.scanned_zip_members,
             "errors": report.errors,
+            "blocking_count": len(report.blocking),
         },
         "archives": archives,
         "secrets": [
@@ -392,11 +416,16 @@ def main(argv: Iterable[str] | None = None) -> int:
         print(f"[R28-SEC] كائنات git: {s['scanned_git_objects']} · ملفات: {s['scanned_worktree_files']} · "
               f"أعضاء حزم: {s['scanned_zip_members']}")
         print(f"[R28-SEC] أسرار متمايزة: {s['distinct_secrets']} · إجمالي: {s['total_findings']}")
+        if report.blocking:
+            print(f"[R28-SEC] ⛔⛔⛔ {len(report.blocking)} حاجب ⭐ — المسح **ما يُعتمدش** ⭐:")
+            for b in report.blocking[:20]:
+                print("     ⛔ %s" % b[:160])
         for item in payload["secrets"][:40]:
             loc = item["locations"][0]
             print(f"  - {item['severity']:8s} {item['pattern']:24s} fp={item['fingerprint']} "
                   f"×{item['occurrences']}  أول موضع: {loc['scope']}:{loc['location']}:{loc['line']}")
-    return 0
+    # ⭐⭐⭐ (R29 · FINDING-15) ⭐⭐⭐ كود خروج غير صفري ⭐ لو فيه حاجب ⭐
+    return 2 if report.blocking else 0
 
 
 if __name__ == "__main__":
