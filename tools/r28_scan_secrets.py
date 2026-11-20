@@ -355,7 +355,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         s = payload["summary"]
         print(f"[R28-SEC] كائنات git: {s['scanned_git_objects']} · ملفات: {s['scanned_worktree_files']} · "
               f"أعضاء حزم: {s['scanned_zip_members']}")
-        print(f"[R28-SEC] أسرار متمايزة: {s['distinct_secrets']} · إجمالي，前期: {s['total_findings']}")
+        print(f"[R28-SEC] أسرار متمايزة: {s['distinct_secrets']} · إجمالي: {s['total_findings']}")
         for item in payload["secrets"][:40]:
             loc = item["locations"][0]
             print(f"  - {item['severity']:8s} {item['pattern']:24s} fp={item['fingerprint']} "
