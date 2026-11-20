@@ -247,11 +247,40 @@ def scan_repo(repo: str, report: Report) -> None:
             scan_text(text, "worktree", rel, report)
 
 
-def scan_zip(path: str, report: Report) -> None:
+def archive_fingerprint(path: str) -> dict:
+    """بصمة الأرشيف ⭐ (SHA256 + الحجم ⭐) — بدون قراءة أي سر ⭐."""
+    h = hashlib.sha256()
+    size = 0
+    try:
+        with open(path, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b""):
+                h.update(chunk)
+                size += len(chunk)
+    except Exception as exc:  # noqa: BLE001
+        return {"path": path, "error": str(exc)[:120]}
+    return {"path": path, "bytes": size, "sha256": h.hexdigest()}
+
+
+def resolve_zip(path: str, siblings: list[str]) -> str:
+    """لو المسار مش موجود ⭐ ⇒ ابحث عن نفس الاسم في مجلدات الحزم الأخرى ⭐."""
+    if os.path.exists(path):
+        return path
+    base = os.path.basename(path)
+    for other in siblings:
+        cand = os.path.join(os.path.dirname(other), base)
+        if os.path.exists(cand):
+            return cand
+    return path
+
+
+def scan_zip(path: str, report: Report, siblings=None) -> None:
+    path = resolve_zip(path, list(siblings or []))
     try:
         zf = zipfile.ZipFile(path)
     except Exception as exc:  # noqa: BLE001
-        report.errors.append(f"zip open failed for {path}: {exc}")
+        report.errors.append(
+            f"zip open failed for {path}: {exc} ⭐ "
+            f"(المسار غير موجود ⭐ — راجع المسار ⭐)")
         return
     with zf:
         for info in zf.infolist():
@@ -311,8 +340,14 @@ def main(argv: Iterable[str] | None = None) -> int:
     report = Report()
     for repo in args.repo:
         scan_repo(repo, report)
+    archives = []
     for zpath in args.zip:
-        scan_zip(zpath, report)
+        resolved = resolve_zip(zpath, list(args.zip))
+        info = archive_fingerprint(resolved)
+        info["requested_path"] = zpath
+        info["resolved"] = resolved != zpath
+        archives.append(info)
+        scan_zip(zpath, report, siblings=list(args.zip))
     for dpath in args.dir:
         scan_dir(dpath, report)
 
@@ -330,6 +365,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             "scanned_zip_members": report.scanned_zip_members,
             "errors": report.errors,
         },
+        "archives": archives,
         "secrets": [
             {
                 "fingerprint": fp,
