@@ -424,6 +424,13 @@ def run_one(kind, root, rel, child, timeout, env_extra, reset_cmd=None):
         status = STATUS_BLOCKED
         reason = ("مرجع git مفقود (%s) ⇒ الاختبار بيرجع صامت "
                   "والنتيجة ملغاة ⭐" % ", ".join(missing_refs))
+    # ⭐ R28 · التقاط سبب الفشل في السجل ⭐
+    #    ⛔ قبل كنا بنخزّن rc بس ⭐ ⇒ السجل ما بيقولش ليه فشل ⭐
+    #    ⇒ أي مراجعة بتضطر تعيد التشغيل يدوي ⭐ ⇒ وقت ضائع ⭐
+    output_tail = ""
+    if status != STATUS_PASSED:
+        lines = ((out or "") + "\n" + (err or "")).strip().splitlines()
+        output_tail = "\n".join(lines[-14:])[:1400]
     return {
         "file": rel,
         "status": status,
@@ -434,6 +441,7 @@ def run_one(kind, root, rel, child, timeout, env_extra, reset_cmd=None):
         "declared_cases": declared,
         "duration_s": dur,
         "reason": reason,
+        "output_tail": output_tail,
         "command": " ".join(cmd),
         "missing_git_refs": missing_refs,
     }
@@ -567,6 +575,10 @@ def cmd_run(args):
         print("   %-52s %-8s rc=%-4s cases=%-5s skipped=%-4s %s"
               % (rec["file"], rec["status"], rec["rc"], rec["cases"],
                  rec["skipped_cases"], rec["reason"]))
+        # ⭐ سبب الفشل في السجل ⭐ (مش بس رقم rc ⭐)
+        if rec.get("output_tail"):
+            for _ln in rec["output_tail"].splitlines():
+                print("        │ " + _ln)
     # ⛔ تصنيف قديم: ملف معزول مش موجود في المستودع ⭐
     #    (الفحص ده بس مع الاكتشاف الكامل ⭐ — مع subset من الاختبارات
     #     الملفات المعزولة بتبقى برّه المجموعة ⭐)
