@@ -620,7 +620,7 @@ def collect(paths, git_ref=None):
         #   بيكون **نسخة main بالظبط** ⭐ (عشان الدفع يمرّ بلا scope الـworkflow ⭐)
         #   ⭐⇒ ⛔ فحص النسخة دي بيدي نتائج مضلّلة ⭐ (مش هي اللي بيتنفّذ ⭐).
         #   ⭐⇒ ⭐Definition الحقيقي ⭐ في `ci-workflow/` ⭐ ⇒ ⭐ نفحصه ⭐
-        #   ⭐ ون跳过 النسخة البديلة ⭐ (مع declaration واضح ⭐).
+        #   ⭐ ونتخطى النسخة البديلة ⭐ (مع declaration واضح ⭐).
         mirror = [n for n in names if n.startswith("ci-workflow/")]
         stand_in = [n for n in names if n.startswith(".github/workflows/")]
         if mirror:
