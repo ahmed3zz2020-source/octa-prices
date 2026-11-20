@@ -296,13 +296,118 @@ def gate_a3():
     print("   ℹ️  نصوص الواجهة نفسها بيتحصّل عليها في الـCI بتاع الواجهة ⭐")
 
 
-GATES = {"A1": gate_a1, "A2": gate_a2, "A3": gate_a3}
+
+# ══════════════════════════════════════════════════════════════════════
+#  A4 — بوابة «النسخة النظيفة» (البديل عن tools/test_round23_clean_clone.py)
+# ══════════════════════════════════════════════════════════════════════
+#  📌 السبب ⭐: الاختبار الأصلي بيفكّ **حزم تسليم الجولة ٢٣** ⭐
+#     ⇒ ⛔ الحزم دي **مش في المستودع** ⭐ ⇒ ⛔ مش قابل للتكرار في الـCI ⭐.
+#  📌 البديل ⭐: نفس الخاصية ⭐ (نسخة نظيفة قابلة للتشغيل ⭐) ⭐
+#     ⭐ بس على **الشجرة الحالية** ⭐ بدل حزم جولة قديمة ⭐:
+#     ① الشجرة بتتفكّ نضيفة ⭐ (git archive ⭐)
+#     ② بتترجم (compileall ⭐) ⇒ مافيش خطأ نحوي ⭐
+#     ③ مافيش أسرار ⭐
+#     ④ مافيش نص ملوّث ⭐ (FFFD ⭐ / CJK ⭐ / Hangul ⭐ / Cyrillic ⭐)
+#     ⑤ مافيش ملفات حالة مستخدمين ⭐
+#  ⛔ مفيش شبكة · مفيش سر · مفيش نشر.
+SECRET_PATTERNS_A4 = [
+    re.compile(r"sk-[A-Za-z0-9]{20,}"),
+    re.compile(r"ghp_[A-Za-z0-9]{20,}"),
+    re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
+    re.compile(r"AKIA[0-9A-Z]{16}"),
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+    re.compile(r"xox[baprs]-[A-Za-z0-9-]{10,}"),
+]
+DIRTY_A4 = [
+    ("FFFD", re.compile("\ufffd")),
+    ("CJK", re.compile(r"[\u4e00-\u9fff]")),
+    ("HANGUL", re.compile(r"[\uac00-\ud7af]")),
+    ("CYRILLIC", re.compile(r"[\u0400-\u04ff]")),
+]
+STATE_FILES_A4 = ("users.json", "pinlock.json", "signup.json", "pinchal.json",
+                  "sessions.json", "portfolio.json")
+
+
+def gate_a4():
+    print("\n═══ A4 · بوابة النسخة النظيفة "
+          "(البديل عن tools/test_round23_clean_clone.py) ═══")
+    import shutil
+    import tempfile
+
+    ok(os.path.isfile(os.path.join(ROOT, "tools", "test_round23_clean_clone.py")),
+       "ملف الاختبار المعزول موجود في المستودع ⭐")
+
+    work = tempfile.mkdtemp(prefix="octa_clean_clone_")
+    try:
+        arc = os.path.join(work, "tree.tar")
+        rc = subprocess.run(["git", "archive", "--format=tar", "-o", arc, "HEAD"],
+                            cwd=ROOT, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE).returncode
+        ok(rc == 0, "الشجرة اتفكّت (git archive ⭐)")
+        if rc != 0:
+            return
+        tree = os.path.join(work, "tree")
+        os.makedirs(tree, exist_ok=True)
+        rc = subprocess.run(["tar", "-xf", arc, "-C", tree],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
+        ok(rc == 0, "النسخة النظيفة اتفكّت ⭐")
+
+        files = []
+        for base, dirs, names in os.walk(tree):
+            dirs.sort()
+            for nm in sorted(names):
+                files.append(os.path.join(base, nm))
+        ok(len(files) > 0, "في ملفات في الشجرة ⭐", len(files))
+
+        # ② الترجمة (مافيش خطأ نحوي ⭐)
+        rc = subprocess.run([sys.executable, "-m", "compileall", "-q", tree],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
+        ok(rc == 0, "كل ملفات بايثون بتترجم ⭐ (مافيش خطأ نحوي ⭐)")
+
+        # ③ الأسرار ⭐
+        hits = []
+        for f in files:
+            try:
+                txt = open(f, "r", encoding="utf-8").read()
+            except (OSError, UnicodeDecodeError):
+                continue
+            for pat in SECRET_PATTERNS_A4:
+                if pat.search(txt):
+                    hits.append(os.path.relpath(f, tree))
+                    break
+        ok(not hits, "مافيش أسرار في الشجرة ⭐", hits[:5])
+
+        # ④ النص الملوّث ⭐
+        dirty = []
+        for f in files:
+            try:
+                txt = open(f, "r", encoding="utf-8").read()
+            except (OSError, UnicodeDecodeError):
+                continue
+            for nm, pat in DIRTY_A4:
+                if pat.search(txt):
+                    dirty.append(os.path.relpath(f, tree) + ":" + nm)
+                    break
+        ok(not dirty, "مافيش نص ملوّث في الشجرة ⭐", dirty[:5])
+
+        # ⑤ ملفات حالة المستخدمين ⭐
+        leaked = []
+        for f in files:
+            base = os.path.basename(f)
+            if base in STATE_FILES_A4:
+                leaked.append(os.path.relpath(f, tree))
+        ok(not leaked, "مافيش ملفات حالة مستخدمين في الشجرة ⭐", leaked[:5])
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+GATES = {"A1": gate_a1, "A2": gate_a2, "A3": gate_a3, "A4": gate_a4}
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="البوابات البديلة لملفات الاختبار المعزولة")
-    ap.add_argument("--gate", default="", help="رقم البوابة (A1 · A2)")
+    ap.add_argument("--gate", default="", help="رقم البوابة (A1 · A2 · A3 · A4)")
     args = ap.parse_args(argv)
 
     print("═" * 72)

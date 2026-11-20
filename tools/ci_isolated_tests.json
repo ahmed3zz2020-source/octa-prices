@@ -5,17 +5,34 @@
     "test_gold_live_price.py": {
       "reason": "بيقارن بـسعر حيّ من السوق ⭐ ⇒ الفشل = حركة سوق (مش عيب في الكود) ⭐ ⇒ مش قابل للتكرار في الـCI ⭐",
       "gate": "tools/test_ci_alt_gates.py",
-      "gate_args": ["--gate", "A1"]
+      "gate_args": [
+        "--gate",
+        "A1"
+      ]
     },
     "tools/staging/test_flask_binding.py": {
       "reason": "بيقرأ مصدر الواجهة من مستودع تاني (مفيشوش في مستودع الباك) ⭐ ⇒ مش قابل للتشغيل جوه مستودع الباك ⭐",
       "gate": "tools/test_ci_alt_gates.py",
-      "gate_args": ["--gate", "A2"]
+      "gate_args": [
+        "--gate",
+        "A2"
+      ]
     },
     "tools/test_r25_growth_truthfulness.py": {
       "reason": "بيقارن الشجرة الحالية بشجرة الأساس القديمة (/workspace/.wt_r18) ⭐ ⇒ الشجرة القديمة مش موجودة في الـCI ⭐ ⇒ الغياب لازم يبقى نتيجة موثّقة مش نجاح صامت ⭐",
       "gate": "tools/test_ci_alt_gates.py",
-      "gate_args": ["--gate", "A3"]
+      "gate_args": [
+        "--gate",
+        "A3"
+      ]
+    },
+    "tools/test_round23_clean_clone.py": {
+      "reason": "بيفكّ حزم تسليم الجولة ٢٣ (OCTA-ROUND23-*.zip) ⭐ ⇒ ⛔ الحزم دي مش في المستودع ⭐ ⇒ ⛔ مش قابل للتكرار في الـCI ⭐ (وفي قياس R27 ⭐ ⇒ فشل بغياب الملف ⭐ ⇒ ⛔ مافيش تخطّي صامت ⭐)",
+      "gate": "tools/test_ci_alt_gates.py",
+      "gate_args": [
+        "--gate",
+        "A4"
+      ]
     }
   }
 }

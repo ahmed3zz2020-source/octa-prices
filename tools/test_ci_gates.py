@@ -611,12 +611,29 @@ def collect(paths, git_ref=None):
         try:
             names = subprocess.run(
                 ["git", "ls-tree", "-r", "--name-only", git_ref,
-                 ".github/workflows"],
+                 ".github/workflows", "ci-workflow"],
                 capture_output=True, text=True, timeout=120).stdout.split()
         except Exception as exc:  # pragma: no cover
             raise SystemExit("تعذّر قراءة الـgit ref %s: %s" % (git_ref, exc))
+        # ⭐ (R27) ⭐ النسخة الحقيقية من ملف الـworkflow ⭐
+        # 📌 السبب ⭐: على فرع الـCI ⭐ ⛔ ملف .github/workflows/ci.yml ⭐
+        #   بيكون **نسخة main بالظبط** ⭐ (عشان الدفع يمرّ بلا scope الـworkflow ⭐)
+        #   ⭐⇒ ⛔ فحص النسخة دي بيدي نتائج مضلّلة ⭐ (مش هي اللي بيتنفّذ ⭐).
+        #   ⭐⇒ ⭐Definition الحقيقي ⭐ في `ci-workflow/` ⭐ ⇒ ⭐ نفحصه ⭐
+        #   ⭐ ون跳过 النسخة البديلة ⭐ (مع declaration واضح ⭐).
+        mirror = [n for n in names if n.startswith("ci-workflow/")]
+        stand_in = [n for n in names if n.startswith(".github/workflows/")]
+        if mirror:
+            skip = set(stand_in)
+            for n in sorted(skip):
+                print("ℹ️  بيتفحص ملف الـworkflow الحقيقي (ci-workflow/) ⭐ "
+                      "⇒ النسخة البديلة %s متخطّاة ⭐ (مش هي اللي بيتنفّذ ⭐)" % n)
+        else:
+            skip = set()
         for n in names:
             if not n.endswith((".yml", ".yaml")):
+                continue
+            if n in skip:
                 continue
             txt = subprocess.run(["git", "show", "%s:%s" % (git_ref, n)],
                                  capture_output=True, text=True,
@@ -651,12 +668,14 @@ def self_test():
     (مش مرآة نصية ⭐) وبيتأكد إن الأدوات موجودة ⭐."""
     findings = []
     real_dir = os.path.join(ROOT, ".github", "workflows")
-    if not os.path.isdir(real_dir):
-        print("⛔ مفيش مجلد .github/workflows في المستودع")
+    mirror_dir = os.path.join(ROOT, "ci-workflow")
+    scan_dirs = [d for d in (real_dir, mirror_dir) if os.path.isdir(d)]
+    if not scan_dirs:
+        print("⛔ مفيش مجلد .github/workflows ولا ci-workflow في المستودع")
         return 2
-    files = collect([real_dir], None)
+    files = collect(scan_dirs, None)
     if not files:
-        print("⛔ مفيش أي ملف workflow في %s" % real_dir)
+        print("⛔ مفيش أي ملف workflow في %s" % " · ".join(scan_dirs))
         return 2
     gated = []
     for path, text in files:
@@ -721,7 +740,8 @@ def main(argv=None):
     if args.self_test:
         return self_test()
 
-    paths = args.paths or [os.path.join(".github", "workflows")]
+    paths = args.paths or [os.path.join(".github", "workflows"),
+                           os.path.join("ci-workflow")]
     files = collect(paths, args.git_ref or None)
     if not files:
         print("❌ مفيش أي ملف workflow اتفحص")
