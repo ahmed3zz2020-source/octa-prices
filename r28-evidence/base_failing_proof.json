@@ -1,0 +1,44 @@
+{
+  "note": "برهان سالب — كل ملف فاشل في المرشح فشل بنفس الحالة على الأساس ⇒ صفر انحدار",
+  "base_sha": "32cf8063a354af5dfcfb6fa02ab734ab6a9f920d",
+  "candidate_sha": "fbba2e27796bb46f1c6fd4bdd91b7be4fecd1b5f",
+  "rows": [
+    {
+      "file": "test_security_batch02.py",
+      "candidate_status": "failed",
+      "base_status": "failed",
+      "base_sha": "32cf8063a354af5dfcfb6fa02ab734ab6a9f920d",
+      "candidate_tail": "════════════════════════════════════════════════════════════════",
+      "base_tail": "════════════════════════════════════════════════════════════════",
+      "same_on_base": true
+    },
+    {
+      "file": "test_security_p0.py",
+      "candidate_status": "failed",
+      "base_status": "failed",
+      "base_sha": "32cf8063a354af5dfcfb6fa02ab734ab6a9f920d",
+      "candidate_tail": "requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))",
+      "base_tail": "requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))",
+      "same_on_base": true
+    },
+    {
+      "file": "tools/staging/test_flask_binding.py",
+      "candidate_status": "failed",
+      "base_status": "failed",
+      "base_sha": "32cf8063a354af5dfcfb6fa02ab734ab6a9f920d",
+      "candidate_tail": "RESULT: FAIL",
+      "base_tail": "RESULT: FAIL",
+      "same_on_base": true
+    },
+    {
+      "file": "tools/test_round23_clean_clone.py",
+      "candidate_status": "failed",
+      "base_status": "failed",
+      "base_sha": "32cf8063a354af5dfcfb6fa02ab734ab6a9f920d",
+      "candidate_tail": "FileNotFoundError: [Errno 2] No such file or directory: '/workspace/output/OCTA-ROUND23-BACKEND.zip'",
+      "base_tail": "FileNotFoundError: [Errno 2] No such file or directory: '/workspace/output/OCTA-ROUND23-BACKEND.zip'",
+      "same_on_base": true
+    }
+  ],
+  "all_same_on_base": true
+}

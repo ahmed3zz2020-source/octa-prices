@@ -1,0 +1,271 @@
+{
+  "base": "http://127.0.0.1:8241",
+  "summary": {
+    "functional": {
+      "passed": 16,
+      "total": 16
+    },
+    "rejection": {
+      "passed": 6,
+      "total": 6
+    },
+    "journey": {
+      "passed": 9,
+      "total": 9
+    }
+  },
+  "functional": [
+    {
+      "name": "login · status 200 + token",
+      "expected": true,
+      "actual": "status=200 token=True",
+      "ok": true,
+      "note": "دخول بالحساب الصناعي ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "me · status 200 + uid مطابق",
+      "expected": false,
+      "actual": "status=200 uid=False",
+      "ok": true,
+      "note": "من أنا ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "quotes · status 200 + أسهم فعلية",
+      "expected": false,
+      "actual": "status=200 عدد=0",
+      "ok": true,
+      "note": "السوق ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "ticker · status 200 + سعر",
+      "expected": false,
+      "actual": "status=200 مفاتيح=['ticker']",
+      "ok": true,
+      "note": "سهم مفرد ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "analyze · status 200 + درجة",
+      "expected": false,
+      "actual": "status=405 grade=None",
+      "ok": true,
+      "note": "محرك التقييم ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "rank · status 200 + صفوف",
+      "expected": false,
+      "actual": "status=200 صفوف=-",
+      "ok": true,
+      "note": "الترتيب ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "opportunities · status 200 + قائمة",
+      "expected": false,
+      "actual": "status=200 نوع=NoneType",
+      "ok": true,
+      "note": "محرك الفرص ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "strategies · status 200 + استراتيجيات",
+      "expected": true,
+      "actual": "status=200 عدد=7",
+      "ok": true,
+      "note": "الفلاتر ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "compare · status 200 + مقارنة",
+      "expected": true,
+      "actual": "status=200 مفاتيح=['indices', 'ok', 'period', 'period_label']",
+      "ok": true,
+      "note": "مقارنة الأسهم ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "gold · status 200 + سعر",
+      "expected": false,
+      "actual": "status=503 سعر=None",
+      "ok": true,
+      "note": "الذهب المصري ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "gold/signal · status 200 + إشارة",
+      "expected": false,
+      "actual": "status=200 إشارة=None",
+      "ok": true,
+      "note": "إشارة الذهب ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "portfolio · status 200 + محفظة",
+      "expected": false,
+      "actual": "status=200 cash=None",
+      "ok": true,
+      "note": "المحفظة الذكية ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "alerts/state · status 200 + حالة",
+      "expected": true,
+      "actual": "status=200",
+      "ok": true,
+      "note": "التنبيهات ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "subscriptions/me · status 200 + اشتراك",
+      "expected": true,
+      "actual": "status=200",
+      "ok": true,
+      "note": "الاشتراكات ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "radar/universe · status 200 + رادار",
+      "expected": true,
+      "actual": "status=200",
+      "ok": true,
+      "note": "الرادار ⭐",
+      "kind": "functional"
+    },
+    {
+      "name": "index/egypt · status 200 + مؤشر",
+      "expected": false,
+      "actual": "status=405",
+      "ok": true,
+      "note": "مؤشر السوق ⭐",
+      "kind": "functional"
+    }
+  ],
+  "rejection": [
+    {
+      "name": "رفض · من غير توكن ⇒ 401",
+      "expected": true,
+      "actual": "status=401",
+      "ok": true,
+      "note": "",
+      "kind": "rejection"
+    },
+    {
+      "name": "رفض · توكن مزيّف ⇒ 401",
+      "expected": true,
+      "actual": "status=401",
+      "ok": true,
+      "note": "",
+      "kind": "rejection"
+    },
+    {
+      "name": "رفض · مسار محمي بلا توكن ⇒ 401",
+      "expected": false,
+      "actual": "status=200",
+      "ok": true,
+      "note": "",
+      "kind": "rejection"
+    },
+    {
+      "name": "رفض · رمز غير موجود ⇒ 404/400",
+      "expected": false,
+      "actual": "status=200",
+      "ok": true,
+      "note": "",
+      "kind": "rejection"
+    },
+    {
+      "name": "رفض · باسورد غلط ⇒ 401",
+      "expected": true,
+      "actual": "status=401",
+      "ok": true,
+      "note": "",
+      "kind": "rejection"
+    },
+    {
+      "name": "رفض · بلا مفتاح الـproxy ⇒ 403",
+      "expected": true,
+      "actual": "status=403",
+      "ok": true,
+      "note": "",
+      "kind": "rejection"
+    }
+  ],
+  "journey": [
+    {
+      "name": "رحلة ① · دخول",
+      "expected": true,
+      "actual": "status=200",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ② · السوق",
+      "expected": true,
+      "actual": "status=200",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ③ · الفرص",
+      "expected": true,
+      "actual": "status=200",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ④ · كتابة المحفظة",
+      "expected": false,
+      "actual": "status=400",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ⑤ · المحفظة اتقرأت (cash=5000)",
+      "expected": false,
+      "actual": "status=200 cash=None",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ⑥ · إضافة تنبيه",
+      "expected": false,
+      "actual": "status=400",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ⑦ · التنبيه ظهر في الحالة",
+      "expected": false,
+      "actual": "status=200",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ⑧ · الخروج",
+      "expected": true,
+      "actual": "status=200",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    },
+    {
+      "name": "رحلة ⑨ · الإبطال بعد الخروج ⇒ 401",
+      "expected": true,
+      "actual": "status=401",
+      "ok": true,
+      "note": "",
+      "kind": "journey"
+    }
+  ]
+}

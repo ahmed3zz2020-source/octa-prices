@@ -1,0 +1,168 @@
+supervisor_pid=39002
+candidate_sha=ebb2d9031eb3785a6aadfa156e1d98fe25f0a7c4
+python=Python 3.11.2
+staging_ready
+🔄 ملفات مُخلّدة تتشغلف من في النهاية: test_signup_flow.py
+📂 python · 77 ملف
+   test_auth_holes.py                                   passed   rc=0    cases=30    skipped=0    
+   test_charts_api.py                                   passed   rc=0    cases=12    skipped=0    
+   test_code_hygiene.py                                 passed   rc=0    cases=7     skipped=0    
+   test_data_full_route.py                              passed   rc=0    cases=13    skipped=0    
+   test_egx_ttl.py                                      passed   rc=0    cases=1     skipped=0    
+   test_engine_contract01.py                            passed   rc=0    cases=11    skipped=0    
+   test_engine_safety01.py                              passed   rc=0    cases=13    skipped=0    
+   test_gold_history.py                                 passed   rc=0    cases=51    skipped=0    
+   test_gold_integrity.py                               passed   rc=0    cases=67    skipped=0    
+   test_gold_live_price.py                              skipped  rc=0    cases=0     skipped=1    علامة تخطّي صريحة في الإخراج
+        │ ⏭️  متخطّى: اختبار السعر الحيّ محتاج OCTA_RUN_LIVE_TESTS=1 — السعر بيتغيّر كل يوم، فمش جزء من مجموعة الاختبارات الحتمية
+        │    (شغّله صريحاً بـ: OCTA_RUN_LIVE_TESTS=1 python3 test_gold_live_price.py)
+   test_gold_local.py                                   passed   rc=0    cases=55    skipped=0    
+   test_gold_macro.py                                   passed   rc=0    cases=98    skipped=0    
+   test_gold_scenarios.py                               passed   rc=0    cases=109   skipped=0    
+   test_gold_technical.py                               passed   rc=0    cases=51    skipped=0    
+   test_index_api.py                                    passed   rc=0    cases=18    skipped=0    
+   test_index_history_refresh_guard.py                  passed   rc=0    cases=7     skipped=0    
+   test_opp_api01.py                                    passed   rc=0    cases=7     skipped=0    
+   test_opp_freshness13.py                              passed   rc=0    cases=20    skipped=0    
+   test_opp_live01.py                                   passed   rc=0    cases=14    skipped=0    
+   test_pattern_challenges.py                           passed   rc=0    cases=32    skipped=0    
+   test_pattern_daily.py                                passed   rc=0    cases=29    skipped=0    
+   test_pattern_detector.py                             passed   rc=0    cases=55    skipped=0    
+   test_pattern_stats.py                                passed   rc=0    cases=46    skipped=0    
+   test_pin_auth.py                                     passed   rc=0    cases=54    skipped=0    
+   test_pin_challenge.py                                passed   rc=0    cases=49    skipped=0    
+   test_r20_az31_36.py                                  passed   rc=0    cases=48    skipped=0    
+   test_radar_api.py                                    passed   rc=0    cases=1     skipped=0    
+   test_recipe_filter.py                                passed   rc=0    cases=37    skipped=0    
+   test_round14_release.py                              passed   rc=0    cases=27    skipped=0    
+   test_round15_coverage_states.py                      passed   rc=0    cases=5     skipped=0    
+   test_round15_maildown_enum.py                        passed   rc=0    cases=18    skipped=0    
+   test_round15_opp_perms.py                            passed   rc=0    cases=32    skipped=0    
+   test_round15_price_label.py                          passed   rc=0    cases=16    skipped=0    
+   test_round15_query_guard.py                          passed   rc=0    cases=17    skipped=0    
+   test_round16_contract_wiring.py                      passed   rc=0    cases=10    skipped=0    
+   test_round16_legacy_weights.py                       passed   rc=0    cases=24    skipped=0    
+   test_round16_price_freshness.py                      passed   rc=0    cases=20    skipped=0    
+   test_round16_query_limits.py                         passed   rc=0    cases=17    skipped=0    
+   test_round17_n1_row_state.py                         passed   rc=0    cases=7     skipped=0    
+   test_round17_n2_coverage.py                          passed   rc=0    cases=8     skipped=0    
+   test_round17_n3_contract.py                          passed   rc=0    cases=5     skipped=0    
+   test_round17_n4_session_match.py                     passed   rc=0    cases=8     skipped=0    
+   test_round17_p1_unknown_state.py                     passed   rc=0    cases=8     skipped=0    
+   test_round17_p2_coverage_consistency.py              passed   rc=0    cases=9     skipped=0    
+   test_round17_p3_contract_pick.py                     passed   rc=0    cases=7     skipped=0    
+   test_round17_v2_01_coverage_domain.py                passed   rc=0    cases=12    skipped=0    
+   test_round17_v2_04_payload_ttl.py                    passed   rc=0    cases=7     skipped=0    
+   test_round18_analysis_truth.py                       passed   rc=0    cases=27    skipped=0    
+   test_round18_sec_failopen.py                         passed   rc=0    cases=31    skipped=0    
+   test_run_pattern_scan.py                             passed   rc=0    cases=18    skipped=0    
+   test_security_batch01.py                             passed   rc=0    cases=79    skipped=0    
+   test_security_batch02.py                             failed   rc=1    cases=66    skipped=0    فشل الاختبار (rc=1)
+        │ ────────────────────────────────────────────────────────────────
+        │   ⑨) تنظيف — الحساب المؤقت اتشال (عشان الاختبار يفضل قابل للتكرار)
+        │ ────────────────────────────────────────────────────────────────
+        │   ✅ الحساب المؤقت اتشال
+        │   ✅ سطر الحساب المؤقت اتشال من users.json
+        │ 
+        │ ════════════════════════════════════════════════════════════════
+        │   النتيجة: 61 ناجح / 3 فاشل  (الإجمالي 64)
+        │ 
+        │   ❌ الفاشل:
+        │      - revoked=true ⇒ إبطال فعلي
+        │      - ⛔ الجلسة القديمة صارت غير صالحة على السيرفر
+        │      - في أسواق في الرد
+        │ ════════════════════════════════════════════════════════════════
+   test_security_bgstore.py                             passed   rc=0    cases=16    skipped=0    
+   test_security_p0.py                                  failed   rc=1    cases=29    skipped=0    فشل الاختبار (rc=1)
+        │     return request("get", url, params=params, **kwargs)
+        │            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "/workspace/.venv_be/lib/python3.11/site-packages/requests/api.py", line 59, in request
+        │     return session.request(method=method, url=url, **kwargs)
+        │            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "/workspace/.venv_be/lib/python3.11/site-packages/requests/sessions.py", line 589, in request
+        │     resp = self.send(prep, **send_kwargs)
+        │            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "/workspace/.venv_be/lib/python3.11/site-packages/requests/sessions.py", line 703, in send
+        │     r = adapter.send(request, **kwargs)
+        │         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "/workspace/.venv_be/lib/python3.11/site-packages/requests/adapters.py", line 501, in send
+        │     raise ConnectionError(err, request=request)
+        │ requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+   test_strategy_cap01.py                               passed   rc=0    cases=9     skipped=0    
+   test_tree_hygiene.py                                 passed   rc=0    cases=9     skipped=0    
+   tools/staging/test_flask_binding.py                  failed   rc=1    cases=30    skipped=0    فشل الاختبار (rc=1)
+        │   ✅ مفيش أوزان في /api/opp/explain/swing/<code>
+        │   ✅ الواجبة تتعامل مع حالة unknown
+        │   ✅ الواجهة تقرا coverage_acceptable
+        │   ✅ اختبار عقد الواجهة الجديد موجود
+        │   ❌ حقل coverage_consistent منشور — مافيش coverage_consistent في data_freshness
+        │ 
+        │ نجح: 18 · فاشل: 6
+        │   ❌ العقد مكتمل في /api/opp/strategies — حقول ناقصة: ['coverage_status', 'coverage_acceptable', 'data_state', 'freshness_summary_ar', 'current_session_date']
+        │   ❌ العقد مكتمل في /api/opp/list/swing — حقول ناقصة: ['coverage_status', 'coverage_acceptable', 'data_state', 'freshness_summary_ar', 'current_session_date']
+        │   ❌ العقد مكتمل في /api/opp/summary — حقول ناقصة: ['coverage_status', 'coverage_acceptable', 'data_state', 'freshness_summary_ar', 'current_session_date']
+        │   ❌ العقد مكتمل في /api/opp/detail/swing/<code> — حقول ناقصة: ['coverage_status', 'coverage_acceptable', 'data_state', 'freshness_summary_ar', 'current_session_date']
+        │   ❌ العقد مكتمل في /api/opp/explain/swing/<code> — حقول ناقصة: ['coverage_status', 'coverage_acceptable', 'data_state', 'freshness_summary_ar', 'current_session_date']
+        │   ❌ حقل coverage_consistent منشور — مافيش coverage_consistent في data_freshness
+        │ RESULT: FAIL
+   tools/test_data_integrity_guard.py                   passed   rc=0    cases=63    skipped=0    
+   tools/test_data_integrity_proofs_r24.py              passed   rc=0    cases=61    skipped=0    
+   tools/test_engines_filters_audit.py                  passed   rc=0    cases=77    skipped=0    
+   tools/test_peg_availability_r24.py                   passed   rc=0    cases=39    skipped=0    
+   tools/test_r25_clock_routes.py                       passed   rc=0    cases=22    skipped=0    
+   tools/test_r25_concurrency.py                        passed   rc=0    cases=29    skipped=0    
+   tools/test_r25_fault_injection.py                    passed   rc=0    cases=24    skipped=0    
+   tools/test_r25_growth_truthfulness.py                passed   rc=0    cases=0     skipped=0    
+   tools/test_r25_metrics_board.py                      passed   rc=0    cases=50    skipped=0    
+   tools/test_r25_perf_latency.py                       passed   rc=0    cases=23    skipped=0    
+   tools/test_r25_storage_durability.py                 failed   rc=1    cases=39    skipped=0    فشل الاختبار (rc=1)
+        │ Traceback (most recent call last):
+        │   File "/tmp/octa_ci_child_49erskcx/child.py", line 10, in <module>
+        │     runpy.run_path(target, run_name="__main__")
+        │   File "<frozen runpy>", line 291, in run_path
+        │   File "<frozen runpy>", line 98, in _run_module_code
+        │   File "<frozen runpy>", line 88, in _run_code
+        │   File "tools/test_r25_storage_durability.py", line 551, in <module>
+        │     sys.exit(main())
+        │              ^^^^^^
+        │   File "tools/test_r25_storage_durability.py", line 508, in main
+        │     test_storage_negative_proof_atomic_write_removed()
+        │   File "tools/test_r25_storage_durability.py", line 105, in wrapper
+        │     raise AssertionError(
+        │ AssertionError: 1 إخفاق ⭐: 🧨c بدون الحماية: نفس الفحص **فشل** ⭐ (الاختبار حسّاس ⭐)
+   tools/test_r26_portfolio_atomicity.py                passed   rc=0    cases=7     skipped=0    
+   tools/test_r26_subscriptions.py                      passed   rc=0    cases=279   skipped=0    
+   tools/test_round23_clean_clone.py                    failed   rc=1    cases=0     skipped=0    فشل الاختبار (rc=1)
+        │              ^^^^^^
+        │   File "tools/test_round23_clean_clone.py", line 448, in main
+        │     result["backend"] = run_backend(pathlib.Path(args.backend_zip),
+        │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "tools/test_round23_clean_clone.py", line 305, in run_backend
+        │     src = extract_zip(zip_path, pathlib.Path(work) / "zip")
+        │           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "tools/test_round23_clean_clone.py", line 192, in extract_zip
+        │     with zipfile.ZipFile(zip_path) as z:
+        │          ^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "/usr/lib/python3.11/zipfile.py", line 1300, in __init__
+        │     self.fp = io.open(file, filemode)
+        │               ^^^^^^^^^^^^^^^^^^^^^^^
+        │ FileNotFoundError: [Errno 2] No such file or directory: '/workspace/output/OCTA-ROUND23-BACKEND.zip'
+   tools/test_round24_gold_gate_contract.py             passed   rc=0    cases=13    skipped=0    
+   tools/test_round24_growth_source_audit.py            passed   rc=0    cases=14    skipped=0    
+   tools/test_round24_rel_volume_states.py              passed   rc=0    cases=12    skipped=0    
+   tools/test_round26_api_tools_r26.py                  passed   rc=0    cases=99    skipped=0    
+   tools/test_round26_engines_r26.py                    passed   rc=0    cases=60    skipped=0    
+   test_signup_flow.py                                  passed   rc=0    cases=41    skipped=0    
+📄 النتيجة اتكتبت: /workspace/output/r28be_venv/backend_results.json
+
+======================================================================
+📊 python: 77 ملف · 71 نجح · 5 فشل · 1 متخطى · 0 محجوب · 2458 حالة
+======================================================================
+⛔ فيه ملفات مش ناجحة ⇒ البوابة لازم تفشل
+   ⛔ test_gold_live_price.py → skipped (علامة تخطّي صريحة في الإخراج)
+   ⛔ test_security_batch02.py → failed (فشل الاختبار (rc=1))
+   ⛔ test_security_p0.py → failed (فشل الاختبار (rc=1))
+   ⛔ tools/staging/test_flask_binding.py → failed (فشل الاختبار (rc=1))
+   ⛔ tools/test_r25_storage_durability.py → failed (فشل الاختبار (rc=1))
+   ⛔ tools/test_round23_clean_clone.py → failed (فشل الاختبار (rc=1))
+classifier_rc=1

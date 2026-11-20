@@ -1,0 +1,38 @@
+{
+  "round": "R28",
+  "rc": "RC-R28-001",
+  "packages": [
+    {
+      "bytes": 1692337,
+      "md5": "58a9ffb7d4c3a5d9353848a69a280fa3",
+      "sha256": "f394506e81c6b67ba0f831697b5fae17089627cbec7e988d9e0616c5481db47d",
+      "chunks": 2,
+      "zip": "OCTA-ROUND28-BACKEND.zip",
+      "files": 313
+    },
+    {
+      "bytes": 6692549,
+      "md5": "34ca11f81b9ed95ebedabecb5784e754",
+      "sha256": "186c6afe6598cbf409f322115e5e5fd567f7b197f93b9ac314d8a9e8ce63a811",
+      "chunks": 7,
+      "zip": "OCTA-ROUND28-FRONTEND.zip",
+      "files": 509
+    },
+    {
+      "bytes": 1595758,
+      "md5": "81dce9c9fe649bd74047d80231433318",
+      "sha256": "c8e33414444d2aa51a6d610b040cbde0633c13ba01881d9abbe45cf31b068237",
+      "chunks": 2,
+      "zip": "OCTA-ROUND28-CI.zip",
+      "files": 194
+    },
+    {
+      "bytes": 10587480,
+      "md5": "71c7efcd2fbdabf2d23db0793ee2e59b",
+      "sha256": "3349d0b77db4975fd71645ccbf4d0c2140dc585a21afed4750c520b98a5e7042",
+      "chunks": 11,
+      "zip": "OCTA-ROUND28-DELIVERY.zip",
+      "files": 64
+    }
+  ]
+}

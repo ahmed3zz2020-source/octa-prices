@@ -1,0 +1,31 @@
+{
+ "email": "r28.link.1795184584@example.test",
+ "signup_start": 200,
+ "verify": 200,
+ "newpin": 200,
+ "login": 200,
+ "path:/api/gold": {
+  "status": 503,
+  "head": "{\"ok\":false,\"error\":\"الخدمة مؤقتًا غير متاحة\",\"why\":\"api_unreachable\"}"
+ },
+ "path:/api/radar/universe": {
+  "status": 503,
+  "head": "{\"ok\":false,\"error\":\"الخدمة مؤقتًا غير متاحة\",\"why\":\"api_unreachable\"}"
+ },
+ "path:/api/technical/COMI.CA": {
+  "status": 503,
+  "head": "{\"ok\":false,\"error\":\"الخدمة مؤقتًا غير متاحة\",\"why\":\"api_unreachable\"}"
+ },
+ "path:/api/analyze?code=COMI.CA": {
+  "status": 503,
+  "head": "{\"ok\":false,\"error\":\"الخدمة مؤقتًا غير متاحة\",\"why\":\"api_unreachable\"}"
+ },
+ "path:/api/portfolio": {
+  "status": 200,
+  "head": "{\"ok\":true,\"portfolio\":{\"cash\":0,\"positions\":{}}}"
+ },
+ "path:/api/alerts/state": {
+  "status": 501,
+  "head": "{\"ok\":false,\"error\":\"preview_route_not_implemented\",\"why\":\"المسار ده مش متاح في المعاينة المعزولة ⭐\",\"preview_note\":\"المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐\"}"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "leaked_fp": null,
+ "leaked_present_in_repo_main": false,
+ "leaked_getMe": {
+  "status": 404,
+  "ok": false
+ },
+ "live_fp": "a1c71d495133",
+ "chat_present": true,
+ "live_getMe": {
+  "status": 200,
+  "ok": true,
+  "username": "gold_scout_xau_bot"
+ }
+}

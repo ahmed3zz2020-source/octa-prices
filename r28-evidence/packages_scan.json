@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "note": "مسح 3 أرشيف ⭐ (بصمة SHA256 لكل واحد ⭐ مطابقة للحزمة المسلَّمة ⭐) ⭐ ⇒ 0 تسرّب حقيقي ⭐ ⇒ نظيف ⭐ ⭐",
+  "archives": [
+    {
+      "zip": "OCTA-ROUND28-BACKEND.zip",
+      "md5": "58a9ffb7d4c3a5d9353848a69a280fa3",
+      "sha256": "f394506e81c6b67ba0f831697b5fae17089627cbec7e988d9e0616c5481db47d",
+      "bytes": 1692337,
+      "files": 313,
+      "scan_sha256": "f394506e81c6b67ba0f831697b5fae17089627cbec7e988d9e0616c5481db47d",
+      "scan_error": null,
+      "scanned": true
+    },
+    {
+      "zip": "OCTA-ROUND28-FRONTEND.zip",
+      "md5": "34ca11f81b9ed95ebedabecb5784e754",
+      "sha256": "186c6afe6598cbf409f322115e5e5fd567f7b197f93b9ac314d8a9e8ce63a811",
+      "bytes": 6692549,
+      "files": 509,
+      "scan_sha256": "186c6afe6598cbf409f322115e5e5fd567f7b197f93b9ac314d8a9e8ce63a811",
+      "scan_error": null,
+      "scanned": true
+    },
+    {
+      "zip": "OCTA-ROUND28-CI.zip",
+      "md5": "81dce9c9fe649bd74047d80231433318",
+      "sha256": "c8e33414444d2aa51a6d610b040cbde0633c13ba01881d9abbe45cf31b068237",
+      "bytes": 1595758,
+      "files": 194,
+      "scan_sha256": "c8e33414444d2aa51a6d610b040cbde0633c13ba01881d9abbe45cf31b068237",
+      "scan_error": null,
+      "scanned": true
+    },
+    {
+      "zip": "OCTA-ROUND28-DELIVERY.zip",
+      "md5": "25c04dff5b59867afdf49559296d5560",
+      "sha256": "9b431e5c8b9e6ce9a7bb015ae20c08c363bbfeb2febb91e026e6b406605f0ad9",
+      "bytes": 10586311,
+      "files": 64,
+      "scan_sha256": "",
+      "scan_error": null,
+      "scanned": false
+    }
+  ],
+  "real_leaks": 0
+}

@@ -1,0 +1,161 @@
+{
+  "base": "https://octa-preview.ahmed3zz2020.workers.dev",
+  "email": "r28.journey.d712a9b0@example.test",
+  "at": null,
+  "pin_fingerprint": "a1fb4e703a9e",
+  "steps": [
+    {
+      "step": "health",
+      "status": 200,
+      "head": "{\"ok\":true,\"source\":\"preview-isolated\",\"note_ar\":\"معاينة معزولة — بتخدم لقطة بيانات الخاصة بيها ⭐ ومفيش أي اتصال بالإنتاج ⭐.\"}"
+    },
+    {
+      "step": "signup_start",
+      "status": 200,
+      "head": "{\"ok\":true,\"sent\":true,\"expires_in\":600,\"message\":\"لو الإيميل ده بتاعك، هتلاقي كود من ٦ أرقام في بريدك\",\"preview_mailbox\":true,\"preview_note\":\"معاينة: الكود في صندوق المعاينة ⭐ — محتاج مفتاح المعاينة ⭐\"}"
+    },
+    {
+      "step": "mailbox",
+      "status": 200,
+      "head": "{\"ok\":true,\"email\":\"r28.journey.d712a9b0@example.test\",\"code\":\"913433\",\"expires_in\":600,\"preview_note\":\"كود المعاينة ⭐ — مفيش بريد ⭐\"}"
+    },
+    {
+      "step": "signup_verify",
+      "status": 200,
+      "head": "{\"ok\":true,\"verified\":true,\"needs_pin\":true,\"unlock\":\"kTCp40gApcggBKwaPEEemRoz73SlKZJYBbuBByAcgkA\",\"expires_in\":600,\"message\":\"الكود اتأكد ⭐ — دلوقتي حطّ الباسورد من ٤ أرقام ⭐\"}"
+    },
+    {
+      "step": "signup_newpin",
+      "status": 200,
+      "head": "{\"ok\":true,\"token\":\"eyJ1aWQiOiJ1XzVmZDZjNzhjNmQ2YWU5MWU1M2Y1YTFjNDdmYTUzNGNlNGY3NjIyMDdiMzgyNGU4OWIzOGI1ZjRhY2M0ZDFlZmIiLCJzaWQiOiJnTzdDdGZhS21tTnRyS1JXWFNzaE1zaUsiLCJleHAiOjE3OTU3OTM1MTZ9.-pmG-V1sigukv-DLO9NoXQvKzPPk38L"
+    },
+    {
+      "step": "signup_newpin_without_unlock",
+      "status": 401,
+      "head": "{\"ok\":false,\"error\":\"انتهت خطوة اختيار الباسورد\",\"why\":\"unlock_expired\"}"
+    },
+    {
+      "step": "pin_login",
+      "status": 200,
+      "head": "{\"ok\":true,\"token\":\"eyJ1aWQiOiJ1XzVmZDZjNzhjNmQ2YWU5MWU1M2Y1YTFjNDdmYTUzNGNlNGY3NjIyMDdiMzgyNGU4OWIzOGI1ZjRhY2M0ZDFlZmIiLCJzaWQiOiJqTGxuZVFzMGJSQzF0MmFsa2N1Sl9ibmoiLCJleHAiOjE3OTU3OTM1MTZ9.O03MysqGnAyWMuuaMk2_7Zmx4zYcy6d"
+    },
+    {
+      "step": "me",
+      "status": 200,
+      "head": "{\"ok\":true,\"user\":{\"email\":\"r28.journey.d712a9b0@example.test\",\"name\":\"رحلة R28\",\"uid\":\"u_5fd6c78c6d6ae91e53f5a1c47fa534ce4f762207b3824e89b38b5f4acc4d1efb\",\"created_at\":1795188716,\"plan\":\"preview\"},\"expires_in\":604799}"
+    },
+    {
+      "step": "alerts_add",
+      "status": 200,
+      "head": "{\"ok\":true,\"created\":true,\"dedup\":false,\"alerts\":[{\"id\":\"al_1795188717556_0\",\"symbol\":\"COMI.CA\",\"kind\":\"price\",\"created_at\":1795188717,\"active\":true}]}"
+    },
+    {
+      "step": "alerts_state",
+      "status": 200,
+      "head": "{\"ok\":true,\"state\":{\"items\":[{\"id\":\"al_1795188717556_0\",\"symbol\":\"COMI.CA\",\"kind\":\"price\",\"created_at\":1795188717,\"active\":true}]},\"alerts\":[{\"id\":\"al_1795188717556_0\",\"symbol\":\"COMI.CA\",\"kind\":\"price\",\"created_at\":17951"
+    },
+    {
+      "step": "portfolio_write",
+      "status": 200,
+      "head": "{\"ok\":true,\"portfolio\":{\"cash\":1234,\"positions\":{\"COMI.CA\":5},\"updated_at\":1795188718}}"
+    },
+    {
+      "step": "portfolio_read",
+      "status": 200,
+      "head": "{\"ok\":true,\"portfolio\":{\"cash\":1234,\"positions\":{\"COMI.CA\":5},\"updated_at\":1795188718}}"
+    },
+    {
+      "step": "logout",
+      "status": 200,
+      "head": "{\"ok\":true,\"revoked\":true}"
+    },
+    {
+      "step": "me_after_logout",
+      "status": 401,
+      "head": "{\"ok\":false,\"error\":\"محتاج تسجيل دخول\",\"why\":\"unauthorized\"}"
+    },
+    {
+      "step": "csrf_logout",
+      "status": 403,
+      "head": "{\"ok\":false,\"error\":\"cross_site_blocked\",\"why\":\"طلب من أصل خارجي اترفض\"}"
+    }
+  ],
+  "passed": 18,
+  "failed": 0,
+  "total": 18,
+  "checks": [
+    {
+      "ok": true,
+      "label": "① /api/health ⇒ 200 وجسم صالح"
+    },
+    {
+      "ok": true,
+      "label": "①ب المعاينة معزولة"
+    },
+    {
+      "ok": true,
+      "label": "② signup/start ⇒ 200"
+    },
+    {
+      "ok": true,
+      "label": "②ب الكود **مش** في رد التسجيل ⭐ (استحواذ متجدد ⭐)"
+    },
+    {
+      "ok": true,
+      "label": "③ صندوق المعاينة ⇒ الكود وصل ⭐"
+    },
+    {
+      "ok": true,
+      "label": "④ signup/verify ⇒ محتاج باسورد"
+    },
+    {
+      "ok": true,
+      "label": "④ب توكن الفتح وصل ⭐ (عقد الإنتاج ⭐)"
+    },
+    {
+      "ok": true,
+      "label": "⑤ signup/newpin ⇒ 200"
+    },
+    {
+      "ok": true,
+      "label": "⑤ب من غير توكن الفتح ⇒ 401 ⭐"
+    },
+    {
+      "ok": true,
+      "label": "⑥ pin/login ⇒ 200 + توكن"
+    },
+    {
+      "ok": true,
+      "label": "⑦ /api/auth/me ⇒ 200"
+    },
+    {
+      "ok": true,
+      "label": "⑧ إضافة تنبيه ⇒ 200"
+    },
+    {
+      "ok": true,
+      "label": "⑧ب /api/alerts/state ⇒ 200 + حالة ⭐"
+    },
+    {
+      "ok": true,
+      "label": "⑨ كتابة المحفظة ⇒ 200"
+    },
+    {
+      "ok": true,
+      "label": "⑨ب قراءة المحفظة ⇒ 200 + الكاش"
+    },
+    {
+      "ok": true,
+      "label": "⑩ logout ⇒ 200"
+    },
+    {
+      "ok": true,
+      "label": "⑩ب /me بعد الخروج ⇒ 401 (إبطال فوري ⭐)"
+    },
+    {
+      "ok": true,
+      "label": "⑪ طلب من أصل خارجي اترفض (CSRF)"
+    }
+  ],
+  "device": "dev-420e34096d7c4d21b7423689bc97643b"
+}
