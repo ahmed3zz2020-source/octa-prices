@@ -11,7 +11,7 @@
 والأدلة اتبنت واتدفعت على فرع review/round27-evidence.
 
 البيكوتInitializer:
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/fe45d683a9156f599fefe3b98753f4e62a760193/r27-evidence/OCTA-ROUND27-HANDOFF.md
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/OCTA-ROUND27-HANDOFF.md
 (محفوظ محلياً: /workspace/output/OCTA-ROUND27-EVIDENCE/OCTA-ROUND27-HANDOFF.md)
 
 الفرع والبصمات:

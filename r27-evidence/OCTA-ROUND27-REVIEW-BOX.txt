@@ -30,21 +30,21 @@
 octa-prices:
   release/round27-rc      fe45d683a9156f599fefe3b98753f4e62a760193
   ci/octa-ci-r27          e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f
-  review/round27-evidence  (فرع الأدلة)
+  review/round27-evidence  (فرع الأدلة — البصمة تتقارن بـ git ls-remote ⭐)
 octa:
   release/round27-rc-fe   c520591e829e8e13dbfa39552988ac537e1eef66
   ci/octa-ci-r27-fe       c9981facdc4339cc8067063738c51745f89a9e06
 main في المستودعين: لم يتغير (لا دمج في main).
 
 روابط raw للمراجعة (افتحهم في المتصفح):
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/fe45d683a9156f599fefe3b98753f4e62a760193/r27-evidence/R27-EVIDENCE.md
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/fe45d683a9156f599fefe3b98753f4e62a760193/r27-evidence/fe_suite_r27.md
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/fe45d683a9156f599fefe3b98753f4e62a760193/r27-evidence/backend_suite_r27.md
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/fe45d683a9156f599fefe3b98753f4e62a760193/r27-evidence/OCTA-ROUND27-PACKAGES.json
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/R27-EVIDENCE.md
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/fe_suite_r27.md
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/backend_suite_r27.md
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/OCTA-ROUND27-PACKAGES.json
   https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f/ci-workflow/octa-ci.yml
   https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f/ci-workflow/octa-ci-fe.yml
   https://raw.githubusercontent.com/ahmed3zz2020-source/octa/c520591e829e8e13dbfa39552988ac537e1eef66/assets/tests/r26-preview-self-api.test.js
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/c520591e829e8e13dbfa39552988ac537e1eef66/ci-workflow/octa-ci.yml
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/c9981facdc4339cc8067063738c51745f89a9e06/ci-workflow/octa-ci.yml
 
 ---------------------------------------------------------------------
 أهم نتيجة: تشخيص ملف التسليم القديم كان غلط
