@@ -38,7 +38,7 @@ on:
 env:
   # ⛔ بصمة المرشح (الجولة ٢٦) — المصدر الواحد لكل النتائج ⭐
   #    (لازم يتحدّث لما المرشح يتغيّر ⭐)
-  OCTA_CANDIDATE_SHA: '5ec4e2574c91c209fe43a4815ca2cabacac822f4'
+  OCTA_CANDIDATE_SHA: '30d9f45d0d4d3bcf7359b7188b5e20e2948ad585'
 
 jobs:
   # ══════════════════════════════════════════════════════════════
@@ -58,6 +58,7 @@ jobs:
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "fe_sha=$OCTA_CANDIDATE_SHA"
           echo "tested_head=$ACTUAL"
           if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
             echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
@@ -123,6 +124,7 @@ jobs:
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "fe_sha=$OCTA_CANDIDATE_SHA"
           echo "tested_head=$ACTUAL"
           if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
             echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
@@ -271,6 +273,7 @@ jobs:
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "fe_sha=$OCTA_CANDIDATE_SHA"
           echo "tested_head=$ACTUAL"
           if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
             echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
@@ -389,6 +392,7 @@ jobs:
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
+          echo "fe_sha=$OCTA_CANDIDATE_SHA"
           echo "tested_head=$ACTUAL"
           if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
             echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
