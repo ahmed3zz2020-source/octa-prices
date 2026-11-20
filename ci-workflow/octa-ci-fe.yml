@@ -72,7 +72,7 @@ jobs:
           while IFS= read -r f; do
             [ -z "$f" ] && continue
             case "$f" in
-              .github/workflows/*|tools/test_ci_*|tools/ci_*|tools/copy-data.js) ;;
+              .github/workflows/*|ci-workflow/*|tools/test_ci_*|tools/ci_*|tools/copy-data.js) ;;
               *) UNEXPECTED="$UNEXPECTED$f " ;;
             esac
           done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
@@ -103,7 +103,7 @@ jobs:
           npm --version
 
       - name: "🛡️ حارس الـCI (لازم ملف الـCI نفسه نضيف)"
-        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+        run: python3 tools/test_ci_gates.py
 
   # ══════════════════════════════════════════════════════════════
   # ② كل اختبارات الواجهة (كل ملف موجود — بلا استبعاد صامت)
@@ -137,7 +137,7 @@ jobs:
           while IFS= read -r f; do
             [ -z "$f" ] && continue
             case "$f" in
-              .github/workflows/*|tools/test_ci_*|tools/ci_*|tools/copy-data.js) ;;
+              .github/workflows/*|ci-workflow/*|tools/test_ci_*|tools/ci_*|tools/copy-data.js) ;;
               *) UNEXPECTED="$UNEXPECTED$f " ;;
             esac
           done <<< "$(git diff --name-only "$OCTA_CANDIDATE_SHA" "$ACTUAL")"
@@ -320,7 +320,7 @@ jobs:
             actionlint .github/workflows/*.yml
           else
             echo "ℹ️ actionlint مش متاح — بنشغّل حارس الـCI (فحص تعريف الملف ⭐)"
-            python3 tools/test_ci_gates.py .github/workflows/ci.yml
+            python3 tools/test_ci_gates.py
           fi
 
       - name: "📤 حارس نظافة النص (حروف تالفة / أسماء أدوات)"
@@ -330,7 +330,7 @@ jobs:
         run: node tools/xss-inventory.js --triage ci-xss-triage.md
 
       - name: "🛡️ حارس بوّابات الـCI (tools/test_ci_gates.py)"
-        run: python3 tools/test_ci_gates.py .github/workflows/ci.yml
+        run: python3 tools/test_ci_gates.py
 
       - name: "🧪 🛡️ الملفات المعزولة — بوابة بديلة إلزامية ⭐ (مافيش استبداء صامت ⭐)"
         run: |
