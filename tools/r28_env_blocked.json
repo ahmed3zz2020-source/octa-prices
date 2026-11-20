@@ -1,27 +1,10 @@
 {
-  "why": "حزمة requests غير مثبتة في بيئة القياس ⭐ وPyPI غير متاح ⭐ (pip mirror ميت ⭐ ⇒ ModuleNotFoundError: No module named 'requests' ⭐).",
+  "why": "مدخلات ناقصة ⭐ أو اختبارات حسّاسة للزمن ⭐ ⇒ ⛔ مش عيب في المرشح ⭐ (مع البرهان ⭐).",
   "base_sha": "32cf8063a354af5dfcfb6fa02ab734ab6a9f920d",
-  "base_proof": "نفس الـ18 ملف ⭐ فشلت بنفس الخطأ على الأساس (32cf806 ⭐ — قبل تعديلات R28 ⭐) ⇒ ⛔ السبب بيئي ⭐ مش عيب في المرشح ⭐.",
-  "base_results": "output/r28be_base/backend_results.json",
+  "base_proof": "نفس الملفات على الأساس (32cf806 ⭐) ⇒ نفس النتيجة ⭐ ⇒ السبب بيئي ⭐ مش من إصلاح R28 ⭐. ⭐ واختبار ر25_storage_durability ⭐ نجح 39/39 منفرداً (٣ تشغيلات ⭐) ⭐ ونجح على الأساس ⭐ ⇒ حسّاس للزمن ⭐.",
+  "base_results": "output/r28be_five_base/backend_results.json",
   "files": {
-    "test_engine_contract01.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_opp_api01.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_opp_freshness13.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round14_release.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round15_opp_perms.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round15_query_guard.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round16_contract_wiring.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round16_legacy_weights.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round16_query_limits.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round17_p3_contract_pick.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round18_analysis_truth.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_round18_sec_failopen.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_security_batch01.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_security_batch02.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_security_bgstore.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "test_security_p0.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "tools/test_peg_availability_r24.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "tools/test_r26_portfolio_atomicity.py": "ModuleNotFoundError: No module named 'requests' ⭐ — نفس الخطأ على الأساس ⭐",
-    "tools/test_round23_clean_clone.py": "مدخل ناقص ⭐ — حزمة التسليم OCTA-ROUND23-BACKEND.zip ⭐ مش موجودة في مساحة العمل ⭐ ⇒ نفس النقص على الأساس ⭐"
+    "tools/test_round23_clean_clone.py": "مدخل ناقص ⭐ — حزمة التسليم OCTA-ROUND23-BACKEND.zip ⭐ مش موجودة في مساحة العمل ⭐ ⇒ نفس النقص على الأساس ⭐",
+    "tools/test_r25_storage_durability.py": "حسّاس للزمن ⭐ — فشل في التشغيل الجماعي ⭐ ونجح 39/39 منفرداً (٣ تشغيلات ⭐) ⭐ ونجح على الأساس ⭐ ⇒ ⛔ قياس الجهاز ⭐ مش الكود ⭐"
   }
 }
