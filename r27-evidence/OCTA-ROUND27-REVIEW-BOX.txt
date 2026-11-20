@@ -30,7 +30,7 @@
 octa-prices:
   release/round27-rc      fe45d683a9156f599fefe3b98753f4e62a760193
   ci/octa-ci-r27          4e5b6160ac2c6806301c7de8df7dc6dd00cb9054
-  review/round27-evidence  (فرع الأدلة — البصمة تتقارن بـ git ls-remote ⭐)
+  review/round27-evidence  (فرع الأدلة — البصمة تتقارن بـ git ls-remote)
 octa:
   release/round27-rc-fe   5ec4e2574c91c209fe43a4815ca2cabacac822f4
   ci/octa-ci-r27-fe       ae5ff0831ba0269e76ef9fa1bdf389fcf0d410a2
@@ -165,7 +165,7 @@ R26-S-26 و R26-S-27 في assets/tests/r26-session-hardening.test.js: تدوير
 1) راجع الفرق: git diff ea93e90c718c175c588df33d6de1cf75130fd0ee..fe45d683a9156f599fefe3b98753f4e62a760193
    و git diff 0bbbd75b5a57a739fd175694ecd185331e7cb2c2..5ec4e2574c91c209fe43a4815ca2cabacac822f4
 2) شغّل بنفسك: node --test "assets/tests/*.test.js" في مستودع الواجهة على
-   c520591، و python3 tools/ci_result_classifier.py run --kind python --root . في
+   5ec4e25، و python3 tools/ci_result_classifier.py run --kind python --root . في
    مستودع الباك على fe45d68 (مع بيئة الـstaging).
 3) قارن مع ملف التسليم القديم: التقرير r27-evidence/R27-EVIDENCE.md فيه كل
    التفاصيل والتتبّع.
@@ -177,11 +177,13 @@ R26-S-26 و R26-S-27 في assets/tests/r26-session-hardening.test.js: تدوير
    في R26: نبني سجل الاعتماد من جديد ولا نعتبره موروث؟
 
 ---------------------------------------------------------------------
-المطلوب من المالك (قرار واحد)
+المطلوب من المالك
 ---------------------------------------------------------------------
-1) توكن GitHub بصلاحية workflow عشان الـCI يشغّل البوابات الحقيقية، ولا موافقتك
-   على نشر ملف الـworkflow الحقيقي على .github/workflows/ci.yml قبل الدفع (ده
-   يخلي فرع الـCI يشغّل البوابات الحقيقية فعلاً بدل نسخة main).
-2) وده مع تدوير توكن تيليجرام (تسريب حيّ ⇒ لازم يتدار قبل أي حاجة تانية).
+1) طارئ: تدوير توكن بوت تيليجرام (تسريب حيّ في مستودع عام ⇒ توكن جديد +
+   إلغاء القديم عن طريق @BotFather).
+2) قرار واحد: تبعتلي توكن GitHub بصلاحية workflow عشان الـCI يشغّل البوابات
+   الحقيقية، ولا تأذن بنشر ملف الـworkflow الحقيقي على
+   .github/workflows/ci.yml قبل الدفع (ده يخلي فرع الـCI يشغّل البوابات
+   الحقيقية فعلاً بدل نسخة main).
 
 =====================================================================

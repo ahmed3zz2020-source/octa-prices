@@ -39,9 +39,9 @@
     },
     {
       "zip": "OCTA-ROUND27-DELIVERY.zip",
-      "bytes": 51349,
-      "md5": "40cb7057710e49f41d1f32fb9dce81a7",
-      "sha256": "9fe84fc4ce400771e105811cedd26d14c5f45a82403e93df2425a542a7329fc9",
+      "bytes": 51910,
+      "md5": "221ae517af43487d1795e18165c39e9e",
+      "sha256": "e9379003471bfae16ea97eca4ef4ed9b18d7b47a4a3c64c21b710564eeb97974",
       "files": 8,
       "scanned": 8,
       "secret_hits": 0,
