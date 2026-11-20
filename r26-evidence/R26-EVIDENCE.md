@@ -10,10 +10,10 @@
 
 | العنصر | المستودع | الفرع | SHA |
 |---|---|---|---|
-| Backend RC | octa-prices | `release/round26-rc` | `RC_BACKEND_SHA` |
-| Frontend RC | octa | `release/round26-rc-fe` | `RC_FRONTEND_SHA` |
-| CI Backend | octa-prices | `ci/octa-ci-r26` | `RC_CI_SHA` |
-| CI Frontend | octa | `ci/octa-ci-r26-fe` | `RC_CI_FE_SHA` |
+| Backend RC | octa-prices | `release/round26-rc` | `ea93e90c718c175c588df33d6de1cf75130fd0ee` |
+| Frontend RC | octa | `release/round26-rc-fe` | `0bbbd75b5a57a739fd175694ecd185331e7cb2c2` |
+| CI Backend | octa-prices | `ci/octa-ci-r26` | `80d0aa77b7e8bfea5572d1dc30f4ef7e817bceda` |
+| CI Frontend | octa | `ci/octa-ci-r26-fe` | `dfeccd8c9796eb0ec814cc2fe75bbdef640d2792` |
 | محرك R26 (فرع مستقل) | octa-prices | `release/round26-rc-eng` | `ec9c478f5ca30a191b7aefab5b146584afd69083` |
 | اشتراكات R26 (فرع مستقل) | octa-prices | `release/round26-rc-sub` | `7e97797` |
 | UX R26 (فرع مستقل) | octa | `release/round26-rc-fe-ux` | `99a1fb29135bbe7264d94f96fe03273b30b88c42` |

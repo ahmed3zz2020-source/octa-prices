@@ -20,7 +20,7 @@
 
 مستودع الواجهة (octa):
   المرشّح:            https://github.com/ahmed3zz2020-source/octa/tree/release/round26-rc-fe
-  SHA المرشّح:        744a6d9e5eb11b79ddb78ede5cf1419fb2df338e
+  SHA المرشّح:        0bbbd75b5a57a739fd175694ecd185331e7cb2c2
   فرع المرايعة:      https://github.com/ahmed3zz2020-source/octa/tree/ci/octa-ci-r26-fe
 
 main لم يتغير في أي مستودع:
