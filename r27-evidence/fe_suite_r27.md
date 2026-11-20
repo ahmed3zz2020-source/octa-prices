@@ -16,7 +16,7 @@
 
 ## البصمات
 
-- ملف السجل: sha256 `413da495d48f7c488d6994f2bd3576bb4b16b470dfb1b166ef86c76749d8b34c`
-- SHA المرشح (الواجهة): `c520591e829e8e13dbfa39552988ac537e1eef66`
-- فرع الـCI (الواجهة): `c9981fa`
+- ملف السجل: sha256 `d99be00acde9e8f36cff3dfc5ef749faa98adef1f2c6bffc3a3c7ccc4fb48c16`
+- SHA المرشح (الواجهة): `5ec4e2574c91c209fe43a4815ca2cabacac822f4`
+- فرع الـCI (الواجهة): `ae5ff0831ba0269e76ef9fa1bdf389fcf0d410a2`
 

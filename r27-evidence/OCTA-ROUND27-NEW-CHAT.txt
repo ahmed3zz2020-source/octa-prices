@@ -16,9 +16,9 @@
 
 الفرع والبصمات:
   octa-prices: release/round27-rc = fe45d683a9156f599fefe3b98753f4e62a760193
-                ci/octa-ci-r27 = e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f
-  octa:         release/round27-rc-fe = c520591e829e8e13dbfa39552988ac537e1eef66
-                ci/octa-ci-r27-fe = c9981facdc4339cc8067063738c51745f89a9e06
+                ci/octa-ci-r27 = 4e5b6160ac2c6806301c7de8df7dc6dd00cb9054
+  octa:         release/round27-rc-fe = 5ec4e2574c91c209fe43a4815ca2cabacac822f4
+                ci/octa-ci-r27-fe = ae5ff0831ba0269e76ef9fa1bdf389fcf0d410a2
 
 القياس (كله traced):
   الواجهة: 688 اختبار، 688 ناجح، 0 فاشل، 474 ثانية.
@@ -31,6 +31,9 @@
   الإنتاج (octashares.com): ممنوع النشر عليه بلا عبارة صريحة من المالك.
 
 المهمة الجاية (بترتيب الأولوية):
+0) طارئ: تدوير توكن بوت تيليجرام. المسح كشفه حيّ ومكتوب حرفياً في
+   private-docs/SECURITY-PLAN.md في المستودع العام (اتشال من المرشح في R27، بس
+   تاريخ git لسه فيهه) ⇒ توكن جديد + إلغاء القديم عن طريق @BotFather.
 1) الـCI على GitHub Actions يشتغل على البوابات الحقيقية. دلوقتي فرع الـCI فيه
    نسخة main من .github/workflows/ci.yml ⇒ اللي بيتنفّذ مش البوابات الحقيقية.
    محتاج توكن بصلاحية workflow (النشر على .github/workflows/ مرفوض بالتوكن

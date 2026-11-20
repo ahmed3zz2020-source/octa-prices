@@ -29,11 +29,11 @@
 ---------------------------------------------------------------------
 octa-prices:
   release/round27-rc      fe45d683a9156f599fefe3b98753f4e62a760193
-  ci/octa-ci-r27          e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f
+  ci/octa-ci-r27          4e5b6160ac2c6806301c7de8df7dc6dd00cb9054
   review/round27-evidence  (فرع الأدلة — البصمة تتقارن بـ git ls-remote ⭐)
 octa:
-  release/round27-rc-fe   c520591e829e8e13dbfa39552988ac537e1eef66
-  ci/octa-ci-r27-fe       c9981facdc4339cc8067063738c51745f89a9e06
+  release/round27-rc-fe   5ec4e2574c91c209fe43a4815ca2cabacac822f4
+  ci/octa-ci-r27-fe       ae5ff0831ba0269e76ef9fa1bdf389fcf0d410a2
 main في المستودعين: لم يتغير (لا دمج في main).
 
 روابط raw للمراجعة (افتحهم في المتصفح):
@@ -41,10 +41,10 @@ main في المستودعين: لم يتغير (لا دمج في main).
   https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/fe_suite_r27.md
   https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/backend_suite_r27.md
   https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/review/round27-evidence/r27-evidence/OCTA-ROUND27-PACKAGES.json
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f/ci-workflow/octa-ci.yml
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f/ci-workflow/octa-ci-fe.yml
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/c520591e829e8e13dbfa39552988ac537e1eef66/assets/tests/r26-preview-self-api.test.js
-  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/c9981facdc4339cc8067063738c51745f89a9e06/ci-workflow/octa-ci.yml
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/4e5b6160ac2c6806301c7de8df7dc6dd00cb9054/ci-workflow/octa-ci.yml
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/4e5b6160ac2c6806301c7de8df7dc6dd00cb9054/ci-workflow/octa-ci-fe.yml
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/5ec4e2574c91c209fe43a4815ca2cabacac822f4/assets/tests/r26-preview-self-api.test.js
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa/ae5ff0831ba0269e76ef9fa1bdf389fcf0d410a2/ci-workflow/octa-ci.yml
 
 ---------------------------------------------------------------------
 أهم نتيجة: تشخيص ملف التسليم القديم كان غلط
@@ -136,6 +136,19 @@ R26-S-26 و R26-S-27 في assets/tests/r26-session-hardening.test.js: تدوير
 الريبو والمصدر (ملف xlsx) مش موجود. فالأرقام دي للتسليم، مش للجولة 27.
 
 ---------------------------------------------------------------------
+تسريب سر في مستودع عام (اكتشفه مسح الحزمة) — الأهم في الجولة دي
+---------------------------------------------------------------------
+مسح الحزمة (مطابقة قيم متغيّرات البيئة الحقيقية داخل كل ملف) كشف أن توكن بوت
+تيليجرام حيّ مكتوب حرفياً في private-docs/SECURITY-PLAN.md (كان مقتبس كدليل على
+تسريب أقدم).
+الحالة دلوقتي:
+- اتشال من المرشح في R27 (commit مستقل + تحذير التدوير في نفس الملف).
+- التسريب موجود كمان في main وفي كل فروع R26 ⇒ المشكلة أقدم من الجولة دي.
+- ⛔ التوكن بيفضل موجود في تاريخ git ⇒ لازم تدوير (توكن جديد + إلغاء القديم
+  عن طريق @BotFather). الحجب من الملف مش كفاية.
+- مسح توكنات الحقيقية على المرشحين (الباك والواجهة) بعد الإصلاح: صفر.
+
+---------------------------------------------------------------------
 قواعد ممنوعة (اتلتزمت بيها)
 ---------------------------------------------------------------------
 لا دمج في main. لا نشر على octashares.com. لا موارد مدفوعة. لا بيانات عملاء
@@ -150,7 +163,7 @@ R26-S-26 و R26-S-27 في assets/tests/r26-session-hardening.test.js: تدوير
 المطلوب من المراجع
 ---------------------------------------------------------------------
 1) راجع الفرق: git diff ea93e90c718c175c588df33d6de1cf75130fd0ee..fe45d683a9156f599fefe3b98753f4e62a760193
-   و git diff 0bbbd75b5a57a739fd175694ecd185331e7cb2c2..c520591e829e8e13dbfa39552988ac537e1eef66
+   و git diff 0bbbd75b5a57a739fd175694ecd185331e7cb2c2..5ec4e2574c91c209fe43a4815ca2cabacac822f4
 2) شغّل بنفسك: node --test "assets/tests/*.test.js" في مستودع الواجهة على
    c520591، و python3 tools/ci_result_classifier.py run --kind python --root . في
    مستودع الباك على fe45d68 (مع بيئة الـstaging).
@@ -164,9 +177,11 @@ R26-S-26 و R26-S-27 في assets/tests/r26-session-hardening.test.js: تدوير
    في R26: نبني سجل الاعتماد من جديد ولا نعتبره موروث؟
 
 ---------------------------------------------------------------------
-الحاجة اللي محتاجة قرار من المالك
+المطلوب من المالك (قرار واحد)
 ---------------------------------------------------------------------
-توكن GitHub بصلاحية workflow عشان الـCI يشتغل على البوابات الحقيقية، ولا
-موافقتك على نشر ملف الـworkflow الحقيقي على .github/workflows/ci.yml قبل الدفع
-(ده يخلي فرع الـCI يشغّل البوابات الحقيقية فعلاً بدل نسخة main).
+1) توكن GitHub بصلاحية workflow عشان الـCI يشغّل البوابات الحقيقية، ولا موافقتك
+   على نشر ملف الـworkflow الحقيقي على .github/workflows/ci.yml قبل الدفع (ده
+   يخلي فرع الـCI يشغّل البوابات الحقيقية فعلاً بدل نسخة main).
+2) وده مع تدوير توكن تيليجرام (تسريب حيّ ⇒ لازم يتدار قبل أي حاجة تانية).
+
 =====================================================================

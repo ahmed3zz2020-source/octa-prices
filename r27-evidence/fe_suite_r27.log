@@ -2,543 +2,543 @@ TAP version 13
 # Subtest: 🛡️ مفيش حروف صينية/كورية/يابانية في كود المشروع
 ok 1 - 🛡️ مفيش حروف صينية/كورية/يابانية في كود المشروع
   ---
-  duration_ms: 256.13643
+  duration_ms: 251.703339
   type: 'test'
   ...
 # Subtest: 🛡️ مفيش قوس إغلاق زيادة في CSS (الملف يفضل متوازن)
 ok 2 - 🛡️ مفيش قوس إغلاق زيادة في CSS (الملف يفضل متوازن)
   ---
-  duration_ms: 47.280955
+  duration_ms: 46.981467
   type: 'test'
   ...
 # Subtest: النص المعتمد موجود حرفياً
 ok 3 - النص المعتمد موجود حرفياً
   ---
-  duration_ms: 0.946346
+  duration_ms: 0.737517
   type: 'test'
   ...
 # Subtest: حالة عدم التوفّر متفرّدة (متغيّر مستقل عن الخطأ العام)
 ok 4 - حالة عدم التوفّر متفرّدة (متغيّر مستقل عن الخطأ العام)
   ---
-  duration_ms: 0.314517
+  duration_ms: 0.228151
   type: 'test'
   ...
 # Subtest: 404/405 تتحوّل لحالة «غير متاح» مش خطأ عام
 ok 5 - 404/405 تتحوّل لحالة «غير متاح» مش خطأ عام
   ---
-  duration_ms: 0.273899
+  duration_ms: 0.21312
   type: 'test'
   ...
 # Subtest: شاشة الحالة الصريحة من غير زر إعادة محاولة
 ok 6 - شاشة الحالة الصريحة من غير زر إعادة محاولة
   ---
-  duration_ms: 1.560787
+  duration_ms: 1.029034
   type: 'test'
   ...
 # Subtest: الرسالة العامة بتفضل زي ما هي لبقية الأخطاء
 ok 7 - الرسالة العامة بتفضل زي ما هي لبقية الأخطاء
   ---
-  duration_ms: 0.319627
+  duration_ms: 0.264977
   type: 'test'
   ...
 # Subtest: إعادة التحميل بتمسح حالة عدم التوفّر
 ok 8 - إعادة التحميل بتمسح حالة عدم التوفّر
   ---
-  duration_ms: 0.197683
+  duration_ms: 0.113347
   type: 'test'
   ...
 # Subtest: ① عمود التقييم = درجة ٠-١٠٠ — مش حجم التداول
 ok 9 - ① عمود التقييم = درجة ٠-١٠٠ — مش حجم التداول
   ---
-  duration_ms: 4.735539
+  duration_ms: 4.916152
   type: 'test'
   ...
 # Subtest: ② التقييم بيستخدم المضاعف المحدّث على السعر الحالي
 ok 10 - ② التقييم بيستخدم المضاعف المحدّث على السعر الحالي
   ---
-  duration_ms: 2.085651
+  duration_ms: 2.107193
   type: 'test'
   ...
 # Subtest: ③ محاور المحرك من الطبقة الحية — مش من السجل القديم
 ok 11 - ③ محاور المحرك من الطبقة الحية — مش من السجل القديم
   ---
-  duration_ms: 2.004443
+  duration_ms: 1.998682
   type: 'test'
   ...
 # Subtest: ④ مفيش كود بيرجع «حجم التداول» كدرجة ذراع
 ok 12 - ④ مفيش كود بيرجع «حجم التداول» كدرجة ذراع
   ---
-  duration_ms: 1.433169
+  duration_ms: 1.426004
   type: 'test'
   ...
 # Subtest: ⑤ الجدول بيوضح إن كل الأرقام درجات من ٠ لـ ١٠٠
 ok 13 - ⑤ الجدول بيوضح إن كل الأرقام درجات من ٠ لـ ١٠٠
   ---
-  duration_ms: 4.338898
+  duration_ms: 4.337992
   type: 'test'
   ...
 # Subtest: ⑥ «الفرق» = «—» للمحاور اللي مش داخل في المجموع
 ok 14 - ⑥ «الفرق» = «—» للمحاور اللي مش داخل في المجموع
   ---
-  duration_ms: 2.090037
+  duration_ms: 2.091819
   type: 'test'
   ...
 # Subtest: ⑦ التقييم مش داخل في المجموع — والأساسي داخل
 ok 15 - ⑦ التقييم مش داخل في المجموع — والأساسي داخل
   ---
-  duration_ms: 1.858556
+  duration_ms: 1.809952
   type: 'test'
   ...
 # Subtest: ⑧ الكارت بيعرض عنوان الخبر ونصّه
 ok 16 - ⑧ الكارت بيعرض عنوان الخبر ونصّه
   ---
-  duration_ms: 16.039404
+  duration_ms: 15.867381
   type: 'test'
   ...
 # Subtest: ⑨ مفيش «بورصة هالان» ولا «المصدر» في كارت الأخبار
 ok 17 - ⑨ مفيش «بورصة هالان» ولا «المصدر» في كارت الأخبار
   ---
-  duration_ms: 2.416123
+  duration_ms: 2.22626
   type: 'test'
   ...
 # Subtest: ⑩ عنوان القائمة يقول الفلتر الحالي
 ok 18 - ⑩ عنوان القائمة يقول الفلتر الحالي
   ---
-  duration_ms: 2.482244
+  duration_ms: 2.480032
   type: 'test'
   ...
 # Subtest: ⑫ الشركة الخاسرة (مضاعف ٠) بتاخد أسوأ درجة — مش ٩٥
 ok 19 - ⑫ الشركة الخاسرة (مضاعف ٠) بتاخد أسوأ درجة — مش ٩٥
   ---
-  duration_ms: 3.170501
+  duration_ms: 3.129871
   type: 'test'
   ...
 # Subtest: ⑪ parseHalaText بيفصل العنوان ونص الإعلان
 ok 20 - ⑪ parseHalaText بيفصل العنوان ونص الإعلان
   ---
-  duration_ms: 2.402928
+  duration_ms: 2.42584
   type: 'test'
   ...
 # Subtest: ⑬ البحث في محور الأخبار يشتغل بالكود
 ok 21 - ⑬ البحث في محور الأخبار يشتغل بالكود
   ---
-  duration_ms: 2.114579
+  duration_ms: 2.10219
   type: 'test'
   ...
 # Subtest: ⑭ بحث مالوش نتيجة ⇒ رسالة واضحة
 ok 22 - ⑭ بحث مالوش نتيجة ⇒ رسالة واضحة
   ---
-  duration_ms: 1.9181
+  duration_ms: 1.895925
   type: 'test'
   ...
 # Subtest: ⑮ الجدول بيشرح الفرق بين درجة الذراع والمجموع
 ok 23 - ⑮ الجدول بيشرح الفرق بين درجة الذراع والمجموع
   ---
-  duration_ms: 1.971432
+  duration_ms: 1.947306
   type: 'test'
   ...
 # Subtest: الواجهة بتتحمّل من غير crash
 ok 24 - الواجهة بتتحمّل من غير crash
   ---
-  duration_ms: 14.762825
+  duration_ms: 4.809964
   type: 'test'
   ...
 # Subtest: الكارت بيعرض الرمز والاسم والقطاع والمستويات
 ok 25 - الكارت بيعرض الرمز والاسم والقطاع والمستويات
   ---
-  duration_ms: 14.662643
+  duration_ms: 10.223038
   type: 'test'
   ...
 # Subtest: الاتجاه الهبوطي بيتعرض بعلامة ▼
 ok 26 - الاتجاه الهبوطي بيتعرض بعلامة ▼
   ---
-  duration_ms: 3.07907
+  duration_ms: 2.842795
   type: 'test'
   ...
 # Subtest: ⛔ مفيش undefined ولا NaN في أي جزء من الصفحة
 ok 27 - ⛔ مفيش undefined ولا NaN في أي جزء من الصفحة
   ---
-  duration_ms: 3.13922
+  duration_ms: 4.088956
   type: 'test'
   ...
 # Subtest: ⛔ بيانات ناقصة (من غير أسعار) ⇒ مفيش undefined/NaN
 ok 28 - ⛔ بيانات ناقصة (من غير أسعار) ⇒ مفيش undefined/NaN
   ---
-  duration_ms: 5.984497
+  duration_ms: 4.396392
   type: 'test'
   ...
 # Subtest: زرار «صعود» بيبعت POST بالـbody الصح
 ok 29 - زرار «صعود» بيبعت POST بالـbody الصح
   ---
-  duration_ms: 4.215484
+  duration_ms: 4.154668
   type: 'test'
   ...
 # Subtest: زرار «هبوط» بيبعت vote=down
 ok 30 - زرار «هبوط» بيبعت vote=down
   ---
-  duration_ms: 3.777934
+  duration_ms: 3.843618
   type: 'test'
   ...
 # Subtest: مفيش تصويت تاني بعد أول صوت (الزرار مقفول)
 ok 31 - مفيش تصويت تاني بعد أول صوت (الزرار مقفول)
   ---
-  duration_ms: 3.85418
+  duration_ms: 3.973562
   type: 'test'
   ...
 # Subtest: التحدي المتحل ⇒ الزرارين مقفولين
 ok 32 - التحدي المتحل ⇒ الزرارين مقفولين
   ---
-  duration_ms: 2.979546
+  duration_ms: 3.045697
   type: 'test'
   ...
 # Subtest: النتيجة بتعرض النتيجة والسبب والتصحيح
 ok 33 - النتيجة بتعرض النتيجة والسبب والتصحيح
   ---
-  duration_ms: 4.24795
+  duration_ms: 4.663776
   type: 'test'
   ...
 # Subtest: النتيجة المتعادلة بتتقال «متعادل»
 ok 34 - النتيجة المتعادلة بتتقال «متعادل»
   ---
-  duration_ms: 2.690709
+  duration_ms: 2.651534
   type: 'test'
   ...
 # Subtest: ⛔ 403 ⇒ شاشة «باقة مدفوعة» مش جدول فاضي
 ok 35 - ⛔ 403 ⇒ شاشة «باقة مدفوعة» مش جدول فاضي
   ---
-  duration_ms: 3.480676
+  duration_ms: 3.806875
   type: 'test'
   ...
 # Subtest: ⛔ 401 ⇒ «لازم تسجّل دخول»
 ok 36 - ⛔ 401 ⇒ «لازم تسجّل دخول»
   ---
-  duration_ms: 3.475744
+  duration_ms: 3.505966
   type: 'test'
   ...
 # Subtest: ⛔ challenge = null ⇒ رسالة واضحة (مش شاشة فاضية)
 ok 37 - ⛔ challenge = null ⇒ رسالة واضحة (مش شاشة فاضية)
   ---
-  duration_ms: 2.531939
+  duration_ms: 2.223335
   type: 'test'
   ...
 # Subtest: ⛔ status=no_challenge ⇒ نفس الرسالة
 ok 38 - ⛔ status=no_challenge ⇒ نفس الرسالة
   ---
-  duration_ms: 2.6873
+  duration_ms: 3.458059
   type: 'test'
   ...
 # Subtest: ⛔ status=hidden ⇒ «لوحة المتصدرين هتفتح بعد ٣ مصوّتين»
 ok 39 - ⛔ status=hidden ⇒ «لوحة المتصدرين هتفتح بعد ٣ مصوّتين»
   ---
-  duration_ms: 3.673945
+  duration_ms: 2.511752
   type: 'test'
   ...
 # Subtest: لوحة المتصدرين بتعرض الجدول + «ترتيبك» في الأول
 ok 40 - لوحة المتصدرين بتعرض الجدول + «ترتيبك» في الأول
   ---
-  duration_ms: 3.169874
+  duration_ms: 3.805623
   type: 'test'
   ...
 # Subtest: ⛔ مفيش سحب أفقي في لوحة المتصدرين (مفيش wrapper سحب)
 ok 41 - ⛔ مفيش سحب أفقي في لوحة المتصدرين (مفيش wrapper سحب)
   ---
-  duration_ms: 3.553554
+  duration_ms: 3.497292
   type: 'test'
   ...
 # Subtest: ⛔ مفيش اسم أداة ذكاء اصطناعي في نصوص الصفحة
 ok 42 - ⛔ مفيش اسم أداة ذكاء اصطناعي في نصوص الصفحة
   ---
-  duration_ms: 8.227743
+  duration_ms: 8.294559
   type: 'test'
   ...
 # Subtest: ⛔ مفيش معالجات inline في ملف الصفحة
 ok 43 - ⛔ مفيش معالجات inline في ملف الصفحة
   ---
-  duration_ms: 1.28959
+  duration_ms: 1.292592
   type: 'test'
   ...
 # Subtest: ⛔ مفيش معالجات inline في صفحة التحديات بالـHTML
 ok 44 - ⛔ مفيش معالجات inline في صفحة التحديات بالـHTML
   ---
-  duration_ms: 2.340349
+  duration_ms: 2.314871
   type: 'test'
   ...
 # Subtest: ⛔ كل طلبات الـAPI بتعدّي على octaFetch
 ok 45 - ⛔ كل طلبات الـAPI بتعدّي على octaFetch
   ---
-  duration_ms: 3.054223
+  duration_ms: 3.05896
   type: 'test'
   ...
 # Subtest: تنسيق الأرقام: الأسعار والنسب والتواريخ
 ok 46 - تنسيق الأرقام: الأسعار والنسب والتواريخ
   ---
-  duration_ms: 1.948011
+  duration_ms: 2.622827
   type: 'test'
   ...
 # Subtest: خطوط السعر: الدخول والوقف والهدف
 ok 47 - خطوط السعر: الدخول والوقف والهدف
   ---
-  duration_ms: 2.437548
+  duration_ms: 4.053399
   type: 'test'
   ...
 # Subtest: معطيات الرسم: تاريخ التحدي + المستويات
 ok 48 - معطيات الرسم: تاريخ التحدي + المستويات
   ---
-  duration_ms: 2.0679
+  duration_ms: 1.761993
   type: 'test'
   ...
 # Subtest: ⛔ الصفحة مسجّلة في الخمسة أماكن (element + TOOL_PAGES + KEEP + TOOLS + hook)
 ok 49 - ⛔ الصفحة مسجّلة في الخمسة أماكن (element + TOOL_PAGES + KEEP + TOOLS + hook)
   ---
-  duration_ms: 7.395029
+  duration_ms: 7.352858
   type: 'test'
   ...
 # Subtest:  bioSecret متعرّف مرة واحدة بس (التاني كان بيلغي الأول)
 ok 50 -  bioSecret متعرّف مرة واحدة بس (التاني كان بيلغي الأول)
   ---
-  duration_ms: 1.347994
+  duration_ms: 0.9194
   type: 'test'
   ...
 # Subtest:  bioSecret بيحفظ نسخة في الكوكي (so مسح localStorage ما يغيّرش الجهاز)
 ok 51 -  bioSecret بيحفظ نسخة في الكوكي (so مسح localStorage ما يغيّرش الجهاز)
   ---
-  duration_ms: 0.440354
+  duration_ms: 0.285899
   type: 'test'
   ...
 # Subtest:  طلب الكود (verify) بيبعت الجهاز (device) — عشان الباك يسجّله
 ok 52 -  طلب الكود (verify) بيبعت الجهاز (device) — عشان الباك يسجّله
   ---
-  duration_ms: 0.35583
+  duration_ms: 0.258599
   type: 'test'
   ...
 # Subtest:  تسجيل الدخول بالـPIN بيبعت الجهاز كمان
 ok 53 -  تسجيل الدخول بالـPIN بيبعت الجهاز كمان
   ---
-  duration_ms: 0.277113
+  duration_ms: 0.1975
   type: 'test'
   ...
 # Subtest:  مفيش تعريف مكرر ل bioSecret في أي ملف تاني
 ok 54 -  مفيش تعريف مكرر ل bioSecret في أي ملف تاني
   ---
-  duration_ms: 72.1227
+  duration_ms: 70.977178
   type: 'test'
   ...
 # Subtest: صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
 ok 55 - صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
   ---
-  duration_ms: 17.820456
+  duration_ms: 18.540475
   type: 'test'
   ...
 # Subtest: صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
 ok 56 - صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
   ---
-  duration_ms: 2.10223
+  duration_ms: 2.978623
   type: 'test'
   ...
 # Subtest: صف حيّ ⇒ مفيش وسم تحذير
 ok 57 - صف حيّ ⇒ مفيش وسم تحذير
   ---
-  duration_ms: 1.593035
+  duration_ms: 1.796326
   type: 'test'
   ...
 # Subtest: inconsistent numeric coverage must be visible in rendered criteria panel
 ok 58 - inconsistent numeric coverage must be visible in rendered criteria panel
   ---
-  duration_ms: 1.014336
+  duration_ms: 1.017522
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — 429: رسالة خطأ + ⛔ الجلسة سليمة (مافيش logout)
 ok 59 - المرحلة ٢ — 429: رسالة خطأ + ⛔ الجلسة سليمة (مافيش logout)
   ---
-  duration_ms: 21.921821
+  duration_ms: 22.152403
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — 403: نفس القاعدة (الجلسة سليمة)
 ok 60 - المرحلة ٢ — 403: نفس القاعدة (الجلسة سليمة)
   ---
-  duration_ms: 0.886607
+  duration_ms: 0.889636
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — 503: نفس القاعدة (الجلسة سليمة)
 ok 61 - المرحلة ٢ — 503: نفس القاعدة (الجلسة سليمة)
   ---
-  duration_ms: 0.839084
+  duration_ms: 0.879281
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — 401: رفض صريح ⇒ تنظيف + صفحة دخول (ومفيش عرض بيانات)
 ok 62 - المرحلة ٢ — 401: رفض صريح ⇒ تنظيف + صفحة دخول (ومفيش عرض بيانات)
   ---
-  duration_ms: 0.836732
+  duration_ms: 0.814247
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — انقطاع الشبكة: ⛔⛔ ممنوع يمسح جلسة المستخدم
 ok 63 - المرحلة ٢ — انقطاع الشبكة: ⛔⛔ ممنوع يمسح جلسة المستخدم
   ---
-  duration_ms: 0.785575
+  duration_ms: 0.785908
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — رد غير صالح (مش JSON): خطأ واضح + ⛔ مافيش logout
 ok 64 - المرحلة ٢ — رد غير صالح (مش JSON): خطأ واضح + ⛔ مافيش logout
   ---
-  duration_ms: 1.813887
+  duration_ms: 2.185182
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — فحص الجلسة: انقطاع الشبكة ⇒ ⛔ مافيش صفحة دخول + ⛔ مافيش مسح
 ok 65 - المرحلة ٢ — فحص الجلسة: انقطاع الشبكة ⇒ ⛔ مافيش صفحة دخول + ⛔ مافيش مسح
   ---
-  duration_ms: 8.071109
+  duration_ms: 8.933724
   type: 'test'
   ...
 # Subtest: المرحلة ٢ — فحص الجلسة: 401 ⇒ تنظيف + صفحة دخول + ⛔ مافيش عرض
 ok 66 - المرحلة ٢ — فحص الجلسة: 401 ⇒ تنظيف + صفحة دخول + ⛔ مافيش عرض
   ---
-  duration_ms: 1.987869
+  duration_ms: 2.572702
   type: 'test'
   ...
 # Subtest: AZ35: من غير جلسة ⇒ مافيش 200 فيه محتوى لوحة
 ok 67 - AZ35: من غير جلسة ⇒ مافيش 200 فيه محتوى لوحة
   ---
-  duration_ms: 26.450005
+  duration_ms: 29.526009
   type: 'test'
   ...
 # Subtest: AZ35: الملف العام الوحيد = صفحة الدخول (مافيش بيانات إدارة)
 ok 68 - AZ35: الملف العام الوحيد = صفحة الدخول (مافيش بيانات إدارة)
   ---
-  duration_ms: 3.801272
+  duration_ms: 3.878229
   type: 'test'
   ...
 # Subtest: AZ35: مافيش بريد حقيقي في أي أصل عام من الـmgmt
 ok 69 - AZ35: مافيش بريد حقيقي في أي أصل عام من الـmgmt
   ---
-  duration_ms: 11.317078
+  duration_ms: 11.614141
   type: 'test'
   ...
 # Subtest: AZ35: الأصل المحمي ⇒ no-store/private (مافيش كاش مشترك)
 ok 70 - AZ35: الأصل المحمي ⇒ no-store/private (مافيش كاش مشترك)
   ---
-  duration_ms: 12.402707
+  duration_ms: 12.907728
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
 # Subtest: AZ35: نسخة الكوكي بعد الخروج ⇒ 401 (إبطال من جهة السيرفر)
 ok 71 - AZ35: نسخة الكوكي بعد الخروج ⇒ 401 (إبطال من جهة السيرفر)
   ---
-  duration_ms: 10.112289
+  duration_ms: 9.631391
   type: 'test'
   ...
 # Subtest: الواجهة: بتحمّل وبترتّب الأسهم وبترسم الجدول
 ok 72 - الواجهة: بتحمّل وبترتّب الأسهم وبترسم الجدول
   ---
-  duration_ms: 139.054581
+  duration_ms: 143.301696
   type: 'test'
   ...
 # Subtest: الواجهة: فتح سهم بيرسم الكروت والشارت
 ok 73 - الواجهة: فتح سهم بيرسم الكروت والشارت
   ---
-  duration_ms: 180.284953
+  duration_ms: 178.341368
   type: 'test'
   ...
 # Subtest: الواجهة: الفلترة بالكلمة وبالحد الأدنى بيشتغلوا
 ok 74 - الواجهة: الفلترة بالكلمة وبالحد الأدنى بيشتغلوا
   ---
-  duration_ms: 125.674377
+  duration_ms: 122.445281
   type: 'test'
   ...
 # Subtest: الواجهة: لما الباك يكون واقع — الفلتر بيشتغل من جسر TradingView
 ok 75 - الواجهة: لما الباك يكون واقع — الفلتر بيشتغل من جسر TradingView
   ---
-  duration_ms: 125.856365
+  duration_ms: 124.336265
   type: 'test'
   ...
 # Subtest: guard: صفحة Smart Money لازم تكون في KEEP (وإلا بتتمسح)
 ok 76 - guard: صفحة Smart Money لازم تكون في KEEP (وإلا بتتمسح)
   ---
-  duration_ms: 3.494203
+  duration_ms: 3.510042
   type: 'test'
   ...
 # Subtest: guard: بلوك السكربتات في index.html مفيش فيه تكرار
 ok 77 - guard: بلوك السكربتات في index.html مفيش فيه تكرار
   ---
-  duration_ms: 2.328532
+  duration_ms: 2.409744
   type: 'test'
   ...
 # Subtest: كارت الاستراتيجية: موجود في آخر الصفحة وفيه الشرح كامل
 ok 78 - كارت الاستراتيجية: موجود في آخر الصفحة وفيه الشرح كامل
   ---
-  duration_ms: 119.14872
+  duration_ms: 120.128993
   type: 'test'
   ...
 # Subtest: فلتر «توافق ٤ محاور» بيشتغل وبيقلّل النتائج
 ok 79 - فلتر «توافق ٤ محاور» بيشتغل وبيقلّل النتائج
   ---
-  duration_ms: 165.347157
+  duration_ms: 167.468768
   type: 'test'
   ...
 # Subtest: فلتر «أظهر ناقص البيانات» بيشتغل
 ok 80 - فلتر «أظهر ناقص البيانات» بيشتغل
   ---
-  duration_ms: 174.420495
+  duration_ms: 188.996443
   type: 'test'
   ...
 # Subtest: مفيش id مكرر في index.html
 ok 81 - مفيش id مكرر في index.html
   ---
-  duration_ms: 3.500334
+  duration_ms: 3.476895
   type: 'test'
   ...
 # Subtest: فلتر تجميع مؤسسي: بيبقّي اللي تدفقه ≥ ٨٠٪ بس
 ok 82 - فلتر تجميع مؤسسي: بيبقّي اللي تدفقه ≥ ٨٠٪ بس
   ---
-  duration_ms: 180.61563
+  duration_ms: 182.386522
   type: 'test'
   ...
 # Subtest: فلتر العائد الشهري: بيشتغل وبيقلّل
 ok 83 - فلتر العائد الشهري: بيشتغل وبيقلّل
   ---
-  duration_ms: 166.533339
+  duration_ms: 165.255461
   type: 'test'
   ...
 # Subtest: فلتر نطاق السعر: بيشتغل
 ok 84 - فلتر نطاق السعر: بيشتغل
   ---
-  duration_ms: 186.842782
+  duration_ms: 173.237789
   type: 'test'
   ...
 # Subtest: تصفير الفلاتر: بيرجّع كل حاجة
 ok 85 - تصفير الفلاتر: بيرجّع كل حاجة
   ---
-  duration_ms: 237.811415
+  duration_ms: 229.463559
   type: 'test'
   ...
 # [OCTA] السيرفر اتمنع: railway - production_origin_in_preview
 # Subtest: P0-01 · وضع الإغلاق الآمن + من غير قائمة ⇒ مافيش سيرفرات ولا اتصال بالإنتاج
 ok 86 - P0-01 · وضع الإغلاق الآمن + من غير قائمة ⇒ مافيش سيرفرات ولا اتصال بالإنتاج
   ---
-  duration_ms: 22.085527
+  duration_ms: 22.450012
   type: 'test'
   ...
 # Subtest: P0-01 · وضع الإغلاق الآمن + قائمة محقونة ⇒ السيرفر التجريبي هو المستخدم
 ok 87 - P0-01 · وضع الإغلاق الآمن + قائمة محقونة ⇒ السيرفر التجريبي هو المستخدم
   ---
-  duration_ms: 2.266499
+  duration_ms: 2.315539
   type: 'test'
   ...
 # Subtest: P0-01 · من غير علامة الإغلاق (الإنتاج) ⇒ السلوك القديم ما يتغيّرش
 ok 88 - P0-01 · من غير علامة الإغلاق (الإنتاج) ⇒ السلوك القديم ما يتغيّرش
   ---
-  duration_ms: 2.092863
+  duration_ms: 2.075553
   type: 'test'
   ...
 # Subtest: P0-01 · ⛔ الجولة ٢٣ (R23) · من غير علامة الإغلاق (معاينة) ⇒ مافيش ارتجاع للإنتاج
 ok 89 - P0-01 · ⛔ الجولة ٢٣ (R23) · من غير علامة الإغلاق (معاينة) ⇒ مافيش ارتجاع للإنتاج
   ---
-  duration_ms: 2.751162
+  duration_ms: 2.862728
   type: 'test'
   ...
 # Subtest: P0-01 · فشل الطلب في وضع الإغلاق الآمن ⇒ إعادة المحاولة ما تروحش للإنتاج
 ok 90 - P0-01 · فشل الطلب في وضع الإغلاق الآمن ⇒ إعادة المحاولة ما تروحش للإنتاج
   ---
-  duration_ms: 8.733321
+  duration_ms: 8.297201
   type: 'test'
   ...
 # [gate] التحقق من الجلسة مش متاح — الباك هو اللي هيحكم
@@ -547,943 +547,943 @@ ok 90 - P0-01 · فشل الطلب في وضع الإغلاق الآمن ⇒ إ�
 # Subtest: 401 من الباك الحي ⇒ يمرّ زي ما هو (مش 503 «الباك ميت»)
 ok 91 - 401 من الباك الحي ⇒ يمرّ زي ما هو (مش 503 «الباك ميت»)
   ---
-  duration_ms: 31.075457
+  duration_ms: 30.664179
   type: 'test'
   ...
 # Subtest: 403 من الباك ⇒ يمرّ زي ما هو
 ok 92 - 403 من الباك ⇒ يمرّ زي ما هو
   ---
-  duration_ms: 8.192642
+  duration_ms: 7.774709
   type: 'test'
   ...
 # Subtest: فشل الشبكة ⇒ 503 صريح «الباك غير متاح» (مش 401 كاذب)
 ok 93 - فشل الشبكة ⇒ 503 صريح «الباك غير متاح» (مش 401 كاذب)
   ---
-  duration_ms: 5.317016
+  duration_ms: 5.175089
   type: 'test'
   ...
 # Subtest: 500 من الباك ⇒ 503 «الباك غير متاح» (مافيش لقطة قديمة)
 ok 94 - 500 من الباك ⇒ 503 «الباك غير متاح» (مافيش لقطة قديمة)
   ---
-  duration_ms: 4.822274
+  duration_ms: 4.832284
   type: 'test'
   ...
 # Subtest: ردّ 200 JSON من الباك ⇒ يمرّ (الطريق السليم)
 ok 95 - ردّ 200 JSON من الباك ⇒ يمرّ (الطريق السليم)
   ---
-  duration_ms: 5.485249
+  duration_ms: 5.028779
   type: 'test'
   ...
 # Subtest: مافيش رجوع للقطعة القديمة من غير ظاهر صريح
 ok 96 - مافيش رجوع للقطعة القديمة من غير ظاهر صريح
   ---
-  duration_ms: 4.15819
+  duration_ms: 4.306647
   type: 'test'
   ...
 # Subtest: بطاقة المعايير: مافيش undefined ولا أسرار (أوزان/نقاط/عتبة)
 ok 97 - بطاقة المعايير: مافيش undefined ولا أسرار (أوزان/نقاط/عتبة)
   ---
-  duration_ms: 3.773975
+  duration_ms: 5.680803
   type: 'test'
   ...
 # Subtest: بطاقة السهم: النسبة بس (مافيش نقاط ولا وزن)
 ok 98 - بطاقة السهم: النسبة بس (مافيش نقاط ولا وزن)
   ---
-  duration_ms: 14.635155
+  duration_ms: 16.758789
   type: 'test'
   ...
 # Subtest: كتلة المصادر + حالة الحداثة من الـpayload الجديد
 ok 99 - كتلة المصادر + حالة الحداثة من الـpayload الجديد
   ---
-  duration_ms: 1.749357
+  duration_ms: 0.952827
   type: 'test'
   ...
 # Subtest: السوق مفتوح + بيانات قديمة ⇒ اتنين ظاهرين منفصلين
 ok 100 - السوق مفتوح + بيانات قديمة ⇒ اتنين ظاهرين منفصلين
   ---
-  duration_ms: 0.450872
+  duration_ms: 0.410642
   type: 'test'
   ...
 # Subtest: الواجهة ما تقراش أسرار من الـpayload
 ok 101 - الواجهة ما تقراش أسرار من الـpayload
   ---
-  duration_ms: 0.284637
+  duration_ms: 0.299459
   type: 'test'
   ...
 # Subtest: كارت السهم: بلا توقيت مصدر ⇒ التسمية ما بتدّعيش لحظية
 ok 102 - كارت السهم: بلا توقيت مصدر ⇒ التسمية ما بتدّعيش لحظية
   ---
-  duration_ms: 17.831921
+  duration_ms: 17.845223
   type: 'test'
   ...
 # Subtest: كارت السهم: مع توقيت مصدر ⇒ «سعر التداول الآن» (مش «سعر إغلاق»)
 ok 103 - كارت السهم: مع توقيت مصدر ⇒ «سعر التداول الآن» (مش «سعر إغلاق»)
   ---
-  duration_ms: 2.090888
+  duration_ms: 2.097143
   type: 'test'
   ...
 # Subtest: كارت السهم: بلا توقيت ⇒ «وقت تحديث البيانات» مش «وقت السعر»
 ok 104 - كارت السهم: بلا توقيت ⇒ «وقت تحديث البيانات» مش «وقت السعر»
   ---
-  duration_ms: 1.549205
+  duration_ms: 1.541856
   type: 'test'
   ...
 # Subtest: كارت السهم: مع توقيت ⇒ «وقت السعر» ومش «وقت تحديث البيانات»
 ok 105 - كارت السهم: مع توقيت ⇒ «وقت السعر» ومش «وقت تحديث البيانات»
   ---
-  duration_ms: 0.682396
+  duration_ms: 0.727828
   type: 'test'
   ...
 # Subtest: كارت السهم: لو الـAPI بعت تسمية بتدّعي «الآن» ⇒ الواجهة تصحّحها
 ok 106 - كارت السهم: لو الـAPI بعت تسمية بتدّعي «الآن» ⇒ الواجهة تصحّحها
   ---
-  duration_ms: 0.722294
+  duration_ms: 0.734481
   type: 'test'
   ...
 # Subtest: كارت السهم: سعر قديم ⇒ وسم «سعر قديم» (مش معروض كأنه محدّث)
 ok 107 - كارت السهم: سعر قديم ⇒ وسم «سعر قديم» (مش معروض كأنه محدّث)
   ---
-  duration_ms: 1.103994
+  duration_ms: 1.088545
   type: 'test'
   ...
 # Subtest: كارت السهم: سعر محدّث ⇒ مافيش وسم «سعر قديم»
 ok 108 - كارت السهم: سعر محدّث ⇒ مافيش وسم «سعر قديم»
   ---
-  duration_ms: 0.746033
+  duration_ms: 0.725357
   type: 'test'
   ...
 # Subtest: حالة «تغطية جزئية» معروضة + الأرقام
 ok 109 - حالة «تغطية جزئية» معروضة + الأرقام
   ---
-  duration_ms: 0.853221
+  duration_ms: 0.828764
   type: 'test'
   ...
 # Subtest: حد الباقة معروض «أفضل ٢٠» (مش «كل المؤهل»)
 ok 110 - حد الباقة معروض «أفضل ٢٠» (مش «كل المؤهل»)
   ---
-  duration_ms: 0.918028
+  duration_ms: 0.885976
   type: 'test'
   ...
 # Subtest: الواجهة ما بتقراش أسرار ولا «كل المؤهل» من الـpayload
 ok 111 - الواجهة ما بتقراش أسرار ولا «كل المؤهل» من الـpayload
   ---
-  duration_ms: 0.376951
+  duration_ms: 0.382844
   type: 'test'
   ...
 # Subtest: «تغطية جزئية» بتظهر من coverage_status (مش من freshness)
 ok 112 - «تغطية جزئية» بتظهر من coverage_status (مش من freshness)
   ---
-  duration_ms: 17.503709
+  duration_ms: 17.350208
   type: 'test'
   ...
 # Subtest: الحداثة «قديمة» بتظهر لوحدها من freshness
 ok 113 - الحداثة «قديمة» بتظهر لوحدها من freshness
   ---
-  duration_ms: 2.171753
+  duration_ms: 1.942593
   type: 'test'
   ...
 # Subtest: الحداثة «غير متاحة» بتظهر لوحدها
 ok 114 - الحداثة «غير متاحة» بتظهر لوحدها
   ---
-  duration_ms: 1.429562
+  duration_ms: 1.415411
   type: 'test'
   ...
 # Subtest: «قديمة» + «تغطية جزئية» بيبانوا **مع بعض** (مش واحد hides التاني)
 ok 115 - «قديمة» + «تغطية جزئية» بيبانوا **مع بعض** (مش واحد hides التاني)
   ---
-  duration_ms: 0.617144
+  duration_ms: 0.623918
   type: 'test'
   ...
 # Subtest: عمر السعر معروض جنب الوصف
 ok 116 - عمر السعر معروض جنب الوصف
   ---
-  duration_ms: 1.354192
+  duration_ms: 1.276417
   type: 'test'
   ...
 # Subtest: مافيش عمر سعر ⇒ مافيش «عمر السعر» (مافيش كذب)
 ok 117 - مافيش عمر سعر ⇒ مافيش «عمر السعر» (مافيش كذب)
   ---
-  duration_ms: 1.20341
+  duration_ms: 1.179612
   type: 'test'
   ...
 # Subtest: «عمر السعر: غير معروف» ما تظهرش (المصدر ميعطيش توقيت)
 ok 118 - «عمر السعر: غير معروف» ما تظهرش (المصدر ميعطيش توقيت)
   ---
-  duration_ms: 0.789523
+  duration_ms: 0.789956
   type: 'test'
   ...
 # Subtest: «سعر التداول الآن» ما تظهرش من غير توقيت من المصدر
 ok 119 - «سعر التداول الآن» ما تظهرش من غير توقيت من المصدر
   ---
-  duration_ms: 0.66819
+  duration_ms: 0.633161
   type: 'test'
   ...
 # Subtest: «آخر سعر معروف» بتظهر مع توقيت من المصدر (لما السعر قديم)
 ok 120 - «آخر سعر معروف» بتظهر مع توقيت من المصدر (لما السعر قديم)
   ---
-  duration_ms: 0.888679
+  duration_ms: 0.843813
   type: 'test'
   ...
 # Subtest: الواجهة ما بتقراش أسرار
 ok 121 - الواجهة ما بتقراش أسرار
   ---
-  duration_ms: 0.610597
+  duration_ms: 0.611765
   type: 'test'
   ...
 # Subtest: مافيش ارتجاع لقراءة «partial» من freshness
 ok 122 - مافيش ارتجاع لقراءة «partial» من freshness
   ---
-  duration_ms: 0.205129
+  duration_ms: 0.23422
   type: 'test'
   ...
 # Subtest: تغطية ناقصة بس مقبولة ⇒ «تغطية مقبولة» (مش «جزئية»)
 ok 123 - تغطية ناقصة بس مقبولة ⇒ «تغطية مقبولة» (مش «جزئية»)
   ---
-  duration_ms: 17.261682
+  duration_ms: 17.606832
   type: 'test'
   ...
 # Subtest: تغطية ناقصة تحت العتبة ⇒ «تغطية جزئية»
 ok 124 - تغطية ناقصة تحت العتبة ⇒ «تغطية جزئية»
   ---
-  duration_ms: 1.899195
+  duration_ms: 1.926442
   type: 'test'
   ...
 # Subtest: تغطية كاملة ⇒ مفيش كلمة «جزئية» ولا «مقبولة»
 ok 125 - تغطية كاملة ⇒ مفيش كلمة «جزئية» ولا «مقبولة»
   ---
-  duration_ms: 1.483724
+  duration_ms: 1.579765
   type: 'test'
   ...
 # Subtest: من غير coverage_acceptable (عقد قديم) ⇒ «جزئية» (الافتراضي الآمن)
 ok 126 - من غير coverage_acceptable (عقد قديم) ⇒ «جزئية» (الافتراضي الآمن)
   ---
-  duration_ms: 0.653093
+  duration_ms: 0.609764
   type: 'test'
   ...
 # Subtest: صف من دفعة قديمة (data_state=stale) ⇒ وسم «سعر قديم» ظاهر
 ok 127 - صف من دفعة قديمة (data_state=stale) ⇒ وسم «سعر قديم» ظاهر
   ---
-  duration_ms: 1.394351
+  duration_ms: 1.371997
   type: 'test'
   ...
 # Subtest: صف حيّ ⇒ مفيش وسم «سعر قديم»
 ok 128 - صف حيّ ⇒ مفيش وسم «سعر قديم»
   ---
-  duration_ms: 1.078146
+  duration_ms: 1.074795
   type: 'test'
   ...
 # Subtest: وصف «آخر سعر معروف» (من غير دليل جلسات) بيتعرض زي ما هو
 ok 129 - وصف «آخر سعر معروف» (من غير دليل جلسات) بيتعرض زي ما هو
   ---
-  duration_ms: 0.710241
+  duration_ms: 0.736107
   type: 'test'
   ...
 # Subtest: صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
 ok 130 - صف بحالة unknown ⇒ وسم «حالة البيانات غير معروفة» ظاهر
   ---
-  duration_ms: 17.587796
+  duration_ms: 17.850106
   type: 'test'
   ...
 # Subtest: صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
 ok 131 - صف قديم ⇒ وسم «سعر قديم» (مفيش ارتجاع)
   ---
-  duration_ms: 2.072931
+  duration_ms: 2.130722
   type: 'test'
   ...
 # Subtest: صف حيّ ⇒ مفيش وسم تحذير
 ok 132 - صف حيّ ⇒ مفيش وسم تحذير
   ---
-  duration_ms: 1.571724
+  duration_ms: 1.621746
   type: 'test'
   ...
 # Subtest: تناقض الأرقام ⇒ تحذير «أرقام التغطية غير متسقة» ظاهر
 ok 133 - تناقض الأرقام ⇒ تحذير «أرقام التغطية غير متسقة» ظاهر
   ---
-  duration_ms: 17.597443
+  duration_ms: 17.446115
   type: 'test'
   ...
 # Subtest: التحذير فيه الأرقام المنشورة كلّها (مش نص فاضي)
 ok 134 - التحذير فيه الأرقام المنشورة كلّها (مش نص فاضي)
   ---
-  duration_ms: 2.252791
+  duration_ms: 2.272334
   type: 'test'
   ...
 # Subtest: التحذير **مكمّل** لوسم «تغطية جزئية» (الاتنين يبانوا)
 ok 135 - التحذير **مكمّل** لوسم «تغطية جزئية» (الاتنين يبانوا)
   ---
-  duration_ms: 1.627081
+  duration_ms: 1.638241
   type: 'test'
   ...
 # Subtest: تناقض + ادّعاء «كاملة» ⇒ ممنوع (تناقض «جزئية» + تحذير)
 ok 136 - تناقض + ادّعاء «كاملة» ⇒ ممنوع (تناقض «جزئية» + تحذير)
   ---
-  duration_ms: 0.73241
+  duration_ms: 0.767336
   type: 'test'
   ...
 # Subtest: أرقام متسقة ⇒ مافيش تحذير تناقض
 ok 137 - أرقام متسقة ⇒ مافيش تحذير تناقض
   ---
-  duration_ms: 0.610147
+  duration_ms: 0.636587
   type: 'test'
   ...
 # Subtest: من غير `coverage_consistent` ⇒ مافيش تحذير (الافتراضي الآمن)
 ok 138 - من غير `coverage_consistent` ⇒ مافيش تحذير (الافتراضي الآمن)
   ---
-  duration_ms: 0.95831
+  duration_ms: 0.959061
   type: 'test'
   ...
 # Subtest: تناقض من غير أرقام منشودة ⇒ التحذير بيبان (من غير أرقام مختلقة)
 ok 139 - تناقض من غير أرقام منشودة ⇒ التحذير بيبان (من غير أرقام مختلقة)
   ---
-  duration_ms: 0.476539
+  duration_ms: 0.481774
   type: 'test'
   ...
 # Subtest: الدرجة الجديدة (score) بتترجم صح
 ok 140 - الدرجة الجديدة (score) بتترجم صح
   ---
-  duration_ms: 1.560666
+  duration_ms: 1.036931
   type: 'test'
   ...
 # Subtest: توافق عكسي: لو الرد فيه opportunity بس، بتفضل تترجم
 ok 141 - توافق عكسي: لو الرد فيه opportunity بس، بتفضل تترجم
   ---
-  duration_ms: 0.516463
+  duration_ms: 0.312276
   type: 'test'
   ...
 # Subtest: لو فيه score = 0 و opportunity = 70 ⇒ الجديد له الأولوية
 ok 142 - لو فيه score = 0 و opportunity = 70 ⇒ الجديد له الأولوية
   ---
-  duration_ms: 1.725146
+  duration_ms: 1.057448
   type: 'test'
   ...
 # Subtest: القيم الفارغة بترجع null (مش صفر)
 ok 143 - القيم الفارغة بترجع null (مش صفر)
   ---
-  duration_ms: 0.360099
+  duration_ms: 0.25992
   type: 'test'
   ...
 # Subtest: المسار القديم بيستخدم الدالة الجديدة ومش الحقل القديم مباشرة
 ok 144 - المسار القديم بيستخدم الدالة الجديدة ومش الحقل القديم مباشرة
   ---
-  duration_ms: 0.647697
+  duration_ms: 0.495205
   type: 'test'
   ...
 # Subtest: رسالة «المحرك غير متاح مؤقتًا» معتمدة في شاشة الفرص
 ok 145 - رسالة «المحرك غير متاح مؤقتًا» معتمدة في شاشة الفرص
   ---
-  duration_ms: 0.222161
+  duration_ms: 0.160374
   type: 'test'
   ...
 # [api-proxy] api_unreachable (error)
 # Subtest: P3-01 · الـfetch بيرمي استثناء ⇒ 503 + why:api_unreachable
 ok 146 - P3-01 · الـfetch بيرمي استثناء ⇒ 503 + why:api_unreachable
   ---
-  duration_ms: 572.234225
+  duration_ms: 574.760493
   type: 'test'
   ...
 # [api-proxy] api_unreachable (error)
 # Subtest: P3-01 · الرد ما فيهوش عنوان الـAPI الداخلي (ولا كلمة سرّية)
 ok 147 - P3-01 · الرد ما فيهوش عنوان الـAPI الداخلي (ولا كلمة سرّية)
   ---
-  duration_ms: 549.589437
+  duration_ms: 552.647275
   type: 'test'
   ...
 # [api-proxy] api_unreachable (upstream 530)
 # Subtest: P3-02 · رد 530 من الـedge ⇒ 503 صريح (مش 530 ولا صفحة إنجليزية)
 ok 148 - P3-02 · رد 530 من الـedge ⇒ 503 صريح (مش 530 ولا صفحة إنجليزية)
   ---
-  duration_ms: 546.503832
+  duration_ms: 546.540699
   type: 'test'
   ...
 # Subtest: P3-03 · لوج الفشل ما فيهوش العنوان الداخلي (مفتاح بدل عنوان)
 ok 149 - P3-03 · لوج الفشل ما فيهوش العنوان الداخلي (مفتاح بدل عنوان)
   ---
-  duration_ms: 546.372397
+  duration_ms: 545.341373
   type: 'test'
   ...
 # Subtest: P3-04 · المسار السليم بيفضل ٢٠٠ (مفيش ارتجاع)
 ok 150 - P3-04 · المسار السليم بيفضل ٢٠٠ (مفيش ارتجاع)
   ---
-  duration_ms: 5.850209
+  duration_ms: 5.771858
   type: 'test'
   ...
 # Subtest: P3-05 · لا ارتجاع — طلب POST بيفضل بيوصل جسمه
 ok 151 - P3-05 · لا ارتجاع — طلب POST بيفضل بيوصل جسمه
   ---
-  duration_ms: 4.247653
+  duration_ms: 4.114949
   type: 'test'
   ...
 # [api-proxy] api_unreachable (error)
 # Subtest: P3-06 · فشل الـAPI ما بيطلبهوش من الإنتاج
 ok 152 - P3-06 · فشل الـAPI ما بيطلبهوش من الإنتاج
   ---
-  duration_ms: 545.637929
+  duration_ms: 545.446117
   type: 'test'
   ...
 # Subtest: P3-L1 · isApiDown بتفرّق بين عطل البنية وعطل المستخدم
 ok 153 - P3-L1 · isApiDown بتفرّق بين عطل البنية وعطل المستخدم
   ---
-  duration_ms: 1.108748
+  duration_ms: 1.112073
   type: 'test'
   ...
 # Subtest: P3-L2 · رد api_unreachable ⇒ رسالة محدّدة (مش «باسورد غلط»)
 ok 154 - P3-L2 · رد api_unreachable ⇒ رسالة محدّدة (مش «باسورد غلط»)
   ---
-  duration_ms: 2.001493
+  duration_ms: 2.052233
   type: 'test'
   ...
 # Subtest: P3-L2 · رد api_unreachable ⇒ مافيش خصم من عدّاد المحاولات
 ok 155 - P3-L2 · رد api_unreachable ⇒ مافيش خصم من عدّاد المحاولات
   ---
-  duration_ms: 0.53311
+  duration_ms: 0.502766
   type: 'test'
   ...
 # Subtest: P3-L3 · ⛔ لا ارتجاع — الباسورد الغلط بيفضل زي ما هو
 ok 156 - P3-L3 · ⛔ لا ارتجاع — الباسورد الغلط بيفضل زي ما هو
   ---
-  duration_ms: 0.395215
+  duration_ms: 0.414038
   type: 'test'
   ...
 # Subtest: P3-L3 · ⛔ لا ارتجاع — فشل الشبكة بيفضل «الشبكة ضعيفة»
 ok 157 - P3-L3 · ⛔ لا ارتجاع — فشل الشبكة بيفضل «الشبكة ضعيفة»
   ---
-  duration_ms: 0.439267
+  duration_ms: 0.398
   type: 'test'
   ...
 # Subtest: P3-L4 · المودال: api_unreachable ⇒ رسالة محدّدة
 ok 158 - P3-L4 · المودال: api_unreachable ⇒ رسالة محدّدة
   ---
-  duration_ms: 0.570211
+  duration_ms: 0.63316
   type: 'test'
   ...
 # Subtest: P3-L5 · ⛔ لا ارتجاع — المودال: خطأ تاني بيفضل «حصل خطأ»
 ok 159 - P3-L5 · ⛔ لا ارتجاع — المودال: خطأ تاني بيفضل «حصل خطأ»
   ---
-  duration_ms: 0.414889
+  duration_ms: 0.414074
   type: 'test'
   ...
 # Subtest: P3-L6 · ⛔ رسالة «الباسورد غلط» موجودة (ما اتمسحتش)
 ok 160 - P3-L6 · ⛔ رسالة «الباسورد غلط» موجودة (ما اتمسحتش)
   ---
-  duration_ms: 0.192331
+  duration_ms: 0.174546
   type: 'test'
   ...
 # Subtest: P3-L6 · ⛔ رسالة «مقدرناش نبعت الكود» موجودة (الإيميل زي ما هو)
 ok 161 - P3-L6 · ⛔ رسالة «مقدرناش نبعت الكود» موجودة (الإيميل زي ما هو)
   ---
-  duration_ms: 0.443013
+  duration_ms: 0.442859
   type: 'test'
   ...
 # Subtest: P3-L6 · ⛔ «السيرفر بطيء» ما اتحوّلش لرسالة البنية
 ok 162 - P3-L6 · ⛔ «السيرفر بطيء» ما اتحوّلش لرسالة البنية
   ---
-  duration_ms: 0.732481
+  duration_ms: 0.778772
   type: 'test'
   ...
 # Subtest: P3-L7 · ⛔ مافيش عنوان داخلي ولا سر في ملفات الواجهة الجديدة
 ok 163 - P3-L7 · ⛔ مافيش عنوان داخلي ولا سر في ملفات الواجهة الجديدة
   ---
-  duration_ms: 0.486468
+  duration_ms: 0.508432
   type: 'test'
   ...
 # [preflight] api_unreachable (error)
 # Subtest: P3-P1 · health 200 + mail_configured:true ⇒ api:up · mail:on
 ok 164 - P3-P1 · health 200 + mail_configured:true ⇒ api:up · mail:on
   ---
-  duration_ms: 30.705781
+  duration_ms: 31.225868
   type: 'test'
   ...
 # Subtest: P3-P1 · mail_configured:false ⇒ mail:off
 ok 165 - P3-P1 · mail_configured:false ⇒ mail:off
   ---
-  duration_ms: 7.673049
+  duration_ms: 7.948929
   type: 'test'
   ...
 # Subtest: P3-P1 · من غير mail_configured ⇒ mail:unknown (مش تخمين)
 ok 166 - P3-P1 · من غير mail_configured ⇒ mail:unknown (مش تخمين)
   ---
-  duration_ms: 4.6778
+  duration_ms: 4.847393
   type: 'test'
   ...
 # Subtest: P3-P2 · health 403 ⇒ api:up · mail:unknown
 ok 167 - P3-P2 · health 403 ⇒ api:up · mail:unknown
   ---
-  duration_ms: 5.289188
+  duration_ms: 4.600338
   type: 'test'
   ...
 # Subtest: P3-P2 · health 401 ⇒ api:up · mail:unknown
 ok 168 - P3-P2 · health 401 ⇒ api:up · mail:unknown
   ---
-  duration_ms: 4.620195
+  duration_ms: 4.823737
   type: 'test'
   ...
 # Subtest: P3-P3 · الـfetch بيرمي ⇒ api:down · mail:unknown (ومفيش 530)
 ok 169 - P3-P3 · الـfetch بيرمي ⇒ api:down · mail:unknown (ومفيش 530)
   ---
-  duration_ms: 4.692435
+  duration_ms: 4.733034
   type: 'test'
   ...
 # Subtest: P3-P3 · رد 530 من الـedge ⇒ api:down
 ok 170 - P3-P3 · رد 530 من الـedge ⇒ api:down
   ---
-  duration_ms: 3.56297
+  duration_ms: 3.548033
   type: 'test'
   ...
 # Subtest: P3-P3 · من غير وجهة API (fail-closed) ⇒ api:down
 ok 171 - P3-P3 · من غير وجهة API (fail-closed) ⇒ api:down
   ---
-  duration_ms: 3.941934
+  duration_ms: 4.150327
   type: 'test'
   ...
 # [preflight] api_unreachable (timeout)
 # Subtest: P3-P3 · الـAPI بياكل الوقت ⇒ timeout واضح ⇒ api:down
 ok 172 - P3-P3 · الـAPI بياكل الوقت ⇒ timeout واضح ⇒ api:down
   ---
-  duration_ms: 3005.38145
+  duration_ms: 3004.648353
   type: 'test'
   ...
 # Subtest: P3-P4 · متاح بلا تسجيل دخول (من غير كوكي)
 ok 173 - P3-P4 · متاح بلا تسجيل دخول (من غير كوكي)
   ---
-  duration_ms: 4.436942
+  duration_ms: 4.414472
   type: 'test'
   ...
 # Subtest: P3-P4 · مافيش كتابة — الطلب المرسل GET على /api/health بس
 ok 174 - P3-P4 · مافيش كتابة — الطلب المرسل GET على /api/health بس
   ---
-  duration_ms: 4.152231
+  duration_ms: 4.193307
   type: 'test'
   ...
 # Subtest: P3-P4 · مافيش بيانات مستخدمين في الرد
 ok 175 - P3-P4 · مافيش بيانات مستخدمين في الرد
   ---
-  duration_ms: 3.609673
+  duration_ms: 3.483754
   type: 'test'
   ...
 # Subtest: P3-P5 · السر الداخلي ما يوصلش للمتصفح من غير سبب
 ok 176 - P3-P5 · السر الداخلي ما يوصلش للمتصفح من غير سبب
   ---
-  duration_ms: 3.928619
+  duration_ms: 3.856795
   type: 'test'
   ...
 # Subtest: 🛡️ كل صفحة في TOOL_PAGES لازم تكون في KEEP (عشان ما تتمسحش)
 ok 177 - 🛡️ كل صفحة في TOOL_PAGES لازم تكون في KEEP (عشان ما تتمسحش)
   ---
-  duration_ms: 7.004895
+  duration_ms: 7.125847
   type: 'test'
   ...
 # Subtest: 🛡️ كل أداة في شريط الأدوات لازم ليها صفحة في index.html
 ok 178 - 🛡️ كل أداة في شريط الأدوات لازم ليها صفحة في index.html
   ---
-  duration_ms: 10.820737
+  duration_ms: 5.863381
   type: 'test'
   ...
 # Subtest: 🛡️ كل صفحة في KEEP لازم موجودة في index.html
 ok 179 - 🛡️ كل صفحة في KEEP لازم موجودة في index.html
   ---
-  duration_ms: 9.19241
+  duration_ms: 6.672964
   type: 'test'
   ...
 # Subtest: 🛡️ صفحة الرادار مش جوّه \#homeHidden من غير rescue
 ok 180 - 🛡️ صفحة الرادار مش جوّه \#homeHidden من غير rescue
   ---
-  duration_ms: 11.019736
+  duration_ms: 5.392014
   type: 'test'
   ...
 # Subtest: 🛡️ كل صفحة page-* في الـHTML لازم تكون في KEEP (ما تمسحش مع homeHidden)
 ok 181 - 🛡️ كل صفحة page-* في الـHTML لازم تكون في KEEP (ما تمسحش مع homeHidden)
   ---
-  duration_ms: 5.129899
+  duration_ms: 5.235744
   type: 'test'
   ...
 # Subtest: الصفحات المعلّقة ما تتحمّلش وقت فتح الموقع
 ok 182 - الصفحات المعلّقة ما تتحمّلش وقت فتح الموقع
   ---
-  duration_ms: 6.114431
+  duration_ms: 6.164106
   type: 'test'
   ...
 # Subtest: الفلتر (screener) ما بيحمّلش الداتا الكبيرة وقت الفتح
 ok 183 - الفلتر (screener) ما بيحمّلش الداتا الكبيرة وقت الفتح
   ---
-  duration_ms: 1.951314
+  duration_ms: 1.986773
   type: 'test'
   ...
 # Subtest: صفحات octaPageInit بتنده التهيئة الصح
 ok 184 - صفحات octaPageInit بتنده التهيئة الصح
   ---
-  duration_ms: 2.567238
+  duration_ms: 2.557079
   type: 'test'
   ...
 # Subtest: البوابة بتستخدم الـfetch الخام (مش الطابور)
 ok 185 - البوابة بتستخدم الـfetch الخام (مش الطابور)
   ---
-  duration_ms: 3.583067
+  duration_ms: 3.614294
   type: 'test'
   ...
 # Subtest: مفتاح الكاش بيحافظ على المعاملات
 ok 186 - مفتاح الكاش بيحافظ على المعاملات
   ---
-  duration_ms: 1.5827
+  duration_ms: 1.559354
   type: 'test'
   ...
 # Subtest: مسارات التحديث ما تتكاشش
 ok 187 - مسارات التحديث ما تتكاشش
   ---
-  duration_ms: 2.270146
+  duration_ms: 2.316424
   type: 'test'
   ...
 # Subtest: الصفحة الرئيسية بتستخدم /api/rank بدل data_full
 ok 188 - الصفحة الرئيسية بتستخدم /api/rank بدل data_full
   ---
-  duration_ms: 2.055471
+  duration_ms: 2.151265
   type: 'test'
   ...
 # Subtest: ① من غير PREVIEW_KV ⇒ 503 صريح (مافيش نجاح وهمي)
 ok 189 - ① من غير PREVIEW_KV ⇒ 503 صريح (مافيش نجاح وهمي)
   ---
-  duration_ms: 23.085289
+  duration_ms: 22.827915
   type: 'test'
   ...
 # Subtest: ①ب من غير سر الجلسات ⇒ 503 صريح
 ok 190 - ①ب من غير سر الجلسات ⇒ 503 صريح
   ---
-  duration_ms: 0.84737
+  duration_ms: 0.878128
   type: 'test'
   ...
 # Subtest: ①ج المعاينة مش شغّالة ⇒ المسار بيرجع للفرع القديم (null)
 ok 191 - ①ج المعاينة مش شغّالة ⇒ المسار بيرجع للفرع القديم (null)
   ---
-  duration_ms: 0.343952
+  duration_ms: 0.442522
   type: 'test'
   ...
 # Subtest: ② تسجيل كامل ⇒ حساب ⭐ جلسة ⭐ كوكي ⭐
 ok 192 - ② تسجيل كامل ⇒ حساب ⭐ جلسة ⭐ كوكي ⭐
   ---
-  duration_ms: 54.601031
+  duration_ms: 64.358242
   type: 'test'
   ...
 # Subtest: ②ب باسورد مش ٤ أرقام ⇒ 400
 ok 193 - ②ب باسورد مش ٤ أرقام ⇒ 400
   ---
-  duration_ms: 2.543411
+  duration_ms: 2.880884
   type: 'test'
   ...
 # Subtest: ③ دخول بالباسورد + جهاز مسجّل ⇒ جلسة ⭐
 ok 194 - ③ دخول بالباسورد + جهاز مسجّل ⇒ جلسة ⭐
   ---
-  duration_ms: 238.930966
+  duration_ms: 264.067725
   type: 'test'
   ...
 # Subtest: ③ب من أنا بالجلسة ⭐ — ومن غير جلسة ⇒ 401 ⭐
 ok 195 - ③ب من أنا بالجلسة ⭐ — ومن غير جلسة ⇒ 401 ⭐
   ---
-  duration_ms: 36.16421
+  duration_ms: 36.642552
   type: 'test'
   ...
 # Subtest: ③ج ⭐ إبطال فوري ⭐ — بعد الخروج الجلسة القديمة ماتت
 ok 196 - ③ج ⭐ إبطال فوري ⭐ — بعد الخروج الجلسة القديمة ماتت
   ---
-  duration_ms: 46.756602
+  duration_ms: 48.71243
   type: 'test'
   ...
 # Subtest: ③د ⭐ تجديد الجلسة ⭐ — القديم يموت والجديد شغّال
 ok 197 - ③د ⭐ تجديد الجلسة ⭐ — القديم يموت والجديد شغّال
   ---
-  duration_ms: 41.356862
+  duration_ms: 38.142446
   type: 'test'
   ...
 # Subtest: ③هـ ⭐ CSRF ⭐ — طلب من أصل خارجي يترفض
 ok 198 - ③هـ ⭐ CSRF ⭐ — طلب من أصل خارجي يترفض
   ---
-  duration_ms: 0.785785
+  duration_ms: 0.749955
   type: 'test'
   ...
 # Subtest: ③و ⭐ كوكي مزوّر ⭐ ⇒ 401
 ok 199 - ③و ⭐ كوكي مزوّر ⭐ ⇒ 401
   ---
-  duration_ms: 1.577035
+  duration_ms: 1.45748
   type: 'test'
   ...
 # Subtest: ④ ⭐ الأسعار من لقطة المعاينة ⭐ (من غير اتصال بالإنتاج)
 ok 200 - ④ ⭐ الأسعار من لقطة المعاينة ⭐ (من غير اتصال بالإنتاج)
   ---
-  duration_ms: 0.938782
+  duration_ms: 0.805065
   type: 'test'
   ...
 # Subtest: ④ب ⭐ الترتيب ⭐ — 401 للزائر ⭐ + نتائج للمسجّل ⭐
 ok 201 - ④ب ⭐ الترتيب ⭐ — 401 للزائر ⭐ + نتائج للمسجّل ⭐
   ---
-  duration_ms: 40.050866
+  duration_ms: 39.38123
   type: 'test'
   ...
 # Subtest: ⑤ ⭐ المحفظة معزولة بين الحسابات ⭐
 ok 202 - ⑤ ⭐ المحفظة معزولة بين الحسابات ⭐
   ---
-  duration_ms: 72.384563
+  duration_ms: 72.64844
   type: 'test'
   ...
 # Subtest: ⑤ب ⭐ التنبيهات: منع التكرار ⭐ + عزل بين الحسابات ⭐
 ok 203 - ⑤ب ⭐ التنبيهات: منع التكرار ⭐ + عزل بين الحسابات ⭐
   ---
-  duration_ms: 35.828118
+  duration_ms: 36.324452
   type: 'test'
   ...
 # Subtest: ⑥ مسار مش مغطّى ⇒ 501 صريح (مافيش 503 غامض)
 ok 204 - ⑥ مسار مش مغطّى ⇒ 501 صريح (مافيش 503 غامض)
   ---
-  duration_ms: 0.398652
+  duration_ms: 0.372121
   type: 'test'
   ...
 # Subtest: لقطة الفرص ما بتتنسخش لو مفتاحها الخاص مطفي
 ok 205 - لقطة الفرص ما بتتنسخش لو مفتاحها الخاص مطفي
   ---
-  duration_ms: 32.429015
+  duration_ms: 48.682888
   type: 'test'
   ...
 # Subtest: مفتاح Alpha مستقل — Opus=1 مع Alpha=0 ما ينسخش Alpha
 ok 206 - مفتاح Alpha مستقل — Opus=1 مع Alpha=0 ما ينسخش Alpha
   ---
-  duration_ms: 25.17008
+  duration_ms: 25.639842
   type: 'test'
   ...
 # Subtest: بناء الإنتاج ما بينسخش أي لقطة مهما كانت المتغيّرات
 ok 207 - بناء الإنتاج ما بينسخش أي لقطة مهما كانت المتغيّرات
   ---
-  duration_ms: 32.717854
+  duration_ms: 25.840361
   type: 'test'
   ...
 # Subtest: حارس النشر يرفض بناء إنتاجي فيه لقطات
 ok 208 - حارس النشر يرفض بناء إنتاجي فيه لقطات
   ---
-  duration_ms: 72.644535
+  duration_ms: 50.494226
   type: 'test'
   ...
 # Subtest: حارس النشر يعدّي بناء إنتاجي نضيف
 ok 209 - حارس النشر يعدّي بناء إنتاجي نضيف
   ---
-  duration_ms: 60.579532
+  duration_ms: 47.47899
   type: 'test'
   ...
 # Subtest: سكربتات البناء: مسار إنتاجي مستقل ومبني على fail-closed
 ok 210 - سكربتات البناء: مسار إنتاجي مستقل ومبني على fail-closed
   ---
-  duration_ms: 1.089407
+  duration_ms: 0.186098
   type: 'test'
   ...
 # Subtest: deploy.sh بيختار البناء حسب الهدف
 ok 211 - deploy.sh بيختار البناء حسب الهدف
   ---
-  duration_ms: 1.461542
+  duration_ms: 1.539137
   type: 'test'
   ...
 # Subtest: مصدر copy-data.js فيه استقلال المتغيّرات + قفل الإنتاج
 ok 212 - مصدر copy-data.js فيه استقلال المتغيّرات + قفل الإنتاج
   ---
-  duration_ms: 0.179062
+  duration_ms: 0.179952
   type: 'test'
   ...
 # Subtest: مصدر check-dist.js فيه حارس اللقطات للإنتاج
 ok 213 - مصدر check-dist.js فيه حارس اللقطات للإنتاج
   ---
-  duration_ms: 0.273713
+  duration_ms: 0.294261
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
 # Subtest: R18-A01: جلسة الأدمن المنسوخة تُبطَل عند تسجيل الخروج
 ok 214 - R18-A01: جلسة الأدمن المنسوخة تُبطَل عند تسجيل الخروج
   ---
-  duration_ms: 41.783069
+  duration_ms: 41.096945
   type: 'test'
   ...
 # Subtest: R18-A02: الأصل المحمي ما يحملش سياسة كاش عامة
 ok 215 - R18-A02: الأصل المحمي ما يحملش سياسة كاش عامة
   ---
-  duration_ms: 5.148863
+  duration_ms: 5.298492
   type: 'test'
   ...
 # Subtest: R18-A03: عامل الخدمة ما يحفظش القشرة المحمية في الكاش
 ok 216 - R18-A03: عامل الخدمة ما يحفظش القشرة المحمية في الكاش
   ---
-  duration_ms: 4.966085
+  duration_ms: 6.172772
   type: 'test'
   ...
 # Subtest: R18-A04: كوكي بترميز غير صالح يرجّع 401 من غير خطأ سيرفر
 ok 217 - R18-A04: كوكي بترميز غير صالح يرجّع 401 من غير خطأ سيرفر
   ---
-  duration_ms: 3.015438
+  duration_ms: 2.145644
   type: 'test'
   ...
 # Subtest: R18-A05: مسار إداري غير موجود بيحافظ على 404/204 من غير 502
 ok 218 - R18-A05: مسار إداري غير موجود بيحافظ على 404/204 من غير 502
   ---
-  duration_ms: 5.398568
+  duration_ms: 5.413153
   type: 'test'
   ...
 # Subtest: R18-A06: قرار المحرك ومستوى الخطورة من الـAPI يُعرضان كنص
 ok 219 - R18-A06: قرار المحرك ومستوى الخطورة من الـAPI يُعرضان كنص
   ---
-  duration_ms: 3.107558
+  duration_ms: 3.090246
   type: 'test'
   ...
 # Subtest: R18-A07: رفض الجلسة الصريح ما يرسمش بيانات إدارة مخزّنة
 ok 220 - R18-A07: رفض الجلسة الصريح ما يرسمش بيانات إدارة مخزّنة
   ---
-  duration_ms: 3.158397
+  duration_ms: 3.235226
   type: 'test'
   ...
 # Subtest: R20-A11Y-01: the a11y sweep module exists and defines sweep()
 ok 221 - R20-A11Y-01: the a11y sweep module exists and defines sweep()
   ---
-  duration_ms: 1.951596
+  duration_ms: 2.010682
   type: 'test'
   ...
 # Subtest: R20-A11Y-02: the sweep is loaded by index.html
 ok 222 - R20-A11Y-02: the sweep is loaded by index.html
   ---
-  duration_ms: 2.018934
+  duration_ms: 2.07286
   type: 'test'
   ...
 # Subtest: R20-A11Y-03: the sweep adds an accessible name to a bare input
 ok 223 - R20-A11Y-03: the sweep adds an accessible name to a bare input
   ---
-  duration_ms: 1.615552
+  duration_ms: 1.671495
   type: 'test'
   ...
 # Subtest: R20-A11Y-04: every form control in the source has an accessible name path
 ok 224 - R20-A11Y-04: every form control in the source has an accessible name path
   ---
-  duration_ms: 71.133578
+  duration_ms: 71.513995
   type: 'test'
   ...
 # Subtest: R20-F01: logout on instance A revokes the session on instance B
 ok 225 - R20-F01: logout on instance A revokes the session on instance B
   ---
-  duration_ms: 39.586653
+  duration_ms: 40.961181
   type: 'test'
   ...
 # Subtest: R20-F02: the revocation key is a signed hash, never the raw cookie
 ok 226 - R20-F02: the revocation key is a signed hash, never the raw cookie
   ---
-  duration_ms: 5.255302
+  duration_ms: 5.425557
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
 # Subtest: R20-F03: without KV the worker still works (single instance fallback)
 ok 227 - R20-F03: without KV the worker still works (single instance fallback)
   ---
-  duration_ms: 8.482945
+  duration_ms: 12.481955
   type: 'test'
   ...
 # Subtest: R20-F04: /api/health reports whether revocation is shared (booleans only)
 ok 228 - R20-F04: /api/health reports whether revocation is shared (booleans only)
   ---
-  duration_ms: 2.588075
+  duration_ms: 3.206251
   type: 'test'
   ...
 # Subtest: R22-DO-01: logout on instance A revokes the session on instance B immediately (no propagation window)
 ok 229 - R22-DO-01: logout on instance A revokes the session on instance B immediately (no propagation window)
   ---
-  duration_ms: 48.344629
+  duration_ms: 56.554989
   type: 'test'
   ...
 # Subtest: R22-DO-02: the DO path is used when REVOKE_DO is bound (and the KV is the fallback when it is not)
 ok 230 - R22-DO-02: the DO path is used when REVOKE_DO is bound (and the KV is the fallback when it is not)
   ---
-  duration_ms: 18.73394
+  duration_ms: 19.257482
   type: 'test'
   ...
 # Subtest: R22-DO-03: a DO error fails closed (the session is REFUSED, never 200)
 ok 231 - R22-DO-03: a DO error fails closed (the session is REFUSED, never 200)
   ---
-  duration_ms: 18.559554
+  duration_ms: 19.117656
   type: 'test'
   ...
 # Subtest: R22-DO-04: /api/health reports revoke_shared=true and revoke_strong=true when REVOKE_DO is bound
 ok 232 - R22-DO-04: /api/health reports revoke_shared=true and revoke_strong=true when REVOKE_DO is bound
   ---
-  duration_ms: 3.557479
+  duration_ms: 3.625515
   type: 'test'
   ...
 # Subtest: R22-DO-05: RevokeDO stores the flag on POST /revoke and reports it on GET /check
 ok 233 - R22-DO-05: RevokeDO stores the flag on POST /revoke and reports it on GET /check
   ---
-  duration_ms: 3.664266
+  duration_ms: 3.87457
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
 # Subtest: R22-DO-06: the KV safety net still refuses the session when the DO write failed
 ok 234 - R22-DO-06: the KV safety net still refuses the session when the DO write failed
   ---
-  duration_ms: 8.730857
+  duration_ms: 12.813013
   type: 'test'
   ...
 # Subtest: R22-DO-07: the DO id is a signed hash — never the raw cookie
 ok 235 - R22-DO-07: the DO id is a signed hash — never the raw cookie
   ---
-  duration_ms: 19.630294
+  duration_ms: 19.863771
   type: 'test'
   ...
 # Subtest: R21-KV-01: a KV outage must NOT crash the worker (session stays usable)
 ok 236 - R21-KV-01: a KV outage must NOT crash the worker (session stays usable)
   ---
-  duration_ms: 36.303826
+  duration_ms: 37.353816
   type: 'test'
   ...
 # [octa-mgmt] logout: KV witness write failed
 # Subtest: R21-KV-02: a KV write failure during logout must not 500
 ok 237 - R21-KV-02: a KV write failure during logout must not 500
   ---
-  duration_ms: 6.692976
+  duration_ms: 6.809048
   type: 'test'
   ...
 # [octa-mgmt] logout: KV witness write failed
 # Subtest: R21-KV-03: with KV down, the in-memory revocation still applies on that instance
 ok 238 - R21-KV-03: with KV down, the in-memory revocation still applies on that instance
   ---
-  duration_ms: 6.312082
+  duration_ms: 6.843262
   type: 'test'
   ...
 # Subtest: R21-KV-04: stale KV reads must NOT silently accept a revoked session
 ok 239 - R21-KV-04: stale KV reads must NOT silently accept a revoked session
   ---
-  duration_ms: 7.423769
+  duration_ms: 7.943891
   type: 'test'
   ...
 # Subtest: R21-KV-05: after propagation, the other instance rejects the session
 ok 240 - R21-KV-05: after propagation, the other instance rejects the session
   ---
-  duration_ms: 6.324609
+  duration_ms: 6.463357
   type: 'test'
   ...
 # Subtest: R21-KV-06: a revoked session must not be re-accepted by reading an old value
 ok 241 - R21-KV-06: a revoked session must not be re-accepted by reading an old value
   ---
-  duration_ms: 4.991008
+  duration_ms: 5.09643
   type: 'test'
   ...
 # Subtest: R21-KV-07: with a Durable Object the revocation is strongly consistent (no window)
 ok 242 - R21-KV-07: with a Durable Object the revocation is strongly consistent (no window)
   ---
-  duration_ms: 11.192245
+  duration_ms: 9.508576
   type: 'test'
   ...
 # Subtest: R21-KV-08: /api/health reports whether revocation is strongly consistent
 ok 243 - R21-KV-08: /api/health reports whether revocation is strongly consistent
   ---
-  duration_ms: 1.940993
+  duration_ms: 3.174802
   type: 'test'
   ...
 # [R23-DO-INT] worker under test: /run/csi/mount-root/nas/eab0d61a99b6696edb3d2aff87b585e8/.wt_r26_fe/mgmt/worker.js  (RevokeDO class: present)
 # Subtest: R23-DO-INT-00: the worker under test ships a durable RevokeDO class (strong-consistency source)
 ok 244 - R23-DO-INT-00: the worker under test ships a durable RevokeDO class (strong-consistency source)
   ---
-  duration_ms: 0.784039
+  duration_ms: 0.755296
   type: 'test'
   ...
 # Subtest: R23-DO-INT-01: a real logout on instance A invalidates the session on instance B immediately, while the KV replica is still stale
 ok 245 - R23-DO-INT-01: a real logout on instance A invalidates the session on instance B immediately, while the KV replica is still stale
   ---
-  duration_ms: 35.120465
+  duration_ms: 26.451304
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
@@ -1492,565 +1492,565 @@ ok 245 - R23-DO-INT-01: a real logout on instance A invalidates the session on i
 # Subtest: R23-DO-INT-02: a DO failure fails closed — the session is REFUSED, never accepted
 ok 246 - R23-DO-INT-02: a DO failure fails closed — the session is REFUSED, never accepted
   ---
-  duration_ms: 19.087211
+  duration_ms: 14.055835
   type: 'test'
   ...
 # Subtest: R23-DO-INT-03: the DO is NOT required for correctness today — the KV fallback still revokes across instances
 ok 247 - R23-DO-INT-03: the DO is NOT required for correctness today — the KV fallback still revokes across instances
   ---
-  duration_ms: 5.423645
+  duration_ms: 6.158851
   type: 'test'
   ...
 # Subtest: R23-DO-INT-04: without the DO the eventually-consistent KV leaves a window in which instance B still accepts the revoked session (the risk the DO removes)
 ok 248 - R23-DO-INT-04: without the DO the eventually-consistent KV leaves a window in which instance B still accepts the revoked session (the risk the DO removes)
   ---
-  duration_ms: 186.438872
+  duration_ms: 186.246179
   type: 'test'
   ...
 # Subtest: R23-DO-INT-05: the panel shell is gated — no session ⇒ 302 to /login.html, and a revoked session is refused too
 ok 249 - R23-DO-INT-05: the panel shell is gated — no session ⇒ 302 to /login.html, and a revoked session is refused too
   ---
-  duration_ms: 8.959521
+  duration_ms: 8.932849
   type: 'test'
   ...
 # Subtest: R23-DO-INT-06: /api/health reports revoke_strong only when the DO binding is present
 ok 250 - R23-DO-INT-06: /api/health reports revoke_strong only when the DO binding is present
   ---
-  duration_ms: 0.933982
+  duration_ms: 0.970211
   type: 'test'
   ...
 # Subtest: R23-E1 · ⛔ فشل الشبكة ⇒ «الشبكة ضعيفة» (مش «الباسورد غلط»)
 ok 251 - R23-E1 · ⛔ فشل الشبكة ⇒ «الشبكة ضعيفة» (مش «الباسورد غلط»)
   ---
-  duration_ms: 3.595866
+  duration_ms: 3.119465
   type: 'test'
   ...
 # Subtest: R23-E1 · ⛔ PIN غلط ⇒ شاشة «الباسورد غلط» (مش رسالة شبكة)
 ok 252 - R23-E1 · ⛔ PIN غلط ⇒ شاشة «الباسورد غلط» (مش رسالة شبكة)
   ---
-  duration_ms: 0.574233
+  duration_ms: 0.60077
   type: 'test'
   ...
 # Subtest: R23-E1 · ⛔ البنية نازلة (503) ⇒ رسالة محدّدة (مش «باسورد غلط»)
 ok 253 - R23-E1 · ⛔ البنية نازلة (503) ⇒ رسالة محدّدة (مش «باسورد غلط»)
   ---
-  duration_ms: 0.414855
+  duration_ms: 0.370642
   type: 'test'
   ...
 # Subtest: R23-E1 · ⛔ خطأ الوجهة (DNS) ⇒ رسالة **مختلفة** عن الشبكة
 ok 254 - R23-E1 · ⛔ خطأ الوجهة (DNS) ⇒ رسالة **مختلفة** عن الشبكة
   ---
-  duration_ms: 0.347084
+  duration_ms: 0.347883
   type: 'test'
   ...
 # Subtest: R23-E1 · ⛔ خطأ الوجهة (مش رادّة) ⇒ رسالة **مختلفة** عن الشبكة
 ok 255 - R23-E1 · ⛔ خطأ الوجهة (مش رادّة) ⇒ رسالة **مختلفة** عن الشبكة
   ---
-  duration_ms: 0.669638
+  duration_ms: 0.655905
   type: 'test'
   ...
 # Subtest: R23-E1 · ⛔ المعاينة المقفولة ⇒ رسالة **مختلفة** عن الشبكة
 ok 256 - R23-E1 · ⛔ المعاينة المقفولة ⇒ رسالة **مختلفة** عن الشبكة
   ---
-  duration_ms: 0.508383
+  duration_ms: 0.509787
   type: 'test'
   ...
 # Subtest: R23-E1 · ⛔ الفصل بين كل الحالات: النصوص مختلفة تماماً
 ok 257 - R23-E1 · ⛔ الفصل بين كل الحالات: النصوص مختلفة تماماً
   ---
-  duration_ms: 2.551437
+  duration_ms: 2.561346
   type: 'test'
   ...
 # Subtest: R23-E2 · ⛔ فشل الشبكة ⇒ مافيش مسح للجلسة (ولا خصم من المحاولات)
 ok 258 - R23-E2 · ⛔ فشل الشبكة ⇒ مافيش مسح للجلسة (ولا خصم من المحاولات)
   ---
-  duration_ms: 0.456944
+  duration_ms: 0.47402
   type: 'test'
   ...
 # Subtest: R23-E2 · ⛔ خطأ الوجهة ⇒ برضه مافيش مسح للجلسة
 ok 259 - R23-E2 · ⛔ خطأ الوجهة ⇒ برضه مافيش مسح للجلسة
   ---
-  duration_ms: 0.529985
+  duration_ms: 0.535873
   type: 'test'
   ...
 # Subtest: R23-E2 · ⛔ السيرفر نازل (5xx) ⇒ التوكن يفضل مكانه
 ok 260 - R23-E2 · ⛔ السيرفر نازل (5xx) ⇒ التوكن يفضل مكانه
   ---
-  duration_ms: 0.615146
+  duration_ms: 0.61131
   type: 'test'
   ...
 # Subtest: R23-E2 · ⛔ مسار فشل الشبكة (catch) ⇒ مافيش logoutLocal
 ok 261 - R23-E2 · ⛔ مسار فشل الشبكة (catch) ⇒ مافيش logoutLocal
   ---
-  duration_ms: 0.25886
+  duration_ms: 0.254426
   type: 'test'
   ...
 # Subtest: R23-E3 · ⛔ انتهاء الجلسة ⇒ رسالة «انتهت جلستك» (مختلفة عن PIN غلط)
 ok 262 - R23-E3 · ⛔ انتهاء الجلسة ⇒ رسالة «انتهت جلستك» (مختلفة عن PIN غلط)
   ---
-  duration_ms: 0.443087
+  duration_ms: 0.463632
   type: 'test'
   ...
 # Subtest: R23-E3 · ⛔ ثلاث حالات الخطأ نصوصها مختلفة (شبكة · PIN · انتهاء جلسة)
 ok 263 - R23-E3 · ⛔ ثلاث حالات الخطأ نصوصها مختلفة (شبكة · PIN · انتهاء جلسة)
   ---
-  duration_ms: 0.799961
+  duration_ms: 0.793188
   type: 'test'
   ...
 # Subtest: R23-E4 · ⛔ المودال: خطأ الوجهة ⇒ رسالة محدّدة (مش «الاتصال فشل»)
 ok 264 - R23-E4 · ⛔ المودال: خطأ الوجهة ⇒ رسالة محدّدة (مش «الاتصال فشل»)
   ---
-  duration_ms: 1.425637
+  duration_ms: 1.435801
   type: 'test'
   ...
 # Subtest: R23-E4 · ⛔ المودال: الخطأ العادي بيفضل «حصل خطأ» (ما اتغيّرش)
 ok 265 - R23-E4 · ⛔ المودال: الخطأ العادي بيفضل «حصل خطأ» (ما اتغيّرش)
   ---
-  duration_ms: 1.322189
+  duration_ms: 1.303656
   type: 'test'
   ...
 # Subtest: R23-F1 · ⛔ المعاينة المقفولة ⇒ مافيش أي نداء API بيخرج
 ok 266 - R23-F1 · ⛔ المعاينة المقفولة ⇒ مافيش أي نداء API بيخرج
   ---
-  duration_ms: 22.27638
+  duration_ms: 26.85483
   type: 'test'
   ...
 # Subtest: R23-F2 · ⛔ المعاينة + قائمة فيها الإنتاج ⇒ التطبيق ما بيستخدمهاش
 ok 267 - R23-F2 · ⛔ المعاينة + قائمة فيها الإنتاج ⇒ التطبيق ما بيستخدمهاش
   ---
-  duration_ms: 0.982705
+  duration_ms: 1.150463
   type: 'test'
   ...
 # Subtest: R23-F2 · ⛔ الـfailover ما بيحوّلش للإنتاج
 ok 268 - R23-F2 · ⛔ الـfailover ما بيحوّلش للإنتاج
   ---
-  duration_ms: 0.856121
+  duration_ms: 0.941158
   type: 'test'
   ...
 # Subtest: R23-F2 · ⛔ حتى بدور Gateway ⇒ ما بيقدرش يعمل طلب للإنتاج
 ok 269 - R23-F2 · ⛔ حتى بدور Gateway ⇒ ما بيقدرش يعمل طلب للإنتاج
   ---
-  duration_ms: 0.841355
+  duration_ms: 1.029339
   type: 'test'
   ...
 # Subtest: R23-F2 · ⛔ من غير الحارس (لسه بيحمّل) ⇒ شبكة الأمان بتمنع الإنتاج
 ok 270 - R23-F2 · ⛔ من غير الحارس (لسه بيحمّل) ⇒ شبكة الأمان بتمنع الإنتاج
   ---
-  duration_ms: 1.007067
+  duration_ms: 0.975668
   type: 'test'
   ...
 # Subtest: R23-F3 · ⛔ الإنتاج + failover لوجهة المعاينة ⇒ اتمنع
 ok 271 - R23-F3 · ⛔ الإنتاج + failover لوجهة المعاينة ⇒ اتمنع
   ---
-  duration_ms: 1.025696
+  duration_ms: 0.82971
   type: 'test'
   ...
 # Subtest: R23-F3 · ⛔ الإنتاج: نداء مباشر لوجهة المعاينة ⇒ اتمنع
 ok 272 - R23-F3 · ⛔ الإنتاج: نداء مباشر لوجهة المعاينة ⇒ اتمنع
   ---
-  duration_ms: 1.176234
+  duration_ms: 1.001043
   type: 'test'
   ...
 # Subtest: R23-F4 · ⛔ الإنتاج: نداء عادي لنفس الأصل ⇒ يعدّي عادي
 ok 273 - R23-F4 · ⛔ الإنتاج: نداء عادي لنفس الأصل ⇒ يعدّي عادي
   ---
-  duration_ms: 13.799423
+  duration_ms: 14.040219
   type: 'test'
   ...
 # Subtest: R23-F5 · ⛔ الـfailover بيستشير الحارس قبل ما يبدّل
 ok 274 - R23-F5 · ⛔ الـfailover بيستشير الحارس قبل ما يبدّل
   ---
-  duration_ms: 0.484929
+  duration_ms: 0.529738
   type: 'test'
   ...
 # Subtest: R23-F5 · ⛔ اختيار السيرفر النشط بيستشير الحارس
 ok 275 - R23-F5 · ⛔ اختيار السيرفر النشط بيستشير الحارس
   ---
-  duration_ms: 0.433353
+  duration_ms: 0.439028
   type: 'test'
   ...
 # Subtest: R23-F5 · ⛔ الـfailover المباشر (direct) بيستشير الحارس
 ok 276 - R23-F5 · ⛔ الـfailover المباشر (direct) بيستشير الحارس
   ---
-  duration_ms: 0.212108
+  duration_ms: 0.251112
   type: 'test'
   ...
 # Subtest: R23-G1 · وضع المعاينة: أي دومين غير الإنتاج = معاينة
 ok 277 - R23-G1 · وضع المعاينة: أي دومين غير الإنتاج = معاينة
   ---
-  duration_ms: 1.271285
+  duration_ms: 1.822197
   type: 'test'
   ...
 # Subtest: R23-G1 · وضع الإنتاج: دومين OCTA الحقيقي
 ok 278 - R23-G1 · وضع الإنتاج: دومين OCTA الحقيقي
   ---
-  duration_ms: 0.232805
+  duration_ms: 0.278229
   type: 'test'
   ...
 # Subtest: R23-G1 · الوضع الصريح بيتقدّم على الكشف من الدومين
 ok 279 - R23-G1 · الوضع الصريح بيتقدّم على الكشف من الدومين
   ---
-  duration_ms: 0.127138
+  duration_ms: 0.177675
   type: 'test'
   ...
 # Subtest: R23-G2 · ⛔ المعاينة + وجهة إنتاج ⇒ مرفوض (مش ارتجاع صامت)
 ok 280 - R23-G2 · ⛔ المعاينة + وجهة إنتاج ⇒ مرفوض (مش ارتجاع صامت)
   ---
-  duration_ms: 0.627026
+  duration_ms: 0.854642
   type: 'test'
   ...
 # Subtest: R23-G2 · ⛔ المعاينة + وجهة الإنتاج المدسوسة في العقدة ⇒ مرفوض
 ok 281 - R23-G2 · ⛔ المعاينة + وجهة الإنتاج المدسوسة في العقدة ⇒ مرفوض
   ---
-  duration_ms: 0.231643
+  duration_ms: 0.311008
   type: 'test'
   ...
 # Subtest: R23-G2 · ⛔ المعاينة + subrange من الإنتاج ⇒ مرفوض برضه
 ok 282 - R23-G2 · ⛔ المعاينة + subrange من الإنتاج ⇒ مرفوض برضه
   ---
-  duration_ms: 0.144059
+  duration_ms: 0.209855
   type: 'test'
   ...
 # Subtest: R23-G2 · المعاينة + وجهة منفصلة ⇒ مسموحة
 ok 283 - R23-G2 · المعاينة + وجهة منفصلة ⇒ مسموحة
   ---
-  duration_ms: 0.305055
+  duration_ms: 0.421595
   type: 'test'
   ...
 # Subtest: R23-G3 · ⛔ الإنتاج + وجهة المعاينة ⇒ مرفوض
 ok 284 - R23-G3 · ⛔ الإنتاج + وجهة المعاينة ⇒ مرفوض
   ---
-  duration_ms: 0.171788
+  duration_ms: 0.263963
   type: 'test'
   ...
 # Subtest: R23-G3 · الإنتاج + نفس الأصل (الـworker) ⇒ مسموح
 ok 285 - R23-G3 · الإنتاج + نفس الأصل (الـworker) ⇒ مسموح
   ---
-  duration_ms: 0.400584
+  duration_ms: 0.609335
   type: 'test'
   ...
 # Subtest: R23-G3 · الإنتاج + وجهة الإنتاج ⇒ مسموحة
 ok 286 - R23-G3 · الإنتاج + وجهة الإنتاج ⇒ مسموحة
   ---
-  duration_ms: 0.479613
+  duration_ms: 0.679408
   type: 'test'
   ...
 # Subtest: R23-G4 · ⛔ المعاينة من غير عقدة ⇒ fail closed
 ok 287 - R23-G4 · ⛔ المعاينة من غير عقدة ⇒ fail closed
   ---
-  duration_ms: 0.183979
+  duration_ms: 0.273369
   type: 'test'
   ...
 # Subtest: R23-G4 · ⭐ المعاينة من غير وجهة ⇒ نفس الأصل (مش ارتجاع للإنتاج)
 ok 288 - R23-G4 · ⭐ المعاينة من غير وجهة ⇒ نفس الأصل (مش ارتجاع للإنتاج)
   ---
-  duration_ms: 0.153889
+  duration_ms: 0.225625
   type: 'test'
   ...
 # Subtest: R23-G4 · ⛔ عقدة بلا وجهة مثبّتة ⇔ وجهة من العامل مقبولة
 ok 289 - R23-G4 · ⛔ عقدة بلا وجهة مثبّتة ⇔ وجهة من العامل مقبولة
   ---
-  duration_ms: 0.160389
+  duration_ms: 0.26392
   type: 'test'
   ...
 # Subtest: R23-G4 · ⛔ تعارض بين العامل والعقدة ⇒ fail closed
 ok 290 - R23-G4 · ⛔ تعارض بين العامل والعقدة ⇒ fail closed
   ---
-  duration_ms: 0.160387
+  duration_ms: 0.222399
   type: 'test'
   ...
 # Subtest: R23-G4 · ⛔ نفق مؤقت ⇒ مرفوض (النفق ده السبب الحقيقي للـ530)
 ok 291 - R23-G4 · ⛔ نفق مؤقت ⇒ مرفوض (النفق ده السبب الحقيقي للـ530)
   ---
-  duration_ms: 0.109768
+  duration_ms: 0.154368
   type: 'test'
   ...
 # Subtest: R23-G4 · نفق مؤقت مرفوض في الإنتاج برضه
 ok 292 - R23-G4 · نفق مؤقت مرفوض في الإنتاج برضه
   ---
-  duration_ms: 0.157885
+  duration_ms: 0.235303
   type: 'test'
   ...
 # Subtest: R23-G5 · 🩺 DNS مش موجود (NXDOMAIN) ⇒ «خطأ DNS» مش 530 عام
 ok 293 - R23-G5 · 🩺 DNS مش موجود (NXDOMAIN) ⇒ «خطأ DNS» مش 530 عام
   ---
-  duration_ms: 0.224992
+  duration_ms: 0.369311
   type: 'test'
   ...
 # Subtest: R23-G5 · 🩺 /api/health مش رادٍ ⇒ «الوجهة مش موصولة»
 ok 294 - R23-G5 · 🩺 /api/health مش رادٍ ⇒ «الوجهة مش موصولة»
   ---
-  duration_ms: 0.16609
+  duration_ms: 0.255567
   type: 'test'
   ...
 # Subtest: R23-G5 · 🩺 الوجهة سليمة ⇒ ok
 ok 295 - R23-G5 · 🩺 الوجهة سليمة ⇒ ok
   ---
-  duration_ms: 0.146109
+  duration_ms: 0.229927
   type: 'test'
   ...
 # Subtest: R23-G5 · 🩺 مفيش وجهة ⇒ origin_missing (مش صمت)
 ok 296 - R23-G5 · 🩺 مفيش وجهة ⇒ origin_missing (مش صمت)
   ---
-  duration_ms: 0.100914
+  duration_ms: 0.142907
   type: 'test'
   ...
 # Subtest: R23-G6 · الحارس: في المعاينة ⇒ أي نداء لوجهة إنتاج مرفوض
 ok 297 - R23-G6 · الحارس: في المعاينة ⇒ أي نداء لوجهة إنتاج مرفوض
   ---
-  duration_ms: 0.272869
+  duration_ms: 0.450464
   type: 'test'
   ...
 # Subtest: R23-G6 · الحارس: في المعاينة ⇒ نداءات نفس الأصل مسموحة
 ok 298 - R23-G6 · الحارس: في المعاينة ⇒ نداءات نفس الأصل مسموحة
   ---
-  duration_ms: 0.11939
+  duration_ms: 0.188842
   type: 'test'
   ...
 # Subtest: R23-G6 · الحارس: المعاينة المقفولة ⇒ كل نداء API مرفوض
 ok 299 - R23-G6 · الحارس: المعاينة المقفولة ⇒ كل نداء API مرفوض
   ---
-  duration_ms: 0.099389
+  duration_ms: 0.158823
   type: 'test'
   ...
 # Subtest: R23-G6 · الحارس: في الإنتاج ⇒ نداء وجهة المعاينة مرفوض
 ok 300 - R23-G6 · الحارس: في الإنتاج ⇒ نداء وجهة المعاينة مرفوض
   ---
-  duration_ms: 0.163254
+  duration_ms: 0.311885
   type: 'test'
   ...
 # Subtest: R23-G7 · فشل عادي ⇒ «شبكة» (مش خطأ وجهة)
 ok 301 - R23-G7 · فشل عادي ⇒ «شبكة» (مش خطأ وجهة)
   ---
-  duration_ms: 0.142566
+  duration_ms: 0.179775
   type: 'test'
   ...
 # Subtest: R23-G7 · رفض الحارس ⇒ كود الحارس نفسه
 ok 302 - R23-G7 · رفض الحارس ⇒ كود الحارس نفسه
   ---
-  duration_ms: 0.105377
+  duration_ms: 0.133107
   type: 'test'
   ...
 # Subtest: R23-G7 · فحص فاشل ⇒ كود الفحص (DNS/مش رادّة) مش «شبكة»
 ok 303 - R23-G7 · فحص فاشل ⇒ كود الفحص (DNS/مش رادّة) مش «شبكة»
   ---
-  duration_ms: 0.0883
+  duration_ms: 0.128277
   type: 'test'
   ...
 # Subtest: R23-G7 · فحص سليم + فشل شبكة ⇒ «شبكة» (مش خطأ وجهة)
 ok 304 - R23-G7 · فحص سليم + فشل شبكة ⇒ «شبكة» (مش خطأ وجهة)
   ---
-  duration_ms: 0.078929
+  duration_ms: 0.123501
   type: 'test'
   ...
 # Subtest: R23-G8 · العقدة موجودة وصحيحة
 ok 305 - R23-G8 · العقدة موجودة وصحيحة
   ---
-  duration_ms: 0.109714
+  duration_ms: 0.208242
   type: 'test'
   ...
 # Subtest: R23-G8 · ⛔ وجهة المعاينة في العقدة ما ينفعش تكون إنتاج ولا نفق
 ok 306 - R23-G8 · ⛔ وجهة المعاينة في العقدة ما ينفعش تكون إنتاج ولا نفق
   ---
-  duration_ms: 0.118791
+  duration_ms: 0.173438
   type: 'test'
   ...
 # Subtest: R23-G8 · ⛔ كل مضيفات الإنتاج متسجّلة في العقدة وفي الحارس
 ok 307 - R23-G8 · ⛔ كل مضيفات الإنتاج متسجّلة في العقدة وفي الحارس
   ---
-  duration_ms: 0.106439
+  duration_ms: 0.154566
   type: 'test'
   ...
 # Subtest: R23-G9 · ⛔ قائمة مضيفات الإنتاج في octa-api.js = قائمة الحارس
 ok 308 - R23-G9 · ⛔ قائمة مضيفات الإنتاج في octa-api.js = قائمة الحارس
   ---
-  duration_ms: 0.810889
+  duration_ms: 1.167178
   type: 'test'
   ...
 # Subtest: R23-G10 · قواميس البوابة = قواميس الحارس (نفس الأكواد)
 ok 309 - R23-G10 · قواميس البوابة = قواميس الحارس (نفس الأكواد)
   ---
-  duration_ms: 0.285674
+  duration_ms: 0.434846
   type: 'test'
   ...
 # Subtest: R23-G10 · ⛔ مفيش «...» نصّي في ملفات الرحلة (قاعدة نظافة المستودع)
 ok 310 - R23-G10 · ⛔ مفيش «...» نصّي في ملفات الرحلة (قاعدة نظافة المستودع)
   ---
-  duration_ms: 3.238594
+  duration_ms: 5.124424
   type: 'test'
   ...
 # Subtest: R23-01: كل صيغ مسار لقطة الفرص ⇒ 404 (المقاسة حيًّا ⭐)
 ok 311 - R23-01: كل صيغ مسار لقطة الفرص ⇒ 404 (المقاسة حيًّا ⭐)
   ---
-  duration_ms: 37.981418
+  duration_ms: 33.394166
   type: 'test'
   ...
 # Subtest: R23-02: كل صيغ مسار لقطة Alpha ⇒ 404
 ok 312 - R23-02: كل صيغ مسار لقطة Alpha ⇒ 404
   ---
-  duration_ms: 10.169614
+  duration_ms: 9.694386
   type: 'test'
   ...
 # Subtest: R23-03: ⭐⭐ برهان سالب ⭐⭐ — الدالة القديمة (مطابقة تامة) بتتجاوز ⭐
 ok 313 - R23-03: ⭐⭐ برهان سالب ⭐⭐ — الدالة القديمة (مطابقة تامة) بتتجاوز ⭐
   ---
-  duration_ms: 5.890205
+  duration_ms: 5.021339
   type: 'test'
   ...
 # Subtest: R23-04: المسارات السليمة تفضل شغالة ⭐ (بلوك أضيق ⭐ مش بلوك عام ⭐)
 ok 314 - R23-04: المسارات السليمة تفضل شغالة ⭐ (بلوك أضيق ⭐ مش بلوك عام ⭐)
   ---
-  duration_ms: 7.181023
+  duration_ms: 6.310971
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: false }
 # Subtest: R24-I04-01: a broken revocation write must NOT produce a false success
 ok 315 - R24-I04-01: a broken revocation write must NOT produce a false success
   ---
-  duration_ms: 36.258453
+  duration_ms: 34.611523
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: false }
 # Subtest: R24-I04-02: after a failed revocation write the session is REFUSED anyway
 ok 316 - R24-I04-02: after a failed revocation write the session is REFUSED anyway
   ---
-  duration_ms: 9.919436
+  duration_ms: 10.008809
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: false }
 # Subtest: R24-I04-03: a SILENT revocation write failure is also not a success
 ok 317 - R24-I04-03: a SILENT revocation write failure is also not a success
   ---
-  duration_ms: 7.05929
+  duration_ms: 7.106434
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
 # Subtest: R24-I04-04: when the authoritative DO fails, a KV witness success is NOT a success
 ok 318 - R24-I04-04: when the authoritative DO fails, a KV witness success is NOT a success
   ---
-  duration_ms: 5.613893
+  duration_ms: 6.622955
   type: 'test'
   ...
 # Subtest: R24-I04-05: a successful DO revocation is a real success
 ok 319 - R24-I04-05: a successful DO revocation is a real success
   ---
-  duration_ms: 4.618931
+  duration_ms: 5.447909
   type: 'test'
   ...
 # Subtest: R24-I04-06: a logout without a session is not a false failure
 ok 320 - R24-I04-06: a logout without a session is not a false failure
   ---
-  duration_ms: 2.182589
+  duration_ms: 2.345429
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
 # Subtest: R24-I04-07: without a shared store the logout is fail-closed in production, memory-mode outside it
 ok 321 - R24-I04-07: without a shared store the logout is fail-closed in production, memory-mode outside it
   ---
-  duration_ms: 8.033119
+  duration_ms: 9.724021
   type: 'test'
   ...
 # Subtest: R24-I05-01: the KV marker TTL covers the remaining session lifetime + margin
 ok 322 - R24-I05-01: the KV marker TTL covers the remaining session lifetime + margin
   ---
-  duration_ms: 33.542307
+  duration_ms: 40.389393
   type: 'test'
   ...
 # Subtest: R24-I05-02: an hour later the marker must still be there (no fail-open)
 ok 323 - R24-I05-02: an hour later the marker must still be there (no fail-open)
   ---
-  duration_ms: 11.038732
+  duration_ms: 11.400043
   type: 'test'
   ...
 # Subtest: R24-I05-03: the Durable Object marker carries an expiration (session end + margin)
 ok 324 - R24-I05-03: the Durable Object marker carries an expiration (session end + margin)
   ---
-  duration_ms: 2.798748
+  duration_ms: 2.875682
   type: 'test'
   ...
 # Subtest: R24-I05-04: an unknown revocation state fails closed (the session is REFUSED)
 ok 325 - R24-I05-04: an unknown revocation state fails closed (the session is REFUSED)
   ---
-  duration_ms: 6.13713
+  duration_ms: 5.599646
   type: 'test'
   ...
 # Subtest: R24-I05-05: the DO path still revokes instantly across instances
 ok 326 - R24-I05-05: the DO path still revokes instantly across instances
   ---
-  duration_ms: 8.759433
+  duration_ms: 9.688295
   type: 'test'
   ...
 # Subtest: R24-I06-01: a FORGED cookie never reaches the storage (zero calls)
 ok 327 - R24-I06-01: a FORGED cookie never reaches the storage (zero calls)
   ---
-  duration_ms: 27.739982
+  duration_ms: 31.542144
   type: 'test'
   ...
 # Subtest: R24-I06-02: an EXPIRED cookie never reaches the storage (zero calls)
 ok 328 - R24-I06-02: an EXPIRED cookie never reaches the storage (zero calls)
   ---
-  duration_ms: 3.959137
+  duration_ms: 3.91883
   type: 'test'
   ...
 # Subtest: R24-I06-03: a MALFORMED cookie never reaches the storage (zero calls)
 ok 329 - R24-I06-03: a MALFORMED cookie never reaches the storage (zero calls)
   ---
-  duration_ms: 3.738062
+  duration_ms: 2.949424
   type: 'test'
   ...
 # Subtest: R24-I06-04: a valid cookie hits the DO first, then the KV witness
 ok 330 - R24-I06-04: a valid cookie hits the DO first, then the KV witness
   ---
-  duration_ms: 6.125213
+  duration_ms: 6.472876
   type: 'test'
   ...
 # Subtest: R24-I06-05: without the DO the KV witness is the only call
 ok 331 - R24-I06-05: without the DO the KV witness is the only call
   ---
-  duration_ms: 4.781347
+  duration_ms: 4.885898
   type: 'test'
   ...
 # Subtest: R24-I06-06: a forged cookie is refused on a protected API too
 ok 332 - R24-I06-06: a forged cookie is refused on a protected API too
   ---
-  duration_ms: 3.344603
+  duration_ms: 3.278889
   type: 'test'
   ...
 # Subtest: R25-LOGIN-01: every login path is served without a session
 ok 333 - R25-LOGIN-01: every login path is served without a session
   ---
-  duration_ms: 26.003066
+  duration_ms: 26.482126
   type: 'test'
   ...
 # Subtest: R25-LOGIN-02: the redirect target of a protected page is itself public
 ok 334 - R25-LOGIN-02: the redirect target of a protected page is itself public
   ---
-  duration_ms: 3.776342
+  duration_ms: 3.806697
   type: 'test'
   ...
 # Subtest: R25-LOGIN-03: the assets config must not redirect the login page
 ok 335 - R25-LOGIN-03: the assets config must not redirect the login page
   ---
-  duration_ms: 1.320012
+  duration_ms: 1.33193
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
 # Subtest: R25-I09-01: a failed Durable Object write must NOT be masked by a KV success
 ok 336 - R25-I09-01: a failed Durable Object write must NOT be masked by a KV success
   ---
-  duration_ms: 35.995593
+  duration_ms: 33.948346
   type: 'test'
   ...
 # Subtest: R25-I09-02: when the authoritative source confirms, the logout succeeds
 ok 337 - R25-I09-02: when the authoritative source confirms, the logout succeeds
   ---
-  duration_ms: 10.598373
+  duration_ms: 10.261422
   type: 'test'
   ...
 # Subtest: R25-I09-03: a KV-only success must never claim immediate revocation
 ok 338 - R25-I09-03: a KV-only success must never claim immediate revocation
   ---
-  duration_ms: 5.89292
+  duration_ms: 5.540862
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
@@ -2058,218 +2058,218 @@ ok 338 - R25-I09-03: a KV-only success must never claim immediate revocation
 # Subtest: R25-I10-01: in production with no shared revocation source it must fail closed
 ok 339 - R25-I10-01: in production with no shared revocation source it must fail closed
   ---
-  duration_ms: 5.337627
+  duration_ms: 5.416499
   type: 'test'
   ...
 # Subtest: R25-I10-02: outside production the single-instance behaviour is kept and documented
 ok 340 - R25-I10-02: outside production the single-instance behaviour is kept and documented
   ---
-  duration_ms: 3.727129
+  duration_ms: 3.694354
   type: 'test'
   ...
 # Subtest: R25-I10-03: the production config must declare APP_ENV=production (fail-closed guard)
 ok 341 - R25-I10-03: the production config must declare APP_ENV=production (fail-closed guard)
   ---
-  duration_ms: 1.38335
+  duration_ms: 1.461391
   type: 'test'
   ...
 # [octa-mgmt] logout: cookie rejected before storage { reason: 'signature' }
 # Subtest: R25-I11-01: a FORGED cookie must never reach the Durable Object or the KV
 ok 342 - R25-I11-01: a FORGED cookie must never reach the Durable Object or the KV
   ---
-  duration_ms: 5.876576
+  duration_ms: 4.423471
   type: 'test'
   ...
 # [octa-mgmt] logout: cookie rejected before storage { reason: 'shape' }
 # Subtest: R25-I11-02: an EXPIRED cookie must not consume Durable Object or KV resources
 ok 343 - R25-I11-02: an EXPIRED cookie must not consume Durable Object or KV resources
   ---
-  duration_ms: 13.144164
+  duration_ms: 2.812278
   type: 'test'
   ...
 # Subtest: R25-I11-03: a MALFORMED cookie must not reach the storage
 ok 344 - R25-I11-03: a MALFORMED cookie must not reach the storage
   ---
-  duration_ms: 3.06315
+  duration_ms: 2.335875
   type: 'test'
   ...
 # Subtest: R25-I11-04: a VALID cookie still revokes through the shared store
 ok 345 - R25-I11-04: a VALID cookie still revokes through the shared store
   ---
-  duration_ms: 7.298155
+  duration_ms: 7.578536
   type: 'test'
   ...
 # Subtest: R25-I11-05: the cookie must always be cleared, even on a rejected one
 ok 346 - R25-I11-05: the cookie must always be cleared, even on a rejected one
   ---
-  duration_ms: 4.00419
+  duration_ms: 3.441091
   type: 'test'
   ...
 # [octa-mgmt] logout: cookie rejected before storage { reason: 'signature' }
 # Subtest: R25-PV-01 · المعاينة المعزولة: /api/health محلي وبيقول مصدره بصراحة
 ok 347 - R25-PV-01 · المعاينة المعزولة: /api/health محلي وبيقول مصدره بصراحة
   ---
-  duration_ms: 31.099069
+  duration_ms: 31.733046
   type: 'test'
   ...
 # Subtest: R25-PV-02 · ⛔ الإنتاج ما يتغيّرش: من غير متغيّر الوضع ⇒ الفحص يفضل من الـproxy
 ok 348 - R25-PV-02 · ⛔ الإنتاج ما يتغيّرش: من غير متغيّر الوضع ⇒ الفحص يفضل من الـproxy
   ---
-  duration_ms: 8.160805
+  duration_ms: 8.42587
   type: 'test'
   ...
 # Subtest: R25-PV-03 · المسارات التانية مش بتتردّ بالفحص المحلي
 ok 349 - R25-PV-03 · المسارات التانية مش بتتردّ بالفحص المحلي
   ---
-  duration_ms: 5.445947
+  duration_ms: 5.679249
   type: 'test'
   ...
 # Subtest: R25-PV-08 · ⭐ المعاينة من غير تخزينها الخاص ⇒ 503 صريح (مافيش نجاح وهمي)
 ok 350 - R25-PV-08 · ⭐ المعاينة من غير تخزينها الخاص ⇒ 503 صريح (مافيش نجاح وهمي)
   ---
-  duration_ms: 6.030566
+  duration_ms: 5.930206
   type: 'test'
   ...
 # Subtest: R25-PV-04 · ⭐ عقد المعاينة: وجهة ثابتة ⭐ مش نفق ⭐ ومش الإنتاج
 ok 351 - R25-PV-04 · ⭐ عقد المعاينة: وجهة ثابتة ⭐ مش نفق ⭐ ومش الإنتاج
   ---
-  duration_ms: 1.708189
+  duration_ms: 1.657143
   type: 'test'
   ...
 # Subtest: R25-PV-05 · متغيّر وضع المعاينة موجود في إعدادات المعاينة ومش في الإنتاج
 ok 352 - R25-PV-05 · متغيّر وضع المعاينة موجود في إعدادات المعاينة ومش في الإنتاج
   ---
-  duration_ms: 2.060406
+  duration_ms: 2.009476
   type: 'test'
   ...
 # Subtest: R25-PV-06 · ⭐⭐ البرهان السالب ⭐: شيل الكتبة ⇔ الرد المحلي يختفي
 ok 353 - R25-PV-06 · ⭐⭐ البرهان السالب ⭐: شيل الكتبة ⇔ الرد المحلي يختفي
   ---
-  duration_ms: 8.159155
+  duration_ms: 8.417353
   type: 'test'
   ...
 # Subtest: R25-PV-07 · ⭐⭐ البرهان السالب ⭐: الأساس (الرج قبل المرحلة ⭐) مفيش المود المحلي
 ok 354 - R25-PV-07 · ⭐⭐ البرهان السالب ⭐: الأساس (الرج قبل المرحلة ⭐) مفيش المود المحلي
   ---
-  duration_ms: 55.616617
+  duration_ms: 16.735298
   type: 'test'
   ...
 # Subtest: R26-KV-01 · مساحة إبطال جلسات الأدمن ⛔ مختلفة ⭐ عن مساحة كاش السوق
 ok 355 - R26-KV-01 · مساحة إبطال جلسات الأدمن ⛔ مختلفة ⭐ عن مساحة كاش السوق
   ---
-  duration_ms: 0.767811
+  duration_ms: 0.809774
   type: 'test'
   ...
 # Subtest: R26-KV-02 · مساحة الإبطال ⭐ هي المخصّصة ⭐ (octa-session-revocation)
 ok 356 - R26-KV-02 · مساحة الإبطال ⭐ هي المخصّصة ⭐ (octa-session-revocation)
   ---
-  duration_ms: 0.192137
+  duration_ms: 0.205993
   type: 'test'
   ...
 # Subtest: R26-KV-03 · عاملو الموقع ⛔ ما يربطوش ⭐ REVOKE_KV ⭐ (مفيش امتياز زيادة ⭐)
 ok 357 - R26-KV-03 · عاملو الموقع ⛔ ما يربطوش ⭐ REVOKE_KV ⭐ (مفيش امتياز زيادة ⭐)
   ---
-  duration_ms: 0.163607
+  duration_ms: 0.176026
   type: 'test'
   ...
 # Subtest: R26-KV-04 · لوحة الأدمن تعلن APP_ENV=production ⭐ (fail-closed ⭐)
 ok 358 - R26-KV-04 · لوحة الأدمن تعلن APP_ENV=production ⭐ (fail-closed ⭐)
   ---
-  duration_ms: 0.121167
+  duration_ms: 0.109297
   type: 'test'
   ...
 # Subtest: R26-KV-05 · لوحة الأدمن مربوطة بالـDO ⭐ + الـmigration ⭐ (المرجع القوي ⭐)
 ok 359 - R26-KV-05 · لوحة الأدمن مربوطة بالـDO ⭐ + الـmigration ⭐ (المرجع القوي ⭐)
   ---
-  duration_ms: 0.199111
+  duration_ms: 0.170726
   type: 'test'
   ...
 # Subtest: R26-KV-06 · كاش السوق ⭐ مشترك ⭐ بين المعاينة والإنتاج ⭐ (قرار مقصود ⭐)
 ok 360 - R26-KV-06 · كاش السوق ⭐ مشترك ⭐ بين المعاينة والإنتاج ⭐ (قرار مقصود ⭐)
   ---
-  duration_ms: 0.115534
+  duration_ms: 0.110087
   type: 'test'
   ...
 # Subtest: R26-KV-07 · مفاتيح الإبطال ⭐ namespace منفصل ⭐ ⇒ ⭐ مافيش خلط ⭐
 ok 361 - R26-KV-07 · مفاتيح الإبطال ⭐ namespace منفصل ⭐ ⇒ ⭐ مافيش خلط ⭐
   ---
-  duration_ms: 1.701897
+  duration_ms: 1.778321
   type: 'test'
   ...
 # Subtest: R26-SA-01 · ⭐ /api/auth/me في المعاينة ⭐ بيتخدم محلي ⭐ (صفر اتصال خارجي ⭐)
 ok 362 - R26-SA-01 · ⭐ /api/auth/me في المعاينة ⭐ بيتخدم محلي ⭐ (صفر اتصال خارجي ⭐)
   ---
-  duration_ms: 34.001106
+  duration_ms: 35.120875
   type: 'test'
   ...
 # Subtest: R26-SA-02 · ⭐ تسجيل المعاينة ⭐ بيتخدم محلي ⭐ (مش من الباك ⭐)
 ok 363 - R26-SA-02 · ⭐ تسجيل المعاينة ⭐ بيتخدم محلي ⭐ (مش من الباك ⭐)
   ---
-  duration_ms: 16.355609
+  duration_ms: 16.209885
   type: 'test'
   ...
 # Subtest: R26-SA-03 · ⭐ أسعار المعاينة ⭐ من ذاكرتها الخاصة ⭐
 ok 364 - R26-SA-03 · ⭐ أسعار المعاينة ⭐ من ذاكرتها الخاصة ⭐
   ---
-  duration_ms: 6.101753
+  duration_ms: 6.168697
   type: 'test'
   ...
 # Subtest: R26-SA-04 · ⛔ المعاينة ⭐ ما تلمسش الإنتاج ⭐ (مافيش عنوان إنتاج ⭐ في الرد ⭐)
 ok 365 - R26-SA-04 · ⛔ المعاينة ⭐ ما تلمسش الإنتاج ⭐ (مافيش عنوان إنتاج ⭐ في الرد ⭐)
   ---
-  duration_ms: 7.487578
+  duration_ms: 7.44941
   type: 'test'
   ...
 # Subtest: R26-SA-05 · ⛔ طلب من أصل خارجي ⭐ ⛔ يترفض ⭐ (CSRF ⭐)
 ok 366 - R26-SA-05 · ⛔ طلب من أصل خارجي ⭐ ⛔ يترفض ⭐ (CSRF ⭐)
   ---
-  duration_ms: 5.844957
+  duration_ms: 5.755219
   type: 'test'
   ...
 # Subtest: R26-SA-06 · ⛔ المعاينة من غير تخزينها الخاص ⭐ ⇒ 503 ⭐ (مافيش نجاح وهمي ⭐)
 ok 367 - R26-SA-06 · ⛔ المعاينة من غير تخزينها الخاص ⭐ ⇒ 503 ⭐ (مافيش نجاح وهمي ⭐)
   ---
-  duration_ms: 6.288034
+  duration_ms: 6.198121
   type: 'test'
   ...
 # Subtest: R26-SA-07 · ⛔ المعاينة من غير سر جلساتها ⭐ ⇒ 503 ⭐
 ok 368 - R26-SA-07 · ⛔ المعاينة من غير سر جلساتها ⭐ ⇒ 503 ⭐
   ---
-  duration_ms: 5.841355
+  duration_ms: 5.557028
   type: 'test'
   ...
 # [api-proxy] api_unreachable (error)
 # Subtest: R26-SA-08 · ⭐⛔ وضع الإنتاج ⭐ ⛔ ما يتأثرش ⭐ (الـworker لسه بيمرّر ⭐)
 ok 369 - R26-SA-08 · ⭐⛔ وضع الإنتاج ⭐ ⛔ ما يتأثرش ⭐ (الـworker لسه بيمرّر ⭐)
   ---
-  duration_ms: 548.22098
+  duration_ms: 551.377535
   type: 'test'
   ...
 # [api-proxy] api_unreachable (error)
 # Subtest: R26-SA-09 · ⭐⭐ برهان سالب ⭐⭐: شيل علم «المعاينة بتخدم نفسها» ⭐ ⇒ مافيش خدمة محلية ⭐
 ok 370 - R26-SA-09 · ⭐⭐ برهان سالب ⭐⭐: شيل علم «المعاينة بتخدم نفسها» ⭐ ⇒ مافيش خدمة محلية ⭐
   ---
-  duration_ms: 548.847653
+  duration_ms: 556.787057
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
 # Subtest: R26-S-01: in production with no Durable Object the login must fail closed
 ok 371 - R26-S-01: in production with no Durable Object the login must fail closed
   ---
-  duration_ms: 36.037199
+  duration_ms: 32.209196
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
 # Subtest: R26-S-02: a KV alone must not be enough to issue or accept a session in production
 ok 372 - R26-S-02: a KV alone must not be enough to issue or accept a session in production
   ---
-  duration_ms: 6.348142
+  duration_ms: 8.607621
   type: 'test'
   ...
 # Subtest: R26-S-03: in production with the Durable Object the login succeeds
 ok 373 - R26-S-03: in production with the Durable Object the login succeeds
   ---
-  duration_ms: 6.407001
+  duration_ms: 17.513825
   type: 'test'
   ...
 # [octa-mgmt] login: revocation source not ready { production: true }
@@ -2281,936 +2281,936 @@ ok 373 - R26-S-03: in production with the Durable Object the login succeeds
 # Subtest: R26-S-04: an UNKNOWN environment must be treated as production (fail closed)
 ok 374 - R26-S-04: an UNKNOWN environment must be treated as production (fail closed)
   ---
-  duration_ms: 8.48747
+  duration_ms: 12.748138
   type: 'test'
   ...
 # [octa-mgmt] logout: authoritative source did not confirm { do: false, kv: true }
 # Subtest: R26-S-05: a failed Durable Object write is never masked by a KV success
 ok 375 - R26-S-05: a failed Durable Object write is never masked by a KV success
   ---
-  duration_ms: 5.824888
+  duration_ms: 6.234526
   type: 'test'
   ...
 # Subtest: R26-S-06: when the Durable Object confirms, the logout succeeds even if the KV fails
 ok 376 - R26-S-06: when the Durable Object confirms, the logout succeeds even if the KV fails
   ---
-  duration_ms: 7.675285
+  duration_ms: 8.173363
   type: 'test'
   ...
 # [octa-mgmt] logout: no shared revocation source (production)
 # Subtest: R26-S-07: with both stores missing in production the logout fails closed
 ok 377 - R26-S-07: with both stores missing in production the logout fails closed
   ---
-  duration_ms: 3.334063
+  duration_ms: 3.301196
   type: 'test'
   ...
 # Subtest: R26-S-08: a Durable Object READ failure must not accept the session
 ok 378 - R26-S-08: a Durable Object READ failure must not accept the session
   ---
-  duration_ms: 3.802507
+  duration_ms: 3.917486
   type: 'test'
   ...
 # Subtest: R26-S-09: changing the password invalidates the existing sessions
 ok 379 - R26-S-09: changing the password invalidates the existing sessions
   ---
-  duration_ms: 6.207966
+  duration_ms: 7.150332
   type: 'test'
   ...
 # Subtest: R26-S-10: rotating SESSION_SECRET invalidates the existing sessions
 ok 380 - R26-S-10: rotating SESSION_SECRET invalidates the existing sessions
   ---
-  duration_ms: 5.317403
+  duration_ms: 6.439487
   type: 'test'
   ...
 # Subtest: R26-S-11: after a Worker restart the revocation is still visible (the DO is the reference)
 ok 381 - R26-S-11: after a Worker restart the revocation is still visible (the DO is the reference)
   ---
-  duration_ms: 9.889281
+  duration_ms: 16.171326
   type: 'test'
   ...
 # Subtest: R26-S-12: reusing an old session after the logout must fail
 ok 382 - R26-S-12: reusing an old session after the logout must fail
   ---
-  duration_ms: 13.946187
+  duration_ms: 18.053172
   type: 'test'
   ...
 # Subtest: R26-S-13: concurrent session checks must agree (no mixed answers)
 ok 383 - R26-S-13: concurrent session checks must agree (no mixed answers)
   ---
-  duration_ms: 11.892514
+  duration_ms: 18.012305
   type: 'test'
   ...
 # Subtest: R26-S-14: a logout during the renewal window must not resurrect the session
 ok 384 - R26-S-14: a logout during the renewal window must not resurrect the session
   ---
-  duration_ms: 5.752963
+  duration_ms: 8.996615
   type: 'test'
   ...
 # Subtest: R26-S-15: a cross-site logout must be refused with zero storage calls
 ok 385 - R26-S-15: a cross-site logout must be refused with zero storage calls
   ---
-  duration_ms: 3.016063
+  duration_ms: 2.975423
   type: 'test'
   ...
 # Subtest: R26-S-16: a cross-site Origin on the logout must be refused
 ok 386 - R26-S-16: a cross-site Origin on the logout must be refused
   ---
-  duration_ms: 6.745327
+  duration_ms: 3.783235
   type: 'test'
   ...
 # Subtest: R26-S-17: a same-origin logout must still work
 ok 387 - R26-S-17: a same-origin logout must still work
   ---
-  duration_ms: 5.093588
+  duration_ms: 8.406645
   type: 'test'
   ...
 # Subtest: R26-S-18: the interface worker logout must refuse a cross-site request
 ok 388 - R26-S-18: the interface worker logout must refuse a cross-site request
   ---
-  duration_ms: 7.171008
+  duration_ms: 6.97904
   type: 'test'
   ...
 # [octa-mgmt] logout: cookie rejected before storage { reason: 'signature' }
 # Subtest: R26-S-19: a forged cookie must not reach the storage and must be refused
 ok 389 - R26-S-19: a forged cookie must not reach the storage and must be refused
   ---
-  duration_ms: 4.113487
+  duration_ms: 3.271939
   type: 'test'
   ...
 # Subtest: R26-S-20: an expired cookie must not reach the storage
 ok 390 - R26-S-20: an expired cookie must not reach the storage
   ---
-  duration_ms: 2.535267
+  duration_ms: 3.781984
   type: 'test'
   ...
 # Subtest: R26-S-21: /api/health reports revocation_ready=false in production without the Durable Object
 ok 391 - R26-S-21: /api/health reports revocation_ready=false in production without the Durable Object
   ---
-  duration_ms: 1.797425
+  duration_ms: 1.784438
   type: 'test'
   ...
 # Subtest: R26-S-22: /api/health reports revocation_ready=true when the Durable Object is bound
 ok 392 - R26-S-22: /api/health reports revocation_ready=true when the Durable Object is bound
   ---
-  duration_ms: 1.613543
+  duration_ms: 1.711305
   type: 'test'
   ...
 # Subtest: R26-S-23: in production a KV-only session is REFUSED even though the KV says "not revoked"
 ok 393 - R26-S-23: in production a KV-only session is REFUSED even though the KV says "not revoked"
   ---
-  duration_ms: 2.974892
+  duration_ms: 3.796284
   type: 'test'
   ...
 # Subtest: R26-S-24: outside production the KV-only session is accepted (the preview mode is unchanged)
 ok 394 - R26-S-24: outside production the KV-only session is accepted (the preview mode is unchanged)
   ---
-  duration_ms: 2.40832
+  duration_ms: 2.42227
   type: 'test'
   ...
 # Subtest: R26-S-26: ⭐ تغيير كلمة المرور ⭐ ⛔ يبطل كل الجلسات القديمة ⭐
 ok 395 - R26-S-26: ⭐ تغيير كلمة المرور ⭐ ⛔ يبطل كل الجلسات القديمة ⭐
   ---
-  duration_ms: 4.318111
+  duration_ms: 4.614825
   type: 'test'
   ...
 # Subtest: R26-S-27: ⭐ نفس النسخة ⭐ ⇒ نفس الكوكي يفضل صالح ⭐ (مافيش إبطال عشوائي)
 ok 396 - R26-S-27: ⭐ نفس النسخة ⭐ ⇒ نفس الكوكي يفضل صالح ⭐ (مافيش إبطال عشوائي)
   ---
-  duration_ms: 4.603085
+  duration_ms: 3.50777
   type: 'test'
   ...
 # Subtest: R26 · المقاسات المعتمدة (١٣): تجاوز · تداخل · قص · لمس · تباين · ARIA
 ok 397 - R26 · المقاسات المعتمدة (١٣): تجاوز · تداخل · قص · لمس · تباين · ARIA
   ---
-  duration_ms: 258011.632687
+  duration_ms: 257873.018345
   type: 'test'
   ...
 # Subtest: R26 · لوحة المفاتيح: ترتيب منطقي + تركيز مرئي + Escape
 ok 398 - R26 · لوحة المفاتيح: ترتيب منطقي + تركيز مرئي + Escape
   ---
-  duration_ms: 21876.935256
+  duration_ms: 21772.086508
   type: 'test'
   ...
 # Subtest: R26 · الأداء: LCP وزمن التحميل على ١٣ مقاساً
 ok 399 - R26 · الأداء: LCP وزمن التحميل على ١٣ مقاساً
   ---
-  duration_ms: 80751.855469
+  duration_ms: 80828.271473
   type: 'test'
   ...
 # Subtest: R26 · الأداء: شبكة بطيئة (Fast 3G) — LCP وزمن التفاعل
 ok 400 - R26 · الأداء: شبكة بطيئة (Fast 3G) — LCP وزمن التفاعل
   ---
-  duration_ms: 14877.384166
+  duration_ms: 14798.777705
   type: 'test'
   ...
 # Subtest: R26 · تسجيل الدخول: السرعة من أول ضغطة لحد فتح التطبيق
 ok 401 - R26 · تسجيل الدخول: السرعة من أول ضغطة لحد فتح التطبيق
   ---
-  duration_ms: 3233.25735
+  duration_ms: 3309.211401
   type: 'test'
   ...
 # Subtest: R26 · ١٠٠ طلب متوازي: الردود صحيحة المحتوى
 ok 402 - R26 · ١٠٠ طلب متوازي: الردود صحيحة المحتوى
   ---
-  duration_ms: 807.034935
+  duration_ms: 734.205363
   type: 'test'
   ...
 # Subtest: R26 · ثبات الذاكرة: RSS بعد ٣٠٠ طلب
 ok 403 - R26 · ثبات الذاكرة: RSS بعد ٣٠٠ طلب
   ---
-  duration_ms: 737.875127
+  duration_ms: 702.071643
   type: 'test'
   ...
 # Subtest: R26 · البرهان: طلب التحقق من الجلسة بيوصل /api/auth/me (مش عنوان غلط)
 ok 404 - R26 · البرهان: طلب التحقق من الجلسة بيوصل /api/auth/me (مش عنوان غلط)
   ---
-  duration_ms: 7111.558051
+  duration_ms: 7153.634482
   type: 'test'
   ...
 # Subtest: R26 · لقطات الشاشة: كل صفحة على ٣ مقاسات
 ok 405 - R26 · لقطات الشاشة: كل صفحة على ٣ مقاسات
   ---
-  duration_ms: 59831.587997
+  duration_ms: 59938.557943
   type: 'test'
   ...
 # Subtest: R26 · تقرير الجولة
 ok 406 - R26 · تقرير الجولة
   ---
-  duration_ms: 25.822467
+  duration_ms: 24.946733
   type: 'test'
   ...
 # Subtest: الواجهة بتتحمّل من غير crash
 ok 407 - الواجهة بتتحمّل من غير crash
   ---
-  duration_ms: 4.340535
+  duration_ms: 4.386656
   type: 'test'
   ...
 # Subtest: لوحة التفاصيل بتطلع الأقسام الأربعة + الخطة + الخلاصة
 ok 408 - لوحة التفاصيل بتطلع الأقسام الأربعة + الخطة + الخلاصة
   ---
-  duration_ms: 25.124388
+  duration_ms: 27.466578
   type: 'test'
   ...
 # Subtest: ⛔ مفيش undefined ولا NaN في HTML
 ok 409 - ⛔ مفيش undefined ولا NaN في HTML
   ---
-  duration_ms: 6.220564
+  duration_ms: 6.525086
   type: 'test'
   ...
 # Subtest: ⛔ التنويه بيظهر دايماً (بيانات المؤسسات + الدرجة)
 ok 410 - ⛔ التنويه بيظهر دايماً (بيانات المؤسسات + الدرجة)
   ---
-  duration_ms: 6.872282
+  duration_ms: 7.987219
   type: 'test'
   ...
 # Subtest: سهم ببيانات ناقصة ⇒ اللوحة بتطلع من غير crash
 ok 411 - سهم ببيانات ناقصة ⇒ اللوحة بتطلع من غير crash
   ---
-  duration_ms: 3.615059
+  duration_ms: 4.170888
   type: 'test'
   ...
 # Subtest: الفلترة بالبحث بالاسم أو الرمز
 ok 412 - الفلترة بالبحث بالاسم أو الرمز
   ---
-  duration_ms: 5.87284
+  duration_ms: 6.011917
   type: 'test'
   ...
 # Subtest: الفلترة بالقطاع وبالتصنيف
 ok 413 - الفلترة بالقطاع وبالتصنيف
   ---
-  duration_ms: 6.283205
+  duration_ms: 6.346787
   type: 'test'
   ...
 # Subtest: ⛔ ناقص البيانات مخفي افتراضياً ويبان لما نطلب
 ok 414 - ⛔ ناقص البيانات مخفي افتراضياً ويبان لما نطلب
   ---
-  duration_ms: 7.125935
+  duration_ms: 7.253885
   type: 'test'
   ...
 # Subtest: الترتيب يشتغل على البيانات الفعلية
 ok 415 - الترتيب يشتغل على البيانات الفعلية
   ---
-  duration_ms: 6.617577
+  duration_ms: 6.475488
   type: 'test'
   ...
 # Subtest: تصفير الفلاتر بيرجّع كل حاجة
 ok 416 - تصفير الفلاتر بيرجّع كل حاجة
   ---
-  duration_ms: 6.129986
+  duration_ms: 6.225408
   type: 'test'
   ...
 # Subtest: صفحة الرادار موجودة في index.html وبتتكلم عربي RTL
 ok 417 - صفحة الرادار موجودة في index.html وبتتكلم عربي RTL
   ---
-  duration_ms: 2.630396
+  duration_ms: 2.736484
   type: 'test'
   ...
 # Subtest: الأداة مسجّلة في الـsidebar والـrouting
 ok 418 - الأداة مسجّلة في الـsidebar والـrouting
   ---
-  duration_ms: 2.678769
+  duration_ms: 2.738395
   type: 'test'
   ...
 # Subtest: الـCSS بيستخدم رموز التصميم بس (مفيش hex جوّه)
 ok 419 - الـCSS بيستخدم رموز التصميم بس (مفيش hex جوّه)
   ---
-  duration_ms: 1.165761
+  duration_ms: 1.2132
   type: 'test'
   ...
 # Subtest: ⛔ رموز التصميم موجودة فعلاً في octa-tokens.css
 ok 420 - ⛔ رموز التصميم موجودة فعلاً في octa-tokens.css
   ---
-  duration_ms: 2.178093
+  duration_ms: 2.318581
   type: 'test'
   ...
 # Subtest: 🩺 مودال التشخيص بيعرض السجل وسبب الفشل
 ok 421 - 🩺 مودال التشخيص بيعرض السجل وسبب الفشل
   ---
-  duration_ms: 2.078228
+  duration_ms: 2.075116
   type: 'test'
   ...
 # Subtest: 💾 مسح كامل بـmock ⇒ كاش محلي بيتحفظ
 ok 422 - 💾 مسح كامل بـmock ⇒ كاش محلي بيتحفظ
   ---
-  duration_ms: 5.24913
+  duration_ms: 5.287907
   type: 'test'
   ...
 # Subtest: ⛔ الكاش المنتهي (أقدم من يوم) بيتجاهل
 ok 423 - ⛔ الكاش المنتهي (أقدم من يوم) بيتجاهل
   ---
-  duration_ms: 2.366389
+  duration_ms: 2.537203
   type: 'test'
   ...
 # Subtest: ⛔ فشل المؤشرات الجماعية ما بيوقّفش المسح (fail-soft)
 ok 424 - ⛔ فشل المؤشرات الجماعية ما بيوقّفش المسح (fail-soft)
   ---
-  duration_ms: 5.092219
+  duration_ms: 4.631767
   type: 'test'
   ...
 # Subtest: 🛟 لو الكون فشل، الاحتياطي (market_tech) بيشتغل والمسح بيكمّل
 ok 425 - 🛟 لو الكون فشل، الاحتياطي (market_tech) بيشتغل والمسح بيكمّل
   ---
-  duration_ms: 10.294549
+  duration_ms: 7.07574
   type: 'test'
   ...
 # Subtest: 🛟 النتيجة ما فيهاش entry بـcode=undefined (Display تدريجي)
 ok 426 - 🛟 النتيجة ما فيهاش entry بـcode=undefined (Display تدريجي)
   ---
-  duration_ms: 7.284584
+  duration_ms: 7.601062
   type: 'test'
   ...
 # Subtest: 📊 الجدول فيه صف ترتيب + صف فلترة لكل عمود
 ok 427 - 📊 الجدول فيه صف ترتيب + صف فلترة لكل عمود
   ---
-  duration_ms: 3.399646
+  duration_ms: 3.151446
   type: 'test'
   ...
 # Subtest: 🧮 فلتر الأرقام يقبل > < >= <= = والرقم لوحده
 ok 428 - 🧮 فلتر الأرقام يقبل > < >= <= = والرقم لوحده
   ---
-  duration_ms: 3.47426
+  duration_ms: 3.727447
   type: 'test'
   ...
 # Subtest: 📄 صفحة السهم المنفصلة موجودة في الـHTML وفي KEEP
 ok 429 - 📄 صفحة السهم المنفصلة موجودة في الـHTML وفي KEEP
   ---
-  duration_ms: 8.232755
+  duration_ms: 8.474812
   type: 'test'
   ...
 # Subtest: 📄 فتح السهم بيحط المحتوى في صفحة مستقلة (مش في الصفحة الرئيسية)
 ok 430 - 📄 فتح السهم بيحط المحتوى في صفحة مستقلة (مش في الصفحة الرئيسية)
   ---
-  duration_ms: 4.409531
+  duration_ms: 4.552831
   type: 'test'
   ...
 # Subtest: SMA — متوسط متحرك بسيط
 ok 431 - SMA — متوسط متحرك بسيط
   ---
-  duration_ms: 1.368958
+  duration_ms: 2.119906
   type: 'test'
   ...
 # Subtest: EMA — البذرة متوسط بسيط (مش أول قيمة)
 ok 432 - EMA — البذرة متوسط بسيط (مش أول قيمة)
   ---
-  duration_ms: 0.2106
+  duration_ms: 0.253478
   type: 'test'
   ...
 # Subtest: RSI (Wilder) — القيمة المرجعية الشهيرة
 ok 433 - RSI (Wilder) — القيمة المرجعية الشهيرة
   ---
-  duration_ms: 0.288123
+  duration_ms: 0.46042
   type: 'test'
   ...
 # Subtest: RSI — صاعد بالكامل ⇒ ١٠٠ · هابط بالكامل ⇒ صفر
 ok 434 - RSI — صاعد بالكامل ⇒ ١٠٠ · هابط بالكامل ⇒ صفر
   ---
-  duration_ms: 0.216752
+  duration_ms: 0.254967
   type: 'test'
   ...
 # Subtest: MACD — الإشارة = EMA(9) من خط MACD
 ok 435 - MACD — الإشارة = EMA(9) من خط MACD
   ---
-  duration_ms: 0.840751
+  duration_ms: 1.385977
   type: 'test'
   ...
 # Subtest: ATR (Wilder) — موجب وأكبر من صفر
 ok 436 - ATR (Wilder) — موجب وأكبر من صفر
   ---
-  duration_ms: 0.43087
+  duration_ms: 0.741673
   type: 'test'
   ...
 # Subtest: ATR% = ATR ÷ السعر × ١٠٠
 ok 437 - ATR% = ATR ÷ السعر × ١٠٠
   ---
-  duration_ms: 0.960896
+  duration_ms: 0.604971
   type: 'test'
   ...
 # Subtest: ADX — اتجاه قوي ⇒ ADX عالي
 ok 438 - ADX — اتجاه قوي ⇒ ADX عالي
   ---
-  duration_ms: 0.983461
+  duration_ms: 2.598204
   type: 'test'
   ...
 # Subtest: RVOL — الحجم النسبي
 ok 439 - RVOL — الحجم النسبي
   ---
-  duration_ms: 0.597389
+  duration_ms: 0.895341
   type: 'test'
   ...
 # Subtest: متوسط النطاق اليومي
 ok 440 - متوسط النطاق اليومي
   ---
-  duration_ms: 0.458222
+  duration_ms: 0.707287
   type: 'test'
   ...
 # Subtest: جلسة غير صالحة (H < L) بتتشال
 ok 441 - جلسة غير صالحة (H < L) بتتشال
   ---
-  duration_ms: 0.583331
+  duration_ms: 0.959171
   type: 'test'
   ...
 # Subtest: ⛔ بيانات ناقصة ⇒ المحور null مش صفر
 ok 442 - ⛔ بيانات ناقصة ⇒ المحور null مش صفر
   ---
-  duration_ms: 0.781269
+  duration_ms: 1.264996
   type: 'test'
   ...
 # Subtest: أسعار ثابتة ⇒ مش بيانات حقيقية
 ok 443 - أسعار ثابتة ⇒ مش بيانات حقيقية
   ---
-  duration_ms: 0.318383
+  duration_ms: 0.518697
   type: 'test'
   ...
 # Subtest: بيانات قديمة (أقدم من أسبوع) ⇒ stale
 ok 444 - بيانات قديمة (أقدم من أسبوع) ⇒ stale
   ---
-  duration_ms: 0.352283
+  duration_ms: 0.622063
   type: 'test'
   ...
 # Subtest: الجلسات الصفرية الحجم بتتحمل (مش NaN)
 ok 445 - الجلسات الصفرية الحجم بتتحمل (مش NaN)
   ---
-  duration_ms: 0.414199
+  duration_ms: 0.661808
   type: 'test'
   ...
 # Subtest: اتجاه صاعد ⇒ UPTREND
 ok 446 - اتجاه صاعد ⇒ UPTREND
   ---
-  duration_ms: 1.556301
+  duration_ms: 2.001323
   type: 'test'
   ...
 # Subtest: اتجاه هابط ⇒ DOWNTREND
 ok 447 - اتجاه هابط ⇒ DOWNTREND
   ---
-  duration_ms: 0.879757
+  duration_ms: 1.401468
   type: 'test'
   ...
 # Subtest: ⛔ema200 ناقص بيتسجل كـnull مش بيخلي الدرجة NaN
 ok 448 - ⛔ema200 ناقص بيتسجل كـnull مش بيخلي الدرجة NaN
   ---
-  duration_ms: 0.889599
+  duration_ms: 5.730662
   type: 'test'
   ...
 # Subtest: البنية: قمم وأرض صاعدة (في شموع فيها ارتدادات)
 ok 449 - البنية: قمم وأرض صاعدة (في شموع فيها ارتدادات)
   ---
-  duration_ms: 0.511538
+  duration_ms: 0.734335
   type: 'test'
   ...
 # Subtest: ⛔ اتجاه قوي بلا قمم ⇒ البنية null (مش مخترعة)
 ok 450 - ⛔ اتجاه قوي بلا قمم ⇒ البنية null (مش مخترعة)
   ---
-  duration_ms: 0.714915
+  duration_ms: 1.341067
   type: 'test'
   ...
 # Subtest: المستويات: مقاومة فوق/support تحت السعر الحالي
 ok 451 - المستويات: مقاومة فوق/support تحت السعر الحالي
   ---
-  duration_ms: 0.432054
+  duration_ms: 0.68619
   type: 'test'
   ...
 # Subtest: زخم صاعد قوي ⇒ STRONG POSITIVE
 ok 452 - زخم صاعد قوي ⇒ STRONG POSITIVE
   ---
-  duration_ms: 0.910532
+  duration_ms: 0.972907
   type: 'test'
   ...
 # Subtest: زخم هابط قوي ⇒ STRONG NEGATIVE
 ok 453 - زخم هابط قوي ⇒ STRONG NEGATIVE
   ---
-  duration_ms: 0.681201
+  duration_ms: 0.738346
   type: 'test'
   ...
 # Subtest: ⛔ التشبع محفوظ كحالة مستقلة (مش يمسح الاتجاه)
 ok 454 - ⛔ التشبع محفوظ كحالة مستقلة (مش يمسح الاتجاه)
   ---
-  duration_ms: 0.883945
+  duration_ms: 1.047119
   type: 'test'
   ...
 # Subtest: ⛔ RSI فوق ٧٠ ⇒ OVERBOUGHT (مش bearish تلقائي)
 ok 455 - ⛔ RSI فوق ٧٠ ⇒ OVERBOUGHT (مش bearish تلقائي)
   ---
-  duration_ms: 0.441354
+  duration_ms: 0.454334
   type: 'test'
   ...
 # Subtest: ⛔ RSI تحت ٣٠ ⇒ OVERSOLD (مش bullish تلقائي)
 ok 456 - ⛔ RSI تحت ٣٠ ⇒ OVERSOLD (مش bullish تلقائي)
   ---
-  duration_ms: 0.424602
+  duration_ms: 0.448892
   type: 'test'
   ...
 # Subtest: حجم × ٣ ⇒ HIGH أو UNUSUAL
 ok 457 - حجم × ٣ ⇒ HIGH أو UNUSUAL
   ---
-  duration_ms: 0.290822
+  duration_ms: 0.250427
   type: 'test'
   ...
 # Subtest: ⛔ حجم عالي + سعر هابط = توزيع (درجة منخفضة)
 ok 458 - ⛔ حجم عالي + سعر هابط = توزيع (درجة منخفضة)
   ---
-  duration_ms: 0.267065
+  duration_ms: 0.269218
   type: 'test'
   ...
 # Subtest: ⛔ حجم عالي + سعر صاعد = تأكيد (درجة عالية)
 ok 459 - ⛔ حجم عالي + سعر صاعد = تأكيد (درجة عالية)
   ---
-  duration_ms: 0.226754
+  duration_ms: 0.253319
   type: 'test'
   ...
 # Subtest: حجم ضعيف ⇒ LOW
 ok 460 - حجم ضعيف ⇒ LOW
   ---
-  duration_ms: 0.477166
+  duration_ms: 0.459684
   type: 'test'
   ...
 # Subtest: السيولة: نسبة turnover من mc ÷ السعر
 ok 461 - السيولة: نسبة turnover من mc ÷ السعر
   ---
-  duration_ms: 0.512146
+  duration_ms: 0.539229
   type: 'test'
   ...
 # Subtest: السيولة: نسبة دوران واقعية للمصري ⇒ MODERATE
 ok 462 - السيولة: نسبة دوران واقعية للمصري ⇒ MODERATE
   ---
-  duration_ms: 0.534465
+  duration_ms: 0.534084
   type: 'test'
   ...
 # Subtest: ⛔ من غير mc ⇒ السيولة غير متاحة (مش مخترعة)
 ok 463 - ⛔ من غير mc ⇒ السيولة غير متاحة (مش مخترعة)
   ---
-  duration_ms: 0.444454
+  duration_ms: 0.531583
   type: 'test'
   ...
 # Subtest: ⛔ التذبذب العالي = مخاطرة ⇒ الدرجة أقل
 ok 464 - ⛔ التذبذب العالي = مخاطرة ⇒ الدرجة أقل
   ---
-  duration_ms: 1.664237
+  duration_ms: 1.764275
   type: 'test'
   ...
 # Subtest: التذبذب: التصنيف نسبي لتاريخ السهم نفسه
 ok 465 - التذبذب: التصنيف نسبي لتاريخ السهم نفسه
   ---
-  duration_ms: 0.633406
+  duration_ms: 0.617738
   type: 'test'
   ...
 # Subtest: ⛔ مافيش NaN ولا Infinity في أي محرك
 ok 466 - ⛔ مافيش NaN ولا Infinity في أي محرك
   ---
-  duration_ms: 13.522259
+  duration_ms: 13.49646
   type: 'test'
   ...
 # Subtest: ⛔ محرك بدون شموع ⇒ null مش crash
 ok 467 - ⛔ محرك بدون شموع ⇒ null مش crash
   ---
-  duration_ms: 0.248409
+  duration_ms: 0.236633
   type: 'test'
   ...
 # Subtest: ملف المحرك موجود وبيصدّر الـAPI المتوقعة
 ok 468 - ملف المحرك موجود وبيصدّر الـAPI المتوقعة
   ---
-  duration_ms: 0.23851
+  duration_ms: 0.241553
   type: 'test'
   ...
 # Subtest: خطة دخول على كسر مقاومة + وقف ATR + هدف + نسبة عائد
 ok 469 - خطة دخول على كسر مقاومة + وقف ATR + هدف + نسبة عائد
   ---
-  duration_ms: 4.828948
+  duration_ms: 2.220696
   type: 'test'
   ...
 # Subtest: ⛔ وقف عند أو فوق الدخول ⇒ مفيش نسبة عائد
 ok 470 - ⛔ وقف عند أو فوق الدخول ⇒ مفيش نسبة عائد
   ---
-  duration_ms: 1.119708
+  duration_ms: 1.51864
   type: 'test'
   ...
 # Subtest: ⛔ مفيش ATR ⇒ خطة غير متاحة (مش أرقام مصنوعة)
 ok 471 - ⛔ مفيش ATR ⇒ خطة غير متاحة (مش أرقام مصنوعة)
   ---
-  duration_ms: 1.028795
+  duration_ms: 1.092304
   type: 'test'
   ...
 # Subtest: ⛔ شموع أقل من ٢٠ ⇒ خطة غير متاحة
 ok 472 - ⛔ شموع أقل من ٢٠ ⇒ خطة غير متاحة
   ---
-  duration_ms: 0.186357
+  duration_ms: 0.212227
   type: 'test'
   ...
 # Subtest: ⛔ اتجاه هابط ⇒ الخطة غير صالحة
 ok 473 - ⛔ اتجاه هابط ⇒ الخطة غير صالحة
   ---
-  duration_ms: 1.023685
+  duration_ms: 1.766819
   type: 'test'
   ...
 # Subtest: حجم المركز = المخاطرة ÷ المخاطرة لكل سهم
 ok 474 - حجم المركز = المخاطرة ÷ المخاطرة لكل سهم
   ---
-  duration_ms: 0.330449
+  duration_ms: 0.341346
   type: 'test'
   ...
 # Subtest: ⛔ تجاوز سقف التخصيص ⇒ الكمية تقلّ (مش تتعدى)
 ok 475 - ⛔ تجاوز سقف التخصيص ⇒ الكمية تقلّ (مش تتعدى)
   ---
-  duration_ms: 0.114396
+  duration_ms: 0.147478
   type: 'test'
   ...
 # Subtest: ⛔ مخاطرة صفر (دخول = وقف) ⇒ مفيش كمية
 ok 476 - ⛔ مخاطرة صفر (دخول = وقف) ⇒ مفيش كمية
   ---
-  duration_ms: 0.083738
+  duration_ms: 0.126852
   type: 'test'
   ...
 # Subtest: ⛔ مفيش خطة ⇒ مفيش حجم مركز
 ok 477 - ⛔ مفيش خطة ⇒ مفيش حجم مركز
   ---
-  duration_ms: 0.118508
+  duration_ms: 0.136032
   type: 'test'
   ...
 # Subtest: ⛔ بدون رأس مال ⇒ مفيش أرقام
 ok 478 - ⛔ بدون رأس مال ⇒ مفيش أرقام
   ---
-  duration_ms: 0.084244
+  duration_ms: 0.124066
   type: 'test'
   ...
 # Subtest: المخاطرة: سيولة ضعيفة + تذبذب عالي ⇒ HIGH على الأقل
 ok 479 - المخاطرة: سيولة ضعيفة + تذبذب عالي ⇒ HIGH على الأقل
   ---
-  duration_ms: 0.366466
+  duration_ms: 0.545664
   type: 'test'
   ...
 # Subtest: ⛔ بيانات قديمة ⇒ المخاطرة غير قابلة للتقييم
 ok 480 - ⛔ بيانات قديمة ⇒ المخاطرة غير قابلة للتقييم
   ---
-  duration_ms: 0.132012
+  duration_ms: 0.192175
   type: 'test'
   ...
 # Subtest: ⛔ تنبيه بيانات المؤسسات موجود دايماً (وهمي غير موجود)
 ok 481 - ⛔ تنبيه بيانات المؤسسات موجود دايماً (وهمي غير موجود)
   ---
-  duration_ms: 0.109469
+  duration_ms: 0.181539
   type: 'test'
   ...
 # Subtest: ⛔ مفيش أي سهم بيتقصد «آمن»
 ok 482 - ⛔ مفيش أي سهم بيتقصد «آمن»
   ---
-  duration_ms: 0.144721
+  duration_ms: 0.229971
   type: 'test'
   ...
 # Subtest: الدليل الذكي: مكوّنات ليها مصدر + ثقة + درجة
 ok 483 - الدليل الذكي: مكوّنات ليها مصدر + ثقة + درجة
   ---
-  duration_ms: 0.639376
+  duration_ms: 0.953599
   type: 'test'
   ...
 # Subtest: ⛔ بيانات المؤسسات غير متاحة ⇒ معلنة دايماً (مش مصنوعة)
 ok 484 - ⛔ بيانات المؤسسات غير متاحة ⇒ معلنة دايماً (مش مصنوعة)
   ---
-  duration_ms: 0.667513
+  duration_ms: 0.595091
   type: 'test'
   ...
 # Subtest: ⛔ توصية المحللين: من -١..+١ ⇒ ٠..١٠٠
 ok 485 - ⛔ توصية المحللين: من -١..+١ ⇒ ٠..١٠٠
   ---
-  duration_ms: 0.106758
+  duration_ms: 0.108305
   type: 'test'
   ...
 # Subtest: ⛔ مفيش شموع ⇒ دليل ذكي غير متاح
 ok 486 - ⛔ مفيش شموع ⇒ دليل ذكي غير متاح
   ---
-  duration_ms: 0.144729
+  duration_ms: 0.130172
   type: 'test'
   ...
 # Subtest: ⛔ الدرجة المركّبة داخل ٠..١٠٠ (باج ٨٤٥٠)
 ok 487 - ⛔ الدرجة المركّبة داخل ٠..١٠٠ (باج ٨٤٥٠)
   ---
-  duration_ms: 0.217437
+  duration_ms: 0.213022
   type: 'test'
   ...
 # Subtest: ⛔ مؤشر ناقص ⇒ بيتشال والوزن بيتوزّع (مش صفر)
 ok 488 - ⛔ مؤشر ناقص ⇒ بيتشال والوزن بيتوزّع (مش صفر)
   ---
-  duration_ms: 0.151979
+  duration_ms: 0.158375
   type: 'test'
   ...
 # Subtest: ⛔ أقل من ٣ مؤشرات ⇒ مفيش درجة مركّبة
 ok 489 - ⛔ أقل من ٣ مؤشرات ⇒ مفيش درجة مركّبة
   ---
-  duration_ms: 0.085807
+  duration_ms: 0.08577
   type: 'test'
   ...
 # Subtest: البروفايلات: ٣ بروفايلات + أوزان مخزّنة + قواعد موثّقة
 ok 490 - البروفايلات: ٣ بروفايلات + أوزان مخزّنة + قواعد موثّقة
   ---
-  duration_ms: 0.157649
+  duration_ms: 0.13397
   type: 'test'
   ...
 # Subtest: كل الشروط ⇒ STRONG ANALYTICAL CANDIDATE
 ok 491 - كل الشروط ⇒ STRONG ANALYTICAL CANDIDATE
   ---
-  duration_ms: 0.468685
+  duration_ms: 0.425725
   type: 'test'
   ...
 # Subtest: ⛔ بيانات ناقصة ⇒ INSUFFICIENT DATA (مش صفر)
 ok 492 - ⛔ بيانات ناقصة ⇒ INSUFFICIENT DATA (مش صفر)
   ---
-  duration_ms: 0.104993
+  duration_ms: 0.109415
   type: 'test'
   ...
 # Subtest: مؤشرات ناقصة ⇒ INSUFFICIENT DATA
 ok 493 - مؤشرات ناقصة ⇒ INSUFFICIENT DATA
   ---
-  duration_ms: 0.09032
+  duration_ms: 0.098276
   type: 'test'
   ...
 # Subtest: أساس جيد + مخاطرة عالية ⇒ HIGH RISK
 ok 494 - أساس جيد + مخاطرة عالية ⇒ HIGH RISK
   ---
-  duration_ms: 0.136081
+  duration_ms: 0.14234
   type: 'test'
   ...
 # Subtest: ⛔ سهمTrends هابط ⇒ NO CURRENT SETUP (مش HIGH RISK)
 ok 495 - ⛔ سهمTrends هابط ⇒ NO CURRENT SETUP (مش HIGH RISK)
   ---
-  duration_ms: 0.184151
+  duration_ms: 0.139161
   type: 'test'
   ...
 # Subtest: أساس جيد + ناقص تأكيد ⇒ CANDIDATE — NEEDS CONFIRMATION
 ok 496 - أساس جيد + ناقص تأكيد ⇒ CANDIDATE — NEEDS CONFIRMATION
   ---
-  duration_ms: 0.183834
+  duration_ms: 0.136775
   type: 'test'
   ...
 # Subtest: ⛔ التصنيف بيقول السبب (مش صندوق أسود)
 ok 497 - ⛔ التصنيف بيقول السبب (مش صندوق أسود)
   ---
-  duration_ms: 0.194571
+  duration_ms: 0.225065
   type: 'test'
   ...
 # Subtest: ⛔ analyze بيشتغل من الصفر للنهاية (كل المراحل)
 ok 498 - ⛔ analyze بيشتغل من الصفر للنهاية (كل المراحل)
   ---
-  duration_ms: 1.625562
+  duration_ms: 1.986642
   type: 'test'
   ...
 # Subtest: ⛔ analyze على شموع قليلة ⇒ E من غير crash
 ok 499 - ⛔ analyze على شموع قليلة ⇒ E من غير crash
   ---
-  duration_ms: 0.237922
+  duration_ms: 0.244781
   type: 'test'
   ...
 # Subtest: ⛔ analyze على فاضي ⇒ E من غير crash
 ok 500 - ⛔ analyze على فاضي ⇒ E من غير crash
   ---
-  duration_ms: 0.175418
+  duration_ms: 0.208126
   type: 'test'
   ...
 # Subtest: المصطلحات: كل واحد ليه ٤ أجزاء (يقيس · ليه يهم · إزاي بنستخدمه · ما لا يعنيه)
 ok 501 - المصطلحات: كل واحد ليه ٤ أجزاء (يقيس · ليه يهم · إزاي بنستخدمه · ما لا يعنيه)
   ---
-  duration_ms: 0.167073
+  duration_ms: 0.180175
   type: 'test'
   ...
 # Subtest: ⛔ كل مصطلح فيه «ما لا يعنيه» — مفيش وعود
 ok 502 - ⛔ كل مصطلح فيه «ما لا يعنيه» — مفيش وعود
   ---
-  duration_ms: 0.112984
+  duration_ms: 0.13933
   type: 'test'
   ...
 # Subtest: البطاقة النهائية: عنوان + سبب + حالة + أسطر
 ok 503 - البطاقة النهائية: عنوان + سبب + حالة + أسطر
   ---
-  duration_ms: 2.093285
+  duration_ms: 1.511256
   type: 'test'
   ...
 # Subtest: شرح الدرجة: صفوف + أوزان + مؤشر ناقص
 ok 504 - شرح الدرجة: صفوف + أوزان + مؤشر ناقص
   ---
-  duration_ms: 1.659084
+  duration_ms: 2.114847
   type: 'test'
   ...
 # Subtest: خطوات «كيف الرادار بيحلل» — ٨ خطوات بحالة
 ok 505 - خطوات «كيف الرادار بيحلل» — ٨ خطوات بحالة
   ---
-  duration_ms: 2.591631
+  duration_ms: 1.99926
   type: 'test'
   ...
 # Subtest: ⛔ مفيش حروف صينية/يابانية في أي ملف من ملفات الرادار
 ok 506 - ⛔ مفيش حروف صينية/يابانية في أي ملف من ملفات الرادار
   ---
-  duration_ms: 4.15795
+  duration_ms: 4.250976
   type: 'test'
   ...
 # Subtest: ⛔ مفيش «undefined» أو «NaN» في النصوص المولّدة
 ok 507 - ⛔ مفيش «undefined» أو «NaN» في النصوص المولّدة
   ---
-  duration_ms: 1.701581
+  duration_ms: 2.077195
   type: 'test'
   ...
 # Subtest: ⛔ بيانات قديمة ⇒ مفيش درجة (السهم ما يتصدّرش الترتيب)
 ok 508 - ⛔ بيانات قديمة ⇒ مفيش درجة (السهم ما يتصدّرش الترتيب)
   ---
-  duration_ms: 0.888981
+  duration_ms: 0.879304
   type: 'test'
   ...
 # Subtest: ⛔ الخطة الملغاة مش بتدي نقاط مخاطرة (حكم على الإعداد مش على المخاطرة)
 ok 509 - ⛔ الخطة الملغاة مش بتدي نقاط مخاطرة (حكم على الإعداد مش على المخاطرة)
   ---
-  duration_ms: 0.180179
+  duration_ms: 0.187307
   type: 'test'
   ...
 # Subtest: ⛔ «في انتظار تأكيد» مش بيفشل التصنيف (شرط توقيت مش شرط تحليلي)
 ok 510 - ⛔ «في انتظار تأكيد» مش بيفشل التصنيف (شرط توقيت مش شرط تحليلي)
   ---
-  duration_ms: 0.13799
+  duration_ms: 0.141503
   type: 'test'
   ...
 # Subtest: ⛔ الخطة الملغاة (اتجاه هابط) بتفشل التصنيف
 ok 511 - ⛔ الخطة الملغاة (اتجاه هابط) بتفشل التصنيف
   ---
-  duration_ms: 0.124303
+  duration_ms: 0.127837
   type: 'test'
   ...
 # Subtest: ⛔ التصنيف A ممكن يتحقق (مش مستحيل رياضياً)
 ok 512 - ⛔ التصنيف A ممكن يتحقق (مش مستحيل رياضياً)
   ---
-  duration_ms: 0.085
+  duration_ms: 0.084374
   type: 'test'
   ...
 # Subtest: 📈 emaAligned بترجّع نقاط مربوطة بالشموع (الإزاحة = len-1)
 ok 513 - 📈 emaAligned بترجّع نقاط مربوطة بالشموع (الإزاحة = len-1)
   ---
-  duration_ms: 0.198272
+  duration_ms: 0.210171
   type: 'test'
   ...
 # Subtest: 📈 emaAligned بترجّع null لو البيانات قصيرة (fail-closed)
 ok 514 - 📈 emaAligned بترجّع null لو البيانات قصيرة (fail-closed)
   ---
-  duration_ms: 0.097801
+  duration_ms: 0.073743
   type: 'test'
   ...
 # Subtest: 📈 emaAligned بترجّع null لو_times_ أقصر من البيانات
 ok 515 - 📈 emaAligned بترجّع null لو_times_ أقصر من البيانات
   ---
-  duration_ms: 0.151378
+  duration_ms: 0.126467
   type: 'test'
   ...
 # Subtest: 🧭 كل مسار في SPA_ROUTES لازم يوصّل لصفحة حقيقية
 ok 516 - 🧭 كل مسار في SPA_ROUTES لازم يوصّل لصفحة حقيقية
   ---
-  duration_ms: 8.785501
+  duration_ms: 8.68859
   type: 'test'
   ...
 # Subtest: 🧭 كل alias لازم يوصل لـid موجود في TOOL_PAGES
 ok 517 - 🧭 كل alias لازم يوصل لـid موجود في TOOL_PAGES
   ---
-  duration_ms: 5.602539
+  duration_ms: 5.73341
   type: 'test'
   ...
 # Subtest: 🧭 كل id في TOOL_PAGES لازم ليه صفحة في index.html
 ok 518 - 🧭 كل id في TOOL_PAGES لازم ليه صفحة في index.html
   ---
-  duration_ms: 5.837809
+  duration_ms: 6.09324
   type: 'test'
   ...
 # Subtest: 🧭 كل أداة في الـsidebar: صفحة (TOOL_PAGES) أو مودال (modal:1)
 ok 519 - 🧭 كل أداة في الـsidebar: صفحة (TOOL_PAGES) أو مودال (modal:1)
   ---
-  duration_ms: 5.100169
+  duration_ms: 5.173824
   type: 'test'
   ...
 # Subtest: 🧭 كل مسار في SPA_ROUTES لازم يبقى فريد (مافيش تكرار)
 ok 520 - 🧭 كل مسار في SPA_ROUTES لازم يبقى فريد (مافيش تكرار)
   ---
-  duration_ms: 2.42772
+  duration_ms: 2.361561
   type: 'test'
   ...
 # [gate] التحقق من الجلسة مش متاح — الباك هو اللي هيحكم
 # Subtest: SEC-001 · كوكي عشوائي ⇒ 401 والطلب مابيوصلش للبيانات
 ok 521 - SEC-001 · كوكي عشوائي ⇒ 401 والطلب مابيوصلش للبيانات
   ---
-  duration_ms: 34.802807
+  duration_ms: 32.802103
   type: 'test'
   ...
 # Subtest: SEC-001 · كوكي عشوائي ⇒ صفحة التطبيق مش بتتخدم
 ok 522 - SEC-001 · كوكي عشوائي ⇒ صفحة التطبيق مش بتتخدم
   ---
-  duration_ms: 8.460887
+  duration_ms: 8.848967
   type: 'test'
   ...
 # Subtest: SEC-001 · كوكي صحيح ⇒ يعدّي البوابة ويوصل للبيانات
 ok 523 - SEC-001 · كوكي صحيح ⇒ يعدّي البوابة ويوصل للبيانات
   ---
-  duration_ms: 5.169343
+  duration_ms: 5.411707
   type: 'test'
   ...
 # Subtest: SEC-001 · كوكي صحيح ⇒ صفحة التطبيق بتتخدم
 ok 524 - SEC-001 · كوكي صحيح ⇒ صفحة التطبيق بتتخدم
   ---
-  duration_ms: 4.785236
+  duration_ms: 5.16885
   type: 'test'
   ...
 # Subtest: SEC-001 · التحقق من الجلسة بيحصل قبل الخدمة
 ok 525 - SEC-001 · التحقق من الجلسة بيحصل قبل الخدمة
   ---
-  duration_ms: 4.789196
+  duration_ms: 5.162193
   type: 'test'
   ...
 # [api-proxy] api_unreachable (error)
 # Subtest: SEC-001 · صاحب الصلاحية واقع ⇒ ما فيش بيانات بتتخدم
 ok 526 - SEC-001 · صاحب الصلاحية واقع ⇒ ما فيش بيانات بتتخدم
   ---
-  duration_ms: 547.28406
+  duration_ms: 546.687874
   type: 'test'
   ...
 # Subtest: SEC-001 · صاحب الصلاحية واقع ⇒ صفحة التطبيق مش بتتخدم
 ok 527 - SEC-001 · صاحب الصلاحية واقع ⇒ صفحة التطبيق مش بتتخدم
   ---
-  duration_ms: 4.899256
+  duration_ms: 6.404802
   type: 'test'
   ...
 # Subtest: SEC-001 · مافيش دالة «hasSession» (وجود الكوكي بس) في الـworker
 ok 528 - SEC-001 · مافيش دالة «hasSession» (وجود الكوكي بس) في الـworker
   ---
-  duration_ms: 0.339498
+  duration_ms: 0.383232
   type: 'test'
   ...
 # ✅ v8: legacy home removed · tool pages rescued
@@ -3225,61 +3225,61 @@ ok 528 - SEC-001 · مافيش دالة «hasSession» (وجود الكوكي ب
 # Subtest: SEC-024-① · armNews: اسم الشركة من الـAPI بيترمَّز
 ok 529 - SEC-024-① · armNews: اسم الشركة من الـAPI بيترمَّز
   ---
-  duration_ms: 17.259824
+  duration_ms: 17.272752
   type: 'test'
   ...
 # Subtest: SEC-024-② · renderStrategies: اسم الاستراتيجية والتركيز بيترمَّزوا
 ok 530 - SEC-024-② · renderStrategies: اسم الاستراتيجية والتركيز بيترمَّزوا
   ---
-  duration_ms: 8.307515
+  duration_ms: 8.38275
   type: 'test'
   ...
 # Subtest: SEC-024-③ · renderIntel: اسم السهم والأسباب بيترمَّزوا
 ok 531 - SEC-024-③ · renderIntel: اسم السهم والأسباب بيترمَّزوا
   ---
-  duration_ms: 7.773442
+  duration_ms: 7.765015
   type: 'test'
   ...
 # Subtest: SEC-024-④ · loadEarlyOpps: اسم السهم ومرحلته بيترمَّزوا
 ok 532 - SEC-024-④ · loadEarlyOpps: اسم السهم ومرحلته بيترمَّزوا
   ---
-  duration_ms: 8.075676
+  duration_ms: 8.154737
   type: 'test'
   ...
 # Subtest: SEC-024-⑤ · dvTabs: اسم الشركة القريب بيترمَّز
 ok 533 - SEC-024-⑤ · dvTabs: اسم الشركة القريب بيترمَّز
   ---
-  duration_ms: 7.322163
+  duration_ms: 10.730925
   type: 'test'
   ...
 # Subtest: SEC-024-⑥ · openTradingView: الرمز والاسم بيترمَّزوا
 ok 534 - SEC-024-⑥ · openTradingView: الرمز والاسم بيترمَّزوا
   ---
-  duration_ms: 8.241772
+  duration_ms: 8.131144
   type: 'test'
   ...
 # Subtest: SEC-024-⑦ · searchStock: نص البحث بيترمَّز (reflected XSS)
 ok 535 - SEC-024-⑦ · searchStock: نص البحث بيترمَّز (reflected XSS)
   ---
-  duration_ms: 7.562553
+  duration_ms: 7.650479
   type: 'test'
   ...
 # Subtest: SEC-024-⑧ · renderAiError: رسالة الخطأ من الـAPI بتترمَّز
 ok 536 - SEC-024-⑧ · renderAiError: رسالة الخطأ من الـAPI بتترمَّز
   ---
-  duration_ms: 7.943833
+  duration_ms: 8.057147
   type: 'test'
   ...
 # Subtest: SEC-024-⑨ · renderStockPage: حقول صفحة السهم من الـAPI بتترمَّز
 ok 537 - SEC-024-⑨ · renderStockPage: حقول صفحة السهم من الـAPI بتترمَّز
   ---
-  duration_ms: 8.121461
+  duration_ms: 8.213504
   type: 'test'
   ...
 # Subtest: SEC-024 · المواضع الثمانية بقالها ترميز في الكود
 ok 538 - SEC-024 · المواضع الثمانية بقالها ترميز في الكود
   ---
-  duration_ms: 5.81722
+  duration_ms: 5.860978
   type: 'test'
   ...
 # [OCTA] السيرفر اتمنع: railway - production_origin_in_preview
@@ -3287,628 +3287,628 @@ ok 538 - SEC-024 · المواضع الثمانية بقالها ترميز في
 # Subtest: SEC-025 · نفس المسار لمستخدمين ⇒ ردّين مختلفين (من غير تسرّب)
 ok 539 - SEC-025 · نفس المسار لمستخدمين ⇒ ردّين مختلفين (من غير تسرّب)
   ---
-  duration_ms: 148.210287
+  duration_ms: 148.962281
   type: 'test'
   ...
 # [OCTA] السيرفر اتمنع: railway - production_origin_in_preview
 # Subtest: SEC-025 · /api/dashboard ⇒ كل مستخدم يشوف ردّه هو
 ok 540 - SEC-025 · /api/dashboard ⇒ كل مستخدم يشوف ردّه هو
   ---
-  duration_ms: 124.824285
+  duration_ms: 125.050681
   type: 'test'
   ...
 # [OCTA] السيرفر اتمنع: railway - production_origin_in_preview
 # Subtest: SEC-025 · /api/studio/list ⇒ رسومات كل مستخدم لوحده
 ok 541 - SEC-025 · /api/studio/list ⇒ رسومات كل مستخدم لوحده
   ---
-  duration_ms: 125.430355
+  duration_ms: 123.934198
   type: 'test'
   ...
 # [OCTA] السيرفر اتمنع: railway - production_origin_in_preview
 # Subtest: SEC-025 · نفس المستخدم + نفس المسار ⇒ طلب واحد (الكاش شغّال)
 ok 542 - SEC-025 · نفس المستخدم + نفس المسار ⇒ طلب واحد (الكاش شغّال)
   ---
-  duration_ms: 7.099289
+  duration_ms: 5.700318
   type: 'test'
   ...
 # Subtest: SEC-025 · من غير توكن ⇒ مافيش كاش لمسارات حالة المستخدم
 ok 543 - SEC-025 · من غير توكن ⇒ مافيش كاش لمسارات حالة المستخدم
   ---
-  duration_ms: 125.361614
+  duration_ms: 125.473201
   type: 'test'
   ...
 # Subtest: SEC-025 · كود الكاش فيه هوية المستخدم (هاش) في المفتاح
 ok 544 - SEC-025 · كود الكاش فيه هوية المستخدم (هاش) في المفتاح
   ---
-  duration_ms: 1.864906
+  duration_ms: 1.826064
   type: 'test'
   ...
 # Subtest: 🛡️ مسارات حالة المستخدم بره الكاش العام
 ok 545 - 🛡️ مسارات حالة المستخدم بره الكاش العام
   ---
-  duration_ms: 0.94471
+  duration_ms: 0.980044
   type: 'test'
   ...
 # Subtest: 🛡️ سبب رفض البصمة بيتقول (fingerprint_disabled + need_pin)
 ok 546 - 🛡️ سبب رفض البصمة بيتقول (fingerprint_disabled + need_pin)
   ---
-  duration_ms: 0.317094
+  duration_ms: 0.352278
   type: 'test'
   ...
 # Subtest: 🛡️ reset.html بيقفل الجلسة على السيرفر
 ok 547 - 🛡️ reset.html بيقفل الجلسة على السيرفر
   ---
-  duration_ms: 0.980729
+  duration_ms: 0.998599
   type: 'test'
   ...
 # Subtest: 🛡️ الـWorker بيبعت السر والـIP الموثوق للـbackend
 ok 548 - 🛡️ الـWorker بيبعت السر والـIP الموثوق للـbackend
   ---
-  duration_ms: 0.282695
+  duration_ms: 0.232758
   type: 'test'
   ...
 # Subtest: 🛡️ مافيش مفتاح أدمن ولا سر توكن مكتوب في الكود
 ok 549 - 🛡️ مافيش مفتاح أدمن ولا سر توكن مكتوب في الكود
   ---
-  duration_ms: 0.403599
+  duration_ms: 0.438012
   type: 'test'
   ...
 # Subtest: الواجهة بتتحمّل من غير crash
 ok 550 - الواجهة بتتحمّل من غير crash
   ---
-  duration_ms: 4.617994
+  duration_ms: 4.812397
   type: 'test'
   ...
 # Subtest: الجدول بيعرض الأنماط من الـAPI كما هي
 ok 551 - الجدول بيعرض الأنماط من الـAPI كما هي
   ---
-  duration_ms: 4.161176
+  duration_ms: 4.316392
   type: 'test'
   ...
 # Subtest: ⛔ مفيش undefined ولا NaN في الجدول
 ok 552 - ⛔ مفيش undefined ولا NaN في الجدول
   ---
-  duration_ms: 2.200152
+  duration_ms: 2.289042
   type: 'test'
   ...
 # Subtest: فلتر البحث والاتجاه والعائد يشتغلوا
 ok 553 - فلتر البحث والاتجاه والعائد يشتغلوا
   ---
-  duration_ms: 2.472755
+  duration_ms: 2.524407
   type: 'test'
   ...
 # Subtest: لما الباقة مقفولة (403) ⇒ لوحة الباقة مش جدول فاضي
 ok 554 - لما الباقة مقفولة (403) ⇒ لوحة الباقة مش جدول فاضي
   ---
-  duration_ms: 2.657053
+  duration_ms: 2.715618
   type: 'test'
   ...
 # Subtest: مودال التفاصيل فيه الدخول والوقف والهدف وزر صفحة السهم
 ok 555 - مودال التفاصيل فيه الدخول والوقف والهدف وزر صفحة السهم
   ---
-  duration_ms: 2.505964
+  duration_ms: 2.504154
   type: 'test'
   ...
 # Subtest: تنسيق الأرقام: الأسعار والأرقام الفارغة
 ok 556 - تنسيق الأرقام: الأسعار والأرقام الفارغة
   ---
-  duration_ms: 2.043991
+  duration_ms: 2.113347
   type: 'test'
   ...
 # Subtest: الجدول اتحول لكروت — مفيش سحب أفقي
 ok 557 - الجدول اتحول لكروت — مفيش سحب أفقي
   ---
-  duration_ms: 2.288062
+  duration_ms: 2.264771
   type: 'test'
   ...
 # Subtest: الكارت فيه كل المعلومات (مستويات + ع/م + تذبذب + تاريخ)
 ok 558 - الكارت فيه كل المعلومات (مستويات + ع/م + تذبذب + تاريخ)
   ---
-  duration_ms: 2.659555
+  duration_ms: 2.572355
   type: 'test'
   ...
 # Subtest: تبويب TradingView بيطلّع iframe بالرمز الصح
 ok 559 - تبويب TradingView بيطلّع iframe بالرمز الصح
   ---
-  duration_ms: 2.651184
+  duration_ms: 2.688577
   type: 'test'
   ...
 # Subtest: خطوط السعر: مستوى ودخول ووقف وهدف
 ok 560 - خطوط السعر: مستوى ودخول ووقف وهدف
   ---
-  duration_ms: 2.169428
+  duration_ms: 2.164108
   type: 'test'
   ...
 # Subtest: ⛔ تحويل الأعمدة (t/o/h/l/c/v) لصفوف — الباج القديم
 ok 561 - ⛔ تحويل الأعمدة (t/o/h/l/c/v) لصفوف — الباج القديم
   ---
-  duration_ms: 4.838246
+  duration_ms: 4.749822
   type: 'test'
   ...
 # Subtest: ⛔ تحويل الشكل القديم (مصفوفة كائنات) لسماوات
 ok 562 - ⛔ تحويل الشكل القديم (مصفوفة كائنات) لسماوات
   ---
-  duration_ms: 1.728886
+  duration_ms: 1.670182
   type: 'test'
   ...
 # Subtest: ⛔ شموع ناقصة (سعر صفري) بتتتشال — عشان مقياس السعر يفضل صح
 ok 563 - ⛔ شموع ناقصة (سعر صفري) بتتتشال — عشان مقياس السعر يفضل صح
   ---
-  duration_ms: 1.608341
+  duration_ms: 1.657777
   type: 'test'
   ...
 # Subtest: 🎨 mountPattern بيرسم من غير exception (canvas + إحداثيات وهمية)
 ok 564 - 🎨 mountPattern بيرسم من غير exception (canvas + إحداثيات وهمية)
   ---
-  duration_ms: 3.576707
+  duration_ms: 3.552946
   type: 'test'
   ...
 # Subtest: 🛡️ الحجم pane لوحده + الارتفاع متزامن + الـlegend بره الشارت + إشعار الرخصة
 ok 565 - 🛡️ الحجم pane لوحده + الارتفاع متزامن + الـlegend بره الشارت + إشعار الرخصة
   ---
-  duration_ms: 2.442767
+  duration_ms: 2.522922
   type: 'test'
   ...
 # Subtest: 📐 نافذة «التحليل الكامل» فيها الشارت + التحليل + levels
 ok 566 - 📐 نافذة «التحليل الكامل» فيها الشارت + التحليل + levels
   ---
-  duration_ms: 2.943832
+  duration_ms: 3.005264
   type: 'test'
   ...
 # Subtest: 📐 الكارت فيه زرار «التحليل الكامل»
 ok 567 - 📐 الكارت فيه زرار «التحليل الكامل»
   ---
-  duration_ms: 2.383647
+  duration_ms: 2.425317
   type: 'test'
   ...
 # Subtest: 📐 أرقام التحليل كلها من الـAPI (مفيش مخترع)
 ok 568 - 📐 أرقام التحليل كلها من الـAPI (مفيش مخترع)
   ---
-  duration_ms: 2.297642
+  duration_ms: 2.209609
   type: 'test'
   ...
 # Subtest: ⭐ القائمة بتفتح على نطاق EGX30 + بتعرض النطاق من الخادم
 ok 569 - ⭐ القائمة بتفتح على نطاق EGX30 + بتعرض النطاق من الخادم
   ---
-  duration_ms: 3.195447
+  duration_ms: 3.110078
   type: 'test'
   ...
 # Subtest: ⭐ زر النطاق بيبدّل بين EGX30 وكل الأسهم
 ok 570 - ⭐ زر النطاق بيبدّل بين EGX30 وكل الأسهم
   ---
-  duration_ms: 2.225368
+  duration_ms: 2.085096
   type: 'test'
   ...
 # Subtest: ⭐ الـlegend بيلوّن المستويات (نطاق · دخول · هدف · وقف)
 ok 571 - ⭐ الـlegend بيلوّن المستويات (نطاق · دخول · هدف · وقف)
   ---
-  duration_ms: 2.188142
+  duration_ms: 2.281991
   type: 'test'
   ...
 # Subtest: ⭐ سكربت TradingView بيتولّد: نسخة 6 + مؤشر + المستويات الأربعة
 ok 572 - ⭐ سكربت TradingView بيتولّد: نسخة 6 + مؤشر + المستويات الأربعة
   ---
-  duration_ms: 2.66141
+  duration_ms: 2.698131
   type: 'test'
   ...
 # Subtest: ⭐ شروط الإنذار بتتظبط حسب اتجاه الكسر
 ok 573 - ⭐ شروط الإنذار بتتظبط حسب اتجاه الكسر
   ---
-  duration_ms: 2.082216
+  duration_ms: 2.038551
   type: 'test'
   ...
 # Subtest: ⭐ مستويات الإدارة متداخلة جوه if showAdmin (مش على نفس المسافة)
 ok 574 - ⭐ مستويات الإدارة متداخلة جوه if showAdmin (مش على نفس المسافة)
   ---
-  duration_ms: 2.74699
+  duration_ms: 2.702851
   type: 'test'
   ...
 # Subtest: ⭐ السكربت ما فيهوش نقاط ناقصة + فيه تنويه «مش توصية»
 ok 575 - ⭐ السكربت ما فيهوش نقاط ناقصة + فيه تنويه «مش توصية»
   ---
-  duration_ms: 3.162515
+  duration_ms: 3.220235
   type: 'test'
   ...
 # Subtest: ⭐ «انسخ الأرقام» بيطلع المستويات + التنويه
 ok 576 - ⭐ «انسخ الأرقام» بيطلع المستويات + التنويه
   ---
-  duration_ms: 2.049017
+  duration_ms: 2.070913
   type: 'test'
   ...
 # Subtest: ⭐ بلوك «نقل لـTradingView» فيه الخطوات والزراير
 ok 577 - ⭐ بلوك «نقل لـTradingView» فيه الخطوات والزراير
   ---
-  duration_ms: 2.036468
+  duration_ms: 2.070466
   type: 'test'
   ...
 # Subtest: merge: بيلقط الحقول من المصادر الثلاثة
 ok 578 - merge: بيلقط الحقول من المصادر الثلاثة
   ---
-  duration_ms: 1.735733
+  duration_ms: 1.605088
   type: 'test'
   ...
 # Subtest: merge: الحقل الناقص بيفضل null (مش صفر مخترع)
 ok 579 - merge: الحقل الناقص بيفضل null (مش صفر مخترع)
   ---
-  duration_ms: 0.740367
+  duration_ms: 0.806235
   type: 'test'
   ...
 # Subtest: الاتجاه: سهم صاعد فوق المتوسطات = درجة عالية
 ok 580 - الاتجاه: سهم صاعد فوق المتوسطات = درجة عالية
   ---
-  duration_ms: 0.484468
+  duration_ms: 0.477845
   type: 'test'
   ...
 # Subtest: الاتجاه: سهم تحت المتوسطات = درجة منخفضة
 ok 581 - الاتجاه: سهم تحت المتوسطات = درجة منخفضة
   ---
-  duration_ms: 1.272805
+  duration_ms: 1.251013
   type: 'test'
   ...
 # Subtest: الزخم: RSI فوق 80 = تشبع شرائي وعقوبة
 ok 582 - الزخم: RSI فوق 80 = تشبع شرائي وعقوبة
   ---
-  duration_ms: 0.440616
+  duration_ms: 0.462012
   type: 'test'
   ...
 # Subtest: الزخم: MACD تحت الإشارة = هابط
 ok 583 - الزخم: MACD تحت الإشارة = هابط
   ---
-  duration_ms: 0.362725
+  duration_ms: 0.351122
   type: 'test'
   ...
 # Subtest: التذبذب: النطاق المريح أعلى من التذبذب المتطرف
 ok 584 - التذبذب: النطاق المريح أعلى من التذبذب المتطرف
   ---
-  duration_ms: 0.596255
+  duration_ms: 0.614461
   type: 'test'
   ...
 # Subtest: الحجم: تدفق مع الشراء أعلى من تدفق مع البيع
 ok 585 - الحجم: تدفق مع الشراء أعلى من تدفق مع البيع
   ---
-  duration_ms: 0.330581
+  duration_ms: 0.312793
   type: 'test'
   ...
 # Subtest: النتيجة: بين 0 و 100 ومع مكافأة توافق
 ok 586 - النتيجة: بين 0 و 100 ومع مكافأة توافق
   ---
-  duration_ms: 0.326738
+  duration_ms: 0.405989
   type: 'test'
   ...
 # Subtest: النتيجة: كل المحاور متساوية = مكافأة توافق كاملة
 ok 587 - النتيجة: كل المحاور متساوية = مكافأة توافق كاملة
   ---
-  duration_ms: 0.421782
+  duration_ms: 0.412682
   type: 'test'
   ...
 # Subtest: rank: مرتّب تنازلي وكل النتائج أرقام منتهية
 ok 588 - rank: مرتّب تنازلي وكل النتائج أرقام منتهية
   ---
-  duration_ms: 1.708713
+  duration_ms: 1.717426
   type: 'test'
   ...
 # Subtest: الشموع الصاعدة: جيميني صاعد · القفل داخل · MCDX مؤسسي
 ok 589 - الشموع الصاعدة: جيميني صاعد · القفل داخل · MCDX مؤسسي
   ---
-  duration_ms: 3.627237
+  duration_ms: 3.602459
   type: 'test'
   ...
 # Subtest: الشموع الهابطة: جيميني هابط · القفل خارج · MCDX أفراد
 ok 590 - الشموع الهابطة: جيميني هابط · القفل خارج · MCDX أفراد
   ---
-  duration_ms: 0.991869
+  duration_ms: 1.037504
   type: 'test'
   ...
 # Subtest: الشموع: البنية BOS و CHoC
 ok 591 - الشموع: البنية BOS و CHoC
   ---
-  duration_ms: 1.141226
+  duration_ms: 1.194252
   type: 'test'
   ...
 # Subtest: الشموع: عدد قليل = null (مش أرقام مخترعة)
 ok 592 - الشموع: عدد قليل = null (مش أرقام مخترعة)
   ---
-  duration_ms: 0.179354
+  duration_ms: 0.174369
   type: 'test'
   ...
 # Subtest: بيانات السوق الحقيقية: كل الأسهم بتتحسب وبيترتبوا
 ok 593 - بيانات السوق الحقيقية: كل الأسهم بتتحسب وبيترتبوا
   ---
-  duration_ms: 90.878674
+  duration_ms: 84.903627
   type: 'test'
   ...
 # Subtest: نموذج رانيا: ٣ شموع صاعدة مكتملة بتتعرف
 ok 594 - نموذج رانيا: ٣ شموع صاعدة مكتملة بتتعرف
   ---
-  duration_ms: 0.477301
+  duration_ms: 0.526996
   type: 'test'
   ...
 # Subtest: نموذج رانيا: مفيش نموذج ⇒ مفيش ادعاء كاذب
 ok 595 - نموذج رانيا: مفيش نموذج ⇒ مفيش ادعاء كاذب
   ---
-  duration_ms: 0.366487
+  duration_ms: 0.378489
   type: 'test'
   ...
 # Subtest: Order Block: زون شراء/بيع بيتحسب ومش مخترع
 ok 596 - Order Block: زون شراء/بيع بيتحسب ومش مخترع
   ---
-  duration_ms: 0.291475
+  duration_ms: 0.298267
   type: 'test'
   ...
 # Subtest: EMA فيبوناتشي: الترتيب + VWAP
 ok 597 - EMA فيبوناتشي: الترتيب + VWAP
   ---
-  duration_ms: 0.39675
+  duration_ms: 0.397803
   type: 'test'
   ...
 # Subtest: المستويات: سهم تحت ١ جنيه — التقueling ميضيّعش الخانات
 ok 598 - المستويات: سهم تحت ١ جنيه — التقueling ميضيّعش الخانات
   ---
-  duration_ms: 0.7039
+  duration_ms: 0.752233
   type: 'test'
   ...
 # Subtest: المستويات:Directions يتفق مع اتجاه البنية
 ok 599 - المستويات:Directions يتفق مع اتجاه البنية
   ---
-  duration_ms: 0.655572
+  duration_ms: 0.71274
   type: 'test'
   ...
 # Subtest: المستويات: الوقف تحت والهدف فوق دايمًا (حتى في البنية الهابطة)
 ok 600 - المستويات: الوقف تحت والهدف فوق دايمًا (حتى في البنية الهابطة)
   ---
-  duration_ms: 0.623816
+  duration_ms: 0.625875
   type: 'test'
   ...
 # Subtest: ATR: Wilder مطابق للTradingView (مش EMA)
 ok 601 - ATR: Wilder مطابق للTradingView (مش EMA)
   ---
-  duration_ms: 0.226245
+  duration_ms: 0.2107
   type: 'test'
   ...
 # Subtest: ATR: EMA كان أعلى — الـlevels بتتغيّر accordingly
 ok 602 - ATR: EMA كان أعلى — الـlevels بتتغيّر accordingly
   ---
-  duration_ms: 0.531538
+  duration_ms: 0.544708
   type: 'test'
   ...
 # Subtest: NaN في المدخلات ما بيpoisonش الدرجة
 ok 603 - NaN في المدخلات ما بيpoisonش الدرجة
   ---
-  duration_ms: 0.15451
+  duration_ms: 0.15403
   type: 'test'
   ...
 # Subtest: MDD بيتحسب من الشموع (مفيش عمود له في المسح)
 ok 604 - MDD بيتحسب من الشموع (مفيش عمود له في المسح)
   ---
-  duration_ms: 0.503492
+  duration_ms: 0.528312
   type: 'test'
   ...
 # Subtest: الشموع غير المرتبة بتترتب قبل الحساب
 ok 605 - الشموع غير المرتبة بتترتب قبل الحساب
   ---
-  duration_ms: 2.058212
+  duration_ms: 2.08116
   type: 'test'
   ...
 # Subtest: المحور الفاضي ما بياخدش نص وزنه (مش ٥٠)
 ok 606 - المحور الفاضي ما بياخدش نص وزنه (مش ٥٠)
   ---
-  duration_ms: 0.209535
+  duration_ms: 0.215547
   type: 'test'
   ...
 # Subtest: سهم بلا بيانات ⇒ درجة صفر مش ٦٠
 ok 607 - سهم بلا بيانات ⇒ درجة صفر مش ٦٠
   ---
-  duration_ms: 0.191894
+  duration_ms: 0.167916
   type: 'test'
   ...
 # Subtest: شارة «توافق ٤ محاور» محتاجة ٤ محاور فعلاً
 ok 608 - شارة «توافق ٤ محاور» محتاجة ٤ محاور فعلاً
   ---
-  duration_ms: 0.218349
+  duration_ms: 0.228326
   type: 'test'
   ...
 # Subtest: سهم ما اتداولش (حجم = ٠) ⇒ محور الحجم مستبعد
 ok 609 - سهم ما اتداولش (حجم = ٠) ⇒ محور الحجم مستبعد
   ---
-  duration_ms: 0.112812
+  duration_ms: 0.125184
   type: 'test'
   ...
 # Subtest: سندات EGP مش أسهم — مستبعدة من الترتيب
 ok 610 - سندات EGP مش أسهم — مستبعدة من الترتيب
   ---
-  duration_ms: 0.117812
+  duration_ms: 0.121323
   type: 'test'
   ...
 # Subtest: RSI تحت ٣٠ ⇒ زخم ضعيف (صفر) + شارة تشبع بيعي
 ok 611 - RSI تحت ٣٠ ⇒ زخم ضعيف (صفر) + شارة تشبع بيعي
   ---
-  duration_ms: 0.149725
+  duration_ms: 0.154358
   type: 'test'
   ...
 # Subtest: MACD من غير سعر ⇒ محايد ٥٠ (مش ٧٥)
 ok 612 - MACD من غير سعر ⇒ محايد ٥٠ (مش ٧٥)
   ---
-  duration_ms: 0.125846
+  duration_ms: 0.114825
   type: 'test'
   ...
 # Subtest: شموع قديمة (أكتر من ١٠ أيام) ⇒ مفيش مؤشرات
 ok 613 - شموع قديمة (أكتر من ١٠ أيام) ⇒ مفيش مؤشرات
   ---
-  duration_ms: 0.888156
+  duration_ms: 0.904364
   type: 'test'
   ...
 # Subtest: المتوسطات بتتقرب حسب حجم السعر (مش خانة واحدة)
 ok 614 - المتوسطات بتتقرب حسب حجم السعر (مش خانة واحدة)
   ---
-  duration_ms: 1.782501
+  duration_ms: 1.794755
   type: 'test'
   ...
 # Subtest: جيميني ما يتشبّعش عند ٠/١٠٠
 ok 615 - جيميني ما يتشبّعش عند ٠/١٠٠
   ---
-  duration_ms: 1.676538
+  duration_ms: 1.698294
   type: 'test'
   ...
 # Subtest: MCDX بيتغيّر مع البيانات (مش ثابت قرب ٥٠)
 ok 616 - MCDX بيتغيّر مع البيانات (مش ثابت قرب ٥٠)
   ---
-  duration_ms: 1.255537
+  duration_ms: 1.399397
   type: 'test'
   ...
 # Subtest: مسار لقطة الفرص ⇒ 404 (مش 200)
 ok 617 - مسار لقطة الفرص ⇒ 404 (مش 200)
   ---
-  duration_ms: 30.652451
+  duration_ms: 37.150038
   type: 'test'
   ...
 # Subtest: مسار لقطة Alpha ⇒ 404 (مش 200)
 ok 618 - مسار لقطة Alpha ⇒ 404 (مش 200)
   ---
-  duration_ms: 7.508102
+  duration_ms: 7.476298
   type: 'test'
   ...
 # Subtest: حتى مع fallback=on (سلوك قديم متاح) ⇒ الملف ما ينزلش
 ok 619 - حتى مع fallback=on (سلوك قديم متاح) ⇒ الملف ما ينزلش
   ---
-  duration_ms: 3.649021
+  duration_ms: 3.718968
   type: 'test'
   ...
 # Subtest: المسارات العادية بتفضل شغالة (مافيش بلوك عام)
 ok 620 - المسارات العادية بتفضل شغالة (مافيش بلوك عام)
   ---
-  duration_ms: 6.568173
+  duration_ms: 6.633762
   type: 'test'
   ...
 # Subtest: البلوك موجود في المصدر (مافيش رجوع للكاش غيره)
 ok 621 - البلوك موجود في المصدر (مافيش رجوع للكاش غيره)
   ---
-  duration_ms: 0.267153
+  duration_ms: 0.27725
   type: 'test'
   ...
 # Subtest: الواجهة بتتحمّل من غير crash
 ok 622 - الواجهة بتتحمّل من غير crash
   ---
-  duration_ms: 3.962322
+  duration_ms: 3.917058
   type: 'test'
   ...
 # Subtest: الاسم العربي بيتحول لرمز والعكس
 ok 623 - الاسم العربي بيتحول لرمز والعكس
   ---
-  duration_ms: 2.66804
+  duration_ms: 6.557516
   type: 'test'
   ...
 # Subtest: قائمة الرسومات بتعرض الكود والسعر والملاحظة
 ok 624 - قائمة الرسومات بتعرض الكود والسعر والملاحظة
   ---
-  duration_ms: 2.19366
+  duration_ms: 2.476617
   type: 'test'
   ...
 # Subtest: مفيش رسومات ⇒ رسالة واضحة مش جدول مكسور
 ok 625 - مفيش رسومات ⇒ رسالة واضحة مش جدول مكسور
   ---
-  duration_ms: 1.786014
+  duration_ms: 1.920812
   type: 'test'
   ...
 # Subtest: تنسيق الأسعار
 ok 626 - تنسيق الأسعار
   ---
-  duration_ms: 1.785677
+  duration_ms: 1.849281
   type: 'test'
   ...
 # Subtest: ① المحور الفني بيتقرأ من all_axes.technical (الحي) — مش درجة جديدة
 ok 627 - ① المحور الفني بيتقرأ من all_axes.technical (الحي) — مش درجة جديدة
   ---
-  duration_ms: 5.031369
+  duration_ms: 6.923933
   type: 'test'
   ...
 # Subtest: ② من غير داتا حية ⇒ نرجع للسجل ونقول إنه قديم
 ok 628 - ② من غير داتا حية ⇒ نرجع للسجل ونقول إنه قديم
   ---
-  duration_ms: 2.033739
+  duration_ms: 4.961794
   type: 'test'
   ...
 # Subtest: ③ المعايير الناقصة بتتشال من المقام (مش صفر)
 ok 629 - ③ المعايير الناقصة بتتشال من المقام (مش صفر)
   ---
-  duration_ms: 2.289094
+  duration_ms: 3.885184
   type: 'test'
   ...
 # Subtest: ④ مفيش NaN/undefined في أي رقم ظاهر
 ok 630 - ④ مفيش NaN/undefined في أي رقم ظاهر
   ---
-  duration_ms: 3.116932
+  duration_ms: 4.629452
   type: 'test'
   ...
 # Subtest: ⑤ شرائح الفلترة بتعمل صح
 ok 631 - ⑤ شرائح الفلترة بتعمل صح
   ---
-  duration_ms: 2.796725
+  duration_ms: 5.490263
   type: 'test'
   ...
 # Subtest: ⑥ المقارنة بالقطاع: الفرق عن وسيط القطاع بيتحسب
 ok 632 - ⑥ المقارنة بالقطاع: الفرق عن وسيط القطاع بيتحسب
   ---
-  duration_ms: 2.166708
+  duration_ms: 2.269729
   type: 'test'
   ...
 # Subtest: ⑦ الجدول بيترسّم بالأرقام الحية ومفيش NaN
 ok 633 - ⑦ الجدول بيترسّم بالأرقام الحية ومفيش NaN
   ---
-  duration_ms: 3.522803
+  duration_ms: 4.237871
   type: 'test'
   ...
 # Subtest: ⑧ الداتا الحية بتتحمّل من /api/markets
 ok 634 - ⑧ الداتا الحية بتتحمّل من /api/markets
   ---
-  duration_ms: 3.099364
+  duration_ms: 3.271028
   type: 'test'
   ...
 # Subtest: ⑨ لو الداتا الحية فشل ⇒ تنبيه صريح للمستخدم
 ok 635 - ⑨ لو الداتا الحية فشل ⇒ تنبيه صريح للمستخدم
   ---
-  duration_ms: 2.847974
+  duration_ms: 2.814656
   type: 'test'
   ...
 # Subtest: ⑩ التفصيل بيجيب تحليل المحرك ويعرض المحاور والمستويات
 ok 636 - ⑩ التفصيل بيجيب تحليل المحرك ويعرض المحاور والمستويات
   ---
-  duration_ms: 11.908178
+  duration_ms: 12.365943
   type: 'test'
   ...
 # Subtest: ⑪ تبويبات الفلاتر: الـ8 الأول ما اتغيروش + الفني اتضاف في صف ٢
 ok 637 - ⑪ تبويبات الفلاتر: الـ8 الأول ما اتغيروش + الفني اتضاف في صف ٢
   ---
-  duration_ms: 3.516005
+  duration_ms: 3.592288
   type: 'test'
   ...
 # Subtest: ⑫ حركات الفلتر الفني موجودة (ما فيش موت صامت)
 ok 638 - ⑫ حركات الفلتر الفني موجودة (ما فيش موت صامت)
   ---
-  duration_ms: 8.174201
+  duration_ms: 8.401809
   type: 'test'
   ...
 # Subtest: ⑬ الذراع بيعرض كروت (مش جدولwide) — نفس الأرقام
 ok 639 - ⑬ الذراع بيعرض كروت (مش جدولwide) — نفس الأرقام
   ---
-  duration_ms: 2.900889
+  duration_ms: 3.043953
   type: 'test'
   ...
 # Subtest: ⑭ كلاسات CSS الجديدة موجودة في assets/octa.css
 ok 640 - ⑭ كلاسات CSS الجديدة موجودة في assets/octa.css
   ---
-  duration_ms: 4.667522
+  duration_ms: 4.639267
   type: 'test'
   ...
 # Subtest: ⑮ الكارت كله بيفتح النافذة (والكود ما بيعملش حاجة)
 ok 641 - ⑮ الكارت كله بيفتح النافذة (والكود ما بيعملش حاجة)
   ---
-  duration_ms: 1.336694
+  duration_ms: 1.32981
   type: 'test'
   ...
 # Subtest: ⑯ كلاس CSS النافذة موجودة + الداتا بتتحط في مكانين بطلب واحد
 ok 642 - ⑯ كلاس CSS النافذة موجودة + الداتا بتتحط في مكانين بطلب واحد
   ---
-  duration_ms: 4.841374
+  duration_ms: 4.963922
   type: 'test'
   ...
 # [gate] التحقق من الجلسة مش متاح — الباك هو اللي هيحكم
@@ -3918,280 +3918,280 @@ ok 642 - ⑯ كلاس CSS النافذة موجودة + الداتا بتتحط 
 # Subtest: الباك الحيّ شغّال ⇒ الرد=live (مش اللقطة)
 ok 643 - الباك الحيّ شغّال ⇒ الرد=live (مش اللقطة)
   ---
-  duration_ms: 30.394942
+  duration_ms: 34.704641
   type: 'test'
   ...
 # Subtest: الباك الحيّ فشل (502) ⇒ رد صريح 503 ومافيش لقطة قديمة
 ok 644 - الباك الحيّ فشل (502) ⇒ رد صريح 503 ومافيش لقطة قديمة
   ---
-  duration_ms: 8.62426
+  duration_ms: 8.775248
   type: 'test'
   ...
 # Subtest: الباك رجّع محتوى مش JSON ⇒ 503 ومافيش لقطة
 ok 645 - الباك رجّع محتوى مش JSON ⇒ 503 ومافيش لقطة
   ---
-  duration_ms: 4.465117
+  duration_ms: 4.732287
   type: 'test'
   ...
 # Subtest: استثناء الشبكة ⇒ 503 ومافيش لقطة
 ok 646 - استثناء الشبكة ⇒ 503 ومافيش لقطة
   ---
-  duration_ms: 4.274338
+  duration_ms: 4.890658
   type: 'test'
   ...
 # Subtest: fallback=on الصريح ⇒ يرجع اللقطة (للتوافق، والقرار للمالك)
 ok 647 - fallback=on الصريح ⇒ يرجع اللقطة (للتوافق، والقرار للمالك)
   ---
-  duration_ms: 5.737101
+  duration_ms: 5.830806
   type: 'test'
   ...
 # Subtest: مسار Alpha: الباك فشل ⇒ 503 ومافيش لقطة
 ok 648 - مسار Alpha: الباك فشل ⇒ 503 ومافيش لقطة
   ---
-  duration_ms: 3.812902
+  duration_ms: 3.856147
   type: 'test'
   ...
 # Subtest: P0-01 · معاينة من غير OCTA_API_URL ⇒ مافيش طلب للإنتاج
 ok 649 - P0-01 · معاينة من غير OCTA_API_URL ⇒ مافيش طلب للإنتاج
   ---
-  duration_ms: 30.042402
+  duration_ms: 30.763975
   type: 'test'
   ...
 # Subtest: P0-01 · المعاينة بتستهدف الـstaging بس (مافيش إنتاج)
 ok 650 - P0-01 · المعاينة بتستهدف الـstaging بس (مافيش إنتاج)
   ---
-  duration_ms: 9.80579
+  duration_ms: 8.376388
   type: 'test'
   ...
 # Subtest: P0-01 · HTML المعاينة من غير وجهة ⇒ مافيش رابط الإنتاج
 ok 651 - P0-01 · HTML المعاينة من غير وجهة ⇒ مافيش رابط الإنتاج
   ---
-  duration_ms: 12.990371
+  duration_ms: 5.395376
   type: 'test'
   ...
 # Subtest: P0-01 · HTML المعاينة بتستبدل الإنتاج بالتجريبي
 ok 652 - P0-01 · HTML المعاينة بتستبدل الإنتاج بالتجريبي
   ---
-  duration_ms: 5.010161
+  duration_ms: 4.879564
   type: 'test'
   ...
 # Subtest: P0-02 · logout ⇒ بينتظر الباك وبيتحقق من الإبطال
 ok 653 - P0-02 · logout ⇒ بينتظر الباك وبيتحقق من الإبطال
   ---
-  duration_ms: 5.270637
+  duration_ms: 5.307557
   type: 'test'
   ...
 # [logout] الباك مش راد (error)
 # Subtest: P0-02 · logout والباك واقع ⇒ 502 (مافيش «نجاح» كاذب)
 ok 654 - P0-02 · logout والباك واقع ⇒ 502 (مافيش «نجاح» كاذب)
   ---
-  duration_ms: 545.982775
+  duration_ms: 545.532379
   type: 'test'
   ...
 # Subtest: P0-02 · logout مكرر (already) ⇒ نجاح
 ok 655 - P0-02 · logout مكرر (already) ⇒ نجاح
   ---
-  duration_ms: 4.623711
+  duration_ms: 4.719223
   type: 'test'
   ...
 # Subtest: P0-02 · logout من غير وجهة ⇒ 503 (مش اتصال بالإنتاج)
 ok 656 - P0-02 · logout من غير وجهة ⇒ 503 (مش اتصال بالإنتاج)
   ---
-  duration_ms: 5.509152
+  duration_ms: 4.424306
   type: 'test'
   ...
 # Subtest: زائر مجهول (مفيش كوكي) → صفحة البوابة
 ok 657 - زائر مجهول (مفيش كوكي) → صفحة البوابة
   ---
-  duration_ms: 30.787654
+  duration_ms: 31.809777
   type: 'test'
   ...
 # Subtest: زائر عنده كوكي → التطبيق
 ok 658 - زائر عنده كوكي → التطبيق
   ---
-  duration_ms: 8.250925
+  duration_ms: 8.568309
   type: 'test'
   ...
 # Subtest: كوكي فاضي (-octa_token=) →treated كأن مفيش جلسة
 ok 659 - كوكي فاضي (-octa_token=) →treated كأن مفيش جلسة
   ---
-  duration_ms: 4.858945
+  duration_ms: 4.945011
   type: 'test'
   ...
 # Subtest: الكوكي في middle مش أول واحد → بيتعرف عليه
 ok 660 - الكوكي في middle مش أول واحد → بيتعرف عليه
   ---
-  duration_ms: 4.931663
+  duration_ms: 4.825618
   type: 'test'
   ...
 # Subtest: صفحة الشارت كمان بتتقفل
 ok 661 - صفحة الشارت كمان بتتقفل
   ---
-  duration_ms: 4.953711
+  duration_ms: 6.64188
   type: 'test'
   ...
 # Subtest: OCTA_GATE=off ⇐ البوابة مقفولة (المعاينة قبل نشر الـAPI)
 ok 662 - OCTA_GATE=off ⇐ البوابة مقفولة (المعاينة قبل نشر الـAPI)
   ---
-  duration_ms: 3.960995
+  duration_ms: 4.12699
   type: 'test'
   ...
 # Subtest: صفحة البوابة (/gate.html) متاحة دايماً حتى والبوابة مقفولة
 ok 663 - صفحة البوابة (/gate.html) متاحة دايماً حتى والبوابة مقفولة
   ---
-  duration_ms: 3.875217
+  duration_ms: 3.558655
   type: 'test'
   ...
 # Subtest: الـassets (js/css) بتتنفع من غير جلسة
 ok 664 - الـassets (js/css) بتتنفع من غير جلسة
   ---
-  duration_ms: 4.818153
+  duration_ms: 5.33067
   type: 'test'
   ...
 # Subtest: الـproxy بيبعت Authorization والكوكي وجسم الطلب
 ok 665 - الـproxy بيبعت Authorization والكوكي وجسم الطلب
   ---
-  duration_ms: 4.206534
+  duration_ms: 4.274302
   type: 'test'
   ...
 # Subtest: Set-Cookie بيرجع للصفحة (كوكي الجلسة)
 ok 666 - Set-Cookie بيرجع للصفحة (كوكي الجلسة)
   ---
-  duration_ms: 3.924843
+  duration_ms: 4.054466
   type: 'test'
   ...
 # Subtest: الـproxy بيرجّع حالة الـAPI زي ما هي
 ok 667 - الـproxy بيرجّع حالة الـAPI زي ما هي
   ---
-  duration_ms: 3.489868
+  duration_ms: 3.579877
   type: 'test'
   ...
 # Subtest: الـquery string بيوصل للـAPI زي ما هو
 ok 668 - الـquery string بيوصل للـAPI زي ما هو
   ---
-  duration_ms: 4.239099
+  duration_ms: 4.257706
   type: 'test'
   ...
 # Subtest: ⛔ /api من غير جلسة ⇒ 401 (البوابة على مستوى الـworker)
 ok 669 - ⛔ /api من غير جلسة ⇒ 401 (البوابة على مستوى الـworker)
   ---
-  duration_ms: 3.580619
+  duration_ms: 3.452639
   type: 'test'
   ...
 # Subtest: gate.html موجود في المستودع
 ok 670 - gate.html موجود في المستودع
   ---
-  duration_ms: 0.14992
+  duration_ms: 0.117721
   type: 'test'
   ...
 # Subtest: ستايل البوابة مستقل موجود
 ok 671 - ستايل البوابة مستقل موجود
   ---
-  duration_ms: 1.232177
+  duration_ms: 1.212507
   type: 'test'
   ...
 # Subtest: الواجهة بتبعت التوكن على كل مسارات الـAPI
 ok 672 - الواجهة بتبعت التوكن على كل مسارات الـAPI
   ---
-  duration_ms: 3.601931
+  duration_ms: 2.889722
   type: 'test'
   ...
 # Subtest: مافيش اسم أداة ذكاء اصطناعي في ملفات الواجهة الجديدة
 ok 673 - مافيش اسم أداة ذكاء اصطناعي في ملفات الواجهة الجديدة
   ---
-  duration_ms: 6.175725
+  duration_ms: 6.063368
   type: 'test'
   ...
 # Subtest: مهلة المحاولة الأولى ≥ ١٥ ثانية والمحاولات بعديها ٦ ثواني
 ok 674 - مهلة المحاولة الأولى ≥ ١٥ ثانية والمحاولات بعديها ٦ ثواني
   ---
-  duration_ms: 0.229608
+  duration_ms: 0.224283
   type: 'test'
   ...
 # [gate] التحقق من الجلسة مش متاح — الباك هو اللي هيحكم
 # Subtest: ⛔ سيرفر بطيء (٧ ثواني) ⇒ الـworker يرجّع ٢٠٠ مش ٥٠٢
 ok 675 - ⛔ سيرفر بطيء (٧ ثواني) ⇒ الـworker يرجّع ٢٠٠ مش ٥٠٢
   ---
-  duration_ms: 7010.136958
+  duration_ms: 7010.948729
   type: 'test'
   ...
 # [api-proxy] api_unreachable (error)
 # Subtest: السيرفر واقع فعلاً ⇒ ٥٠٣ api_unreachable بعد ٣ محاولات (مش indefinite)
 ok 676 - السيرفر واقع فعلاً ⇒ ٥٠٣ api_unreachable بعد ٣ محاولات (مش indefinite)
   ---
-  duration_ms: 547.019946
+  duration_ms: 546.090675
   type: 'test'
   ...
 # Subtest: السيرفر بيرجّع ٥٠٠ مرتين وبعدين ٢٠٠ ⇒ الـworker بيرجّع ٢٠٠
 ok 677 - السيرفر بيرجّع ٥٠٠ مرتين وبعدين ٢٠٠ ⇒ الـworker بيرجّع ٢٠٠
   ---
-  duration_ms: 545.68377
+  duration_ms: 545.715874
   type: 'test'
   ...
 # Subtest: R18-A06: جدول المحرك — مافيش HTML خام من الـAPI (اسم/كود/لون)
 ok 678 - R18-A06: جدول المحرك — مافيش HTML خام من الـAPI (اسم/كود/لون)
   ---
-  duration_ms: 15.361895
+  duration_ms: 16.297077
   type: 'test'
   ...
 # Subtest: R18-A06: شريط المحرك — القرار ومستوى الخطورة مُرمَّزين
 ok 679 - R18-A06: شريط المحرك — القرار ومستوى الخطورة مُرمَّزين
   ---
-  duration_ms: 1.191976
+  duration_ms: 1.204651
   type: 'test'
   ...
 # Subtest: دوال الترميز موجودة في الملفات المتوقعة
 ok 680 - دوال الترميز موجودة في الملفات المتوقعة
   ---
-  duration_ms: 0.825217
+  duration_ms: 0.790154
   type: 'test'
   ...
 # Subtest: ① دوال الترميز بتخنّي كل المحارف الخطرة
 ok 681 - ① دوال الترميز بتخنّي كل المحارف الخطرة
   ---
-  duration_ms: 0.475557
+  duration_ms: 0.430649
   type: 'test'
   ...
 # Subtest: ② دالة الترميز بتخلي النص آمن جوه innerHTML
 ok 682 - ② دالة الترميز بتخلي النص آمن جوه innerHTML
   ---
-  duration_ms: 0.160732
+  duration_ms: 0.206504
   type: 'test'
   ...
 # Subtest: ③ مافيش innerHTML فيه مدخل مستخدم من غير ترميز (عيّنة)
 ok 683 - ③ مافيش innerHTML فيه مدخل مستخدم من غير ترميز (عيّنة)
   ---
-  duration_ms: 6.317041
+  duration_ms: 6.108316
   type: 'test'
   ...
 # Subtest: ④ مافيش eval ولا setTimeout بنص في ملفات الواجهة
 ok 684 - ④ مافيش eval ولا setTimeout بنص في ملفات الواجهة
   ---
-  duration_ms: 78.458347
+  duration_ms: 69.997537
   type: 'test'
   ...
 # Subtest: الواجهة بتتحمّل من غير crash
 ok 685 - الواجهة بتتحمّل من غير crash
   ---
-  duration_ms: 3.661589
+  duration_ms: 3.688733
   type: 'test'
   ...
 # Subtest: الجدول بيعرض المستوى والنوع والبُعد
 ok 686 - الجدول بيعرض المستوى والنوع والبُعد
   ---
-  duration_ms: 3.335132
+  duration_ms: 3.450682
   type: 'test'
   ...
 # Subtest: فلتر النوع والبُعد والبحث
 ok 687 - فلتر النوع والبُعد والبحث
   ---
-  duration_ms: 1.979628
+  duration_ms: 2.063471
   type: 'test'
   ...
 # Subtest: 🗂️ كروت بدل جدول — مفيش سحب أفقي
 ok 688 - 🗂️ كروت بدل جدول — مفيش سحب أفقي
   ---
-  duration_ms: 1.98053
+  duration_ms: 2.004969
   type: 'test'
   ...
 1..688
@@ -4202,4 +4202,4 @@ ok 688 - 🗂️ كروت بدل جدول — مفيش سحب أفقي
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 473832.687759
+# duration_ms 473848.677039

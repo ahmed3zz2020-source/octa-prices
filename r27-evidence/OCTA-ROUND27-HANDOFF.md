@@ -7,14 +7,14 @@
 
 `ahmed3zz2020-source/octa-prices` (الباك):
 - release/round27-rc      fe45d683a9156f599fefe3b98753f4e62a760193
-- ci/octa-ci-r27          e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f
+- ci/octa-ci-r27          4e5b6160ac2c6806301c7de8df7dc6dd00cb9054
 - review/round27-evidence (فرع الأدلة — شوف القسم 9)
 - release/round26-rc      ea93e90c718c175c588df33d6de1cf75130fd0ee (لم يتغير)
 - main                    9c27f565d22fe1d126c5670de2070a66e980988c (لم يتغير)
 
 `ahmed3zz2020-source/octa` (الواجهة):
-- release/round27-rc-fe   c520591e829e8e13dbfa39552988ac537e1eef66
-- ci/octa-ci-r27-fe       c9981facdc4339cc8067063738c51745f89a9e06
+- release/round27-rc-fe   5ec4e2574c91c209fe43a4815ca2cabacac822f4
+- ci/octa-ci-r27-fe       ae5ff0831ba0269e76ef9fa1bdf389fcf0d410a2
 - release/round26-rc-fe   0bbbd75b5a57a739fd175694ecd185331e7cb2c2 (لم يتغير)
 - main                    4b9742130406c2341f63286ccc849813369394ff (لم يتغير)
 
