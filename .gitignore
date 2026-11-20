@@ -40,3 +40,11 @@ engine_audit_result.json
 acceptance_center_r20.json
 acceptance_center_r21.json
 git_pii_scan_result.json
+
+# ⛔ ملفات حالة محلية (بتتولّد من تشغيل الـstaging ⭐) ⭐ — ما تتحطش في الحزمة ⭐
+users.json
+users.lock
+track.json
+signup.json
+pinchal.json
+pinlock.json
