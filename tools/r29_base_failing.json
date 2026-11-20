@@ -1,0 +1,12 @@
+{
+  "why": "ملفات الباك اللي **فشلت على الأساس** ⭐ ⇒ ⛔ مش عيب في المرشح ⭐ ⭐ (لها برهان سالب ⭐).",
+  "base_sha": "0d30c2eec56d8d6a4a9db14b3450d7d32f0305da",
+  "base_proof": "output/r29/base_failing_proof.json ⭐ (نفس الملفات ⭐ بنفس الحالة ⭐ على الأساس ⭐ ⇒ صفر انحدار ⭐).",
+  "base_results": "output/r29/base_failing_proof.json",
+  "files": {
+    "test_security_batch02.py": "فشل على الأساس بنفس الـ3 تأكيدات ⭐ (إبطال الجلسات ⭐) ⇒ ⛔ العيب سلفاً ⭐ مش من إصلاح R28/R29 ⭐ ⇒ متعذر بصفر نقاط ⭐.",
+    "test_security_p0.py": "ConnectionError ⭐ — السيرفر الـstaging بيقع ⭐ ⇒ نفس الخطأ على الأساس ⭐ ⇒ بيئي ⭐ ⇒ متعذر بصفر نقاط ⭐.",
+    "tools/staging/test_flask_binding.py": "فجوة عقد في مسارات /api/opp ⭐ ⇒ نفس النتيجة على الأساس ⭐ ⇒ متعذر بصفر نقاط ⭐.",
+    "tools/test_round23_clean_clone.py": "مدخل ناقص ⭐ (حزمة التسليم R23 ⭐ مش موجودة ⭐) ⇒ نفس النقص على الأساس ⭐ ⇒ متعذر بصفر نقاط ⭐."
+  }
+}

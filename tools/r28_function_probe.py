@@ -181,10 +181,35 @@ def main(argv=None):
              "status=%s مفاتيح=%s" % (st, sorted(b.keys())[:4] if isinstance(b, dict) else "-"),
              "سهم مفرد ⭐")
 
-        st, b = http(base + "/api/analyze?code=COMI.CA", headers=AH)
-        p.ok("analyze · status 200 + درجة", st == 200 and (b.get("score") is not None or b.get("total") is not None),
-             "status=%s grade=%s" % (st, (b.get("score") if isinstance(b, dict) else None)),
-             "محرك التقييم ⭐")
+        # ⭐⭐⭐ (R29 · FINDING-16) ⭐⭐⭐ عقد التطبيق ⭐⭐⭐
+        # 📌 السبب ⭐: ⛔ التطبيق بينادي `/api/analyze` ⭐ **POST** ⭐ بـ`{code}` ⭐
+        #    ⇒ ⛔ الفحص كان بيستدعيها GET ⭐ ⇒ ⛔ قياس مسار **مش** اللي التطبيق بيستخدمه ⭐.
+        # ✅ دلوقتي ⭐: ⛔ POST ⭐ + ⭐ `{code}` ⭐ ⭐ + ⭐ تحقق من **المحتوى** ⭐.
+        st, b = http(base + "/api/analyze", method="POST", body={"code": "COMI.CA"}, headers=AH)
+        grade = None
+        if isinstance(b, dict):
+            grade = b.get("score")
+            if grade is None:
+                grade = b.get("total")
+            if grade is None:
+                grade = b.get("grade")
+            if grade is None and isinstance(b.get("result"), dict):
+                grade = b["result"].get("score") or b["result"].get("total")
+        p.ok("analyze · POST {code} ⭐ + قيمة التحليل ⭐",
+             st == 200 and grade is not None,
+             "status=%s قيمة=%s" % (st, grade),
+             "محرك التقييم (عقد التطبيق ⭐) ⭐")
+
+        # ⭐⭐⭐ (R29 · FINDING-16) ⭐⭐⭐ مسار المؤشر ⭐⭐⭐
+        # 📌 التطبيق بينادي `/api/technical/<code>` ⭐ (path ⭐ مش query ⭐).
+        st, b = http(base + "/api/technical/COMI.CA", headers=AH)
+        ind = None
+        if isinstance(b, dict):
+            ind = b.get("indicators") or b.get("technical") or b.get("rsi14") or b.get("ma")
+        p.ok("technical/<code> ⭐ + مؤشرات ⭐",
+             st == 200 and bool(ind),
+             "status=%s مفاتيح=%s" % (st, sorted(b.keys())[:5] if isinstance(b, dict) else "-"),
+             "مسار المؤشر (عقد التطبيق ⭐) ⭐")
 
         st, b = http(base + "/api/rank", headers=AH)
         rank = b.get("rows") or b.get("items") or b.get("data") if isinstance(b, dict) else None
@@ -208,15 +233,67 @@ def main(argv=None):
              "status=%s مفاتيح=%s" % (st, sorted(b.keys())[:4] if isinstance(b, dict) else "-"),
              "مقارنة الأسهم ⭐")
 
-        st, b = http(base + "/api/gold", headers=AH)
-        gold = b.get("price") or b.get("gram") or b.get("gold") if isinstance(b, dict) else None
-        p.ok("gold · status 200 + سعر", st == 200 and gold is not None,
-             "status=%s سعر=%s" % (st, gold), "الذهب المصري ⭐")
+        # ⭐⭐⭐ (R29 · FINDING-16) ⭐⭐⭐ مسارات الذهب **حسب عقد التطبيق** ⭐⭐⭐
+        # 📌 التطبيق بيبعث ⭐: `/api/gold` ⭐ · `/api/gold/history` ⭐
+        #    · `/api/gold/technical?instrument=gram` ⭐ · `/api/gold/local` ⭐
+        #    · `/api/gold/factors` ⭐ · `/api/gold/scenarios` ⭐ · `/api/gold/deep` ⭐
+        #    · `/api/gold/signal` ⭐ ⇒ ⭐ و ⭐ كلهم **بمحتوى** ⭐.
+        st, b = http(base + "/api/gold/history", headers=AH)
+        series = b.get("series") if isinstance(b, dict) else None
+        n_series = len(series) if isinstance(series, list) else 0
+        first_ok = bool(n_series and isinstance(series[0], dict)
+                        and series[0].get("gram") is not None and series[0].get("d"))
+        p.ok("gold/history ⭐ + سلسلة بسعر الجرام ⭐",
+             st == 200 and n_series > 0 and first_ok,
+             "status=%s نقاط=%s أول نقطة=%s" % (st, n_series,
+                                                (series[0].get("d") if first_ok else "-")),
+             "سلسلة الذهب (عقد التطبيق ⭐) ⭐")
+
+        st, b = http(base + "/api/gold/technical?instrument=gram", headers=AH)
+        sr = b.get("sr") if isinstance(b, dict) else None
+        n_sr = 0
+        if isinstance(sr, dict):
+            n_sr = len(sr.get("support") or []) + len(sr.get("resistance") or [])
+        p.ok("gold/technical ⭐ + دعم ومقاومة ⭐",
+             st == 200 and n_sr > 0,
+             "status=%s مناطق=%s" % (st, n_sr),
+             "الدعم والمقاومة (عقد التطبيق ⭐) ⭐")
+
+        st, b = http(base + "/api/gold/deep", headers=AH)
+        shift = ((b.get("detail") or {}).get("shift") or []) if isinstance(b, dict) else []
+        p.ok("gold/deep ⭐ + أحداث هيكل ⭐", st == 200 and len(shift) > 0,
+             "status=%s أحداث=%s" % (st, len(shift)),
+             "أحداث الهيكل (عقد التطبيق ⭐) ⭐")
+
+        st, b = http(base + "/api/gold/local", headers=AH)
+        gram_ref = b.get("gram_24_reference") if isinstance(b, dict) else None
+        p.ok("gold/local ⭐ + سعر السوق المصري ⭐",
+             st == 200 and gram_ref is not None,
+             "status=%s جرام=%s" % (st, gram_ref),
+             "سوق الذهب المصري ⭐")
+
+        st, b = http(base + "/api/gold/factors", headers=AH)
+        fac = b.get("factors") if isinstance(b, dict) else None
+        p.ok("gold/factors ⭐ + عوامل ⭐", st == 200 and bool(fac),
+             "status=%s عوامل=%s" % (st, len(fac) if isinstance(fac, dict) else "-"),
+             "العوامل ⭐")
+
+        st, b = http(base + "/api/gold/scenarios", headers=AH)
+        sav = b.get("savings") if isinstance(b, dict) else None
+        rows = sav.get("rows") if isinstance(sav, dict) else None
+        p.ok("gold/scenarios ⭐ + جدول ادخار ⭐",
+             st == 200 and isinstance(rows, list) and len(rows) > 0,
+             "status=%s صفوف=%s" % (st, len(rows) if isinstance(rows, list) else "-"),
+             "سيناريوهات الادخار ⭐")
 
         st, b = http(base + "/api/gold/signal", headers=AH)
-        sig = b.get("signal") or b.get("action") if isinstance(b, dict) else None
-        p.ok("gold/signal · status 200 + إشارة", st == 200 and sig is not None,
-             "status=%s إشارة=%s" % (st, sig), "إشارة الذهب ⭐")
+        sig = b.get("side") or b.get("signal") or b.get("action") if isinstance(b, dict) else None
+        gates = b.get("gates") if isinstance(b, dict) else None
+        p.ok("gold/signal ⭐ + إشارة + بوابات ⭐",
+             st == 200 and sig is not None and isinstance(gates, list),
+             "status=%s إشارة=%s بوابات=%s" % (st, sig,
+                                              len(gates) if isinstance(gates, list) else "-"),
+             "إشارة الذهب ⭐")
 
         st, b = http(base + "/api/portfolio", headers=AH)
         pf = b.get("portfolio") if isinstance(b, dict) else None

@@ -238,6 +238,62 @@ def load_env_blocked(path):
     return files, meta
 
 
+
+# ═══════════════════════════════════════════════════════════════════
+# ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ دليل **لكل بند** ⭐⭐⭐
+# 📌 السبب ⭐: ⛔ الأداة كانت بتقيّم البند بـ**نطاقه** ⭐ (SCOPE_MAP ⭐)
+#    ⇒ ⛔ بند في نفس النطاق ⭐ ممكن يكون دليله **مختلف** ⭐
+#    ⇒ ⛔ ⇒ النقاط بتتوزّع على أساس خاطئ ⭐.
+# ✅ دلوقتي ⭐: ⭐ كل بند ليه دليل صريح ⭐ (ITEM_EVIDENCE ⭐)
+#    ⇒ ⭐ والافتراضي = نطاق البند ⭐ ⭐ وال考点 فوق ⭐ بتشرح السبب ⭐.
+# 📌 البنود المسرودة ⭐ (فوق ⭐) ⇒ ⛔ متعذر ⭐ بصفر نقاط ⭐ وسبب بالاسم ⭐.
+# ═══════════════════════════════════════════════════════════════════
+ITEM_EVIDENCE = {
+    # ⭐ ٠٧ ⭐ — XSS + المتصفح الحقيقي + تدقيق الـdist ⭐
+    "AC-07-1": [("fe", "xss.test.js"), ("fe", "sec024-xss-fixes.test.js"),
+                ("fe", "sec025-cache-user-scope.test.js"), ("fe", "worker.test.js")],
+    "AC-07-2": [("fe", "xss.test.js"), ("fe", "sec024-xss-fixes.test.js"),
+                ("fe", "sec025-cache-user-scope.test.js"), ("fe", "worker.test.js")],
+    # ⭐ ٠٧-٣ ⭐ — التكامل الحقيقي ⭐ ⇒ رحلة Chromium ⭐
+    "AC-07-3": [("fe", "xss.test.js"), ("art", "browser_journey")],
+    "AC-07-4": [("fe", "xss.test.js"), ("art", "dist_audit")],
+    # ⭐ ٢٦ ⭐ — رحلة المستخدم ⭐
+    "AC-26-1": [("fe", "r26-ux-perf.test.js"), ("art", "browser_journey")],
+    "AC-26-2": [("fe", "r26-ux-perf.test.js"), ("art", "browser_journey")],
+    "AC-26-3": [("fe", "r26-ux-perf.test.js"), ("art", "browser_journey")],
+    "AC-26-4": [("fe", "r26-ux-perf.test.js"), ("art", "browser_journey")],
+    # ⭐ ٢٨ ⭐ — الشارتات والفلترة وأداة الذهب ⭐
+    "AC-28-1": [("fe", "radar.test.js"), ("fe", "radar-ui.test.js"),
+                ("fe", "smartmoney.test.js"), ("be", "test_charts_api.py")],
+    "AC-28-2": [("fe", "radar.test.js"), ("be", "test_charts_api.py")],
+    # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ AC-28-3 ⭐⭐⭐
+    # 📌 المطلوب ⭐: ⭐ ربط AC-28-3 ⭐ برحلة الذهب **الفعلية** ⭐ في المتصفح ⭐
+    #    ⇒ ⭐ الشارت الخطي ⭐ + ⭐ الفترات ⭐ + ⭐ التكبير ⭐ + ⭐ ملء الشاشة ⭐
+    #       + ⭐ الدعم والمقاومة ⭐ + ⭐ الأحداث ⭐ ⇒ ⭐ كلهم في رحلة Chromium ⭐.
+    "AC-28-3": [("art", "gold_journey"), ("be", "test_gold_integrity.py")],
+    "AC-28-4": [("be", "test_charts_api.py"), ("be", "test_gold_integrity.py")],
+    # ⭐ ٣١ ⭐ — الـCI ⭐
+    "AC-31-1": [("art", "ci_definitions"), ("be", "tools/test_ci_gates.py")],
+    "AC-31-2": [("art", "ci_definitions"), ("be", "tools/test_ci_gates.py")],
+    # ⭐ ٣١-٣ ⭐ — تجربة CI على GitHub ⭐ ⇒ ⛔ متعذر ⭐ (مانع صلاحيات ⭐)
+    "AC-31-3": [("art", "ci_runs")],
+    "AC-31-4": [("art", "ci_definitions"), ("art", "ci_runs")],
+}
+
+# ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ شروط القبول **الإلزامية** ⭐⭐⭐
+# 📌 دي البنود اللي لازم تنجح ⭐ ⇒ ⛔ لو واحدة مش ناجحة ⭐ ⇒ ⛔ المرشح **مش جاهز** ⭐
+#    مهما كانت النسبة ⭐ (حد 90% ⭐ لوحده مش كفاية ⭐).
+MANDATORY_ITEMS = [
+    "AC-01-1", "AC-03-1", "AC-05-1", "AC-06-1", "AC-07-1", "AC-09-1",
+    "AC-11-1", "AC-16-1", "AC-18-1", "AC-21-1", "AC-26-1", "AC-27-1",
+    "AC-28-1", "AC-29-1", "AC-31-1", "AC-33-1", "AC-34-1", "AC-35-1",
+]
+
+# ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ حد القبول ⭐⭐⭐
+ACCEPT_THRESHOLD_PCT = 90.0
+
+BASE_FAILING_FILE = os.path.join(HERE, "r29_base_failing.json")
+
 ITEM_OVERRIDE = {
     "AC-07-3": ("قِيس جزئياً في R28 ⭐ — رحلة Chromium حقيقية ⭐ (البوابة ⭐ أداة الذهب ⭐ التنقل ⭐ "
                 "١٠ عروض ⭐) ⭐ ⇒ ⛔ ما فيش ٢٥ مسار × ٣ عروض ⭐ ⇒ متعذر بصفر نقاط ⭐"),
@@ -282,12 +338,14 @@ def main(argv=None):
     ap.add_argument("--manifest", default="")
     ap.add_argument("--evidence-branch", default="")
     ap.add_argument("--env-blocked", default=ENV_BLOCKED_FILE)
+    ap.add_argument("--base-failing", default=BASE_FAILING_FILE)
     args = ap.parse_args(argv)
 
     with open(ITEMS_CSV, encoding="utf-8") as fh:
         items = list(csv.DictReader(fh))
 
     env_blocked, env_meta = load_env_blocked(args.env_blocked)
+    base_failing, base_meta = load_env_blocked(args.base_failing)
     fe = parse_fe_log(args.fe_log)
     if args.fe_tsv:
         fe = parse_fe_tsv(args.fe_tsv)
@@ -366,6 +424,11 @@ def main(argv=None):
 
         scope_key = str(it.get("scope_no") or "").strip()
         inputs = SCOPE_MAP.get(scope_key) or []
+        # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ دليل **البند نفسه** ⭐⭐⭐
+        # 📌 الافتراضي = نطاق البند ⭐ ⭐ و ⭐ البنود اللي ليها دليل مختلف ⭐
+        #    ⇒ ⭐ فوق ⭐ (مكتوب بالاسم ⭐ وبالسبب ⭐).
+        if ac_id in ITEM_EVIDENCE:
+            inputs = ITEM_EVIDENCE[ac_id]
         if not inputs:
             status = "متعذر"
             reason = ("النطاق %s مالوش قياس مقابل في R28 ⭐ — "
@@ -401,6 +464,12 @@ def main(argv=None):
                             # ⭐⭐⭐ محجوب بالبيئة ⭐ ⇒ ⛔ مش «فشل» ⭐
                             missing.append("be:%s (محجوب ⭐ %s)"
                                            % (ref, env_blocked[base_ref]))
+                        elif base_ref in base_failing:
+                            # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ فشل على الأساس ⭐
+                            # ⇒ ⛔ مش عيب في المرشح ⭐ ⇒ ⛔ متعذر ⭐ بصفر نقاط ⭐
+                            #    ⭐ و ⭐ السبب بالاسم ⭐ ⭐ والبرهان السالب ⭐.
+                            missing.append("be:%s (فشل على الأساس ⭐ ⇒ متعذر ⭐ %s)"
+                                           % (ref, base_failing[base_ref]))
                         else:
                             failed.append("be:%s (فاشل ⭐)" % ref)
                 else:
@@ -461,8 +530,38 @@ def main(argv=None):
             "base_results": env_meta.get("base_results", ""),
             "files": env_blocked,
         },
+        # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ شروط القبول الإلزامية ⭐ + حد الـ90% ⭐
+        "acceptance_threshold_pct": ACCEPT_THRESHOLD_PCT,
+        "percent_meets_threshold": bool(pct >= ACCEPT_THRESHOLD_PCT),
+        "mandatory": [
+            {"ac_id": mid,
+             "status": next((r.get("status") for r in rows if r.get("ac_id") == mid), "متعذر"),
+             "met": bool(next((r.get("status") == "ناجح" for r in rows if r.get("ac_id") == mid), False))}
+            for mid in MANDATORY_ITEMS
+        ],
+        "mandatory_all_met": bool(all(
+            next((r.get("status") == "ناجح" for r in rows if r.get("ac_id") == mid), False)
+            for mid in MANDATORY_ITEMS)),
+        "base_failing": {
+            "count": len(base_failing),
+            "why": base_meta.get("why", ""),
+            "base_sha": base_meta.get("base_sha", ""),
+            "base_proof": base_meta.get("base_proof", ""),
+            "files": base_failing,
+        },
         "items": rows,
     }
+    # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ الجاهزية للمراجعة ⭐⭐⭐
+    payload["ready_for_review"] = bool(
+        payload["percent_meets_threshold"] and payload["mandatory_all_met"])
+    payload["not_ready_reasons"] = [
+        ("النسبة %.2f%% ⭐ أقل من الحد %.0f%% ⭐" % (pct, ACCEPT_THRESHOLD_PCT))
+        if not payload["percent_meets_threshold"] else "",
+    ] + [
+        ("بند إلزامي مش ناجح ⭐: %s ⭐" % m["ac_id"])
+        for m in payload["mandatory"] if not m["met"]
+    ]
+    payload["not_ready_reasons"] = [r for r in payload["not_ready_reasons"] if r]
 
     print("═" * 72)
     print("📊 R28 · سجل الاعتماد (%s ⭐)" % args.rc_id)
@@ -473,6 +572,17 @@ def main(argv=None):
     print("الواجهة المقاسة: %d ملف · الباك المقاس: %d ملف"
           % (len(fe), len(be)))
     print("⛔ النسبة **محسوبة** من الحالات ⭐ (مفيش نسبة موروثة ⭐)")
+    # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ حد القبول + الإلزاميات ⭐⭐⭐
+    print("⛔ حد القبول ⭐: %.0f%% ⭐ ⇒ %s ⭐"
+          % (ACCEPT_THRESHOLD_PCT,
+             "متحقق ⭐" if payload["percent_meets_threshold"] else "**مش متحقق** ⭐"))
+    unmet = [m["ac_id"] for m in payload["mandatory"] if not m["met"]]
+    print("⛔ البنود الإلزامية ⭐: %d/%d ⭐ ⇒ %s ⭐"
+          % (len(payload["mandatory"]) - len(unmet), len(payload["mandatory"]),
+             "كلها متحققة ⭐" if not unmet else "مش متحققة ⭐: " + " · ".join(unmet)))
+    print("⛔ جاهزية المراجعة ⭐: %s ⭐" % ("جاهز ⭐" if payload["ready_for_review"] else "مش جاهز ⭐"))
+    for r in payload["not_ready_reasons"]:
+        print("     ⛔ %s" % r)
 
     if args.out_json:
         with open(args.out_json, "w", encoding="utf-8") as fh:
@@ -485,6 +595,20 @@ def main(argv=None):
             fh.write("- النقاط: **%d من %d (%.2f%%)**\n" % (points, max_points, pct))
             fh.write("- الحالات: %s\n\n" % counts)
             fh.write("⛔ النسبة محسوبة من الحالات ⭐ · البند المتعذر = صفر نقاط ⭐\n\n")
+            # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐
+            fh.write("## حد القبول والشروط الإلزامية ⭐\n\n")
+            fh.write("- حد القبول ⭐: **%.0f%%** ⭐ ⇒ النسبة الحالية **%.2f%%** ⭐ ⇒ %s ⭐\n"
+                     % (ACCEPT_THRESHOLD_PCT, pct,
+                        "متحقق ⭐" if payload["percent_meets_threshold"] else "**مش متحقق** ⭐"))
+            fh.write("- البنود الإلزامية ⭐: %d/%d ⭐ ⇒ %s ⭐\n"
+                     % (len(payload["mandatory"]) - len(unmet), len(payload["mandatory"]),
+                        "كلها متحققة ⭐" if not unmet else "مش متحققة ⭐: " + " · ".join(unmet)))
+            fh.write("- جاهزية المراجعة ⭐: **%s** ⭐\n\n"
+                     % ("جاهز ⭐" if payload["ready_for_review"] else "مش جاهز ⭐"))
+            if payload["not_ready_reasons"]:
+                for r in payload["not_ready_reasons"]:
+                    fh.write("  - ⛔ %s\n" % r)
+                fh.write("\n")
             by_scope = {}
             for r in rows:
                 by_scope.setdefault((r["scope_no"], r["scope_title"]), []).append(r)
