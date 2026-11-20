@@ -46,7 +46,9 @@ fi
 echo "✅ الـSHA المختبَر من عائلة المرشح"
 
 # ── ③ الفرق لازم يكون ملفات الـCI بس ─────────────────────
-ALLOWED='^(\.github/workflows/|ci-workflow/|tools/ci_|tools/test_ci_)'
+# ⭐ (R27) ⭐ .gitignore ⭐ داخل النطاق ⭐: ⭐ فرع الـCI بيوسّعه ⭐
+#    (بيتجاهل ملفات حالة المستخدمين ⭐ ⇒ ⛔ مافيش تسليم ⭐).
+ALLOWED='^(\.github/workflows/|ci-workflow/|tools/ci_|tools/test_ci_|\.gitignore$)'
 UNEXPECTED=""
 while IFS= read -r f; do
   [ -z "$f" ] && continue
