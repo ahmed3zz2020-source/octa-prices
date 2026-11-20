@@ -641,8 +641,19 @@ def collect(paths, git_ref=None):
                                  timeout=120).stdout
             out.append(("%s (%s)" % (n, git_ref), txt))
         return out
+    # ⭐ (R27) ⭐ نفس قاعدة النسخ البديلة ⭐ في مسار شجرة العمل ⭐:
+    # ⭐ لو فيه مرآة ⭐ (ci-workflow/ ⭐) ⇒ ⭐ هي الملف الحقيقي ⭐
+    # ⭐⇒ ⛔ النسخة البديلة (.github/workflows/ ⭐) متخطّاة ⭐ (مع declaration ⭐).
+    has_mirror = any(os.path.isdir(p) and os.path.basename(p.rstrip("/")) == "ci-workflow"
+                     for p in paths)
     for p in paths:
         if os.path.isdir(p):
+            is_stand_in = os.path.basename(p.rstrip("/")) == "workflows" \
+                and ".github" in p
+            if has_mirror and is_stand_in:
+                print("ℹ️  بيتفحص ملف الـworkflow الحقيقي (ci-workflow/) ⭐ "
+                      "⇒ النسخة البديلة %s متخطّاة ⭐ (مش هي اللي بيتنفّذ ⭐)" % p)
+                continue
             for root, _dirs, files in os.walk(p):
                 for f in sorted(files):
                     if f.endswith((".yml", ".yaml")):
@@ -740,8 +751,14 @@ def main(argv=None):
     if args.self_test:
         return self_test()
 
-    paths = args.paths or [os.path.join(".github", "workflows"),
-                           os.path.join("ci-workflow")]
+    # ⭐ (R27) ⭐ المسارات الافتراضية ⭐ = الموجود فعلاً ⭐ بس ⭐
+    # ⭐ (احتمال وجود مجلد واحد بس ⭐ ⇒ ⛔ مافيش "مسار مش موجود" ⭐)
+    defaults = [d for d in (os.path.join(".github", "workflows"),
+                            os.path.join("ci-workflow")) if os.path.isdir(d)]
+    if not args.paths and not defaults:
+        print("⛔ مفيش مجلد .github/workflows ولا ci-workflow في المستودع")
+        return 2
+    paths = args.paths or defaults
     files = collect(paths, args.git_ref or None)
     if not files:
         print("❌ مفيش أي ملف workflow اتفحص")
