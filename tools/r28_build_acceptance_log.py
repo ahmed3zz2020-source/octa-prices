@@ -208,13 +208,35 @@ SCOPE_MAP = {
 
 # ═══════════════════════════════════════════════════════════════════
 # ⭐ بنود مغطاة بادعاء R26 ⭐ ولم يتقاس جديد في R28 ⭐ ⇒ متعذر ⭐
-# 📌 السبب بالاسم ⭐ (مافيش تعميم ⭐ — البند层面的 ⭐):
+# 📌 السبب بالاسم ⭐ (مافيش تعميم ⭐ — البند نفسه ⭐):
 #   · مصفوفة المتصفح الحقيقية (Chromium) لم تُعد في R28 ⭐
 #   · الـCI على GitHub غير مفعّل (توكن بلا صلاحية workflow ⭐)
 #   · تجربة rollback جديدة لم تُنفَّذ في R28 ⭐
 #   · موافقات الإطلاق (الباقات/التسعير/الخصوصية) chez المالك ⭐
 #   · موافقة منفصلة على النشر الحيّ ⭐
 # ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════
+# ⭐⭐⭐ (R28) ⭐⭐⭐ بنود **محجوبة ببيئة القياس** ⭐⭐⭐
+# 📌 18 ملف باك ⭐ فشلت بخطأ `ModuleNotFoundError: No module named 'requests'` ⭐
+#   ⛔ الحزمة غير مثبتة ⭐ و⛔ PyPI غير متاح ⭐ ⇒ ⛔ مش عيب في المرشح ⭐
+#   ⇒ ⭐ المتعذر بصفر نقاط ⭐ وسبب بالاسم ⭐ (مش «فشل» ⭐).
+# ⭐ البرهان السالب ⭐: نفس الـ18 ملف ⭐ على الأساس (32cf806 ⭐) ⭐
+#   ⇒ نفس الخطأ ⭐ ⇒ السبب بيئي ⭐ (موجود في tools/r28_env_blocked.json ⭐).
+# ═══════════════════════════════════════════════════════════════════
+ENV_BLOCKED_FILE = os.path.join(HERE, "r28_env_blocked.json")
+
+
+def load_env_blocked(path):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            doc = json.load(fh)
+    except Exception:  # noqa: BLE001
+        return {}, {}
+    files = doc.get("files") or {}
+    meta = {k: doc.get(k) for k in ("why", "base_sha", "base_proof", "base_results")}
+    return files, meta
+
+
 ITEM_OVERRIDE = {
     "AC-07-3": "مصفوفة المتصفح الحقيقية (Chromium × 9 مقاسات) لم تُعد في R28 ⭐ — ر26-ux-perf قياس DOM محاكى ⭐",
     "AC-07-4": "تطبيق CSP الفعلي قرار منفصل ⭐ — أدلة الـdist موجودة ⭐ لكن القرار ما اتاخدش ⭐",
@@ -257,11 +279,13 @@ def main(argv=None):
     ap.add_argument("--live-checks", default="")
     ap.add_argument("--manifest", default="")
     ap.add_argument("--evidence-branch", default="")
+    ap.add_argument("--env-blocked", default=ENV_BLOCKED_FILE)
     args = ap.parse_args(argv)
 
     with open(ITEMS_CSV, encoding="utf-8") as fh:
         items = list(csv.DictReader(fh))
 
+    env_blocked, env_meta = load_env_blocked(args.env_blocked)
     fe = parse_fe_log(args.fe_log)
     if args.fe_tsv:
         fe = parse_fe_tsv(args.fe_tsv)
@@ -371,6 +395,10 @@ def main(argv=None):
                             found.append("be:%s (ناجح ⭐)" % ref)
                         elif st_be in ("skipped", "skip"):
                             missing.append("be:%s (متخطّى ⭐)" % ref)
+                        elif base_ref in env_blocked:
+                            # ⭐⭐⭐ محجوب بالبيئة ⭐ ⇒ ⛔ مش «فشل» ⭐
+                            missing.append("be:%s (محجوب ⭐ %s)"
+                                           % (ref, env_blocked[base_ref]))
                         else:
                             failed.append("be:%s (فاشل ⭐)" % ref)
                 else:
@@ -422,6 +450,15 @@ def main(argv=None):
         "counts": counts,
         "fe_files_measured": len(fe),
         "be_files_measured": len(be),
+        # ⭐⭐⭐ دليل المحجوب بالبيئة ⭐ (مع البرهان السالب ⭐)
+        "environment_blocked": {
+            "count": len(env_blocked),
+            "why": env_meta.get("why", ""),
+            "base_sha": env_meta.get("base_sha", ""),
+            "base_proof": env_meta.get("base_proof", ""),
+            "base_results": env_meta.get("base_results", ""),
+            "files": env_blocked,
+        },
         "items": rows,
     }
 
