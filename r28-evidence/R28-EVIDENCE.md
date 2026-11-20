@@ -143,6 +143,7 @@
 | `OCTA-ROUND28-BACKEND.zip` | `58a9ffb7d4c3a5d9353848a69a280fa3` | `f394506e81c6b67b…` | 313 | 1,692,337 |
 | `OCTA-ROUND28-FRONTEND.zip` | `34ca11f81b9ed95ebedabecb5784e754` | `186c6afe6598cbf4…` | 509 | 6,692,549 |
 | `OCTA-ROUND28-CI.zip` | `81dce9c9fe649bd74047d80231433318` | `c8e33414444d2aa5…` | 194 | 1,595,758 |
-| `OCTA-ROUND28-DELIVERY.zip` | `71c7efcd2fbdabf2d23db0793ee2e59b` | `3349d0b77db4975f…` | 64 | 10,587,480 |
+| `OCTA-ROUND28-DELIVERY.zip` | ⭐ في `OCTA-ROUND28-PACKAGES.json` ⭐ | ⭐ في الملف نفس�� ⭐ | ⭐ | ⭐ |
 
 البصمات الكاملة (md5 + sha256 + الحجم + عدد الملفات) في `OCTA-ROUND28-PACKAGES.json` ⭐ خارج الحزم ⭐ (وإلا ⇒ بصمة دائرية ⭐).
+حزمة التسليم نفسها تضم الأدلة ⇒ بصمتها تتغيّر مع كل إضافة ⇒ لذلك تُقرأ من ملف المانيفست ⭐ لا من جدول هنا ⭐.
