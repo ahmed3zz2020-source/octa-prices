@@ -1,0 +1,64 @@
+{
+  "round": "R27",
+  "packages": [
+    {
+      "zip": "OCTA-ROUND27-BACKEND.zip",
+      "bytes": 1547255,
+      "md5": "8e794b515297a6cff35d13ab6253c4c4",
+      "sha256": "9944bc27098ebfda78177948cc2d406d4de17ad0ac27890928909ffdd25dc2c1",
+      "files": 183,
+      "scanned": 183,
+      "secret_hits": 0,
+      "secret_files": [],
+      "dirty_text": [],
+      "dirty_files": []
+    },
+    {
+      "zip": "OCTA-ROUND27-FRONTEND.zip",
+      "bytes": 4414995,
+      "md5": "55c0830c177fdda57d4638ff66de67c0",
+      "sha256": "dd98f14c48332065a3aa02a87a376e069529a996e1e72366cd070409e9e90a8a",
+      "files": 366,
+      "scanned": 366,
+      "secret_hits": 0,
+      "secret_files": [],
+      "dirty_text": [],
+      "dirty_files": []
+    },
+    {
+      "zip": "OCTA-ROUND27-CI.zip",
+      "bytes": 59652,
+      "md5": "c5231d61e173a51c75529302da5545bb",
+      "sha256": "16ea109f5f2ba25a172407746e0ba2bbd60a0aee0c885afa2346f4593c1ba36e",
+      "files": 12,
+      "scanned": 12,
+      "secret_hits": 0,
+      "secret_files": [],
+      "dirty_text": [],
+      "dirty_files": []
+    },
+    {
+      "zip": "OCTA-ROUND27-DELIVERY.zip",
+      "bytes": 50859,
+      "md5": "dcb810076f453dbdb5295297c6361330",
+      "sha256": "72d9bee817c71c6cc95647e20ac186f4082c248c20eef15d4d420b52281ae585",
+      "files": 8,
+      "scanned": 8,
+      "secret_hits": 0,
+      "secret_files": [],
+      "dirty_text": [],
+      "dirty_files": []
+    }
+  ],
+  "backend_sha": "fe45d683a9156f599fefe3b98753f4e62a760193",
+  "frontend_sha": "c520591e829e8e13dbfa39552988ac537e1eef66",
+  "ci_sha": "e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f",
+  "ci_frontend_sha": "c9981facdc4339cc8067063738c51745f89a9e06",
+  "secret_hits_total": 0,
+  "known_dirty_allowed": {
+    "assets/tests/radar.test.js": "نطاقات الحارس نفسه ⭐ (الكود اللي بيكشف الحروف ⭐) ⭐ — تلوّث مقصود ⭐",
+    "data/data_markets.js": "اسم شركة كورية مدرجة في السعودية ⭐ (TADAWUL 8010 ⭐) ⭐ — اسم سوق صحيح ⭐",
+    "data/market_names.js": "اسم شركة كورية مدرجة في السعودية ⭐ (TADAWUL 8010 ⭐) ⭐ — اسم سوق صحيح ⭐"
+  },
+  "dirty_text_total": []
+}

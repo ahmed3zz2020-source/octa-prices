@@ -1,0 +1,66 @@
+=====================================================================
+مربع بدء الشات الجديد — الجولة 27 (R27) — مشروع OCTA
+=====================================================================
+
+السياق في سطرين:
+المشروع = منصة تحليل أسهم عربية (EGX). الواجهة = ahmed3zz2020-source/octa.
+الباك = ahmed3zz2020-source/octa-prices. الشات ده بيكمّل شات الجولة 26.
+
+الحالة الحالية في سطرين:
+اختبارات الواجهة 688/688 ناجحة، اختبارات الباك 78/78 ملف ناجحة، والحزم
+والأدلة اتبنت واتدفعت على فرع review/round27-evidence.
+
+البيكوتInitializer:
+  https://raw.githubusercontent.com/ahmed3zz2020-source/octa-prices/fe45d683a9156f599fefe3b98753f4e62a760193/r27-evidence/OCTA-ROUND27-HANDOFF.md
+(محفوظ محلياً: /workspace/output/OCTA-ROUND27-EVIDENCE/OCTA-ROUND27-HANDOFF.md)
+
+الفرع والبصمات:
+  octa-prices: release/round27-rc = fe45d683a9156f599fefe3b98753f4e62a760193
+                ci/octa-ci-r27 = e0a863b8f6ae448d736ebc0ed4dcaeba952aa76f
+  octa:         release/round27-rc-fe = c520591e829e8e13dbfa39552988ac537e1eef66
+                ci/octa-ci-r27-fe = c9981facdc4339cc8067063738c51745f89a9e06
+
+القياس (كله traced):
+  الواجهة: 688 اختبار، 688 ناجح، 0 فاشل، 474 ثانية.
+  الباك: 78 ملف، 78 ناجح، 0 فاشل، 2491 حالة، 217 ثانية.
+  الحزم: 4 حزم، 0 سر، 0 نص ملوث.
+
+البيئة الحيّة (ما اتغيّرش):
+  لوحة الإدارة: https://octa-mgmt.ahmed3zz2020.workers.dev/login.html
+  المعاينة المعزولة: https://octa-preview.ahmed3zz2020.workers.dev
+  الإنتاج (octashares.com): ممنوع النشر عليه بلا عبارة صريحة من المالك.
+
+المهمة الجاية (بترتيب الأولوية):
+1) الـCI على GitHub Actions يشتغل على البوابات الحقيقية. دلوقتي فرع الـCI فيه
+   نسخة main من .github/workflows/ci.yml ⇒ اللي بيتنفّذ مش البوابات الحقيقية.
+   محتاج توكن بصلاحية workflow (النشر على .github/workflows/ مرفوض بالتوكن
+   الحالي: "refusing to allow a Personal Access Token to create or update
+   workflow")، أو موافقة صريحة على نشر الملف الحقيقي قبل الدفع.
+2) نشر الإنتاج: محتاج project_id أو توكن account-level من المالك.
+3) EGX Live: المفتاح الناقص الوحيد (/api/obdepth ⇒ no_key).
+4) main في الواجهة فيه data_full.json ملوّث (13 سهماً فيها U+FFFD في sectorAr).
+   المرشح نظيف، بس أي نشر من main هيطلع بنص تالف.
+5) سجل الاعتماد 144: أداة بنائه مفقودة والمصدر (xlsx) غير موجود. لازم نبنيه
+   من جديد لو عايزنا نحدّثه للجولة 27، أو نعتبره موروثاً كما هو.
+
+الأدوات (داخل الريبو):
+  tools/r27_build_packages.py — بناء الحزم من شجرة git + مسح أسرار ونص.
+  tools/r27_build_evidence.py — بناء ملخصات المجموعات من سجلات القياس.
+  tools/test_ci_alt_gates.py — البوابات البديلة A1..A4.
+  tools/ci_isolated_tests.json — سجل الملفات المعزولة وبواباتها.
+  tools/ci_result_classifier.py — المصنِّف الرباعي.
+  tools/ci_reset_staging.sh — تصفير البيئة قبل كل ملف اختبار.
+  tools/test_ci_gates.py — حارس نقاء ملف الـCI.
+  tools/deploy-mgmt.js (الواجهة) — نشر لوحة الإدارة مع الحفاظ على الأسرار.
+
+القواعد الثابتة:
+  لا دمج في main · لا نشر على octashares.com · لا موارد مدفوعة · لا بيانات عملاء
+  حقيقية · لا أسرار في الشات ولا في الملفات ولا في الحزم · لا تغيّر أوزان المحرك
+  ولا حدود القبول · المتخطى ليس نجاحاً · المتعذر = صفر نقاط · كل رقم traced ·
+  ممنوع FFFD/CJK/Hangul/Cyrillic في الملفات العربية · ممنوع ثلاث نقاط ASCII
+  خارج التعليقات · أول سطر في الرد = الإجابة وآخر سطر = طلب واحد من المالك.
+
+اللي محتاجه من المالك:
+قرار واحد: هل تبعتلي توكن GitHub بصلاحية workflow، ولا تأذن بنشر ملف الـworkflow
+الحقيقي على .github/workflows/ci.yml في فرع الـCI قبل الدفع؟
+=====================================================================
