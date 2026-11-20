@@ -1,0 +1,52 @@
+{
+ "live_mgmt": {
+  "ok": true,
+  "note": "octa-mgmt /api/health ⇒ 200 + revocation_ready=true ⭐"
+ },
+ "live_preview": {
+  "ok": true,
+  "note": "octa-preview /api/health ⇒ 200 + source=preview-isolated ⭐"
+ },
+ "live_preview_deploy": {
+  "ok": true,
+  "note": "نُشر العامل octa-preview · الإصدار 057b364b + فحص حيّ للصفحة ⭐"
+ },
+ "secret_scan": {
+  "ok": true,
+  "note": "المسح الأمني R28: 7047 كائن git + 300 ملف + 547 عضو حزمة ⭐ · التوكن الحيّ غير موجود ⭐"
+ },
+ "packages_scan": {
+  "ok": true,
+  "note": "مسح مستقل لكل أعضاء الحزم مع المخرج في PACKAGES.json"
+ },
+ "gate_a5": {
+  "ok": true,
+  "note": "بوابة A5 ⇒ 11/11 ⭐"
+ },
+ "cross_repo_contract": {
+  "ok": true,
+  "note": "عقد المستودعين ⇒ 20/20 ببصمتي R28 ⭐"
+ },
+ "be_suite": {
+  "ok": true,
+  "note": "مُصنِّف الـCI على الـstaging المعزول ⇒ 74/77 ملف ⭐"
+ },
+ "acceptance_log": {
+  "ok": true,
+  "note": "هذه الأداة نفسها (أداة ثابتة داخل المستودع) ⭐"
+ },
+ "raw_probes": {
+  "mgmt_health": {
+   "status": 200,
+   "body_head": "{\"ok\":true,\"has_admin\":true,\"has_password\":true,\"revoke_shared\":true,\"revoke_strong\":true,\"revocation_ready\":true}"
+  },
+  "preview_health": {
+   "status": 200,
+   "body_head": "{\"ok\":true,\"source\":\"preview-isolated\"}"
+  },
+  "preview_mailbox_without_key": {
+   "status": 401,
+   "body_head": "{\"ok\":false,\"error\":\"bad_key\",\"why\":\"bad_key\"}"
+  }
+ }
+}

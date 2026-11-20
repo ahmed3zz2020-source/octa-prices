@@ -1,0 +1,229 @@
+{
+  "base": "http://127.0.0.1:8241",
+  "passed": 27,
+  "total": 37,
+  "results": [
+    {
+      "feature": "الدخول بالباسورد (/api/auth/pin/login)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "من أنا (/api/auth/me)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "السوق والأسعار (/api/quotes)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "سهم مفرد (/api/ticker)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "engine-analyze",
+      "status": 405,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "engine-rank",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "engine-ranking",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "engine-opp-strategies",
+      "status": 503,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "engine-opp-summary",
+      "status": 503,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "engine-opportunities",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "engine-opportunity-detail",
+      "status": 404,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "engine-strategies",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "compare-indices",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "gold-eg",
+      "status": 503,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "gold-signal",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "gold-history",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "gold-local",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "gold-deep",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "bench-bridge",
+      "status": 405,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "candles",
+      "status": 404,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "candles-tradingview",
+      "status": 405,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "alpha-lab",
+      "status": 405,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "alpha-decisions",
+      "status": 405,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "alpha-portfolio",
+      "status": 405,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "radar-universe",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "subscriptions-me",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "subscriptions-log",
+      "status": 401,
+      "ok": false,
+      "note": ""
+    },
+    {
+      "feature": "alerts-state",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "المحفظة الذكية (/api/portfolio)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "كتابة المحفظة (POST /api/portfolio)",
+      "status": 400,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "alerts-state",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "alerts-watch",
+      "status": 400,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "إنشاء حساب (/api/auth/register)",
+      "status": 400,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "طلب كود الاسترجاع (pin/challenge/send)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "التشخيص (/api/diagnostics ⭐ أدمن)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "الخروج (/api/auth/logout)",
+      "status": 200,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "feature": "إبطال الجلسة بعد الخروج",
+      "status": 401,
+      "ok": true,
+      "note": "(المطلوب ⭐: رفض ⭐)"
+    }
+  ]
+}

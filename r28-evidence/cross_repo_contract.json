@@ -1,0 +1,11 @@
+{
+  "fe_root": "/workspace/.wt_r28_fe",
+  "be_root": "/workspace/.wt_r28_be",
+  "fe_sha": "afa5db618624701f6fe0a2962ebaaec1887be976",
+  "be_sha": "78f5f5b8ee6997b1e057957224c509e9ae2fb7ec",
+  "fe_data": "/workspace/.wt_r28_fe/data_full.json",
+  "fe_symbols": 6,
+  "passed": 20,
+  "total": 20,
+  "failed": []
+}

@@ -1,0 +1,42 @@
+════════════════════════════════════════════════════════════════════════
+🔬 R28 · الفحص الوظيفي للباك الحقيقي (بيانات اختبار ⭐)
+════════════════════════════════════════════════════════════════════════
+  ✅ الدخول بالباسورد (/api/auth/pin/login)   status=200 
+  ✅ من أنا (/api/auth/me)                    status=200 
+  ✅ السوق والأسعار (/api/quotes)             status=200 
+  ✅ سهم مفرد (/api/ticker)                   status=200 
+  ❌ engine-analyze                           status=405 
+  ✅ engine-rank                              status=200 
+  ✅ engine-ranking                           status=200 
+  ❌ engine-opp-strategies                    status=503 
+  ❌ engine-opp-summary                       status=503 
+  ✅ engine-opportunities                     status=200 
+  ✅ engine-opportunity-detail                status=404 
+  ✅ engine-strategies                        status=200 
+  ✅ compare-indices                          status=200 
+  ✅ gold-eg                                  status=503 
+  ✅ gold-signal                              status=200 
+  ✅ gold-history                             status=200 
+  ✅ gold-local                               status=200 
+  ✅ gold-deep                                status=200 
+  ❌ bench-bridge                             status=405 
+  ❌ candles                                  status=404 
+  ❌ candles-tradingview                      status=405 
+  ❌ alpha-lab                                status=405 
+  ❌ alpha-decisions                          status=405 
+  ❌ alpha-portfolio                          status=405 
+  ✅ radar-universe                           status=200 
+  ✅ subscriptions-me                         status=200 
+  ❌ subscriptions-log                        status=401 
+  ✅ alerts-state                             status=200 
+  ✅ المحفظة الذكية (/api/portfolio)          status=200 
+  ✅ كتابة المحفظة (POST /api/portfolio)      status=400 
+  ✅ alerts-state                             status=200 
+  ✅ alerts-watch                             status=400 
+  ✅ إنشاء حساب (/api/auth/register)          status=400 
+  ✅ طلب كود الاسترجاع (pin/challenge/send)   status=200 
+  ✅ التشخيص (/api/diagnostics ⭐ أدمن)        status=200 
+  ✅ الخروج (/api/auth/logout)                status=200 
+  ✅ إبطال الجلسة بعد الخروج                  status=401 (المطلوب ⭐: رفض ⭐)
+────────────────────────────────────────────────────────────────────────
+النتيجة: 27/37
