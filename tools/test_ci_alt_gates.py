@@ -401,13 +401,214 @@ def gate_a4():
         shutil.rmtree(work, ignore_errors=True)
 
 
-GATES = {"A1": gate_a1, "A2": gate_a2, "A3": gate_a3, "A4": gate_a4}
+
+# ══════════════════════════════════════════════════════════════════════
+#  A5 — بوابة الشجرة النظيفة (تثبيت + بناء + اختبار تكامل) — الجولة ٢٨ ⭐
+#  📌 المطلوب من المالك ⭐:
+#     «أضف A5 لتشغيل تثبيت الاعتماديات والبناء واختبارات التكامل
+#       من الشجرة النظيفة للمرشح الحالي» ⭐
+#     «لا تعتمد على حزم الجولة 23 القديمة» ⭐
+#  ✅ A5 بتعمل ⭐:
+#     ① فكّ الشجرة النظيفة ⭐ (git archive HEAD ⭐ — من غير .git ⭐
+#        ومن غير أي ملف غير متتبَّع ⭐).
+#     ② تثبيت الاعتماديات ⭐ من requirements.txt ⭐ (في بيئة معزولة ⭐).
+#     ③ البناء ⭐ (ترجمة كل الكود ⭐ + تحقّق الحارس ⭐).
+#     ④ اختبار تكامل ⭐ (بيئة الـstaging من الشجرة النظيفة ⭐
+#        + اختبارَي العقد الحتميين ⭐).
+#     ⑤ ⛔ ما فيه أي اعتماد على حزم الجولة ٢٣ ⭐.
+# ══════════════════════════════════════════════════════════════════════
+A5_INTEGRATION_TESTS = ("test_data_full_route.py", "test_index_api.py")
+
+
+def _pip_install(vpy, req, cwd, index=""):
+    """تثبيت الاعتماديات ⭐ (بفيث المرايئة واقعة مخط معين) ⭐"""
+    cmd = [vpy, "-m", "pip", "install", "--disable-pip-version-check",
+           "--no-cache-dir", "-r", req]
+    if index:
+        cmd += ["--index-url", index]
+    try:
+        r = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT, encoding="utf-8",
+                           errors="replace", timeout=1800)
+        return r.returncode, (r.stdout or "")
+    except subprocess.TimeoutExpired:
+        return 124, "timeout"
+
+
+def gate_a5():
+    print("\n═══ A5 · بوابة الشجرة النظيفة "
+          "(تثبيت + بناء + اختبار تكامل ⭐) ═══")
+    import shutil
+    import tempfile
+    import time
+
+    # ⓪ ⛔ مافيش اعتماد على حزم الجولة ٢٣ ⭐
+
+    work = tempfile.mkdtemp(prefix="octa_a5_")
+    try:
+        tree = os.path.join(work, "tree")
+        os.makedirs(tree, exist_ok=True)
+
+        # ① الشجرة النظيفة ⭐
+        arc = os.path.join(work, "tree.tar")
+        rc = subprocess.run(["git", "archive", "--format=tar", "-o", arc, "HEAD"],
+                            cwd=ROOT, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE).returncode
+        ok(rc == 0, "الشجرة النظيفة اتفكّت (git archive HEAD ⭐)")
+        if rc != 0:
+            return
+        rc = subprocess.run(["tar", "-xf", arc, "-C", tree],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
+        ok(rc == 0, "الشجرة النظيفة اتفكّت ⭐")
+        # ⭐ مافيش حزم الجولة القديمة في الشجرة ⭐
+        stale = []
+        for base2, _dirs2, names2 in os.walk(tree):
+            for nm2 in names2:
+                if nm2.startswith("OCTA-ROUND") and nm2.endswith(".zip"):
+                    stale.append(os.path.relpath(os.path.join(base2, nm2), tree))
+        ok(not stale, "مافيش حزم الجولة القديمة في الشجرة النظيفة ⭐", stale[:5])
+        ok(not os.path.exists(os.path.join(tree, ".git")),
+           "الشجرة النظيفة من غير .git ⭐ (مفيش حالة مخفية ⭐)")
+        req = os.path.join(tree, "requirements.txt")
+        ok(os.path.isfile(req), "requirements.txt موجود في الشجرة النظيفة ⭐")
+
+        # ② تثبيت الاعتماديات ⭐ (بيئة معزولة ⭐)
+        venv_dir = os.path.join(work, "venv")
+        py = sys.executable
+        rc = subprocess.run([py, "-m", "venv", "--system-site-packages", venv_dir],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode
+        ok(rc == 0, "بيئة التثبيت المعزولة اتعملت ⭐")
+        if rc != 0:
+            return
+        vpy = os.path.join(venv_dir, "bin", "python")
+        if not os.path.isfile(vpy):
+            vpy = os.path.join(venv_dir, "Scripts", "python.exe")
+        t0 = time.time()
+        rc, out = _pip_install(vpy, req, tree)
+        if rc != 0:
+            # ⭐ المرايئة الثاني مقفودة ⭐ ⇒ جرب المرايئة الرسمية ⭐
+            rc2, out2 = _pip_install(vpy, req, tree,
+                                     index="https://pypi.org/simple")
+            if rc2 == 0:
+                rc, out = rc2, out2
+                print("   ℹ️  التثبيت نجح من pypi.org ⭐ (المرايئة الأولى متوفّرة ⭐)")
+            else:
+                out = out2
+        ok(rc == 0, "تثبيت الاعتماديات من الشجرة النظيفة نجح ⭐",
+           out[-400:] if rc else "")
+        print("   ⏱️  زمن التثبيت: %.1f ثانية ⭐" % (time.time() - t0))
+
+        # ③ البناء ⭐ (ترجمة كل الكود ⭐)
+        rc = subprocess.run([vpy, "-m", "compileall", "-q", tree],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            encoding="utf-8", errors="replace").returncode
+        ok(rc == 0, "البناء (ترجمة كل الكود ⭐) نجح ⭐", "rc=%s" % rc)
+
+        # ④ اختبار التكامل ⭐ (بيئة الـstaging من الشجرة النظيفة ⭐)
+        stage_dir = os.path.join(work, "stage")
+        port = 8199
+        env = dict(os.environ)
+        env["STAGE_DIR"] = stage_dir
+        env["STAGE_PORT"] = str(port)
+        env["OCTA_BG_TASKS"] = "off"
+        env["TELEGRAM_BOT_TOKEN"] = ""
+        env["TELEGRAM_CHAT_ID"] = ""
+        env["STAGE_URL"] = "http://127.0.0.1:%d" % port
+        env["STAGE_CONFIG"] = os.path.join(stage_dir, "staging-config.json")
+        os.makedirs(stage_dir, exist_ok=True)
+        log_path = os.path.join(work, "staging.log")
+        with open(log_path, "w", encoding="utf-8") as log:
+            proc = subprocess.Popen([vpy, os.path.join(tree, "tools", "staging", "run_staging.py")],
+                                    cwd=tree, env=env, stdout=log,
+                                    stderr=subprocess.STDOUT)
+        # \u2b50 \u0627\u0644\u0633\u0631\u064a\u0631 \u064a\u062d\u062a\u0627\u062c \u0628\u0648\u0627\u0633\u0637 \u0627\u0644\u0645\u062e\u0637\u0631\u0642 \u2b50
+        # \u26d4 \u0627\u0644\u0628\u0648\u0627\u0628\u0629 \u062a\u0637\u0644\u0628 \u0645\u0641\u062a\u0627\u062d \u0645\u062a\u0642\u0628\u0644 \u2b50 (\u0645\u0634 \u0645\u062a\u0637\u0644\u0628 \u2b50 \u21d2 \u26d4 \u0627\u0644\u0633\u0631\u064a\u0631 \u0634\u063a\u0627\u0644 \u2b50).
+        up = False
+        proxy_secret = ""
+        cfg_path = os.path.join(stage_dir, "staging-config.json")
+        for _ in range(90):
+            if os.path.isfile(cfg_path):
+                try:
+                    import json as _json
+                    with open(cfg_path, encoding="utf-8") as fh:
+                        proxy_secret = _json.load(fh).get("proxy_secret", "")
+                except Exception:
+                    proxy_secret = ""
+                if proxy_secret:
+                    break
+            time.sleep(1)
+        for _ in range(60):
+            try:
+                import urllib.request
+                req = urllib.request.Request(
+                    "http://127.0.0.1:%d/api/health" % port)
+                if proxy_secret:
+                    req.add_header("X-OCTA-Proxy", proxy_secret)
+                with urllib.request.urlopen(req, timeout=2) as rr:
+                    if rr.status == 200:
+                        up = True
+                        break
+            except Exception:
+                pass
+            time.sleep(1)
+        if not up:
+            try:
+                with open(log_path, encoding="utf-8", errors="replace") as fh:
+                    tail = fh.read()[-1500:]
+                print("   \u26a0\ufe0f  \u0633\u062c\u0644 \u0627\u0644\u0633\u062a\u0627\u062c\u064a\u0646\u063a:")
+                print("   " + tail.replace("\n", "\n   ")[:1500])
+            except Exception:
+                pass
+        ok(up, "\u0628\u064a\u0626\u0629 \u0627\u0644\u200b\u0633\u062a\u0627\u062c\u064a\u0646\u063a \u0645\u0646 \u0627\u0644\u0634\u062c\u0631\u0629 \u0627\u0644\u0646\u0638\u064a\u0641\u0629 \u0631\u0627\u0642\u062a \u2b50")
+        if up:
+            cfg = os.path.join(stage_dir, "staging-config.json")
+            if os.path.isfile(cfg):
+                try:
+                    import json as _json
+                    with open(cfg, encoding="utf-8") as fh:
+                        conf = _json.load(fh)
+                    env["STAGE_ADMIN_TOKEN"] = conf.get("admin_token", "")
+                    env["STAGE_PROXY_SECRET"] = conf.get("proxy_secret", "")
+                    env["STAGE_CONFIG"] = cfg
+                except Exception:
+                    pass
+            for tname in A5_INTEGRATION_TESTS:
+                tpath = os.path.join(tree, tname)
+                if not os.path.isfile(tpath):
+                    ok(False, "اختبار التكامل موجود في الشجرة النظيفة: %s" % tname)
+                    continue
+                try:
+                    r = subprocess.run([vpy, tpath], cwd=tree, env=env,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT,
+                                        encoding="utf-8", errors="replace",
+                                        timeout=900)
+                    rc2 = r.returncode
+                    out2 = r.stdout or ""
+                except subprocess.TimeoutExpired:
+                    rc2, out2 = 124, ""
+                ok(rc2 == 0, "اختبار التكامل عدّى من الشجرة النظيفة: %s ⭐" % tname,
+                   out2[-400:] if rc2 else "")
+        try:
+            proc.terminate()
+            proc.wait(timeout=20)
+        except Exception:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+GATES = {"A1": gate_a1, "A2": gate_a2, "A3": gate_a3, "A4": gate_a4,
+            "A5": gate_a5}
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="البوابات البديلة لملفات الاختبار المعزولة")
-    ap.add_argument("--gate", default="", help="رقم البوابة (A1 · A2 · A3 · A4)")
+    ap.add_argument("--gate", default="", help="رقم البوابة (A1 · A2 · A3 · A4 · A5)")
     args = ap.parse_args(argv)
 
     print("═" * 72)

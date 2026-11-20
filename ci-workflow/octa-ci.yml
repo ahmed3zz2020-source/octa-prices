@@ -52,8 +52,76 @@ env:
   # ⛔ بصمة المرشح (الجولة ٢٦) — المصدر الواحد لكل النتائج ⭐
   #    (نفس الـSHA في كل الـjobs ⇒ كل نتيجة مربوطة بيه ⭐)
   OCTA_CANDIDATE_SHA: 'fe45d683a9156f599fefe3b98753f4e62a760193'
+  # ⭐⭐⭐ (R28) ⭐ بصمة **الواجهة** المعتمدة ⭐
+  #    ⇒ ⭐ اختبار العقد بين المستودعين مربوط بالبصمتين ⭐
+  OCTA_FE_SHA: '5ec4e2574c91c209fe43a4815ca2cabacac822f4'
 
 jobs:
+  # ══════════════════════════════════════════════════════════════════════
+  #  ⭐⭐⭐ (R28) ⭐ البوابات البديلة + عقد المستودعين ⭐⭐⭐
+  #  📌 فصل صريح ⭐: ⭐ عدد الاختبارات الأصلية ⭐
+  #     ⭐ **منفصل** ⭐ عن ⭐ عدد البوابات البديلة ⭐.
+  #  📌 A5 ⭐ (الجولة ٢٨) ⭐: ⭐ تثبيت + بناء + اختبار تكامل ⭐
+  #     ⭐ من الشجرة النظيفة للمرشح الحالي ⭐ (مش حزم الجولة ٢٣ ⭐).
+  # ══════════════════════════════════════════════════════════════════════
+  alternative-gates:
+    name: "🚪 ٢) البوابات البديلة (A1..A5 ⭐) + عقد المستودعين ⭐"
+    needs: dependency-install
+    runs-on: ubuntu-latest
+    steps:
+      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
+        run: |
+          set -euo pipefail
+          ACTUAL="$(git rev-parse HEAD)"
+          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
+            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+            exit 1
+          fi
+          echo "PASS: الـSHA من عائلة المرشح"
+
+      - name: "🐍 تجهيز Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: "📦 pip install -r requirements.txt (بوابة صارمة)"
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+
+      - name: "🚪 البوابات البديلة (A1..A5 ⭐ — مفيش استبعاد صامت ⭐)"
+        run: |
+          set -euo pipefail
+          python3 tools/test_ci_alt_gates.py --gate A1
+          python3 tools/test_ci_alt_gates.py --gate A2
+          python3 tools/test_ci_alt_gates.py --gate A3
+          python3 tools/test_ci_alt_gates.py --gate A4
+          python3 tools/test_ci_alt_gates.py --gate A5
+          echo "✅ كل البوابات البديلة عدّت ⭐"
+
+      - name: "📥 تحميل مستودع الواجهة عند البصمة المعتمدة ⭐"
+        uses: actions/checkout@v4
+        with:
+          repository: ahmed3zz2020-source/octa
+          ref: ${{ env.OCTA_FE_SHA }}
+          path: fe
+          fetch-depth: 0
+
+      - name: "🔗 ⭐⭐⭐ (R28) ⭐ اختبار العقد بين المستودعين ⭐⭐⭐"
+        run: |
+          set -euo pipefail
+          python3 tools/test_cross_repo_contract.py \
+            --fe-root fe \
+            --be-root . \
+            --fe-sha "$OCTA_FE_SHA" \
+            --be-sha "$OCTA_CANDIDATE_SHA" \
+            --out "$RUNNER_TEMP/octa-cross-repo.json"
+
   # ══════════════════════════════════════════════════════════════
   # ① البوابة الأولى: تثبيت الاعتماديات (صارم)
   # ══════════════════════════════════════════════════════════════
@@ -451,7 +519,7 @@ jobs:
   # ══════════════════════════════════════════════════════════════
   hygiene-guards:
     name: "🧹 ٥) حُرّاس المستودع — نظافة الكود + نظافة الشجرة + حارس الـCI"
-    needs: [backend-suite, frontend-suite, workflow-definition-gates]
+    needs: [backend-suite, frontend-suite, workflow-definition-gates, alternative-gates]
     runs-on: ubuntu-latest
     steps:
       - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
