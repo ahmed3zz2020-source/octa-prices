@@ -51,10 +51,10 @@ on:
 env:
   # ⛔ بصمة المرشح (الجولة ٢٦) — المصدر الواحد لكل النتائج ⭐
   #    (نفس الـSHA في كل الـjobs ⇒ كل نتيجة مربوطة بيه ⭐)
-  OCTA_CANDIDATE_SHA: '0d30c2eec56d8d6a4a9db14b3450d7d32f0305da'
+  OCTA_CANDIDATE_SHA: '540ec33d7932ea7e23b1d67262809b85ff424047'
   # ⭐⭐⭐ (R28) ⭐ بصمة **الواجهة** المعتمدة ⭐
   #    ⇒ ⭐ اختبار العقد بين المستودعين مربوط بالبصمتين ⭐
-  OCTA_FE_SHA: 'e853f24cdb653d65d945930e0c9853d6b6e10c32'
+  OCTA_FE_SHA: 'cb83125d03833c2791cfd31771cc8d446230567e'
 
 jobs:
   # ══════════════════════════════════════════════════════════════════════
@@ -69,20 +69,33 @@ jobs:
     needs: dependency-install
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🐍 تجهيز Python"
         uses: actions/setup-python@v5
@@ -129,23 +142,38 @@ jobs:
     name: "📦 ١) تثبيت الاعتماديات — بوابة صارمة"
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
+          echo "ci_def_sha=${ci_def_sha:-unknown}"
+          echo "tested_sha=$ACTUAL"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
           echo "fe_sha=$OCTA_FE_SHA"
           echo "tested_head=$ACTUAL"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🔒 البوابة الكاملة (نطاق الفرق = ملفات الـCI بس)"
         run: bash tools/ci_candidate_gate.sh
@@ -206,23 +234,38 @@ jobs:
     needs: dependency-install
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
+          echo "ci_def_sha=${ci_def_sha:-unknown}"
+          echo "tested_sha=$ACTUAL"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
           echo "fe_sha=$OCTA_FE_SHA"
           echo "tested_head=$ACTUAL"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🔒 البوابة الكاملة (نطاق الفرق = ملفات الـCI بس)"
         run: bash tools/ci_candidate_gate.sh
@@ -351,23 +394,38 @@ jobs:
     needs: dependency-install
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
+          echo "ci_def_sha=${ci_def_sha:-unknown}"
+          echo "tested_sha=$ACTUAL"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
           echo "fe_sha=$OCTA_FE_SHA"
           echo "tested_head=$ACTUAL"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🔒 البوابة الكاملة (نطاق الفرق = ملفات الـCI بس)"
         run: bash tools/ci_candidate_gate.sh
@@ -449,23 +507,38 @@ jobs:
     needs: backend-suite
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
+          echo "ci_def_sha=${ci_def_sha:-unknown}"
+          echo "tested_sha=$ACTUAL"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
           echo "fe_sha=$OCTA_FE_SHA"
           echo "tested_head=$ACTUAL"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🐍 تجهيز Python"
         uses: actions/setup-python@v5
@@ -526,23 +599,38 @@ jobs:
     needs: [backend-suite, frontend-suite, workflow-definition-gates, alternative-gates]
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
+          echo "ci_def_sha=${ci_def_sha:-unknown}"
+          echo "tested_sha=$ACTUAL"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
           echo "fe_sha=$OCTA_FE_SHA"
           echo "tested_head=$ACTUAL"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🐍 تجهيز Python"
         uses: actions/setup-python@v5
@@ -571,23 +659,38 @@ jobs:
     needs: hygiene-guards
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
+          echo "ci_def_sha=${ci_def_sha:-unknown}"
+          echo "tested_sha=$ACTUAL"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
           echo "fe_sha=$OCTA_FE_SHA"
           echo "tested_head=$ACTUAL"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🐍 تجهيز Python"
         uses: actions/setup-python@v5
@@ -610,23 +713,38 @@ jobs:
     needs: data-integrity
     runs-on: ubuntu-latest
     steps:
-      - name: "📥 تحميل الكود (تاريخ كامل ⭐)"
+      - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
+        run: |
+          set -euo pipefail
+          DEF_SHA="$(git rev-parse HEAD)"
+          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
+          echo "CI definition SHA = $DEF_SHA"
+
+      - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ env.OCTA_CANDIDATE_SHA }}
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
           set -euo pipefail
           ACTUAL="$(git rev-parse HEAD)"
+          echo "ci_def_sha=${ci_def_sha:-unknown}"
+          echo "tested_sha=$ACTUAL"
           echo "candidate_sha=$OCTA_CANDIDATE_SHA"
           echo "fe_sha=$OCTA_FE_SHA"
           echo "tested_head=$ACTUAL"
-          if ! git merge-base --is-ancestor "$OCTA_CANDIDATE_SHA" "$ACTUAL"; then
-            echo "FAIL: الـSHA المختبَر مش من عائلة المرشح"
+          # ⭐⭐⭐ (R29 · FINDING-18) ⭐⭐⭐ مطابقة **بالضبط** ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ «سلف» ⭐ (ancestor ⭐) ⭐ بتسمح بأي commit أحدث ⭐
+          #    ⇒ ⛔ الكود المقيس ممكن **مش** المرشح ⭐ ⇒ ⛔ كذب ⭐.
+          # ✅ دلوقتي ⭐: ⛔ الـcheckout **مثبّت** ⭐ على SHA المرشّح ⭐
+          #    ⇒ ⛔ لازم يطابق **بالضبط** ⭐ (من غيره ⇒ فشل ⭐).
+          if [ "$ACTUAL" != "$OCTA_CANDIDATE_SHA" ]; then
+            echo "FAIL: الـSHA المختبَر ($ACTUAL) ⭐ مش المرشح المطلوب ($OCTA_CANDIDATE_SHA)"
             exit 1
           fi
-          echo "PASS: الـSHA من عائلة المرشح"
+          echo "PASS: الـSHA المختبَر = المرشح بالضبط ⭐"
 
       - name: "🔒 البوابة الكاملة (نطاق الفرق = ملفات الـCI بس)"
         run: bash tools/ci_candidate_gate.sh
