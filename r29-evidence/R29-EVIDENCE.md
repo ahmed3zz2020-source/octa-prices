@@ -10,10 +10,10 @@
 
 | العنصر | المستودع | الفرع | البصمة |
 |---|---|---|---|
-| الباك | `ahmed3zz2020-source/octa-prices` | `release/round28-rc` | `e50bcb760fe72a476215f04b93ede927cb04da18` |
+| الباك | `ahmed3zz2020-source/octa-prices` | `release/round28-rc` | `44ce59ee71a673fb55f477ee54119082736b0873` |
 | الواجهة | `ahmed3zz2020-source/octa` | `release/round28-rc-fe` | `ec582ce617991886aa370639e0a46a6e76c330d2` |
 | الـCI | `ahmed3zz2020-source/octa-prices` | `ci/octa-ci-r28` | `2992c84c234d586b7252f64b0df60bbd16a407bb` |
-| الأدلة | `ahmed3zz2020-source/octa-prices` | `review/round29-evidence` | `e50bcb760fe72a476215f04b93ede927cb04da18` |
+| الأدلة | `ahmed3zz2020-source/octa-prices` | `review/round29-evidence` | `44ce59ee71a673fb55f477ee54119082736b0873` |
 
 المعاينة الحيّة: `https://octa-preview.ahmed3zz2020.workers.dev` (آخر نشر `v=202611210108`).
 الباك الحقيقي المعزول: `https://const-figure-excel-practitioner.trycloudflare.com` ⇒ `http://127.0.0.1:8097` (نفق مؤقت ⭐).
@@ -112,7 +112,7 @@
 | `OCTA-ROUND29-BACKEND.zip` | `40b3275eedebeb34138ce1499998e921` | `eacec6330cb211e292bb4dd071a14ec4106ffe2d0eab0c98e21b52b22cb9afe7` |
 | `OCTA-ROUND29-FRONTEND.zip` | `70de03c13f8ac6152ed064c871612494` | `ba7a0dc806292c899fc52909663f3815f5ef06e551275374f1673a3b3e3b74d8` |
 | `OCTA-ROUND29-CI.zip` | `3f5554c036478aac4e72fc93e6cc5521` | `c61c5c8d376a322b9fc55ebcc2e48e1bd1d6d0907f0b8d87902f76591debf48e` |
-| `OCTA-ROUND29-DELIVERY.zip` | `a4f25e57a37a9d337b4fb08409c3ad8a` | `d6bcfff96834d54957c6630e9791ba4cec363852bfa114af0127b63d9153823c` |
+| `OCTA-ROUND29-DELIVERY.zip` | ⭐ (المانيفست ⭐) | ⭐ (المانيفست ⭐) |
 
 المانيفست: `/workspace/output/OCTA-ROUND29-PACKAGES.json` ⭐ (برّه الحزم ⭐ حتى لا تصبح البصمة دائرية ⭐).
 
@@ -122,7 +122,7 @@
 مشروع OCTA · المرشح RC-R29-001 · طلب مراجعة مستقلة ⭐
 
 السياق: مشروع OCTA (أسهم مصري ⭐) · تطبيق أسهم مصري · رادار ذكي + محرك إشارة ذهب + محفظة.
-المرشح: الباك release/round28-rc @ e50bcb760fe72a476215f04b93ede927cb04da18 ⭐
+المرشح: الباك release/round28-rc @ 44ce59ee71a673fb55f477ee54119082736b0873 ⭐
         الواجهة release/round28-rc-fe @ ec582ce617991886aa370639e0a46a6e76c330d2 ⭐
         الـCI ci/octa-ci-r28 @ 2992c84c234d586b7252f64b0df60bbd16a407bb ⭐
         الأدلة review/round29-evidence ⭐ (فرع مستقل ⭐)
