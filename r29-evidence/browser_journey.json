@@ -1,0 +1,847 @@
+{
+  "base": "https://octa-preview.ahmed3zz2020.workers.dev",
+  "at": "2026-11-21T01:10:25.018Z",
+  "gate": {
+    "pad": true,
+    "codeAsked": true,
+    "codeFilled": true,
+    "newpin": true,
+    "done": true
+  },
+  "gold": {
+    "open": true,
+    "tabs": [
+      "السرد",
+      "الادخار"
+    ],
+    "fullscreenBtn": true,
+    "picker": true,
+    "shotBtn": true,
+    "chart": true,
+    "supportResistance": true,
+    "events": true,
+    "errorShown": true,
+    "body": "🥇 الذهب العالمي\nOANDA:XAUUSD\n🔎\n⛶\n📷\n✕\nالسرد\nالادخار\nخامل — استنى\nالدرجة -4 العتبة 42\n3,536.71\n2026-11-21 03:09\nمفيش إشارة دلوقتي. السعر: · السيولة: · التقلب: . الأزرق معناه «مفيش قياس كافي» — مش «السوق واقف». ⚠️ قياس ومقارنة — مش نصيحة استثمارية، ومفيش أي رقم هنا ضمان للربح.\n🎨\nمفتاح الألوان\nكل لون بيعني حالة الذهب دلوقتي\nاشترِ\nالدرجة عدّت العتبة · كل بوابات الشراء خضرا · مفيش خبر فاصل\nالثمانية عوامل كلها في صالحك، والسوق مفتوح، وما في خبر بيعدّي\nبِع\nالدرجة نزلت تحت العتبة · بوابات البيع خضرا · الاتجاه معاكس\nالمؤشرات معاكسة والإشارات بتقول بالعكس، والدرجة ما عدّت عتبتها\nاستنى\nأقوى من ٣ بوابات فاشلة · السوق مقفول أو راكد · البيانات ناقصة\nالمحرك مش قادر يقيس دلوقتي — وده أحسن من توقّع غلط\n🎯\nمقترحات الصفقات\nالأزرق = لا توجد فرصة حاليًا\n⚡ مضاربة سريعة\nلا توجد فرصة حاليًا\nدقائق — هدف صغير ووقف ضيق\n🌀 سوينج\nلا توجد فرصة حاليًا\nأيام — هدف متوسط ووقف أوسع\n📆 قصير الأجل\nلا توجد فرصة حاليًا\nأسا"
+  },
+  "nav": {
+    "steps": [
+      {
+        "step": "الأسهم",
+        "found": true,
+        "hash": "#stocks",
+        "title": "OCTA | منصة البورصة المصرية الذكية"
+      },
+      {
+        "step": "الفرص",
+        "found": true,
+        "hash": "#bestpick",
+        "title": "OCTA | منصة البورصة المصرية الذكية"
+      },
+      {
+        "step": "المقارنة",
+        "found": true,
+        "hash": "#pick",
+        "title": "OCTA | منصة البورصة المصرية الذكية"
+      }
+    ],
+    "ok": true
+  },
+  "matrix": [
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 852,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 360,
+      "scrollWidth": 360,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 852,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 852,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 414,
+      "scrollWidth": 414,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 858,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 768,
+      "scrollWidth": 768,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 866,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 899,
+      "scrollWidth": 899,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 866,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 900,
+      "scrollWidth": 900,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 866,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 1024,
+      "scrollWidth": 1024,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 866,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 1280,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 866,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 866,
+      "overflowList": [],
+      "smallList": []
+    }
+  ],
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "The report-only Content Security Policy 'default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'self' https://*.tradingview.com https://*.tradingvie",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 401 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 501 ()",
+    "Failed to load resource: the server responded with a status of 503 ()"
+  ],
+  "api_log": [
+    {
+      "status": 200,
+      "path": "/api/health",
+      "body": {
+        "ok": true,
+        "source": "preview-isolated"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/auth/signup/start",
+      "body": {
+        "ok": true,
+        "expires_in": 600,
+        "preview_note": "معاينة: الكود في صندوق المعاينة ⭐ — محتاج مفتاح المعاينة ⭐"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/auth/signup/verify",
+      "body": {
+        "ok": true,
+        "expires_in": 600
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/health",
+      "body": null
+    },
+    {
+      "status": 200,
+      "path": "/api/auth/signup/newpin",
+      "body": {
+        "ok": true,
+        "expires_in": 604800
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/auth/pin/login",
+      "body": {
+        "ok": true,
+        "expires_in": 604800
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/auth/me",
+      "body": null
+    },
+    {
+      "status": 200,
+      "path": "/api/auth/refresh",
+      "body": null
+    },
+    {
+      "status": 501,
+      "path": "/api/ticker?_=1795223356968",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/prices?_=1795223356968",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/dividends?_=1795223357017",
+      "body": {
+        "ok": false,
+        "error": "تسجيل الدخول مطلوب",
+        "code": "auth_required",
+        "hint": "سجّل دخول أو اعمل حساب من البوابة، وبعدها افتح تاني"
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/gold/signal",
+      "body": {
+        "ok": false,
+        "error": "تسجيل الدخول مطلوب",
+        "code": "auth_required",
+        "hint": "سجّل دخول أو اعمل حساب من البوابة، وبعدها افتح تاني"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/auth/me",
+      "body": {
+        "ok": true,
+        "expires_in": 604798
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/rank?limit=400",
+      "body": {
+        "ok": true,
+        "count": 297,
+        "updated": 1795123110,
+        "preview_note": "معاينة معزولة ⭐ — الترتيب من لقطة المعاينة ⭐"
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/prices?_=1795223357245",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/rank?limit=400",
+      "body": {
+        "ok": true,
+        "count": 297,
+        "updated": 1795123110,
+        "preview_note": "معاينة معزولة ⭐ — الترتيب من لقطة المعاينة ⭐"
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/prices?_=1795223358069",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/health",
+      "body": {
+        "ok": true,
+        "source": "preview-isolated"
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/ticker?_=1795223356968",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/prices?_=1795223356968",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/factors",
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/indices/EGX30/analysis",
+      "body": {
+        "ok": true,
+        "source": {
+          "history": "TradingView websocket — إغلاقات يومية",
+          "methodology": "صفحات البورصة الرسمية",
+          "official": "البورصة المصرية (EGX)"
+        }
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/history",
+      "body": {
+        "ok": true,
+        "count": 6873
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/local",
+      "body": {
+        "ok": true,
+        "source": "iSagha — مرجع سوق ذهب مصري"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/engine-weights",
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/scenarios",
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/intelligence/COMI?_=1795223359935",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/technical?instrument=gram",
+      "body": {
+        "ok": true,
+        "count": 6873,
+        "source": {
+          "history_source": {
+            "fx": {
+              "from": "1997-08-17",
+              "id": "tradingview_usdegp",
+              "note": "سعر الصرف الرسمي — **نفس رمز الـscanner (tk-usd)** ⇒ كارت الذهب والسلسلة من مصدر واحد.",
+              "points": 7080,
+              "provider": "TradingView",
+              "quote_convention": "EGP لكل دولار (مباشر)",
+              "symbol": "FX_IDC:USDEGP",
+              "to": "2026-11-19"
+            },
+            "gold": {
+              "from": "1990-05-24",
+              "points": 9000,
+              "provider": "TradingView",
+              "symbol": "FX_IDC:XAUUSD",
+              "to": "2026-11-19"
+            }
+          },
+          "note": "السلسلة النظرية — مش سعر صاغة مرصود تاريخياً.",
+          "price_source": "محسوب: XAU/USD × EGP/USD ÷ 31.1035"
+        }
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/factors",
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/local",
+      "body": {
+        "ok": true,
+        "source": "iSagha — مرجع سوق ذهب مصري"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/health",
+      "body": null
+    },
+    {
+      "status": 404,
+      "path": "/api/explain/COMI?_=1795223359935",
+      "body": {
+        "error": "السهم COMI غير موجود"
+      }
+    },
+    {
+      "status": 404,
+      "path": "/api/technical/COMI?_=1795223359935",
+      "body": {
+        "error": "السهم COMI غير موجود"
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/ticker?_=1795223356968",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/factors",
+      "body": {
+        "ok": true
+      }
+    },
+    {
+      "status": 503,
+      "path": "/api/gold",
+      "body": {
+        "error": "بيانات الذهب غير متاحة"
+      }
+    },
+    {
+      "status": 501,
+      "path": "/api/prices?_=1795223356968",
+      "body": {
+        "ok": false,
+        "error": "preview_route_not_implemented",
+        "why": "المسار ده مش متاح في المعاينة المعزولة ⭐",
+        "preview_note": "المعاينة بتخدم: التسجيل ⭐ الدخول ⭐ الجلسات ⭐ الأسعار ⭐ المحفظة ⭐ التنبيهات ⭐"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/history",
+      "body": {
+        "ok": true,
+        "count": 6873
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/local",
+      "body": {
+        "ok": true,
+        "source": "iSagha — مرجع سوق ذهب مصري"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/gold/technical?instrument=gram",
+      "body": {
+        "ok": true,
+        "count": 6873,
+        "source": {
+          "history_source": {
+            "fx": {
+              "from": "1997-08-17",
+              "id": "tradingview_usdegp",
+              "note": "سعر الصرف الرسمي — **نفس رمز الـscanner (tk-usd)** ⇒ كارت الذهب والسلسلة من مصدر واحد.",
+              "points": 7080,
+              "provider": "TradingView",
+              "quote_convention": "EGP لكل دولار (مباشر)",
+              "symbol": "FX_IDC:USDEGP",
+              "to": "2026-11-19"
+            },
+            "gold": {
+              "from": "1990-05-24",
+              "points": 9000,
+              "provider": "TradingView",
+              "symbol": "FX_IDC:XAUUSD",
+              "to": "2026-11-19"
+            }
+          },
+          "note": "السلسلة النظرية — مش سعر صاغة مرصود تاريخياً.",
+          "price_source": "محسوب: XAU/USD × EGP/USD ÷ 31.1035"
+        }
+      }
+    }
+  ],
+  "results": [
+    {
+      "name": "gate · الدخول (لوحة الأرقام ⭐ ثم التطبيق ⭐)",
+      "ok": true,
+      "detail": {
+        "url": "/",
+        "registered": true,
+        "codeAsked": true,
+        "codeFilled": true,
+        "newpinAsked": true
+      }
+    },
+    {
+      "name": "gold · المودال اتفتح",
+      "ok": true,
+      "detail": {
+        "tabs": [
+          "السرد",
+          "الادخار"
+        ]
+      }
+    },
+    {
+      "name": "gold · التبويبات (السرد/الادخار)",
+      "ok": true,
+      "detail": {
+        "tabs": [
+          "السرد",
+          "الادخار"
+        ]
+      }
+    },
+    {
+      "name": "gold · زر ملء الشاشة موجود",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "gold · أداة الاختيار (التكبير/الرمز) موجودة",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "gold · زر اللقطة موجود",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "gold · الشارت موجود",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "gold · الدعم والمقاومة ظاهرين",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "gold · الأحداث ظاهرة",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "gold · تبويب الادخار اشتغل",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "gold · المودال المصري اتفتح",
+      "ok": true,
+      "detail": {
+        "error": ""
+      }
+    },
+    {
+      "name": "gold · الشارت الخطي مرسوم (بيانات فعلية ⭐)",
+      "ok": true,
+      "detail": {
+        "canvas": 7,
+        "price": "6,240 ج.م / جرام · سعر السوق"
+      }
+    },
+    {
+      "name": "gold · الفترات موجودة ⭐",
+      "ok": true,
+      "detail": {
+        "periods": [
+          "شهر",
+          "٣ شهور",
+          "٦ شهور",
+          "من بداية السنة",
+          "سنة",
+          "٣ سنين",
+          "٥ سنين",
+          "١٠ سنين",
+          "٢٠ سنة"
+        ]
+      }
+    },
+    {
+      "name": "gold · تبديل الفترة ⭐ يعيد الرسم ⭐",
+      "ok": true,
+      "detail": {
+        "active": "٢٠ سنة"
+      }
+    },
+    {
+      "name": "gold · التكبير ⭐ (عجلة فوق الشارت ⭐)",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "gold · مناطق الدعم والمقاومة ⭐",
+      "ok": true,
+      "detail": {
+        "zones": 2
+      }
+    },
+    {
+      "name": "gold · العوامل ⭐",
+      "ok": true,
+      "detail": {
+        "chars": 1993
+      }
+    },
+    {
+      "name": "gold · تفكيك التغيّر ⭐",
+      "ok": true,
+      "detail": {
+        "chars": 202
+      }
+    },
+    {
+      "name": "gold · أحداث الهيكل ⭐ (بيانات فعلية ⭐)",
+      "ok": true,
+      "detail": {
+        "events": 5
+      }
+    },
+    {
+      "name": "gold · ملء الشاشة ⭐",
+      "ok": true,
+      "detail": {
+        "cls": "light set-comfy m-tools-open octa-tv-fs-on || gpanel | gchart octa-tv-fs"
+      }
+    },
+    {
+      "name": "app · المحفظة (كتابة ⭐ + قراءة ⭐)",
+      "ok": true,
+      "detail": {
+        "write": 200,
+        "read": 200,
+        "cash": 1000
+      }
+    },
+    {
+      "name": "app · التنبيهات (إضافة ⭐ + حالة ⭐)",
+      "ok": true,
+      "detail": {
+        "add": 200,
+        "state": 200,
+        "count": 1
+      }
+    },
+    {
+      "name": "app · ذراع المحفظة ⭐",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "app · ذراع الفرص ⭐",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "app · الخروج ⭐",
+      "ok": true,
+      "detail": {
+        "logout": 200
+      }
+    },
+    {
+      "name": "app · بعد الخروج ⭐ مافيش جلسة ⭐ (401 ⭐)",
+      "ok": true,
+      "detail": {
+        "me": 401
+      }
+    },
+    {
+      "name": "gold · فشل المصدر ⇒ رسالة خطأ واضحة (مش نجاح وهمي)",
+      "ok": true,
+      "detail": {
+        "hasError": true
+      }
+    },
+    {
+      "name": "nav · رحلة التنقل (أسهم ⭐ فرص ⭐ مقارنة ⭐)",
+      "ok": true,
+      "detail": {
+        "steps": [
+          {
+            "step": "الأسهم",
+            "found": true,
+            "hash": "#stocks",
+            "title": "OCTA | منصة البورصة المصرية الذكية"
+          },
+          {
+            "step": "الفرص",
+            "found": true,
+            "hash": "#bestpick",
+            "title": "OCTA | منصة البورصة المصرية الذكية"
+          },
+          {
+            "step": "المقارنة",
+            "found": true,
+            "hash": "#pick",
+            "title": "OCTA | منصة البورصة المصرية الذكية"
+          }
+        ]
+      }
+    },
+    {
+      "name": "nav · الرجوع للرئيسية",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "hash": "#pick",
+        "homeVisible": false
+      }
+    },
+    {
+      "name": "responsive · مافيش تمرير أفقي مقصود في ١٠ عروض",
+      "ok": true,
+      "detail": {
+        "overflowing": []
+      }
+    },
+    {
+      "name": "responsive · مافيش قص أفقي",
+      "ok": true,
+      "detail": {
+        "widths": [
+          {
+            "w": 320,
+            "sw": 320
+          },
+          {
+            "w": 360,
+            "sw": 360
+          },
+          {
+            "w": 390,
+            "sw": 390
+          },
+          {
+            "w": 414,
+            "sw": 414
+          },
+          {
+            "w": 768,
+            "sw": 768
+          },
+          {
+            "w": 899,
+            "sw": 899
+          },
+          {
+            "w": 900,
+            "sw": 900
+          },
+          {
+            "w": 1024,
+            "sw": 1024
+          },
+          {
+            "w": 1280,
+            "sw": 1280
+          },
+          {
+            "w": 1440,
+            "sw": 1440
+          }
+        ]
+      }
+    },
+    {
+      "name": "responsive · أهداف اللمس (≥40px) سليمة في كل عرض",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    }
+  ],
+  "passed": 32,
+  "total": 32
+}

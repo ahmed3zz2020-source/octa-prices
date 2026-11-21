@@ -1,0 +1,161 @@
+{
+  "runs": {
+    "octa-prices": {
+      "http": 200,
+      "total": 317,
+      "runs": [
+        {
+          "id": 42106345618,
+          "name": "OCTA Code Check",
+          "head_sha": "9c27f565d22fe1d126c5670de2070a66e980988c",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/42106345618",
+          "created_at": "2026-11-05T20:45:33Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 41204829475,
+          "name": "OCTA Code Check",
+          "head_sha": "a2e94baf6c7fe2b4e5c2af109ec0cd764d6ca609",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/41204829475",
+          "created_at": "2026-10-31T13:16:38Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 41061904334,
+          "name": "OCTA Code Check",
+          "head_sha": "b136cf77bc8ed9f0c82960b8ef4d129ed9408bb9",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/41061904334",
+          "created_at": "2026-10-30T13:16:46Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 40871441008,
+          "name": "OCTA Code Check",
+          "head_sha": "cb835e77eb4540ef901e1cf61ecf660c6a1b427f",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/40871441008",
+          "created_at": "2026-10-29T12:13:01Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 40686618740,
+          "name": "OCTA Code Check",
+          "head_sha": "6bd255324b156cdb25ea105fb62f9541e62cb7cf",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/40686618740",
+          "created_at": "2026-10-28T12:17:39Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 40685588492,
+          "name": "OCTA Code Check",
+          "head_sha": "3b125b07fdc51b7fa7e699c590e9cf4a1e6a22f1",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/40685588492",
+          "created_at": "2026-10-28T12:09:58Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 40685181154,
+          "name": "OCTA Code Check",
+          "head_sha": "795ca570742c9966f365f69266924fd54c49becb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/40685181154",
+          "created_at": "2026-10-28T12:06:51Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 40684445093,
+          "name": "OCTA Code Check",
+          "head_sha": "a9ab81f546ac328b0f1edc96edcc474480470fed",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/40684445093",
+          "created_at": "2026-10-28T12:01:17Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 40677301012,
+          "name": "OCTA Code Check",
+          "head_sha": "8e07de445c9841c1f03af86b102fd674356b84b4",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/40677301012",
+          "created_at": "2026-10-28T11:06:00Z",
+          "event": "push",
+          "branch": "main"
+        },
+        {
+          "id": 40676731906,
+          "name": "OCTA Code Check",
+          "head_sha": "ae881ef4ff4d5918b94e9661ab31350d3bf295bd",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/ahmed3zz2020-source/octa-prices/actions/runs/40676731906",
+          "created_at": "2026-10-28T11:01:40Z",
+          "event": "push",
+          "branch": "main"
+        }
+      ]
+    },
+    "octa": {
+      "http": 200,
+      "total": 0,
+      "runs": []
+    }
+  },
+  "dispatch": {
+    "octa-prices": {
+      "ok": false,
+      "probe": {
+        "workflow": ".github/workflows/ci.yml",
+        "http": 403,
+        "error": "Resource not accessible by personal access token"
+      },
+      "why": "ما فيش تعريف «octa-ci» ⭐ على الفرع الافتراضي ⭐ ⇒ لازم المالك ينشر الملف ⭐ (توكن بـscope «workflow» ⭐ أو محرر الموبايل ⭐) ⭐ ⭐ (محاولة التشغيل رجّعت 403 ⭐ ⇒ مانع صلاحيات ⭐)"
+    },
+    "octa": {
+      "ok": false,
+      "probe": null,
+      "why": "ما فيش تعريف «octa-ci» ⭐ على الفرع الافتراضي ⭐ ⇒ لازم المالك ينشر الملف ⭐ (توكن بـscope «workflow» ⭐ أو محرر الموبايل ⭐) ⭐ ⭐ (محاولة التشغيل رجّعت None ⭐ ⇒ مانع صلاحيات ⭐)"
+    }
+  },
+  "local_gates": {
+    "octa-ci.yml": {
+      "rc": 0,
+      "ok": true,
+      "tail": [
+        "   · /workspace/.wt_r28_ci/ci-workflow/octa-ci.yml  [بروفايل: backend]",
+        "",
+        "✅ كل البوابات سليمة — مفيش أي مراوغة في ملف الـCI"
+      ]
+    },
+    "octa-ci-fe.yml": {
+      "rc": 0,
+      "ok": true,
+      "tail": [
+        "   · /workspace/.wt_r28_ci/ci-workflow/octa-ci-fe.yml  [بروفايل: frontend]",
+        "",
+        "✅ كل البوابات سليمة — مفيش أي مراوغة في ملف الـCI"
+      ]
+    }
+  }
+}

@@ -1,0 +1,564 @@
+{
+  "ok": true,
+  "note": "مسح 4 أرشيف ⭐ (بصمة SHA256 لكل واحد ⭐ مطابقة للمانيفست ⭐) ⭐ ⇒ 45 قيمة مسرّبة ⭐ ⇒ نظيف ⭐⭐ ⭐",
+  "archives": [
+    {
+      "zip": "OCTA-ROUND29-BACKEND.zip",
+      "bytes": 1712834,
+      "files": null,
+      "sha256": "eacec6330cb211e292bb4dd071a14ec4106ffe2d0eab0c98e21b52b22cb9afe7",
+      "manifest_sha256": "eacec6330cb211e292bb4dd071a14ec4106ffe2d0eab0c98e21b52b22cb9afe7",
+      "md5": "40b3275eedebeb34138ce1499998e921",
+      "sha256_matches_manifest": true,
+      "scan_error": null
+    },
+    {
+      "zip": "OCTA-ROUND29-CI.zip",
+      "bytes": 1598472,
+      "files": null,
+      "sha256": "c61c5c8d376a322b9fc55ebcc2e48e1bd1d6d0907f0b8d87902f76591debf48e",
+      "manifest_sha256": "c61c5c8d376a322b9fc55ebcc2e48e1bd1d6d0907f0b8d87902f76591debf48e",
+      "md5": "3f5554c036478aac4e72fc93e6cc5521",
+      "sha256_matches_manifest": true,
+      "scan_error": null
+    },
+    {
+      "zip": "OCTA-ROUND29-DELIVERY.zip",
+      "bytes": 10005490,
+      "files": null,
+      "sha256": "d6bcfff96834d54957c6630e9791ba4cec363852bfa114af0127b63d9153823c",
+      "manifest_sha256": "d6bcfff96834d54957c6630e9791ba4cec363852bfa114af0127b63d9153823c",
+      "md5": "a4f25e57a37a9d337b4fb08409c3ad8a",
+      "sha256_matches_manifest": true,
+      "scan_error": null
+    },
+    {
+      "zip": "OCTA-ROUND29-FRONTEND.zip",
+      "bytes": 6713713,
+      "files": null,
+      "sha256": "ba7a0dc806292c899fc52909663f3815f5ef06e551275374f1673a3b3e3b74d8",
+      "manifest_sha256": "ba7a0dc806292c899fc52909663f3815f5ef06e551275374f1673a3b3e3b74d8",
+      "md5": "70de03c13f8ac6152ed064c871612494",
+      "sha256_matches_manifest": true,
+      "scan_error": null
+    }
+  ],
+  "blocking": [],
+  "errors": [],
+  "scanned_zip_members": 1004,
+  "distinct_secrets": 45,
+  "real_leaks": 0,
+  "real_leak_list": [],
+  "reasons": {
+    "قيمة مثال (مكان خارج، لا قيمة في الكود)": 2,
+    "مرجع متغير بيئة (لا قيمة سر في الكود)": 26,
+    "اسم متغير بيئة (لا قيمة سر)": 2,
+    "فحص منطقي (معمول متغير، لا قيمة سر)": 12,
+    "قيمة داخل ملف اختبار": 75,
+    "قيمة مولدة عند التشغيل (لا قيمة في الكود)": 2,
+    "تعريف نمط المسح نفسه (re.compile)": 6,
+    "أداة مسح أمانة (لا قيمة سر)": 2
+  },
+  "findings": [
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/octa_app.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 10,
+      "fingerprint": "56c4a018e638",
+      "length": 28,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/octa_app.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 55,
+      "fingerprint": "2e0655d3d7f5",
+      "length": 22,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/subscription_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 38,
+      "fingerprint": "64a55267d8eb",
+      "length": 16,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/subscription_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 232,
+      "fingerprint": "68ee1cfb7c21",
+      "length": 13,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/subscription_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 250,
+      "fingerprint": "68ee1cfb7c21",
+      "length": 13,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 234,
+      "fingerprint": "3b24ddd1af80",
+      "length": 17,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 245,
+      "fingerprint": "3b24ddd1af80",
+      "length": 17,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 347,
+      "fingerprint": "121bec40c015",
+      "length": 11,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 388,
+      "fingerprint": "3b24ddd1af80",
+      "length": 17,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_pin_challenge.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 240,
+      "fingerprint": "2ccb4fa8d972",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_pin_challenge.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 243,
+      "fingerprint": "c874a0a0ce6a",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_security_batch01.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 415,
+      "fingerprint": "cd55ff73f8ef",
+      "length": 15,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/test_signup_flow.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 852,
+      "fingerprint": "78077401c50f",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 735,
+      "fingerprint": "10b0a109512a",
+      "length": 19,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 737,
+      "fingerprint": "5f522a2cb8ea",
+      "length": 18,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 1852,
+      "fingerprint": "40ae9fd807b9",
+      "length": 13,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 1862,
+      "fingerprint": "30a4fe755713",
+      "length": 30,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 1904,
+      "fingerprint": "45a64c5df5c0",
+      "length": 19,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 1914,
+      "fingerprint": "45a64c5df5c0",
+      "length": 19,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 11382,
+      "fingerprint": "39ce5c3e5dbc",
+      "length": 29,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 14766,
+      "fingerprint": "62358423cac3",
+      "length": 23,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/build_round23_delivery.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 55,
+      "fingerprint": "dea07cc62c79",
+      "length": 11,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/build_round23_delivery.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 381,
+      "fingerprint": "e1f877deec11",
+      "length": 23,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/preflight.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 75,
+      "fingerprint": "10b0a109512a",
+      "length": 19,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/preflight.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 91,
+      "fingerprint": "dea07cc62c79",
+      "length": 11,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/test_r25_metrics_board.py",
+      "pattern": "bearer_literal",
+      "severity": "high",
+      "line": 369,
+      "fingerprint": "12a5735b5e97",
+      "length": 31,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/test_r26_subscriptions.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 134,
+      "fingerprint": "49f825b67e22",
+      "length": 20,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/verify_round23_delivery.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 51,
+      "fingerprint": "dea07cc62c79",
+      "length": 11,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/staging/e2e_playwright.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 248,
+      "fingerprint": "b0782cef1bb0",
+      "length": 15,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/staging/run_staging.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 46,
+      "fingerprint": "178463aab239",
+      "length": 20,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/staging/run_staging.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 52,
+      "fingerprint": "b0782cef1bb0",
+      "length": 15,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/staging/run_staging.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 211,
+      "fingerprint": "a54186e4345e",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-BACKEND.zip::octa-prices/tools/staging/run_staging.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 287,
+      "fingerprint": "a54186e4345e",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/octa_app.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 10,
+      "fingerprint": "56c4a018e638",
+      "length": 28,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/octa_app.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 55,
+      "fingerprint": "2e0655d3d7f5",
+      "length": 22,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/subscription_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 38,
+      "fingerprint": "64a55267d8eb",
+      "length": 16,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/subscription_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 232,
+      "fingerprint": "68ee1cfb7c21",
+      "length": 13,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/subscription_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 250,
+      "fingerprint": "68ee1cfb7c21",
+      "length": 13,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 234,
+      "fingerprint": "3b24ddd1af80",
+      "length": 17,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 245,
+      "fingerprint": "3b24ddd1af80",
+      "length": 17,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 347,
+      "fingerprint": "121bec40c015",
+      "length": 11,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_charts_api.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 388,
+      "fingerprint": "3b24ddd1af80",
+      "length": 17,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_pin_challenge.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 240,
+      "fingerprint": "2ccb4fa8d972",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_pin_challenge.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 243,
+      "fingerprint": "c874a0a0ce6a",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_security_batch01.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 415,
+      "fingerprint": "cd55ff73f8ef",
+      "length": 15,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/test_signup_flow.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 852,
+      "fingerprint": "78077401c50f",
+      "length": 14,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 735,
+      "fingerprint": "10b0a109512a",
+      "length": 19,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 737,
+      "fingerprint": "5f522a2cb8ea",
+      "length": 18,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 1852,
+      "fingerprint": "40ae9fd807b9",
+      "length": 13,
+      "hint": ""
+    },
+    {
+      "scope": "zip",
+      "location": "OCTA-ROUND29-CI.zip::octa-prices/update_prices.py",
+      "pattern": "assigned_secret",
+      "severity": "high",
+      "line": 1862,
+      "fingerprint": "30a4fe755713",
+      "length": 30,
+      "hint": ""
+    }
+  ]
+}
