@@ -234,6 +234,11 @@ def load_env_blocked(path):
     except Exception:  # noqa: BLE001
         return {}, {}
     files = doc.get("files") or {}
+    # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ تطبيع المفاتيح ⭐⭐⭐ ⇒ ⭐ ⭐ **اسم الملف** ⭐ ⭐
+    # 📌 السبب ⭐: ⛔ البحث ⭐ ⭐ بيستعمل `os.path.basename` ⭐ ⭐ ⇒ ⛔ ومفتاح
+    #    ⭐ ⭐ فيه مسار ⭐ ⭐ (مثل `tools/x.py` ⭐ ⭐) ⭐ ⭐ **مش هيلاقي** ⭐ ⭐
+    #    ⇒ ⛔ التصنيف بيتجاهل ⭐ ⭐ بصمت ⭐ ⭐ ⇒ ⛔ «فشل» ⭐ ⭐ مكان «متعذر» ⭐ ⭐.
+    files = {str(k).split("/")[-1]: v for k, v in files.items()}
     meta = {k: doc.get(k) for k in ("why", "base_sha", "base_proof", "base_results")}
     return files, meta
 
@@ -273,8 +278,11 @@ ITEM_EVIDENCE = {
     "AC-28-3": [("art", "gold_journey"), ("be", "test_gold_integrity.py")],
     "AC-28-4": [("be", "test_charts_api.py"), ("be", "test_gold_integrity.py")],
     # ⭐ ٣١ ⭐ — الـCI ⭐
-    "AC-31-1": [("art", "ci_definitions"), ("be", "tools/test_ci_gates.py")],
-    "AC-31-2": [("art", "ci_definitions"), ("be", "tools/test_ci_gates.py")],
+    # 📌 (R29) ⭐ ⭐ `tools/test_ci_gates.py` ⭐ ⭐ **مش اختبار** ⭐ ⭐ ⇒ ⛔ مستثنى ⭐ ⭐
+    #    ⭐ من اكتشاف الـCI ⭐ ⭐ بالتصميم ⭐ ⭐ ⇒ ⛔ كمدخل «be» ⭐ ⭐ ⇒ ⛔ «ما اتقاسش» ⭐ ⭐
+    #    ⭐ ⭐ ⇒ ⭐ ⭐ الدليل الصحيح ⭐ ⭐ = **تشغيله** ⭐ ⭐ على ملفي الـworkflow ⭐ ⭐ ⭐
+    "AC-31-1": [("art", "ci_definitions"), ("art", "ci_gates_local")],
+    "AC-31-2": [("art", "ci_definitions"), ("art", "ci_gates_local")],
     # ⭐ ٣١-٣ ⭐ — تجربة CI على GitHub ⭐ ⇒ ⛔ متعذر ⭐ (مانع صلاحيات ⭐)
     "AC-31-3": [("art", "ci_runs")],
     "AC-31-4": [("art", "ci_definitions"), ("art", "ci_runs")],
@@ -310,6 +318,17 @@ ITEM_OVERRIDE = {
     "AC-36-4": "موافقة المالك على الباقات والتسعير والشروط وخطة النشر ⭐",
 }
 
+# ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ مخرجات **مانعها المالك** ⭐⭐⭐ ⇒ ⭐ ⭐ متعذر ⭐ ⭐
+# 📌 السبب ⭐: ⛔ «فشل» ⭐ ⭐ معناها ⭐ ⭐ **عيب في المرشح** ⭐ ⭐ ⇒ ⭐ ⭐ والمانع
+#    ⭐ ⭐ اللي في إيد المالك ⭐ ⭐ (صلاحية توكن ⭐ ⭐ / حساب ⭐ ⭐ / قرار ⭐ ⭐)
+#    ⭐ ⭐ **مش عيب المرشح** ⭐ ⭐ ⇒ ⭐ ⭐ لازم يتصنّف «متعذر» ⭐ ⭐ بصفر نقاط ⭐ ⭐.
+OWNER_BLOCKED_ARTIFACTS = {
+    "ci_runs": "المانع ⭐ ⭐: توكن ⭐ ⭐ بدون صلاحية «workflow» ⭐ ⭐ ⇒ ⛔ نشر تعريف الـCI ⭐ ⭐ "
+               "وتشغيله ⭐ ⭐ على Actions ⭐ ⭐ راجع المالك ⭐ ⭐",
+    "packages_scan": "المسح ⭐ ⭐ ناتج **بعد** بناء السجل ⭐ ⭐ ⇒ ⛔ مراجعة ⭐ ⭐ في تقرير R29 ⭐ ⭐",
+}
+
+
 def artifact_status(name, artifacts):
     """فحص المخرجات الحيّة ⭐ ⇒ (حالة, وصف) ⭐."""
     a = artifacts.get(name)
@@ -319,6 +338,10 @@ def artifact_status(name, artifacts):
         if a.get("ok") is True:
             return "ناجح", a.get("note") or a.get("body_head") or "تم ⭐"
         if a.get("ok") is False:
+            if name in OWNER_BLOCKED_ARTIFACTS:
+                # ⭐⭐⭐ مانع المالك ⭐⭐⭐ ⇒ ⭐ ⭐ متعذر ⭐ ⭐ بصفر نقاط ⭐ ⭐ (مش فشل ⭐ ⭐)
+                why = a.get("why") or a.get("note") or ""
+                return "متعذر", ("%s ⭐ ⇒ %s" % (why, OWNER_BLOCKED_ARTIFACTS[name]))
             return "فشل", a.get("why") or a.get("body_head") or "فشل ⭐"
     return "ناجح", str(a)[:200]
 

@@ -2227,12 +2227,26 @@ def _hash_key(raw: str) -> str:
 #    لو بترجع لـ /app (الكود) بتتمسح مع كل نشر.
 # ══════════════════════════════════════════════════════════════
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
+# 🐞🛡️ ٢١ نوفمبر ٢٠٢٦ (R29 · FINDING-23) ⭐⭐⭐ فحص الكتابة ⭐⭐⭐ — **آمن ضد السباق** ⭐⭐⭐
+# 📌 العيب المقيس ⭐⭐: ⛔ الملف `_probe` ⭐ ⭐ كان **اسمه ثابت** ⭐ ⭐ (`.w` ⭐ ⭐) ⭐ ⭐
+#    ⇒ ⛔ عمليتين بتبدأ مع بعض ⭐ ⭐ ⇒ ⛔ واحدة بتمسح الملف ⭐ ⭐ والتانية ⭐ ⭐
+#    ⭐ ⭐ `unlink()` ⭐ ⭐ بترمي `FileNotFoundError` ⭐ ⭐ ⇒ ⛔ والعملية دي ⭐ ⭐
+#    ⭐ ⭐ بتقع في الـfallback ⭐ ⭐ ⇒ ⛔ وبتكتب في **مجلد الكود** ⭐ ⭐ مش مجلد البيانات ⭐ ⭐
+#    ⭐ ⭐ ⇒ ⛔ مجلدين مختلفين ⭐ ⭐ ⇒ ⛔ وملف قفل مختلف ⭐ ⭐ ⇒ ⛔ lost update ⭐ ⭐ ⭐
+# ✅ الحل ⭐⭐: ⭐ ⭐ اسم ملف الفحص ⭐ ⭐ **بيلpid** ⭐ ⭐ ⇒ ⭐ ⭐ مافيش ملف مشترك ⭐ ⭐ ⭐
+#    ⭐ ⭐ + ⭐ ⭐ فشل الحذف ⭐ ⭐ **مش** ⭐ ⭐ سبب للرجوع ⭐ ⭐ (الكتابة نفسها نجحت ⭐ ⭐) ⭐ ⭐.
+DATA_DIR_PROBE_ERROR = None   # ⭐ سبب الفشل ⭐ (لو حصل ⭐) ⭐ — للتشخيص ⭐
 try:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    _probe = DATA_DIR / ".w"
+    _probe = DATA_DIR / (".w-%d" % os.getpid())   # ⭐⭐ اسم فريد ⭐⭐ ⇒ ⭐ مافيش سباق ⭐
     _probe.write_text("ok", encoding="utf-8")
-    _probe.unlink()
-except Exception:
+    try:
+        _probe.unlink()
+    except OSError:
+        # ⭐ الملف اتمسح من عملية تانية ⭐ ⇒ ⭐ ده **مش** فشل كتابة ⭐ ⇒ ⭐ نكمّل ⭐
+        pass
+except Exception as _probe_exc:
+    DATA_DIR_PROBE_ERROR = "%s: %s" % (type(_probe_exc).__name__, str(_probe_exc)[:120])
     # ⛔ مافيش volume (وضع تطوير) → ارجع لمجلد الكود زي الأول
     DATA_DIR = Path(__file__).resolve().parent
 
