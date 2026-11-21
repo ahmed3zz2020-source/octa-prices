@@ -72,15 +72,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -145,15 +176,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -237,15 +299,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -397,15 +490,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -510,15 +634,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -602,15 +757,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -662,15 +848,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -716,15 +933,46 @@ jobs:
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
-          DEF_SHA="$(git rev-parse HEAD)"
-          echo "ci_def_sha=$DEF_SHA" >> "$GITHUB_ENV"
-          echo "CI definition SHA = $DEF_SHA"
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐ من **سطر الـworkflow** ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+          #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+          #    ⇒ ⛔ وكمان ⭐ ⭐ الـcheckout **المثبّت** ⭐ ⭐ بعد كده ⭐ ⭐
+          #    ⇒ ⛔ الـHEAD ⭐ ⭐ بيبقى المرشح ⭐ ⭐ مش تعريف الـCI ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ `github.workflow_sha` ⭐ ⭐ = ⭐ commit ملف الـworkflow ⭐ ⭐
+          #    ⇒ ⭐ ⭐ متاح **من غير** أي checkout ⭐ ⭐ ⇒ ⭐ ⭐ صح ⭐ ⭐.
+          echo "ci_def_sha=${{ github.workflow_sha }}" >> "$GITHUB_ENV"
+          echo "CI definition SHA = ${{ github.workflow_sha }}"
+          echo "candidate_sha=${OCTA_CANDIDATE_SHA}"
+          echo "fe_sha=${OCTA_FE_SHA}"
 
       - name: "📥 تحميل كود المنتج على SHA المرشّح ⭐ (مثبّت ⭐)"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ env.OCTA_CANDIDATE_SHA }}
+
+      - name: "🧰 استرجاع أدوات الـCI من فرع الـCI ⭐ (FINDING-21 ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ ⭐⭐
+          # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐
+          #    ⭐ بيمسح أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐ مش على المرشح ⭐ ⭐)
+          #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+          # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
+          #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          git fetch --no-tags --depth=1 origin "$CI_REF"
+          git checkout "$CI_REF" -- \
+            tools/ci_candidate_gate.sh \
+            tools/ci_isolated_tests.json \
+            tools/ci_reset_staging.sh \
+            tools/ci_result_classifier.py \
+            tools/ci_workflow_lint.py \
+            tools/test_ci_alt_gates.py \
+            tools/test_ci_result_classifier.py \
+            tools/test_cross_repo_contract.py \
+            ci-workflow/
+          echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |

@@ -459,6 +459,36 @@ def check_r26(wf, findings):
                         wf.path, st["job"], st["name"],
                         "`%s` واقف برّه `with:` — الـworkflow مش بيتقراش" % k))
 
+    # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ أدوات الـCI **بعد** الـcheckout المثبّت ⭐⭐⭐
+    # 📌 السبب ⭐: ⛔ الـcheckout **المثبّت** ⭐ على SHA المرشّح ⭐ ⭐ بيمسح
+    #    ⭐ أدوات الـCI ⭐ ⭐ (هي على فرع الـCI ⭐ ⭐) ⭐ ⭐ ⇒ ⛔ كل خطوة
+    #    ⭐ بتستدعي أداة ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
+    # ✅ القاعدة ⭐: ⭐ لو الـworkflow ⭐ ⭐ بينادي أداة CI ⭐ ⭐ ⇒ ⭐ لازم
+    #    ⭐ يكون فيه **استرجاع** ⭐ ⭐ لأدوات الـCI ⭐ ⭐ بعد الـcheckout ⭐ ⭐.
+    ci_tools_used = re.findall(r"tools/(?:ci_[A-Za-z0-9_]+|test_ci_[A-Za-z0-9_]+"
+                               r"|test_cross_repo_contract\.py)", text)
+    if ci_tools_used:
+        restore_markers = ("git checkout FETCH_HEAD", 'git checkout "$CI_REF"',
+                           "استرجاع أدوات الـCI")
+        if not any(m in text for m in restore_markers):
+            findings.append((
+                wf.path, "-", "-",
+                "الـworkflow بيستدعي أدوات CI ⭐ (مثال: %s ⭐) ⭐ بس مافيش ⭐ "
+                "استرجاع ⭐ لأدوات الـCI ⭐ بعد الـcheckout المثبّت ⭐ ⇒ ⭐ "
+                "الخطوات هتفشل ⭐ بـ«file not found» ⭐"
+                % sorted(set(ci_tools_used))[0]))
+
+    # ⭐⭐⭐ (R29 · FINDING-21) ⭐⭐⭐ بصمة تعريف الـCI ⭐ ⭐ **من غير** git ⭐⭐⭐
+    # 📌 السبب ⭐: ⛔ `git rev-parse HEAD` ⭐ ⭐ **قبل** أي checkout ⭐ ⭐
+    #    ⇒ ⛔ مافيش مستودع ⭐ ⭐ ⇒ ⛔ الأمر بيرجع خطأ ⭐ ⭐ ⇒ ⛔ الـjob بيفشل ⭐ ⭐.
+    if "ci_def_sha" in text:
+        if "git rev-parse HEAD" in text and "github.workflow_sha" not in text:
+            findings.append((
+                wf.path, "-", "-",
+                "بصمة تعريف الـCI ⭐ محسوبة بـ`git rev-parse HEAD` ⭐ ⭐ "
+                "ممكن تتحسب **قبل** أي checkout ⭐ ⭐ ⇒ ⭐ لازم "
+                "تستخدم `github.workflow_sha` ⭐ ⭐"))
+
     # ③ بصمة المرشح
     if rules.get("candidate"):
         env_ok = re.search(
