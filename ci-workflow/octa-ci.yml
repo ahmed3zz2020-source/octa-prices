@@ -51,7 +51,7 @@ on:
 env:
   # ⛔ بصمة المرشح (الجولة ٢٦) — المصدر الواحد لكل النتائج ⭐
   #    (نفس الـSHA في كل الـjobs ⇒ كل نتيجة مربوطة بيه ⭐)
-  OCTA_CANDIDATE_SHA: '540ec33d7932ea7e23b1d67262809b85ff424047'
+  OCTA_CANDIDATE_SHA: 'd567cb6504ed22779e9656af1e5e22019bfb6cc5'
   # ⭐⭐⭐ (R28) ⭐ بصمة **الواجهة** المعتمدة ⭐
   #    ⇒ ⭐ اختبار العقد بين المستودعين مربوط بالبصمتين ⭐
   OCTA_FE_SHA: 'ec582ce617991886aa370639e0a46a6e76c330d2'
@@ -427,12 +427,26 @@ jobs:
       - name: "🔄 تصفير البيئة قبل كل ملف (حالة نظيفة ⭐)"
         run: chmod +x tools/ci_reset_staging.sh
 
+      - name: "📥 تحميل مستودع الواجهة عند البصمة المعتمدة ⭐ (لاختبار العقد ⭐)"
+        uses: actions/checkout@v4
+        with:
+          repository: ahmed3zz2020-source/octa
+          ref: ${{ env.OCTA_FE_SHA }}
+          path: fe
+          fetch-depth: 0
+
       - name: "🧭 تنفيذ الاختبارات الحقيقية (الباك: كل test_*.py في الجذر و tools/) ⭐"
         env:
           STAGE_URL: "http://127.0.0.1:8099"
           STAGE_CONFIG: "${{ runner.temp }}/octa-staging/staging-config.json"
           # 🛡️ أي كتابة على البيانات المرجعية تروح لمجلد مؤقّت ⭐
           OCTA_DATA_DIR: "${{ runner.temp }}/octa-ci-data"
+          # ⭐⭐⭐ (R29 · FINDING-22) ⭐⭐⭐ جذور المستودعات ⭐⭐⭐
+          # 📌 السبب ⭐: ⛔ اختبارات الباك ⭐ ⭐ بتقرأ `OCTA_ROOT` ⭐ ⭐
+          #    ⭐ ⭐ و`OCTA_FE_ROOT` ⭐ ⭐ ⭐ ⭐ والافتراضي ⭐ ⭐ كان مسار
+          #    ⭐ ⭐ **جهاز المالك** ⭐ ⭐ ⇒ ⛔ على الـrunner ⭐ ⭐ بيفشل ⭐ ⭐.
+          OCTA_ROOT: "${{ github.workspace }}"
+          OCTA_FE_ROOT: "${{ github.workspace }}/fe"
         run: |
           set -euo pipefail
           # ⛔ المُصنِّف: أربع حالات صريحة ⭐
