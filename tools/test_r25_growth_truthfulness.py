@@ -23,8 +23,15 @@ import os
 import re
 import sys
 
-ROOT = os.environ.get("OCTA_ROOT", "/workspace/.wt_r18")
-FE = os.environ.get("OCTA_FE_ROOT", "/workspace/.wt_r18fe")
+# ⭐⭐⭐ (R29 · FINDING-22) ⭐⭐⭐ Default = **الجذر الفعلي** ⭐ ⭐
+# 📌 السبب ⭐: ⛔ `/workspace/.wt_r18` ⭐ ⭐ مسار **جهاز المالك** ⭐ ⭐ ⇒ ⛔ على
+#    ⭐ الـrunner ⭐ ⭐ (أو في أي مكان تاني ⭐ ⭐) ⭐ ⭐ المسار ده مش موجود ⭐ ⭐
+#    ⇒ ⛔ الاختبار بيفشل ⭐ ⭐ بسبب **بيئة** ⭐ ⭐ مش بسبب الكود ⭐ ⭐.
+# ✅ دلوقتي ⭐: ⭐ ⭐ الجذر الافتراضي ⭐ ⭐ = ⭐ ⭐ المجلد اللي فيه الاختبار ⭐ ⭐
+#    ⭐ ⭐ (يعني المستودع نفسه ⭐ ⭐) ⭐ ⭐ ⇒ ⭐ ⭐ شغّال في أي مكان ⭐ ⭐.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.environ.get("OCTA_ROOT") or os.path.dirname(_HERE)
+FE = os.environ.get("OCTA_FE_ROOT") or os.path.join(ROOT, "..", "octa")
 
 sys.path.insert(0, ROOT)
 import opp_engine as opp  # noqa: E402
