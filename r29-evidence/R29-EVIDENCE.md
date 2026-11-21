@@ -10,10 +10,10 @@
 
 | العنصر | المستودع | الفرع | البصمة |
 |---|---|---|---|
-| الباك | `ahmed3zz2020-source/octa-prices` | `release/round28-rc` | `44ce59ee71a673fb55f477ee54119082736b0873` |
+| الباك | `ahmed3zz2020-source/octa-prices` | `release/round28-rc` | `f9ab5b06b5934bdff2a3f7331f6ea7ce45a1b520` |
 | الواجهة | `ahmed3zz2020-source/octa` | `release/round28-rc-fe` | `ec582ce617991886aa370639e0a46a6e76c330d2` |
 | الـCI | `ahmed3zz2020-source/octa-prices` | `ci/octa-ci-r28` | `2992c84c234d586b7252f64b0df60bbd16a407bb` |
-| الأدلة | `ahmed3zz2020-source/octa-prices` | `review/round29-evidence` | `44ce59ee71a673fb55f477ee54119082736b0873` |
+| الأدلة | `ahmed3zz2020-source/octa-prices` | `review/round29-evidence` | `f9ab5b06b5934bdff2a3f7331f6ea7ce45a1b520` (عند بناء التقرير ⭐ — الفرع بيتقدّم ⭐ لأن التقرير نفسه فيه ⭐) |
 
 المعاينة الحيّة: `https://octa-preview.ahmed3zz2020.workers.dev` (آخر نشر `v=202611210108`).
 الباك الحقيقي المعزول: `https://const-figure-excel-practitioner.trycloudflare.com` ⇒ `http://127.0.0.1:8097` (نفق مؤقت ⭐).
@@ -122,7 +122,7 @@
 مشروع OCTA · المرشح RC-R29-001 · طلب مراجعة مستقلة ⭐
 
 السياق: مشروع OCTA (أسهم مصري ⭐) · تطبيق أسهم مصري · رادار ذكي + محرك إشارة ذهب + محفظة.
-المرشح: الباك release/round28-rc @ 44ce59ee71a673fb55f477ee54119082736b0873 ⭐
+المرشح: الباك release/round28-rc @ f9ab5b06b5934bdff2a3f7331f6ea7ce45a1b520 ⭐
         الواجهة release/round28-rc-fe @ ec582ce617991886aa370639e0a46a6e76c330d2 ⭐
         الـCI ci/octa-ci-r28 @ 2992c84c234d586b7252f64b0df60bbd16a407bb ⭐
         الأدلة review/round29-evidence ⭐ (فرع مستقل ⭐)
