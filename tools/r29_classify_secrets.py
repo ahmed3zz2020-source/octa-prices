@@ -16,6 +16,7 @@ import re
 import sys
 
 REPO_ROOTS = ["/workspace/.wt_r28_be", "/workspace/.wt_r28_fe", "/workspace/.wt_r28_ci"]
+EVIDENCE_ROOTS = ["/workspace/output/r29"]
 ZIP_ROOTS = ["/workspace/output/OCTA-ROUND29-DELIVERY",
              "/workspace/output/packs_scan", "/workspace/output"]
 
@@ -53,6 +54,18 @@ def read_line(loc: dict) -> str:
             except Exception:  # noqa: BLE001
                 return ""
         return ""
+    # ⭐⭐⭐ (R29) ⭐⭐⭐ مجلد الأدلة ⭐⭐⭐ ⇒ ⭐ ⭐ المسارات النسبية ⭐ ⭐ بتتحل ⭐ ⭐
+    for root in EVIDENCE_ROOTS:
+        cand = os.path.join(root, where)
+        if os.path.isfile(cand):
+            try:
+                with open(cand, encoding="utf-8", errors="replace") as fh:
+                    lines = fh.read().split("\n")
+                if isinstance(line_no, int) and 0 < line_no <= len(lines):
+                    return window(lines, line_no)
+            except Exception:  # noqa: BLE001
+                return ""
+            return ""
     for root in REPO_ROOTS:
         cand = os.path.join(root, where)
         if os.path.isfile(cand):
@@ -93,6 +106,13 @@ def classify(line: str, where: str) -> tuple[str, str]:
         return "false_positive", "قيمة مثال (مكان خارج، لا قيمة في الكود)"
     if BOOLEAN.search(line):
         return "false_positive", "فحص منطقي (معمول متغير، لا قيمة سر)"
+    # ⭐⭐⭐ (R29) ⭐⭐⭐ سطر **بيستدعي ملف بيئة** ⭐⭐⭐ ⇒ ⭐ ⭐ مش قيمة سر ⭐ ⭐
+    # 📌 السبب ⭐: ⛔ السطر ده ⭐ ⭐ بيقرأ القيم من ملف محلي ⭐ ⭐ برّه الأدلة ⭐ ⭐
+    #    ⭐ ⭐ ⇒ ⛔ مافيش قيمة حرفية ⭐ ⭐ في السطر ⭐ ⭐ ⇒ ⛔ ليس تسرّب ⭐ ⭐ ⭐
+    if re.search(r"^\s*\.?\s+[\w./-]*\b(iso_env|\.env|env\.sh|secrets\.sh)\b", line):
+        return "false_positive", "سطر استدعاء ملف بيئة (القيم في ملف محلي ⭐ برّه الأدلة ⭐)"
+    if re.search(r"\bsource\s+[^\s]+\.sh\b|\.\s+[^\s]+_env\.sh", line):
+        return "false_positive", "سطر استدعاء ملف بيئة (القيم في ملف محلي ⭐ برّه الأدلة ⭐)"
     return "real_leak", "قيمة حرفية في كود شجرة المساح"
 
 
