@@ -26,19 +26,28 @@ name: OCTA Interface CI — الجولة ٢٦ (بوابات حقيقية)
 #   ⑦ مفيش أسرار · مفيش نشر · مفيش دفع · مفيش موارد مدفوعة.
 
 on:
+  # ⭐⭐⭐ (R32) ⭐⭐⭐ تشغيل على **فروع الاختبار فقط** ⭐⭐⭐ (زي الباك ⭐⭐⭐ بالظبط ⭐)
   push:
     branches:
-      - main
       - 'ci/**'
+      - 'release/**'
+      - 'review/**'
+      - 'feature/**'
+      - 'fix/**'
   pull_request:
     branches:
       - main
+      - 'ci/**'
+      - 'release/**'
+      - 'review/**'
   workflow_dispatch:
 
 env:
   # ⛔ بصمة المرشح (الجولة ٢٦) — المصدر الواحد لكل النتائج ⭐
   #    (لازم يتحدّث لما المرشح يتغيّر ⭐)
-  OCTA_CANDIDATE_SHA: '7ac1ca272df9eb07afa0ee143c6310c51e77e174'
+  OCTA_CANDIDATE_SHA: 'bd3ae0a95a987d7b0083d24d52fa717f671d67d3'
+  # ⭐⭐⭐ (R32) ⭐⭐⭐ بصمة **أدوات القياس** ⭐ ⭐⭐ (مثبّتة ⭐) ⭐
+  OCTA_CI_TOOLS_SHA256: '23aa31344d012698a7b073f71b710c4019814b9c31eb9e0771a62a8b5eb54545'
 
 jobs:
   # ══════════════════════════════════════════════════════════════
@@ -48,6 +57,23 @@ jobs:
     name: "📦 ١) تثبيت الاعتماديات — بوابة صارمة"
     runs-on: ubuntu-latest
     steps:
+      - name: "🧪 بوابة فرع الاختبار (تشغيل على main ⭐ ممنوع ⭐)"
+        run: |
+          set -euo pipefail
+          # ⭐⭐⭐ (R32) ⭐⭐⭐ ⛔ التشغيل على **فرع الإنتاج** ⭐ ⭐ ⭐ ممنوع ⭐ ⭐ ⭐
+          # 📌 السبب ⭐: ⛔ المحفّز ⭐ ⭐ ⭐ استثنى main ⭐ ⭐ ⭐ من الـpush ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ البوابة دي ⭐ ⭐ ⭐ **دفاع إضافي** ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ لو المحفّز اتغيّر ⭐ ⭐ ⭐ بعدين ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ الـrun ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ يوقف هنا ⭐ ⭐ ⭐ (مش يكمل ويقيس ⭐ ⭐ ⭐).
+          EVENT="${{ github.event_name }}"
+          REF="${{ github.ref }}"
+          echo "event=$EVENT ⭐ ref=$REF ⭐"
+          if [ "$EVENT" = "push" ] && [ "$REF" = "refs/heads/main" ]; then
+            echo "FAIL: التشغيل على main ممنوع ⭐ — الفروع الاختبارية فقط ⭐"
+            exit 1
+          fi
+          echo "PASS: الفروع الاختبارية فقط ⭐ (main ⭐ مش مسموح ⭐)"
+
       - name: "🧾 بصمة تعريف الـCI (⭐ commit ملف الـworkflow ⭐)"
         run: |
           set -euo pipefail
@@ -75,7 +101,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r27-fe}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -85,6 +111,13 @@ jobs:
             tools/test_ci_gates.py \
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
+          # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
+            echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
+            exit 1
+          fi
+          echo "✅ بصمة أدوات القياس مطابقة ⭐ ($DIGEST ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -180,7 +213,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r27-fe}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -190,6 +223,13 @@ jobs:
             tools/test_ci_gates.py \
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
+          # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
+            echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
+            exit 1
+          fi
+          echo "✅ بصمة أدوات القياس مطابقة ⭐ ($DIGEST ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -368,7 +408,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r27-fe}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -378,6 +418,13 @@ jobs:
             tools/test_ci_gates.py \
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
+          # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
+            echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
+            exit 1
+          fi
+          echo "✅ بصمة أدوات القياس مطابقة ⭐ ($DIGEST ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
@@ -526,7 +573,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r27-fe}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -536,6 +583,13 @@ jobs:
             tools/test_ci_gates.py \
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
+          # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
+            echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
+            exit 1
+          fi
+          echo "✅ بصمة أدوات القياس مطابقة ⭐ ($DIGEST ⭐)"
 
       - name: "🔒 بوابة بصمة المرشح (merge-base --is-ancestor ⭐)"
         run: |
