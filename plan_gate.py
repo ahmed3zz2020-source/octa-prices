@@ -1,12 +1,20 @@
 # -*- coding: utf-8 -*-
 """💳 الاشتراكات وبوابة الباقة — مصدر واحد للحقيقة (٢٨ أكتوبر ٢٠٢٦)
 
-📌 بيشمل:
-   · حالة الباقة للمستخدم (free/pro) مع **تاريخ انتهاء**.
-   · سجل المدفوعات (كل تفعيل بيتسجّل) — في `DATA_DIR/subscriptions.json`.
-   · دوال مساعدة تشترك فيها كل الوحدات (نماذجي · الاستوديو · Challen…).
+📌 الباقات المتاحة: **free** و **pro** فقط ⭐ (مفيش باقة تالتة ⭐).
+📌 التفعيل: **يدوي إداري** ⭐ — ⛔ مفيش بوابة دفع ⭐ ولا Stripe ⭐ ولا PayPal ⭐
+   ⭐ ولا checkout ⭐ ⇒ ⭐ كل تفعيل = (١) الأدمن يحدّد plan ⭐
+   ⭐ (٢) `log_subscription` ⭐ بيسجّل العملية ⭐.
+📌 السعر المعتمد ⭐: **٣٥٠ جنيه/شهر** ⭐ · **٣٥٠٠ جنيه/سنة** ⭐
+   ⭐ (٣٠ يوم ⭐ · ٣٦٥ يوم ⭐).
+📌 حقول السجل ⭐ (ملف `DATA_DIR/subscriptions.json` ⭐):
+   `uid` · `email` · `plan` · `days` · `price` · `method` · `note` · `at` ⭐.
 
-⛔ قاعدة: مافيش تخمين — لو الحقول ناقصة ⇒ free.
+⛔ **قاعدة الاشتراك** ⭐ (fail-closed ⭐):
+   ⛔ `plan` مش pro ⭐ ⇒ **free** ⭐.
+   ⛔ ⭐ **مافيش تاريخ انتهاء** ⭐ (`plan_until` ناقص ⭐ أو مش رقم ⭐)
+      ⭐ ⇒ **free** ⭐ ⭐ ⇒ ⭐ ⭐ الغياب ما بيبقىش ميزة ⭐ ⭐ (R31 ⭐).
+   ⛔ تاريخ الانتهاء خلص ⭐ ⇒ **free** ⭐ (والسجل بيفضل موجود ⭐ للأدمن ⭐).
 ⛔ الكتابة ذرّية (ملف مؤقت + rename) + قفل على مستوى العملية.
 """
 import json
@@ -17,10 +25,25 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
+# 🐞🛡️ ٢١ نوفمبر ٢٠٢٦ (R29 · FINDING-23) ⭐⭐⭐ فحص الكتابة **آمن ضد السباق** ⭐⭐⭐
+# 📌 العيب ⭐: ⛔ اسم ملف الفحص كان **ثابت** ⭐ ⇒ ⛔ عمليتين مع بعض ⭐ ⇒
+#    ⛔ واحدة بتمسح الملف ⭐ ⭐ والالتانية ⭐ ⭐ `unlink()` ⭐ ⭐ بترمي ⭐ ⭐
+#    ⭐ ⇒ ⛔ ⭐ ⭐ فتقع في الـfallback ⭐ ⭐ ⇒ ⛔ ⭐ ⭐ وبتكتب في **مجلد الكود** ⭐ ⭐
+#    ⭐ ⭐ ⇒ ⛔ مجلدين مختلفين ⭐ ⭐ ⇒ ⛔ قفل مختلف ⭐ ⭐ ⇒ ⛔ lost update ⭐ ⭐ ⭐
+# ✅ الحل ⭐: ⭐ اسم فريد بيلـpid ⭐ ⇒ ⭐ مافيش ملف مشترك ⭐ ⭐ + ⭐ ⭐ فشل الحذف ⭐ ⭐
+#    ⭐ **مش** ⭐ ⭐ سبب للرجوع ⭐ ⭐ (الكتابة نفسها نجحت ⭐ ⭐) ⭐ ⭐.
+DATA_DIR_PROBE_ERROR = None   # ⭐ سبب الفشل ⭐ (لو حصل ⭐) ⭐ — للتشخيص ⭐
 try:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    (DATA_DIR / ".probe_plans").write_text("1", encoding="utf-8")
-except Exception:
+    _probe = DATA_DIR / (".w-%d" % os.getpid())   # ⭐⭐ اسم فريد ⭐⭐ ⇒ ⭐ مافيش سباق ⭐
+    _probe.write_text("1", encoding="utf-8")
+    try:
+        _probe.unlink()
+    except OSError:
+        # ⭐ الملف اتمسح من عملية تانية ⭐ ⇒ ⭐ ده **مش** فشل كتابة ⭐ ⇒ ⭐ نكمّل ⭐
+        pass
+except Exception as _probe_exc:
+    DATA_DIR_PROBE_ERROR = "%s: %s" % (type(_probe_exc).__name__, str(_probe_exc)[:120])
     DATA_DIR = HERE
 
 SUBS_FILE = DATA_DIR / "subscriptions.json"
@@ -50,7 +73,14 @@ def plan_of(user, now=None):
             until = int(until)
         except Exception:
             until = 0
-        if until and until < (now or _now()):
+        # ⭐⭐⭐ (R31) ⭐⭐⭐ مافيش تاريخ انتهاء ⭐ ⭐ ⇒ ⛔ **free** ⭐ ⭐ (fail-closed ⭐)
+        # 📌 قبل ⭐: ⛔ `until` ⭐ صفر ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ ⭐ الكود بيرجّع pro ⭐ ⭐ ⭐ ⭐
+        #    ⭐ ⭐ ⇒ ⭐ ⭐ باقة من غير حدّ ⭐ ⭐ ⇒ ⭐ ⭐ ⛔ Contradicts التوثيق ⭐ ⭐.
+        # ✅ دلوقتي ⭐: ⭐ ⭐ ⭐ غياب التاريخ ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ free ⭐ ⭐ ⭐
+        #    ⭐ (زي باقي الحالات الناقصة ⭐) ⭐.
+        if until <= 0:
+            return "free"
+        if until < (now or _now()):
             # ⛔ منتهي — السجل بيفضل موجود (الأدمن بيشوف التاريخ)
             return "free"
         return "pro"

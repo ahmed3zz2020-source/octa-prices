@@ -29,10 +29,25 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
+# 🐞🛡️ ٢١ نوفمبر ٢٠٢٦ (R29 · FINDING-23) ⭐⭐⭐ فحص الكتابة **آمن ضد السباق** ⭐⭐⭐
+# 📌 العيب ⭐: ⛔ اسم ملف الفحص كان **ثابت** ⭐ ⇒ ⛔ عمليتين مع بعض ⭐ ⇒
+#    ⛔ واحدة بتمسح الملف ⭐ ⭐ والالتانية ⭐ ⭐ `unlink()` ⭐ ⭐ بترمي ⭐ ⭐
+#    ⭐ ⇒ ⛔ ⭐ ⭐ فتقع في الـfallback ⭐ ⭐ ⇒ ⛔ ⭐ ⭐ وبتكتب في **مجلد الكود** ⭐ ⭐
+#    ⭐ ⭐ ⇒ ⛔ مجلدين مختلفين ⭐ ⭐ ⇒ ⛔ قفل مختلف ⭐ ⭐ ⇒ ⛔ lost update ⭐ ⭐ ⭐
+# ✅ الحل ⭐: ⭐ اسم فريد بيلـpid ⭐ ⇒ ⭐ مافيش ملف مشترك ⭐ ⭐ + ⭐ ⭐ فشل الحذف ⭐ ⭐
+#    ⭐ **مش** ⭐ ⭐ سبب للرجوع ⭐ ⭐ (الكتابة نفسها نجحت ⭐ ⭐) ⭐ ⭐.
+DATA_DIR_PROBE_ERROR = None   # ⭐ سبب الفشل ⭐ (لو حصل ⭐) ⭐ — للتشخيص ⭐
 try:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    (DATA_DIR / ".probe_challenges").write_text("1", encoding="utf-8")
-except Exception:
+    _probe = DATA_DIR / (".w-%d" % os.getpid())   # ⭐⭐ اسم فريد ⭐⭐ ⇒ ⭐ مافيش سباق ⭐
+    _probe.write_text("1", encoding="utf-8")
+    try:
+        _probe.unlink()
+    except OSError:
+        # ⭐ الملف اتمسح من عملية تانية ⭐ ⇒ ⭐ ده **مش** فشل كتابة ⭐ ⇒ ⭐ نكمّل ⭐
+        pass
+except Exception as _probe_exc:
+    DATA_DIR_PROBE_ERROR = "%s: %s" % (type(_probe_exc).__name__, str(_probe_exc)[:120])
     DATA_DIR = HERE
 CHALLENGES_FILE = DATA_DIR / "challenges.json"
 VOTES_FILE = DATA_DIR / "challenge_votes.json"

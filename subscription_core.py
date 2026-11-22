@@ -1409,9 +1409,13 @@ def _default_data_dir():
         p = Path(d)
         try:
             p.mkdir(parents=True, exist_ok=True)
-            probe = p / ".subs_probe"
+            # 🐞🛡️ (R31 · FINDING-23) ⭐ اسم فريد بيلـpid ⭐ ⇒ ⭐ مافيش سباق ⭐
+            probe = p / (".w-%d" % os.getpid())
             probe.write_text("1", encoding="utf-8")
-            probe.unlink()
+            try:
+                probe.unlink()
+            except OSError:
+                pass          # ⭐ فشل الحذف ⭐ مش فشل كتابة ⭐
             return p
         except Exception:
             return HERE

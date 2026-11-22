@@ -9,6 +9,7 @@
  ⑤ «ناقص» مش «مفيش نمط» في الملخص.
 """
 import json
+import time
 import os
 import sys
 import tempfile
@@ -144,10 +145,24 @@ check(_status == 401, "الزائر ⇒ 401 (مش 200)")
 cur["u"] = {"id": "u1", "plan": "free"}
 _res2, _status2 = _call(_app.routes["/api/setups"])
 check(_status2 == 403, "باقة مقفولة (free) ⇒ 403 — Got %d" % _status2)
-cur["u"] = {"id": "u1", "plan": "pro"}
+# ⭐⭐⭐ (R31) ⭐⭐⭐ الباقة = (Pro ⭐ + تاريخ انتهاء ⭐) ⭐⭐⭐
+# 📌 قبل ⭐: ⛔ الاختبار ⭐ ⭐ كان بيحط ⭐ ⭐ plan=pro ⭐ ⭐ **من غير** ⭐ ⭐ تاريخ ⭐ ⭐
+#    ⭐ ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ ⭐ «Pro بلا نهاية» ⭐ ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ ⭐ ⛔ باقة ⭐ ⭐ ⭐ ⭐
+#    ⭐ ⭐ ⭐ ⭐ ما بتخلصش ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ (وّelite ⭐ ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⭐.
+# ✅ دلوقتي ⭐: ⭐ ⭐ ⭐ الـfixture ⭐ ⭐ ⭐ = **اشتراك Pro حقيقي** ⭐ ⭐ ⭐ (من مسار
+#    ⭐ ⭐ ⭐ التفعيل الإداري ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ `plan_until` ⭐ ⭐ ⭐ موجود ⭐ ⭐ ⭐) ⭐ ⭐ ⭐
+#    ⭐ ⭐ ⭐ + ⭐ ⭐ ⭐ تأكيد ⭐ ⭐ ⭐ صريح ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐
+#    ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐.
+cur["u"] = {"id": "u1", "plan": "pro",
+            "plan_until": int(time.time()) + 30 * 86400}
 _res3, _status3 = _call(_app.routes["/api/setups"])
 check(_status3 in (200, 503),
-      "باقة pro ⇒ 200 أو 503 (حسب وجود الكاش) — Got %d" % _status3)
+      "باقة pro (بتاريخ انتهاء) ⇒ 200 أو 503 (حسب وجود الكاش) — Got %d" % _status3)
+# ⭐⭐⭐ (R31) ⭐⭐⭐ ⛔ Pro **بلا** تاريخ انتهاء ⭐ ⭐ ⇒ ⛔ free ⭐ ⭐ (fail-closed ⭐) ⭐⭐⭐
+cur["u"] = {"id": "u1", "plan": "pro"}
+_res4, _status4 = _call(_app.routes["/api/setups"])
+check(_status4 == 403,
+      "Pro بلا تاريخ انتهاء ⇒ 403 (غياب التاريخ = free) — Got %d" % _status4)
 
 print("\n" + ("✅ كل الاختبارات عدّت" if not fails else "❌ فشل: %d" % len(fails)))
 for f_ in fails:
