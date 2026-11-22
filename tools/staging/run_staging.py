@@ -20,6 +20,8 @@ import json
 import time
 import secrets
 from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # ⭐ R32 · أداة الكتابة ⭐
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent          # /workspace/repos/octa-prices
@@ -621,7 +623,7 @@ if str(os.environ.get("STAGE_HARNESS", "0") or "0") == "1":
 
                         def _overwrite_save(d):
                             try:
-                                tmp = up.USERS_FILE.with_suffix(".tmp")
+                                tmp = _sw.tmp_path(up.USERS_FILE)
                                 tmp.write_text(json.dumps(d, ensure_ascii=False),
                                                encoding="utf-8")
                                 tmp.replace(up.USERS_FILE)
@@ -644,7 +646,7 @@ if str(os.environ.get("STAGE_HARNESS", "0") or "0") == "1":
 
                         def _overwrite_save2(d):
                             try:
-                                tmp = up.USERS_FILE.with_suffix(".tmp")
+                                tmp = _sw.tmp_path(up.USERS_FILE)
                                 tmp.write_text(json.dumps(d, ensure_ascii=False),
                                                encoding="utf-8")
                                 tmp.replace(up.USERS_FILE)

@@ -16,6 +16,7 @@ import os
 import time
 import uuid
 from pathlib import Path
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
 
 HERE = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
@@ -65,7 +66,7 @@ def _write(uid, items):
     try:
         STUDIO_DIR.mkdir(parents=True, exist_ok=True)
         p = _user_file(uid)
-        tmp = p.with_suffix(".tmp")
+        tmp = _sw.tmp_path(p)
         tmp.write_text(json.dumps(items, ensure_ascii=False), encoding="utf-8")
         tmp.replace(p)
         return True

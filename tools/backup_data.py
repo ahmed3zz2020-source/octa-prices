@@ -162,9 +162,16 @@ def do_selftest():
             mutated.write_text('{"__mutated__": true}\n', encoding="utf-8")
             lines.append("④ تعديل متعمّد: %s" % mutated.name)
         else:
-            (seed_dir / "probe.txt").write_text("mutated\n", encoding="utf-8")
-            mutated = seed_dir / "probe.txt"
-            lines.append("④ تعديل متعمّد: probe.txt")
+            # ⭐⭐⭐ (R32) ⭐⭐⭐ اسم الفحص التشخيصي **فريد** ⭐⭐⭐
+            # 📌 قبل ⭐: ⛔ «probe.txt» ⭐ ⭐ ⭐ اسم **ثابت** ⭐ ⭐ ⭐ ⇒ ⛔ لو فيه
+            #    ⭐ ⭐ ⭐ تشغيل تاني ⭐ ⭐ ⭐ (أو ملف باقٍ ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⛔ الفحص
+            #    ⭐ ⭐ ⭐ يعدّل ملف تاني ⭐ ⭐ ⭐ ⇒ ⛔ مقارنة الاسترجاع ⭐ ⭐ ⭐
+            #    ⭐ ⭐ ⭐ بتقيس حاجة تانية ⭐ ⭐ ⭐ ⇒ ⛔ نجاح/فشل كاذب ⭐ ⭐ ⭐.
+            # ✅ دلوقتي ⭐: ⭐ اسم فريد بيلـpid ⭐ ⭐ (والمجلد مؤقت ⭐ ⭐ لكل تشغيل ⭐ ⭐) ⭐ ⭐.
+            probe_name = "probe-%d.txt" % os.getpid()
+            (seed_dir / probe_name).write_text("mutated\n", encoding="utf-8")
+            mutated = seed_dir / probe_name
+            lines.append("④ تعديل متعمّد: %s" % probe_name)
 
         # ⑤ restore
         restore_target = tmp / "restored"

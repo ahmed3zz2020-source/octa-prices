@@ -18,6 +18,7 @@ import os
 import json
 import time
 import threading
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية باسم مؤقت فريد ⭐
 from datetime import datetime as _dt
 
 # ══════════════════════════════════════════════════════════════
@@ -82,9 +83,7 @@ def st_load():
 
 def st_save(d):
     try:
-        with open(STATE + ".t", "w", encoding="utf-8") as f:
-            json.dump(d, f, ensure_ascii=False)
-        os.replace(STATE + ".t", STATE)
+        _sw.safe_write_json(STATE, d)
     except Exception as e:
         print(f"[tg] save: {e}", flush=True)
 

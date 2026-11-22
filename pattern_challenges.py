@@ -26,6 +26,7 @@ import os
 import threading
 import time
 from pathlib import Path
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
 
 HERE = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
@@ -81,7 +82,7 @@ def _read_json(path, default):
 
 def _write_json(path, data):
     try:
-        tmp = path.with_suffix(".tmp")
+        tmp = _sw.tmp_path(path)
         tmp.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         tmp.replace(path)
         return True

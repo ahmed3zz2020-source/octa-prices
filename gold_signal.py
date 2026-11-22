@@ -33,6 +33,7 @@
 
 import json, os, math, time, threading, statistics
 from pathlib import Path
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -781,7 +782,8 @@ def _load_state():
 def _save_state(st):
     try:
         LEARN_FILE.parent.mkdir(parents=True, exist_ok=True)
-        LEARN_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
+        _sw.safe_write_text(LEARN_FILE,
+                           json.dumps(st, ensure_ascii=False, indent=1))
     except Exception:
         pass
 

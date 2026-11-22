@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 
 REPO_ROOTS = ["/workspace/.wt_r28_be", "/workspace/.wt_r28_fe", "/workspace/.wt_r28_ci"]
@@ -35,11 +36,51 @@ BOOLEAN = re.compile(r"!!|\bhas_\w+\s*[:=]|= *False\b|= *True\b|\bNone\b|\bbool\
 TESTFILE = re.compile(r"(^|/)(tests?|__tests__|fixtures?|examples?|docs?)(/|$)|\.(test|spec)\.[a-z]+$|(^|/)test_[^/]*\.py$|(^|/)[^/]*_test\.py$", re.I)
 
 
+# ⭐⭐⭐ (R32) ⭐⭐⭐ بصمات المستودعات وقت المسح ⭐ ⭐ (من تقرير المسح ⭐) ⭐
+PINNED_REPOS = []
+
+
+def load_pinned(scan: dict) -> None:
+    """يقرأ `scanned_repos` ⭐ من تقرير المسح ⭐ ⇒ ⭐ (المستودع ⭐، الـsha ⭐) ⭐."""
+    global PINNED_REPOS
+    PINNED_REPOS = []
+    for item in (scan.get("summary") or {}).get("scanned_repos") or []:
+        root = str(item.get("path") or "")
+        sha = str(item.get("sha") or "")
+        if root and sha:
+            PINNED_REPOS.append((root, sha))
+
+
+def read_git_line(sha: str, line_no):
+    """⭐⭐⭐ (R32) ⭐⭐⭐ سطر من **كائن git** ⭐ ⭐ (مش من الشجرة الحالية ⭐) ⭐.
+    📌 السبب ⭐: ⛔ مواضع «git-history» ⭐ ⭐ كانت بتتقرا ⭐ ⭐ من **الشجرة الحالية** ⭐ ⭐
+       ⭐ ⭐ ⇒ ⛔ السطر ⭐ ⭐ مختلف ⭐ ⭐ ⇒ ⛔ التصنيف ⭐ ⭐ على **نص تاني** ⭐ ⭐
+       ⭐ ⭐ ⇒ ⛔ تسرّب مخفي ⭐ ⭐ أو ⛔ إنذار كاذب ⭐ ⭐.
+    ✅ دلوقتي ⭐: ⭐ `git cat-file blob` ⭐ ⭐ على نفس الـsha ⭐ ⭐ ⇒ ⭐ نفس السطر ⭐ ⭐."""
+    for root in REPO_ROOTS:
+        try:
+            proc = subprocess.run(["git", "-C", root, "cat-file", "blob", sha],
+                                  stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                  timeout=120)
+            if proc.returncode == 0 and proc.stdout:
+                lines = proc.stdout.decode("utf-8", "replace").split("\n")
+                if isinstance(line_no, int) and 0 < line_no <= len(lines):
+                    return window(lines, line_no)
+        except Exception:  # noqa: BLE001
+            continue
+    return ""
+
+
 def read_line(loc: dict) -> str:
     where = loc.get("location", "")
     line_no = loc.get("line")
     scope = loc.get("scope")
     path = None
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ السطر من كائن الـgit ⭐ ⭐ (لو ده git-history ⭐) ⭐
+    if scope == "git-history" and re.fullmatch(r"[0-9a-f]{40}", str(where or "")):
+        got = read_git_line(str(where), line_no)
+        if got:
+            return got
     if scope == "zip" and "::" in where:
         zip_name, inner = where.split("::", 1)
         cand = os.path.join(ZIP_ROOTS[0], zip_name)
@@ -66,6 +107,21 @@ def read_line(loc: dict) -> str:
             except Exception:  # noqa: BLE001
                 return ""
             return ""
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ الأول: ⭐ نفس **بصمة** المستودع وقت المسح ⭐ ⭐⭐
+    #    ⇒ ⭐ أرقام الأسطر بتطابق ⭐ ⇒ ⭐ ⭐ التصنيف قابل لإعادة الإنتاج ⭐ ⭐
+    for root, sha in PINNED_REPOS:
+        if not sha:
+            continue
+        try:
+            proc = subprocess.run(["git", "-C", root, "show", "%s:%s" % (sha, where)],
+                                  stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                  timeout=120)
+            if proc.returncode == 0 and proc.stdout:
+                lines = proc.stdout.decode("utf-8", "replace").split("\n")
+                if isinstance(line_no, int) and 0 < line_no <= len(lines):
+                    return window(lines, line_no)
+        except Exception:  # noqa: BLE001
+            continue
     for root in REPO_ROOTS:
         cand = os.path.join(root, where)
         if os.path.isfile(cand):
@@ -120,9 +176,21 @@ def main() -> int:
     path = sys.argv[1] if len(sys.argv) > 1 else "/workspace/output/r29/secrets-scan-final.json"
     with open(path, encoding="utf-8") as fh:
         scan = json.load(fh)
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ تثبيت بصمات المستودعات ⭐ ⭐ (من نفس التقرير ⭐) ⭐
+    load_pinned(scan)
     real, reasons = [], {}
+    scanned_locs = 0
     for s in scan.get("secrets", []):
+        # ⭐⭐⭐ (R32) ⭐⭐⭐ فجوة التصنيف ⭐⭐⭐
+        # 📌 قبل ⭐: ⛔ الـ`break` ⭐ ⭐ ⭐ كان بيوقف عند **أول موضع** ⭐ ⭐ ⭐
+        #    ⭐ ⭐ ⭐ ⇒ ⛔ لو نفس السر اتكرّر ⭐ ⭐ ⭐ (بصمة واحدة ⭐ ⭐ ⭐) ⭐ ⭐ ⭐
+        #    ⭐ ⭐ ⭐ في **ملف اختبار** ⭐ ⭐ ⭐ (⇦ حكمه ب_FALSE ⭐ ⭐ ⭐) ⭐ ⭐ ⭐
+        #    ⭐ ⭐ ⭐ وفي **كود الإنتاج** ⭐ ⭐ ⭐ ⇒ ⛔ المكان الثاني ⭐ ⭐ ⭐
+        #    ⭐ ⭐ ⭐ ما اتصنّفش ⭐ ⭐ ⭐ ⇒ ⛔ **تسرّب حقيقي مخفي** ⭐ ⭐ ⭐.
+        # ✅ دلوقني ⭐: ⭐ **كل** المواضع بتتصنّف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ السر تسرّب ⭐ ⭐ ⭐
+        #    ⭐ ⭐ ⭐ لو **أي** موضع قال تسرّب ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ مفيش إخفاء ⭐ ⭐ ⭐.
         for loc in s.get("locations", []):
+            scanned_locs += 1
             where = loc.get("location", "")
             line = read_line(loc)
             verdict, why = classify(line, where)
@@ -131,9 +199,9 @@ def main() -> int:
                 real.append({"fingerprint": s.get("fingerprint"), "pattern": s.get("pattern"),
                              "location": where, "line": loc.get("line"),
                              "scope": loc.get("scope"), "source": line.strip()[:160]})
-            break
     out = {"ok": not real and not scan.get("summary", {}).get("errors"),
            "total_distinct": len(scan.get("secrets", [])),
+           "locations_scanned": scanned_locs,
            "real_leaks": len(real),
            "real_leak_list": real,
            "reasons": reasons,

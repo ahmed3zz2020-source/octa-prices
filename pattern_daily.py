@@ -19,6 +19,7 @@ import os
 import threading
 import time
 from pathlib import Path
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
 
 HERE = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
@@ -467,7 +468,7 @@ def build_shortlist(codes=None, filters=None, cfg=None, universe=None,
 
 def save_shortlist(payload):
     try:
-        tmp = SHORTLIST_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(SHORTLIST_FILE)
         tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2),
                         encoding="utf-8")
         tmp.replace(SHORTLIST_FILE)
@@ -511,7 +512,7 @@ def _state_load():
 
 def _state_save(d):
     try:
-        tmp = STATE_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(STATE_FILE)
         tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
         tmp.replace(STATE_FILE)
     except Exception:

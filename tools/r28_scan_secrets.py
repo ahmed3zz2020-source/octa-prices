@@ -356,7 +356,23 @@ def main(argv: Iterable[str] | None = None) -> int:
     args = ap.parse_args(list(argv) if argv is not None else None)
 
     report = Report()
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ تثبيت **بصمة** كل مستودع مقيس ⭐ ⭐⭐
+    # 📌 السبب ⭐: ⛔ التصنيف ⭐ ⭐ كان بيقرا السطر من **الشجرة الحالية** ⭐ ⭐
+    #    ⭐ ⭐ ⇒ ⛔ أول ما الكود يتغيّر ⭐ ⭐ ⇒ ⛔ أرقام الأسطر بتتحرك ⭐ ⭐
+    #    ⭐ ⭐ ⇒ ⛔ التصنيف ⭐ ⭐ بيغيّر ⭐ ⭐ ⇒ ⛔ **مش قابل لإعادة الإنتاج** ⭐ ⭐.
+    # ✅ دلوقتي ⭐: ⭐ الـHEAD ⭐ ⭐ بيتسجّل ⭐ ⭐ ⇒ ⭐ ⭐ التصنيف يقرأ من نفس البصمة ⭐ ⭐.
+    scanned_repos = []
     for repo in args.repo:
+        sha = ""
+        try:
+            proc = subprocess.run(["git", "-C", repo, "rev-parse", "HEAD"],
+                                  stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                  timeout=60)
+            if proc.returncode == 0:
+                sha = proc.stdout.decode("utf-8", "replace").strip()
+        except Exception:  # noqa: BLE001
+            sha = ""
+        scanned_repos.append({"path": repo, "sha": sha})
         scan_repo(repo, report)
     archives = []
     for zpath in args.zip:
@@ -388,6 +404,8 @@ def main(argv: Iterable[str] | None = None) -> int:
             "scanned_zip_members": report.scanned_zip_members,
             "errors": report.errors,
             "blocking_count": len(report.blocking),
+            # ⭐⭐⭐ (R32) ⭐⭐⭐ بصمة كل مستودع مقيس ⭐ ⭐⭐
+            "scanned_repos": scanned_repos,
         },
         "archives": archives,
         "secrets": [

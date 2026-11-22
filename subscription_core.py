@@ -33,6 +33,7 @@ import os
 import threading
 import time
 from pathlib import Path
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
 
 HERE = Path(__file__).resolve().parent
 
@@ -269,7 +270,7 @@ class Store:
                         # ⛔ ملف تالف ⇒ مرفوض الكتابة فوقه (مافيش مسح بيانات)
                         self.error = "ملف %s تالف — مرفوض الكتابة فوقه" % _FILES[name]
                         return False
-                tmp = p.with_suffix(".tmp")
+                tmp = _sw.tmp_path(p)
                 with open(tmp, "w", encoding="utf-8") as f:
                     f.write(json.dumps(data, ensure_ascii=False))
                     f.flush()

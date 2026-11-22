@@ -1,4 +1,5 @@
 import json, time, requests, os, sys, threading
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية باسم مؤقت فريد ⭐
 import os as _os  # alias للمعاملات (EGX_RISK_FREE) — واحد يكفي، وده أوضح
 import div_actions
 from flask import Flask, jsonify, request, Response
@@ -2454,7 +2455,7 @@ def _save_users(d):
         # 🛡️ R26 — الملف لا يحتفظ على NaN / Infinity ⭐
         #   (JSON غير صحيح ⇒ ⛔⛔ مافيش لكل مستهلك تاني ⭐)
         d = _scrub_non_finite(d)
-        tmp = USERS_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(USERS_FILE)
         with open(tmp, "w", encoding="utf-8") as f:
             f.write(json.dumps(d, ensure_ascii=False, allow_nan=False))
             f.flush()
@@ -2986,7 +2987,7 @@ def _pinlock_save(d):
     الكتابة العادية (فتح → مسح → كتابة) كانت بتخلّي قارئ في نفس
     اللحظة يلاقي ملف فاضي = بالظبط ما احنا بنحاول نمنعه."""
     try:
-        tmp = PINLOCK_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(PINLOCK_FILE)
         tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
         tmp.replace(PINLOCK_FILE)
     except Exception as e:
@@ -3362,7 +3363,7 @@ def _chal_load():
 def _chal_save(d):
     """ذرّي ونفس أسلوب pinlock.json"""
     try:
-        tmp = PIN_CHAL_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(PIN_CHAL_FILE)
         tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
         tmp.replace(PIN_CHAL_FILE)
     except Exception as e:
@@ -4850,7 +4851,7 @@ def _signup_load():
 def _signup_save(d):
     """ذرّي ونفس أسلوب pinchal.json"""
     try:
-        tmp = SIGNUP_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(SIGNUP_FILE)
         tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
         tmp.replace(SIGNUP_FILE)
     except Exception as e:
@@ -5589,7 +5590,7 @@ def _otp_load():
 
 def _otp_save(d):
     try:
-        tmp = OTP_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(OTP_FILE)
         tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
         tmp.replace(OTP_FILE)
     except Exception as e:
@@ -14871,9 +14872,7 @@ def st_load():
 
 def st_save(d):
     try:
-        with open(STATE + ".t", "w", encoding="utf-8") as f:
-            json.dump(d, f, ensure_ascii=False)
-        os.replace(STATE + ".t", STATE)
+        _sw.safe_write_json(STATE, d)
     except Exception as e:
         print(f"[tg] save: {e}", flush=True)
 

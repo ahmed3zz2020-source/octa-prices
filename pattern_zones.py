@@ -16,6 +16,7 @@ import os
 import threading
 import time
 from pathlib import Path
+import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
 
 HERE = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
@@ -249,7 +250,7 @@ def _load_zones(max_age_hours=8):
 
 def _save_zones(payload):
     try:
-        tmp = ZONES_FILE.with_suffix(".tmp")
+        tmp = _sw.tmp_path(ZONES_FILE)
         tmp.write_text(json.dumps(payload, ensure_ascii=False),
                        encoding="utf-8")
         tmp.replace(ZONES_FILE)
