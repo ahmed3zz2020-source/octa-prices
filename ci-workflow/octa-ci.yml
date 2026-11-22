@@ -68,7 +68,7 @@ env:
   OCTA_FE_SHA: 'bd3ae0a95a987d7b0083d24d52fa717f671d67d3'
   # ⭐⭐⭐ (R32) ⭐⭐⭐ بصمة **أدوات القياس** ⭐ ⭐⭐ (مثبّتة ⭐ ⇒ القياس قابل لإعادة الإنتاج ⭐)
   #    ⇒ ⭐ لو الأدوات اتغيّرت ⭐ ⇒ ⛔ فشل صريح ⭐ ⇒ ⛔ مافيش قياس على أدوات مختلفة ⭐.
-  OCTA_CI_TOOLS_SHA256: '489735a543aa6f652e6c17d0992311b1a30c8414cbc729c890c3b94a65a785ed'
+  OCTA_CI_TOOLS_SHA256: '6ef7443b9679c92cfdc399692c27515a9d80313c1343019867fd7484249c537a'
 
 jobs:
   # ══════════════════════════════════════════════════════════════════════
@@ -144,12 +144,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -260,12 +263,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -395,12 +401,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -612,12 +621,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -768,12 +780,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -903,12 +918,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -1006,12 +1024,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -1103,12 +1124,15 @@ jobs:
             ci-workflow/
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
           # 📌 السبب ⭐: ⛔ الأدوات كانت بتترجع من **فرع** ⭐ ⭐ ⇒ ⛔ أي تعديل ⭐ ⭐
           #    ⭐ ⭐ على الفرع ⭐ ⭐ ⇒ ⛔ القياس ⭐ ⭐ بيبقى على **أدوات** ⭐ ⭐ مش
           #    ⭐ ⭐ على المثبّت ⭐ ⭐ ⇒ ⛔ مش قابل لإعادة الإنتاج ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ بصمة **محتوى** ⭐ ⭐ (sha256 ⭐ ⭐ لكل أداة ⭐ ⭐) ⭐ ⭐ مثبّتة ⭐ ⭐
           #    ⭐ ⭐ ⇒ ⭐ ⭐ أي اختلاف ⭐ ⭐ ⇒ ⛔ فشل صريح ⭐ ⭐.
-          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          DIGEST="$(for f in tools/ci_candidate_gate.sh tools/ci_isolated_tests.json tools/ci_reset_staging.sh tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_result_classifier.py tools/test_cross_repo_contract.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1

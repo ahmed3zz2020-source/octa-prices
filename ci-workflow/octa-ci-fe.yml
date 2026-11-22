@@ -47,7 +47,7 @@ env:
   #    (لازم يتحدّث لما المرشح يتغيّر ⭐)
   OCTA_CANDIDATE_SHA: 'bd3ae0a95a987d7b0083d24d52fa717f671d67d3'
   # ⭐⭐⭐ (R32) ⭐⭐⭐ بصمة **أدوات القياس** ⭐ ⭐⭐ (مثبّتة ⭐) ⭐
-  OCTA_CI_TOOLS_SHA256: '23aa31344d012698a7b073f71b710c4019814b9c31eb9e0771a62a8b5eb54545'
+  OCTA_CI_TOOLS_SHA256: 'cc407ba0a5b84055afdfe9389498ab2518c9e7c6c82ead8f5baea5dd80621d67'
 
 jobs:
   # ══════════════════════════════════════════════════════════════
@@ -101,7 +101,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28-fe}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -112,7 +112,10 @@ jobs:
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
-          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -213,7 +216,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28-fe}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -224,7 +227,10 @@ jobs:
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
-          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -408,7 +414,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28-fe}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -419,7 +425,10 @@ jobs:
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
-          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
@@ -573,7 +582,7 @@ jobs:
           #    ⇒ ⛔ كل خطوة بتستدعي أداة CI ⭐ ⭐ بتفشل ⭐ ⭐ بـ«file not found» ⭐ ⭐.
           # ✅ دلوقتي ⭐: ⭐ نسترجع أدوات الـCI ⭐ ⭐ من فرع الـCI ⭐ ⭐
           #    ⇒ ⭐ ⭐ الـCI يشتغل ⭐ ⭐ **و** ⭐ ⭐ الكود المقيس ⭐ ⭐ = المرشح ⭐ ⭐ بالضبط ⭐ ⭐.
-          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28}"
+          CI_REF="${OCTA_CI_REF:-ci/octa-ci-r28-fe}"
           git fetch --no-tags --depth=1 origin "$CI_REF"
           git checkout FETCH_HEAD -- \
             tools/ci_isolated_tests.json \
@@ -584,7 +593,10 @@ jobs:
             tools/test_ci_result_classifier.py
           echo "✅ أدوات الـCI اترجعت ⭐ (المرشح لسه هو الكود المقيس ⭐)"
           # ⭐⭐⭐ (R32) ⭐⭐⭐ بوابة **بصمة أدوات القياس** ⭐ ⭐⭐
-          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do sha256sum "$f"; done | sha256sum | cut -d' ' -f1)"
+          # 📌 الصيغة ⭐ ⭐ ⭐ ( GNU coreutils ⭐ ⭐ ⭐): المسار ⭐ ⭐ ⭐ + بايت واحد ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ + sha256 ⭐ ⭐ ⭐ للملف ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس السطر ⭐ ⭐ ⭐ يتحسب محلياً ⭐ ⭐ ⭐
+          #    ⭐ ⭐ ⭐ (tools/ci_digest_check.sh ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ نفس القيمة ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ ⭐ برهان ⭐ ⭐ ⭐.
+          DIGEST="$(for f in tools/ci_isolated_tests.json tools/ci_result_classifier.py tools/ci_workflow_lint.py tools/test_ci_alt_gates.py tools/test_ci_gates.py tools/test_ci_result_classifier.py; do printf '%s ' "$f"; sha256sum "$f" | cut -d' ' -f1; done | sha256sum | cut -d' ' -f1)"
           if [ "$DIGEST" != "$OCTA_CI_TOOLS_SHA256" ]; then
             echo "FAIL: أدوات القياس المثبّتة اتغيّرت ⭐ ($DIGEST ⭐ ≠ ⭐ $OCTA_CI_TOOLS_SHA256 ⭐)"
             exit 1
