@@ -10,16 +10,49 @@
 """
 from __future__ import annotations
 
+import glob as _glob
 import json
 import os
 import re
 import subprocess
 import sys
 
-REPO_ROOTS = ["/workspace/.wt_r28_be", "/workspace/.wt_r28_fe", "/workspace/.wt_r28_ci"]
-EVIDENCE_ROOTS = ["/workspace/output/r29"]
-ZIP_ROOTS = ["/workspace/output/OCTA-ROUND29-DELIVERY",
-             "/workspace/output/packs_scan", "/workspace/output"]
+
+def _env_roots(var: str, default: list) -> list:
+    """⭐⭐⭐ (R32) ⭐⭐⭐ جذور تُقرأ من البيئة ⭐⭐⭐ ⇒ ⭐⭐⭐ الأداة **مش** مربوطة بجولة ⭐⭐⭐.
+    📌 السبب ⭐: ⛔ الجذور كانت **ثابتة** ⭐⭐ ⭐ (R29 ⭐⭐) ⭐⭐ ⇒ ⛔ المسح ⭐⭐
+       بيشوف **أرشيف جولة تانية** ⭐⭐ ⇒ ⛔ السطر بيتقرا من مكان غلط ⭐⭐
+       ⇒ ⛔ كل نتيجة ⭐⭐ بتتصنّف على **نص تاني** ⭐⭐ ⇒ ⛔ إنذار كاذب ⭐⭐.
+    ✅ دلوقتي ⭐: ⭐ متغيّر البيئة ⭐⭐ ⭐ OCTA_REPO_ROOTS ⭐ / OCTA_EVIDENCE_ROOTS ⭐⭐
+       / OCTA_ZIP_ROOTS ⭐⭐ (مفصولة بنقطتين ⭐⭐) ⭐⭐ + ⭐ اكتشاف تلقائي ⭐⭐
+       لمجلدات الجولة الحالية ⭐⭐ ⇒ ⭐⭐ الأداة **بتشتغل** ⭐⭐ على أي جولة ⭐⭐.
+    """
+    raw = os.environ.get(var, "")
+    if raw.strip():
+        return [p.strip() for p in raw.split(":") if p.strip()]
+    return list(default)
+
+
+def _discover(pattern: str) -> list:
+    """اكتشاف المجلدات الموجودة ⭐ ⇒ ⭐⭐ الأداة مش محتاجة تحديث يدوي ⭐⭐."""
+    try:
+        return sorted(_glob.glob(pattern))
+    except Exception:  # noqa: BLE001
+        return []
+
+
+REPO_ROOTS = _env_roots("OCTA_REPO_ROOTS", [
+    "/workspace/.wt_r28_be", "/workspace/.wt_r28_fe", "/workspace/.wt_r28_ci",
+])
+EVIDENCE_ROOTS = _env_roots("OCTA_EVIDENCE_ROOTS",
+                            _discover("/workspace/output/r2*") + ["/workspace/output/r29"])
+ZIP_ROOTS = _env_roots("OCTA_ZIP_ROOTS",
+                        _discover("/workspace/output/OCTA-ROUND*-DELIVERY")
+                        + ["/workspace/output/packs_scan", "/workspace/output"])
+
+# ⭐⭐⭐ (R32) ⭐⭐⭐ خريطة اسم الأرشيف ⭐⭐ ⭐ ⇒ ⭐⭐⭐ مساره المطلق ⭐⭐⭐
+# 📌 بيشيل الاعتماد على الترتيب ⭐⭐ ⭐ (كان بيقرأ من ZIP_ROOTS[0] ⭐⭐ بس ⭐⭐).
+ZIP_INDEX = {}
 
 ENV_REF = [
     re.compile(r"os\.environ"), re.compile(r"os\.getenv"), re.compile(r"process\.env"),
@@ -83,8 +116,15 @@ def read_line(loc: dict) -> str:
             return got
     if scope == "zip" and "::" in where:
         zip_name, inner = where.split("::", 1)
-        cand = os.path.join(ZIP_ROOTS[0], zip_name)
-        if os.path.isfile(cand):
+        # ⭐⭐⭐ (R32) ⭐⭐⭐ المسار المطلق ⭐⭐ ⭐ من الخريطة ⭐⭐ ⭐ ⇒ ⭐⭐ دقة ⭐⭐
+        cands = []
+        if zip_name in ZIP_INDEX:
+            cands.append(ZIP_INDEX[zip_name])
+        for root in ZIP_ROOTS:
+            cands.append(os.path.join(root, zip_name))
+        for cand in cands:
+            if not cand or not os.path.isfile(cand):
+                continue
             try:
                 import zipfile
                 with zipfile.ZipFile(cand) as zf:
@@ -93,7 +133,7 @@ def read_line(loc: dict) -> str:
                 if isinstance(line_no, int) and 0 < line_no <= len(lines):
                     return window(lines, line_no)
             except Exception:  # noqa: BLE001
-                return ""
+                continue
         return ""
     # ⭐⭐⭐ (R29) ⭐⭐⭐ مجلد الأدلة ⭐⭐⭐ ⇒ ⭐ ⭐ المسارات النسبية ⭐ ⭐ بتتحل ⭐ ⭐
     for root in EVIDENCE_ROOTS:
@@ -148,6 +188,13 @@ def classify(line: str, where: str) -> tuple[str, str]:
     """⇦ (الحكم · السبب) ⭐ — كل سبب بالحرف ⭐."""
     if TESTFILE.search(where):
         return "false_positive", "قيمة داخل ملف اختبار"
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ سطر **مش متاح** ⭐⭐ ⭐ ⇒ ⭐⭐ ⭐ مش تسرّب مؤكد ⭐⭐ ⭐
+    # 📌 السبب ⭐: ⛔ السطر الفاضي ⭐⭐ كان بيروح ⭐⭐ ⭐ للافتراضي ⭐⭐ ⭐
+    #    ⭐⭐ ⇒ ⭐⭐ يتّهم كود إنتاج ⭐⭐ بتسرّب ⭐⭐ ⭐ وهو **ب innocent** ⭐⭐ ⭐.
+    # ✅ دلوقتي ⭐: ⭐⭐ حكم **مستقل** ⭐⭐ ⇒ ⭐⭐ يمنع الاتهام البريء ⭐⭐ ⭐
+    #    ⭐⭐ ويمنع_adoption_النتيجة ⭐⭐ ⇒ ⭐⭐ المسح ما يُعتمدش ⭐⭐ لحد ما يتقفل ⭐⭐.
+    if not line or not line.strip():
+        return "unverifiable", "السطر غير متاح ⭐ ⇒ مش تسرّب مؤكد ⭐"
     if REGEX_DEF.search(line):
         return "false_positive", "تعريف نمط المسح نفسه (re.compile)"
     if any(r.search(line) for r in ENV_REF):
@@ -180,6 +227,7 @@ def main() -> int:
     load_pinned(scan)
     real, reasons = [], {}
     scanned_locs = 0
+    unverifiable = []
     for s in scan.get("secrets", []):
         # ⭐⭐⭐ (R32) ⭐⭐⭐ فجوة التصنيف ⭐⭐⭐
         # 📌 قبل ⭐: ⛔ الـ`break` ⭐ ⭐ ⭐ كان بيوقف عند **أول موضع** ⭐ ⭐ ⭐
@@ -199,11 +247,21 @@ def main() -> int:
                 real.append({"fingerprint": s.get("fingerprint"), "pattern": s.get("pattern"),
                              "location": where, "line": loc.get("line"),
                              "scope": loc.get("scope"), "source": line.strip()[:160]})
-    out = {"ok": not real and not scan.get("summary", {}).get("errors"),
+            elif verdict == "unverifiable":
+                # ⭐⭐⭐ (R32) ⭐⭐⭐ موضع **مش متاح** ⭐⭐ ⭐ ⇒ ⭐⭐ محجوب ⭐⭐ ⭐
+                #    ⭐⭐ مش تسرّب ⭐⭐ ⭐ ⇒ ⭐⭐ **ما يُعتمدش** ⭐⭐ ⭐ ⇒ ⛔ ok=false ⭐⭐.
+                unverifiable.append({"fingerprint": s.get("fingerprint"),
+                                     "pattern": s.get("pattern"),
+                                     "location": where, "line": loc.get("line"),
+                                     "scope": loc.get("scope")})
+    out = {"ok": (not real and not unverifiable
+                  and not scan.get("summary", {}).get("errors")),
            "total_distinct": len(scan.get("secrets", [])),
            "locations_scanned": scanned_locs,
            "real_leaks": len(real),
            "real_leak_list": real,
+           "unverifiable": len(unverifiable),
+           "unverifiable_list": unverifiable[:20],
            "reasons": reasons,
            "summary": scan.get("summary", {})}
     out_path = sys.argv[2] if len(sys.argv) > 2 else "/workspace/output/r29/secrets-classification.json"

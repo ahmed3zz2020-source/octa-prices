@@ -92,6 +92,23 @@ def main(argv=None) -> int:
         if os.path.isfile(z):
             scan_zip(z, report, siblings=zips)
 
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ ربط **مسار الأرشيف الحقيقي** ⭐⭐ ⭐ بالمصنِّف ⭐⭐⭐
+    # 📌 السبب ⭐: ⛔ المصنِّف ⭐⭐ كان بيفتّش عن الأرشيف ⭐⭐ في جذور **ثابتة** ⭐⭐
+    #    ⭐⭐ ⇒ ⛔ السطر بيتقرا من **أرشيف تاني** ⭐⭐ (أو ما يتقراش ⭐⭐) ⭐⭐
+    #    ⭐⭐ ⇒ ⛔ تصنيف ⭐⭐ على نص غلط ⭐⭐ ⇒ ⛔ إنذار كاذب ⭐⭐.
+    # ✅ دلوقتي ⭐: ⭐ **الخريطة** ⭐⭐ بتربط اسم الأرشيف ⭐⭐ بمساره المطلق ⭐⭐.
+    import r29_classify_secrets as _clf
+    for p in archives:
+        name = p.get("zip")
+        path = os.path.join(args.dir, name)
+        if not os.path.isfile(path):
+            alt = os.path.join(os.path.dirname(os.path.abspath(args.dir)), name)
+            if os.path.isfile(alt):
+                path = alt
+        if os.path.isfile(path):
+            _clf.ZIP_INDEX[name] = os.path.abspath(path)
+    _clf.ZIP_ROOTS = [args.dir, os.path.dirname(os.path.abspath(args.dir))]
+
     by_fp: dict[str, list] = {}
     for f in report.findings:
         by_fp.setdefault(f.fingerprint, []).append(f)
@@ -101,6 +118,7 @@ def main(argv=None) -> int:
     # 📌 السبب ⭐: ⛔ النتيجة ⭐ ⭐ (زي `os.environ` ⭐ ⭐ أو placeholder ⭐ ⭐) ⭐ ⭐
     #    ⭐ ⭐ **مش سر** ⭐ ⭐ ⇒ ⛔ العدّ الخام ⭐ ⭐ بيكبّر الأرقام ⭐ ⭐ وبيوّهم ⭐ ⭐ ⭐
     real_leaks = []
+    unverifiable = []
     reasons: dict[str, int] = {}
     for f in report.findings:
         loc = {"location": f.location, "line": f.line, "scope": f.scope}
@@ -111,9 +129,14 @@ def main(argv=None) -> int:
             real_leaks.append({"fingerprint": f.fingerprint, "pattern": f.pattern,
                                "location": f.location, "line": f.line,
                                "scope": f.scope})
+        elif verdict == "unverifiable":
+            # ⭐⭐⭐ (R32) ⭐⭐⭐ موضع **مش متاح** ⭐⭐ ⭐ ⇒ ⭐⭐ محجوب ⭐⭐ ⭐
+            unverifiable.append({"fingerprint": f.fingerprint, "pattern": f.pattern,
+                                 "location": f.location, "line": f.line,
+                                 "scope": f.scope})
 
     ok = ((not blocking) and (not report.blocking) and (not report.errors)
-          and (not real_leaks))
+          and (not real_leaks) and (not unverifiable))
     out = {
         "ok": ok,
         "note": ("مسح %d أرشيف ⭐ (بصمة SHA256 لكل واحد ⭐ مطابقة للمانيفست ⭐) ⭐ ⇒ %d قيمة مسرّبة ⭐ ⇒ %s ⭐"
@@ -126,6 +149,8 @@ def main(argv=None) -> int:
         "distinct_secrets": distinct,
         "real_leaks": len(real_leaks),
         "real_leak_list": real_leaks[:20],
+        "unverifiable": len(unverifiable),
+        "unverifiable_list": unverifiable[:20],
         "reasons": reasons,
         "findings": [f.__dict__ for f in report.findings][:50],
     }
@@ -134,6 +159,7 @@ def main(argv=None) -> int:
     print(json.dumps({"ok": ok, "archives": len(archives),
                       "distinct_secrets": distinct,
                       "real_leaks": len(real_leaks),
+                      "unverifiable": len(unverifiable),
                       "blocking": len(out["blocking"])}, ensure_ascii=False))
     for b in out["blocking"]:
         print("   ⛔", b)
