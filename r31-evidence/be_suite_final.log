@@ -1,0 +1,193 @@
+staging_health=200
+run_be_suite_cand.sh: line 33: 12547 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 12620 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 12733 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 12860 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 12943 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13190 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13260 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13329 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13425 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13500 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13565 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13666 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13735 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13857 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 13959 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14020 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14097 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14199 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14274 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14381 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14439 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14498 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14853 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14928 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 14997 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 15194 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 15706 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 15813 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 15880 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 15945 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16016 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16050 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16128 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16200 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16269 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16339 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16381 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16502 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16577 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16654 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16721 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16757 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16829 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16892 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 16929 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17004 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17077 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17105 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17135 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17171 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17242 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17313 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17392 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17570 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17733 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17873 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 17941 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 18017 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 18085 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 18204 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 18344 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 18463 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 18590 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 18738 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 19212 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 19322 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 19350 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 19535 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 20593 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 20911 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21215 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21280 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21338 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21381 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21466 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21500 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21538 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21573 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21609 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+run_be_suite_cand.sh: line 33: 21719 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+🔄 ملفات مُخلّدة تتشغلف من في النهاية: test_signup_flow.py
+📂 python · 80 ملف
+   test_auth_holes.py                                   passed   rc=0    cases=29    skipped=0    
+   test_charts_api.py                                   passed   rc=0    cases=12    skipped=0    
+   test_code_hygiene.py                                 passed   rc=0    cases=7     skipped=0    
+   test_data_full_route.py                              passed   rc=0    cases=13    skipped=0    
+   test_egx_ttl.py                                      passed   rc=0    cases=1     skipped=0    
+   test_engine_contract01.py                            passed   rc=0    cases=11    skipped=0    
+   test_engine_safety01.py                              passed   rc=0    cases=13    skipped=0    
+   test_gold_history.py                                 passed   rc=0    cases=51    skipped=0    
+   test_gold_integrity.py                               passed   rc=0    cases=67    skipped=0    
+   test_gold_live_price.py                              skipped  rc=0    cases=0     skipped=1    علامة تخطّي صريحة في الإخراج
+        │ ⏭️  متخطّى: اختبار السعر الحيّ محتاج OCTA_RUN_LIVE_TESTS=1 — السعر بيتغيّر كل يوم، فمش جزء من مجموعة الاختبارات الحتمية
+        │    (شغّله صريحاً بـ: OCTA_RUN_LIVE_TESTS=1 python3 test_gold_live_price.py)
+   test_gold_local.py                                   passed   rc=0    cases=55    skipped=0    
+   test_gold_macro.py                                   passed   rc=0    cases=98    skipped=0    
+   test_gold_scenarios.py                               passed   rc=0    cases=109   skipped=0    
+   test_gold_technical.py                               passed   rc=0    cases=51    skipped=0    
+   test_index_api.py                                    passed   rc=0    cases=17    skipped=0    
+   test_index_history_refresh_guard.py                  passed   rc=0    cases=7     skipped=0    
+   test_opp_api01.py                                    passed   rc=0    cases=7     skipped=0    
+   test_opp_freshness13.py                              passed   rc=0    cases=20    skipped=0    
+   test_opp_live01.py                                   passed   rc=0    cases=14    skipped=0    
+   test_pattern_challenges.py                           passed   rc=0    cases=32    skipped=0    
+   test_pattern_daily.py                                passed   rc=0    cases=30    skipped=0    
+   test_pattern_detector.py                             passed   rc=0    cases=55    skipped=0    
+   test_pattern_stats.py                                passed   rc=0    cases=46    skipped=0    
+   test_pin_auth.py                                     passed   rc=0    cases=53    skipped=0    
+   test_pin_challenge.py                                passed   rc=0    cases=48    skipped=0    
+   test_r20_az31_36.py                                  passed   rc=0    cases=47    skipped=0    
+   test_radar_api.py                                    passed   rc=0    cases=1     skipped=0    
+   test_recipe_filter.py                                passed   rc=0    cases=37    skipped=0    
+   test_round14_release.py                              passed   rc=0    cases=27    skipped=0    
+   test_round15_coverage_states.py                      passed   rc=0    cases=5     skipped=0    
+   test_round15_maildown_enum.py                        passed   rc=0    cases=17    skipped=0    
+   test_round15_opp_perms.py                            passed   rc=0    cases=32    skipped=0    
+   test_round15_price_label.py                          passed   rc=0    cases=16    skipped=0    
+   test_round15_query_guard.py                          passed   rc=0    cases=17    skipped=0    
+   test_round16_contract_wiring.py                      passed   rc=0    cases=10    skipped=0    
+   test_round16_legacy_weights.py                       passed   rc=0    cases=24    skipped=0    
+   test_round16_price_freshness.py                      passed   rc=0    cases=20    skipped=0    
+   test_round16_query_limits.py                         passed   rc=0    cases=17    skipped=0    
+   test_round17_n1_row_state.py                         passed   rc=0    cases=7     skipped=0    
+   test_round17_n2_coverage.py                          passed   rc=0    cases=8     skipped=0    
+   test_round17_n3_contract.py                          passed   rc=0    cases=5     skipped=0    
+   test_round17_n4_session_match.py                     passed   rc=0    cases=8     skipped=0    
+   test_round17_p1_unknown_state.py                     passed   rc=0    cases=8     skipped=0    
+   test_round17_p2_coverage_consistency.py              passed   rc=0    cases=9     skipped=0    
+   test_round17_p3_contract_pick.py                     passed   rc=0    cases=7     skipped=0    
+   test_round17_v2_01_coverage_domain.py                passed   rc=0    cases=12    skipped=0    
+   test_round17_v2_04_payload_ttl.py                    passed   rc=0    cases=7     skipped=0    
+   test_round18_analysis_truth.py                       passed   rc=0    cases=27    skipped=0    
+   test_round18_sec_failopen.py                         passed   rc=0    cases=31    skipped=0    
+   test_run_pattern_scan.py                             passed   rc=0    cases=18    skipped=0    
+   test_security_batch01.py                             passed   rc=0    cases=79    skipped=0    
+   test_security_batch02.py                             passed   rc=0    cases=65    skipped=0    
+   test_security_bgstore.py                             passed   rc=0    cases=16    skipped=0    
+   test_security_p0.py                                  passed   rc=0    cases=34    skipped=0    
+   test_strategy_cap01.py                               passed   rc=0    cases=9     skipped=0    
+   test_tree_hygiene.py                                 passed   rc=0    cases=9     skipped=0    
+   tools/staging/test_flask_binding.py                  failed   rc=1    cases=1     skipped=0    فشل الاختبار (rc=1)
+        │ === ربط Frontend/Backend على Flask حقيقي · http://127.0.0.1:8099 ===
+        │   ❌ دخول Pro بـPIN (Flask حقيقي) — فشل الدخول: {"error": "\u0627\u0644\u0645\u0633\u0627\u0631 \u062f\u0647 \u0645\u0634 \u0645\u062a\u0627\u062d", "ok": false, "why": "direct_access"}
+        │ RESULT: FAIL (مفيش جلسة)
+   tools/test_data_integrity_guard.py                   passed   rc=0    cases=63    skipped=0    
+   tools/test_data_integrity_proofs_r24.py              passed   rc=0    cases=61    skipped=0    
+   tools/test_engines_filters_audit.py                  passed   rc=0    cases=77    skipped=0    
+   tools/test_peg_availability_r24.py                   passed   rc=0    cases=39    skipped=0    
+   tools/test_r25_clock_routes.py                       passed   rc=0    cases=22    skipped=0    
+   tools/test_r25_concurrency.py                        passed   rc=0    cases=29    skipped=0    
+   tools/test_r25_fault_injection.py                    passed   rc=0    cases=24    skipped=0    
+   tools/test_r25_growth_truthfulness.py                passed   rc=0    cases=0     skipped=0    
+   tools/test_r25_metrics_board.py                      passed   rc=0    cases=50    skipped=0    
+   tools/test_r25_perf_latency.py                       passed   rc=0    cases=23    skipped=0    
+   tools/test_r25_storage_durability.py                 passed   rc=0    cases=39    skipped=0    
+   tools/test_r26_portfolio_atomicity.py                passed   rc=0    cases=7     skipped=0    
+   tools/test_r26_subscriptions.py                      passed   rc=0    cases=279   skipped=0    
+   tools/test_r29_data_dir_probe_race.py                passed   rc=0    cases=2     skipped=0    
+   tools/test_r29_scan_blocking.py                      passed   rc=0    cases=9     skipped=0    
+   tools/test_r31_batch.py                              passed   rc=0    cases=42    skipped=0    
+   tools/test_round23_clean_clone.py                    failed   rc=1    cases=0     skipped=0    فشل الاختبار (rc=1)
+        │              ^^^^^^
+        │   File "tools/test_round23_clean_clone.py", line 448, in main
+        │     result["backend"] = run_backend(pathlib.Path(args.backend_zip),
+        │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "tools/test_round23_clean_clone.py", line 305, in run_backend
+        │     src = extract_zip(zip_path, pathlib.Path(work) / "zip")
+        │           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "tools/test_round23_clean_clone.py", line 192, in extract_zip
+        │     with zipfile.ZipFile(zip_path) as z:
+        │          ^^^^^^^^^^^^^^^^^^^^^^^^^
+        │   File "/usr/lib/python3.11/zipfile.py", line 1300, in __init__
+        │     self.fp = io.open(file, filemode)
+        │               ^^^^^^^^^^^^^^^^^^^^^^^
+        │ FileNotFoundError: [Errno 2] No such file or directory: '/workspace/output/OCTA-ROUND23-BACKEND.zip'
+   tools/test_round24_gold_gate_contract.py             passed   rc=0    cases=13    skipped=0    
+   tools/test_round24_growth_source_audit.py            passed   rc=0    cases=14    skipped=0    
+   tools/test_round24_rel_volume_states.py              passed   rc=0    cases=12    skipped=0    
+   tools/test_round26_api_tools_r26.py                  passed   rc=0    cases=99    skipped=0    
+   tools/test_round26_engines_r26.py                    passed   rc=0    cases=60    skipped=0    
+   test_signup_flow.py                                  passed   rc=0    cases=40    skipped=0    
+📄 النتيجة اتكتبت: /workspace/output/r31/be_cand/backend_results.json
+
+======================================================================
+📊 python: 80 ملف · 77 نجح · 2 فشل · 1 متخطى · 0 محجوب · 2480 حالة
+======================================================================
+⛔ فيه ملفات مش ناجحة ⇒ البوابة لازم تفشل
+   ⛔ test_gold_live_price.py → skipped (علامة تخطّي صريحة في الإخراج)
+   ⛔ tools/staging/test_flask_binding.py → failed (فشل الاختبار (rc=1))
+   ⛔ tools/test_round23_clean_clone.py → failed (فشل الاختبار (rc=1))
+classifier_rc=1
+BE_CAND_EXIT=1

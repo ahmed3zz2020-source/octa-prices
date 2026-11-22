@@ -1,0 +1,43 @@
+{
+  "round": "R31",
+  "rc": "RC-R31-001",
+  "candidate": {
+    "backend_sha": "975664d34e3e06ac87bf97dccfc7a5090d6838d9",
+    "frontend_sha": "7ac1ca272df9eb07afa0ee143c6310c51e77e174",
+    "ci_sha": "5a4d91aba59397620c9472e343d17cd7e5aae019"
+  },
+  "packages": [
+    {
+      "bytes": 1692281,
+      "md5": "88e608e53da3cd072252979567de0148",
+      "sha256": "7cf101f823937e667f96f102de4f84459f35f8dc8d0047c5efa0583b102684a1",
+      "chunks": 2,
+      "zip": "OCTA-ROUND31-BACKEND.zip",
+      "files": 197
+    },
+    {
+      "bytes": 6720518,
+      "md5": "c21174df6a5e2feb448b950bfc25b3b1",
+      "sha256": "3271c6e59e85612d117e02ca9c123ae2db92918afaf3cdd09ac0b3d9774dadf6",
+      "chunks": 7,
+      "zip": "OCTA-ROUND31-FRONTEND.zip",
+      "files": 513
+    },
+    {
+      "bytes": 1598468,
+      "md5": "e72d3f1b4d0735546b7a77f286f052dc",
+      "sha256": "eae3a2e0f85af3c2c3fac57e0368ec1dfc018714230d5fbafadb0c8fc185e9a4",
+      "chunks": 2,
+      "zip": "OCTA-ROUND31-CI.zip",
+      "files": 194
+    },
+    {
+      "bytes": 10015583,
+      "md5": "1968a845510805228e130355074ff063",
+      "sha256": "0bb40b6ab9cd5125bf869d4e556d81e587d9940ccce0a1325fdcd4c15fd1539d",
+      "chunks": 10,
+      "zip": "OCTA-ROUND31-DELIVERY.zip",
+      "files": 16
+    }
+  ]
+}
