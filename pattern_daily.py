@@ -20,6 +20,7 @@ import threading
 import time
 from pathlib import Path
 import safe_write as _sw   # ⭐ R32 · كتابة ذرّية ⭐
+import index_history_store  # ⭐ R32 · بذرة + نسخة تشغيلية ⭐ (نفس مصدر التحديث ⭐)
 
 HERE = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("OCTA_DATA_DIR", "/data"))
@@ -185,8 +186,9 @@ def load_filters():
 # 📌 المصدر: data/index_history.json (EGX30 · ٧٠٢٦ شمعة) — نفس المصدر
 #    بتستخدمه صفحة «ذكاء المؤشرات».
 # ⛔ لو الملف مش موجود ⇒ الفلتر مايتطبّقش (مافيش تخمين).
+# 📌 R32 ⭐ نفس المحلّل ⭐ اللي بيقرا التحديث ⭐ (نسخة تشغيلية ⭐ أو بذرة ⭐)
+#    ⇒ regime والـAPI بيشتغلوا على نفس البيانات ⭐ (مفيش انزياح يوم ⭐).
 _REGIME_CACHE = {"at": 0.0, "data": None}
-_INDEX_HIST = HERE / "data" / "index_history.json"
 
 
 def _ema(vals, n):
@@ -207,10 +209,7 @@ def market_regime(max_age_hours=6):
         return _REGIME_CACHE["data"]
     out = {}
     try:
-        if not _INDEX_HIST.exists():
-            return {}
-        with open(_INDEX_HIST, "r", encoding="utf-8") as f:
-            payload = json.load(f)
+        payload = index_history_store.effective_payload() or {}
         rows = ((payload.get("indices") or {}).get("EGX30") or {}).get("rows") or []
         closes, dates = [], []
         for r in rows:

@@ -1,5 +1,6 @@
 import json, time, requests, os, sys, threading
 import safe_write as _sw   # ⭐ R32 · كتابة ذرّية باسم مؤقت فريد ⭐
+import index_history_store  # ⭐ R32 · بذرة (ملف المستودع ⭐) + نسخة تشغيلية ⭐
 import os as _os  # alias للمعاملات (EGX_RISK_FREE) — واحد يكفي، وده أوضح
 import div_actions
 from flask import Flask, jsonify, request, Response
@@ -12852,10 +12853,13 @@ def _maybe_refresh_index_history():
             return
         _IDX_HIST_REFRESH_DAY = today
         base = Path(__file__).parent
-        hp = base / "data" / "index_history.json"
-        if not hp.exists():
+        # 📌 R32 ⭐⭐⭐ البذرة (ملف المستودع ⭐) ما بنكتبش فيها ⭐⭐⭐
+        #    ⭐ الكتابة ⇒ النسخة التشغيلية ⭐ `DATA_DIR/index_history.json` ⭐
+        #    ⭐ (أوّلاً: شجرة المستودع ما تتلوّثش ⭐ ⇒ بوابة سلامة بيانات الـCI ما تفشلش ⭐)
+        #    ⭐ (ثانياً: البيانات تعيش بعد كل إعادة نشر ⭐)
+        hist = index_history_store.effective_payload()
+        if not hist:
             return
-        hist = json.loads(hp.read_text(encoding="utf-8"))
         inds = hist.get("indices") or {}
         if not inds:
             return
@@ -12912,10 +12916,12 @@ def _maybe_refresh_index_history():
             print(f"[idxhist] {ix_id}: {row['count']} نقطة → {row['to']}")
         if changed:
             hist["version"] = today
-            tmp = hp.with_suffix(".json.tmp")
-            tmp.write_text(json.dumps(hist, ensure_ascii=False), encoding="utf-8")
-            os.replace(str(tmp), str(hp))
-            print(f"[idxhist] history updated → {today}")
+            # 📌 R32 ⭐⭐⭐ الكتابة الذرّية ⭐ في النسخة التشغيلية ⭐ (اسم مؤقت فريد ⭐)
+            if index_history_store.write_runtime(hist):
+                print(f"[idxhist] history updated → {today} "
+                      f"({index_history_store.runtime_file()})")
+            else:
+                print(f"[idxhist] ⛔ runtime write failed ⭐")
     except Exception as e:
         print(f"[idxhist] refresh failed: {str(e)[:90]}")
 
@@ -12927,11 +12933,11 @@ def _idx_load():
         return
     base = Path(__file__).parent
     try:
-        p = base / "data" / "index_history.json"
-        if p.exists():
-            d = json.loads(p.read_text(encoding="utf-8"))
-            for k, v in (d.get("indices") or {}).items():
-                _IDX_HIST[k] = v
+        # 📌 R32 ⭐⭐⭐ نفس المصدر ⭐ اللي بتكتب فيه التحديث ⭐
+        #    ⭐ (النسخة التشغيلية ⭐ لو موجودة ⭐ وإلا البذرة ⭐)
+        d = index_history_store.effective_payload() or {}
+        for k, v in (d.get("indices") or {}).items():
+            _IDX_HIST[k] = v
     except Exception as e:
         print(f"[indices] history load failed: {str(e)[:90]}")
     try:
