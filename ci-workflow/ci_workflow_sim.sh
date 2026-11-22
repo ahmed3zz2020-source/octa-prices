@@ -25,7 +25,11 @@ fi
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-echo "▶ محاكاة ($MODE) ⭐ ⇒ $REPO ⭐"
+# ⛔⛔⛔ (R32 · e) ⛔⛔⛔ ⭐⭐⭐ ما ⭐⭐⭐ تطبعش ⭐⭐⭐ التوكن ⭐⭐⭐ ⭐⭐⭐
+# 📌 السبب ⭐: ⭐ الـURL ⭐ ⭐ بيحتوي ⭐⭐ على ⭐⭐ التوكن ⭐⭐ ⭐ ⇒ ⭐⭐ لو ⭐⭐ اتطبع ⭐⭐
+#    ⭐⭐ ⇒ ⭐⭐ التوكن ⭐⭐ بيدخل ⭐⭐ السجل ⭐⭐ ⭐ ⇒ ⭐⭐ تسرّب ⭐⭐ ⭐⭐.
+SAFE_REPO="$(printf '%s' "$REPO" | sed -E 's#(https://[^:/]+:)[^@]+@#\1<masked>@#')"
+echo "▶ محاكاة ($MODE) ⭐ ⇒ $SAFE_REPO ⭐"
 echo "  ci_ref=$CI_REF  candidate=$CAND_SHA  workflow=$WF"
 
 echo "▶ ① checkout المرشّح (actions/checkout@v4 ⇒ fetch-depth: 0 ⭐)"
