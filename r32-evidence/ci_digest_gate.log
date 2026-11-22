@@ -1,0 +1,12 @@
+=== BE ===
+tools_count=9
+computed=141058c5b0514a52537239a89f2996bc0de775ae6b99b0b9b522896c828a1abd
+pinned  =141058c5b0514a52537239a89f2996bc0de775ae6b99b0b9b522896c828a1abd
+PASS: بصمة أدوات القياس مطابقة ⭐ (141058c5b0514a52537239a89f2996bc0de775ae6b99b0b9b522896c828a1abd ⭐)
+rc=0
+=== FE ===
+tools_count=6
+computed=cc407ba0a5b84055afdfe9389498ab2518c9e7c6c82ead8f5baea5dd80621d67
+pinned  =cc407ba0a5b84055afdfe9389498ab2518c9e7c6c82ead8f5baea5dd80621d67
+PASS: بصمة أدوات القياس مطابقة ⭐ (cc407ba0a5b84055afdfe9389498ab2518c9e7c6c82ead8f5baea5dd80621d67 ⭐)
+rc=0

@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import re
@@ -254,6 +255,14 @@ def load_env_blocked(path):
 # 📌 البنود المسرودة ⭐ (فوق ⭐) ⇒ ⛔ متعذر ⭐ بصفر نقاط ⭐ وسبب بالاسم ⭐.
 # ═══════════════════════════════════════════════════════════════════
 ITEM_EVIDENCE = {
+    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ AC-10-3 ⭐⭐⭐ — ⭐⭐⭐ مسار ⭐⭐⭐ الكتابة ⭐⭐⭐ ⭐⭐⭐
+    # 📌 (R32 · e) ⭐: ⭐ اتقاس ⭐⭐⭐ عيب ⭐⭐⭐ كتابة ⭐⭐⭐ في ⭐⭐⭐ مجلد ⭐⭐⭐ الكود ⭐⭐⭐
+    #    ⭐⭐⭐ (بوابة ⭐⭐⭐ سلامة ⭐⭐⭐ البيانات ⭐⭐⭐ المرجعية ⭐⭐⭐ في ⭐⭐⭐ الـCI ⭐⭐⭐) ⭐⭐⭐
+    #    ⭐⭐⭐ ⇒ دلوقتي ⭐⭐⭐ البند ⭐⭐⭐ مربوط ⭐⭐⭐ بالحارس ⭐⭐⭐ الجديد ⭐⭐⭐ + سلسلة ⭐⭐⭐ السبب ⭐⭐⭐ ⭐⭐⭐.
+    "AC-10-3": [("be", "tools/test_r25_storage_durability.py"),
+                ("be", "tools/test_r26_portfolio_atomicity.py"),
+                ("be", "tools/test_r32_index_history_store.py"),
+                ("art", "index_history_fix")],
     # ⭐ ٠٧ ⭐ — XSS + المتصفح الحقيقي + تدقيق الـdist ⭐
     "AC-07-1": [("fe", "xss.test.js"), ("fe", "sec024-xss-fixes.test.js"),
                 ("fe", "sec025-cache-user-scope.test.js"), ("fe", "worker.test.js")],
@@ -275,7 +284,10 @@ ITEM_EVIDENCE = {
     # 📌 المطلوب ⭐: ⭐ ربط AC-28-3 ⭐ برحلة الذهب **الفعلية** ⭐ في المتصفح ⭐
     #    ⇒ ⭐ الشارت الخطي ⭐ + ⭐ الفترات ⭐ + ⭐ التكبير ⭐ + ⭐ ملء الشاشة ⭐
     #       + ⭐ الدعم والمقاومة ⭐ + ⭐ الأحداث ⭐ ⇒ ⭐ كلهم في رحلة Chromium ⭐.
-    "AC-28-3": [("art", "gold_journey"), ("be", "test_gold_integrity.py")],
+    # ⭐⭐⭐ (R32) ⭐⭐ ⭐ فحصات مودال الذهب ⭐⭐ ⭐ اتقاست ⭐⭐ ⭐ فعلاً ⭐⭐ ⭐
+    #    ⭐⭐ ⭐ (رحلة 32/32 ⭐⭐ ⭐: شارت ⭐⭐ ⭐ canvas=7 ⭐⭐ ⭐ + سعر 6,343 ج.م ⭐⭐ ⭐
+    #    ⭐⭐ ⭐ + ٩ فترات ⭐⭐ ⭐ + منطقتان ⭐⭐ ⭐ + ١٩٩٣ حرف عوامل ⭐⭐ ⭐ + ٦ أحداث ⭐⭐ ⭐).
+    "AC-28-3": [("art", "journey_preview_r32"), ("be", "test_gold_integrity.py")],
     "AC-28-4": [("be", "test_charts_api.py"), ("be", "test_gold_integrity.py")],
     # ⭐⭐⭐ (R31) ⭐⭐⭐ AC-29-4 ⭐⭐⭐
     # 📌 المطلوب ⭐: ⭐ لقطات ⭐ + أدلة وصول واضحة ⭐ + تقرير تحقق التباين ⭐
@@ -284,8 +296,12 @@ ITEM_EVIDENCE = {
     #    ⭐ + تباين محسوب لكل نص ظاهر ⭐ + شجرة وصولية حقيقية ⭐
     #    ⭐ (locator.ariaSnapshot ⭐) ⭐ + العيوب اللي اتصلحت ⭐
     #    ⭐ (أزرار الفترات 31px ⭐ ⇒ 44px ⭐ + تباين 2.69:1 ⭐ ⇒ >= 4.5 ⭐) ⭐.
+    # ⭐⭐⭐ (R32) ⭐⭐ ⭐ تدقيق الوصولية ⭐⭐ ⭐ اتقاس ⭐⭐ ⭐ على بصمة R32 ⭐⭐ ⭐
+    #    ⭐⭐ ⭐ (٩ عروض ⭐⭐ ⭐ 320..1280 ⭐⭐ ⭐ · لمس<44 = 0 ⭐⭐ ⭐ · تباين فاشل = 0 ⭐⭐ ⭐
+    #    ⭐⭐ ⭐ · لوحة المفاتيح 10/10 ⭐⭐ ⭐ · تركيز 10/10 ⭐⭐ ⭐ · Escape PASS ⭐⭐ ⭐).
     "AC-29-4": [("art", "a11y_audit"), ("fe", "r31-preview-security.test.js"),
-                ("fe", "r20-a11y.test.js"), ("fe", "mgmt-error-matrix.test.js")],
+                ("fe", "r32-preview-counter.test.js"), ("fe", "r20-a11y.test.js"),
+                ("fe", "mgmt-error-matrix.test.js")],
     # ⭐⭐⭐ (R31) ⭐⭐⭐ AC-26 ⭐⭐⭐
     # 📌 السبب ⭐: ⭐ رحلة المعاينة الحيّة ⭐ (32/32 ⭐) ⭐ اتقست على بصمة R29 ⭐
     #    ⭐ ⭐ وبصمة R31 ⭐ ⭐ ما اتقستش ⭐ ⭐ ⇒ ⛔ ⭐ «مفتاح صندوق المعاينة» ⭐ ⭐
@@ -294,22 +310,56 @@ ITEM_EVIDENCE = {
     #    ⭐ ① تدقيق الوصولية ⭐ (9 عروض ⭐ + لقطات ⭐ + لمس ⭐ + تباين ⭐) ⭐
     #    ⭐ ② رحلة التنقل المحلية ⭐ (Chromium حقيقي ⭐ + الواجهة ⭐ + الباك ⭐) ⭐
     #    ⭐    (الأسهم ⭐ · الفرص ⭐ · المقارنة ⭐ · الرجوع ⭐ + 10 عروض ⭐) ⭐.
-    "AC-26-1": [("fe", "r26-ux-perf.test.js"), ("art", "a11y_audit"),
-                ("art", "journey_nav_r31")],
-    "AC-26-2": [("fe", "r26-ux-perf.test.js"), ("art", "a11y_audit"),
-                ("art", "journey_nav_r31")],
-    "AC-26-3": [("fe", "r26-ux-perf.test.js"), ("art", "journey_nav_r31")],
-    "AC-26-4": [("fe", "r26-ux-perf.test.js"), ("art", "a11y_audit"),
-                ("art", "journey_nav_r31")],
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ رحلة المعاينة ⭐⭐⭐ = 32/32 ⭐⭐⭐ على بصمة R32 ⭐⭐⭐
+    # 📌 (R31) ⭐⭐ ⭐ كانت الرحلة ⭐⭐ ⭐ محلية ⭐⭐ ⭐ (تنقّل ⭐⭐ ⭐ فقط ⭐⭐ ⭐)
+    #    ⭐⭐ ⭐ ⇒ ⭐⭐ ⭐ البنود دي ⭐⭐ ⭐ كانت ناقصة ⭐⭐ ⭐.
+    # ✅ (R32) ⭐⭐ ⭐ رحلة كاملة ⭐⭐ ⭐: البوابة ⭐⭐ ⭐ + مودال الذهب ⭐⭐ ⭐ ببيانات حقيقية ⭐⭐ ⭐
+    #    ⭐⭐ ⭐ + الشارت ⭐⭐ ⭐ + ٩ فترات ⭐⭐ ⭐ + مناطق ⭐⭐ ⭐ + العوامل ⭐⭐ ⭐ + الأحداث ⭐⭐ ⭐
+    #    ⭐⭐ ⭐ + المحفظة ⭐⭐ ⭐ + التنبيهات ⭐⭐ ⭐ + التنقّل ⭐⭐ ⭐ + ١٠ عروض ⭐⭐ ⭐
+    #    ⭐⭐ ⭐ على بصمة الواجهة bd3ae0a ⭐⭐ ⭐ وبصمة الباك 14363e2 ⭐⭐ ⭐.
+    "AC-26-1": [("fe", "r26-ux-perf.test.js"), ("art", "journey_preview_r32"),
+                ("art", "a11y_audit")],
+    "AC-26-2": [("fe", "r26-ux-perf.test.js"), ("art", "journey_preview_r32"),
+                ("art", "a11y_audit")],
+    "AC-26-3": [("fe", "r26-ux-perf.test.js"), ("art", "journey_preview_r32")],
+    "AC-26-4": [("fe", "r26-ux-perf.test.js"), ("art", "journey_preview_r32"),
+                ("art", "a11y_audit")],
     # ⭐ ٣١ ⭐ — الـCI ⭐
     # 📌 (R29) ⭐ ⭐ `tools/test_ci_gates.py` ⭐ ⭐ **مش اختبار** ⭐ ⭐ ⇒ ⛔ مستثنى ⭐ ⭐
     #    ⭐ من اكتشاف الـCI ⭐ ⭐ بالتصميم ⭐ ⭐ ⇒ ⛔ كمدخل «be» ⭐ ⭐ ⇒ ⛔ «ما اتقاسش» ⭐ ⭐
     #    ⭐ ⭐ ⇒ ⭐ ⭐ الدليل الصحيح ⭐ ⭐ = **تشغيله** ⭐ ⭐ على ملفي الـworkflow ⭐ ⭐ ⭐
-    "AC-31-1": [("art", "ci_definitions"), ("art", "ci_gates_local")],
-    "AC-31-2": [("art", "ci_definitions"), ("art", "ci_gates_local")],
+    # ⭐⭐⭐ (R32) ⭐⭐ ⭐ بوابة بصمة أدوات القياس ⭐⭐ ⭐ + محاكاة كاملة ⭐⭐ ⭐
+    "AC-31-1": [("art", "ci_definitions"), ("art", "ci_gates_local"),
+                ("art", "ci_digest_gate"), ("art", "ci_workflow_sim")],
+    "AC-31-2": [("art", "ci_definitions"), ("art", "ci_gates_local"),
+                ("art", "ci_digest_gate"), ("art", "ci_workflow_sim")],
     # ⭐ ٣١-٣ ⭐ — تجربة CI على GitHub ⭐ ⇒ ⛔ متعذر ⭐ (مانع صلاحيات ⭐)
     "AC-31-3": [("art", "ci_runs")],
     "AC-31-4": [("art", "ci_definitions"), ("art", "ci_runs")],
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ نطاق ٣٣ ⭐⭐⭐ (العزل والنشر والرجوع ⭐⭐⭐) ⭐⭐⭐
+    # 📌 (R31) ⭐⭐⭐ البنود دي ⭐⭐⭐ كانت موروثة ⭐⭐⭐ من نطاق ٣٣ ⭐⭐⭐ العام ⭐⭐⭐.
+    # ✅ (R32) ⭐⭐⭐ drill الرجوع ⭐⭐⭐ اتنفّذ ⭐⭐⭐ فعلاً ⭐⭐⭐:
+    #    ⭐⭐⭐ ① رجوع الـworker ⭐⭐⭐ ( octa-preview ⭐⭐⭐) ⭐⭐⭐ ⇒ fingerprint ⭐⭐⭐ + live checks ⭐⭐⭐.
+    #    ⭐⭐⭐ ② رجوع الباك ⭐⭐⭐ على بيئة الاختبار ⭐⭐⭐ (نفس مجلد البيانات ⭐⭐⭐) ⭐⭐⭐ ⇒ health ⭐⭐⭐ + quotes ⭐⭐⭐.
+    "AC-33-1": [("be", "test_round14_release.py"), ("art", "live_preview_deploy"),
+                ("art", "rollback_drill")],
+    "AC-33-2": [("be", "test_round14_release.py"), ("art", "live_preview_deploy"),
+                ("art", "rollback_drill")],
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ AC-33-3 ⭐⭐⭐ ⇒ drill الرجوع ⭐⭐⭐ اتنفّذ ⭐⭐⭐ ⇒ **يقيس** ⭐⭐⭐
+    "AC-33-3": [("art", "rollback_drill"), ("art", "journey_preview_r32"),
+                ("be", "test_round14_release.py")],
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ إصلاح ⭐⭐⭐ detector ⭐⭐⭐ التسرّب ⭐⭐⭐ المتذبذب ⭐⭐⭐ ⭐⭐⭐
+    # 📌 (R32) ⭐⭐⭐ حارس ⭐⭐⭐ detector ⭐⭐⭐ التسرّب ⭐⭐⭐ (tools/test_r32_leak_detector.py ⭐⭐⭐)
+    #    ⭐⭐⭐ = ⭐⭐⭐ ١٦ ⭐⭐⭐ حالة ⭐⭐⭐ ⭐⭐⭐⇒ ⭐⭐⭐ ١٦/١٦ ⭐⭐⭐ على ⭐⭐⭐ المرشح ⭐⭐⭐ ⭐⭐⭐
+    #    ⭐⭐⭐ (بصمة ⭐⭐⭐ ecfc50a ⭐⭐⭐) ⭐⭐⭐ ⭐⭐⭐⇢ ⭐⭐⭐ و ⭐⭐⭐ ٦/١٦ ⭐⭐⭐ **تفشل** ⭐⭐⭐
+    #    ⭐⭐⭐ على ⭐⭐⭐ الأساس ⭐⭐⭐ 14363e2 ⭐⭐⭐ ⭐⭐⭐ (برهان ⭐⭐⭐ سلبي ⭐⭐⭐).
+    # 📌 السبب ⭐⭐⭐: ⛔ detector ⭐⭐⭐ القديم ⭐⭐⭐ (substring ⭐⭐⭐ خام ⭐⭐⭐) ⭐⭐⭐ كان ⭐⭐⭐
+    #    ⭐⭐⭐ بيعتبر ⭐⭐⭐ ٦ ⭐⭐⭐ أرقام ⭐⭐⭐ جوه ⭐⭐⭐ هاش ⭐⭐⭐ ٦٤ ⭐⭐⭐ خانة ⭐⭐⭐ أو ⭐⭐⭐ طابع ⭐⭐⭐
+    #    ⭐⭐⭐ زمني ⭐⭐⭐ ١٣ ⭐⭐⭐ خانة ⭐⭐⭐ ⭐⭐⭐⇒ ⭐⭐⭐ **تسرّب** ⭐⭐⭐ ⭐⭐⭐⇒ ⭐⭐⭐ إيجابية ⭐⭐⭐ كاذبة ⭐⭐⭐
+    #    ⭐⭐⭐ ⇒ ⭐⭐⭐ فشل ⭐⭐⭐ متذبذب ⭐⭐⭐ (نفس ⭐⭐⭐ SHA ⭐⭐⭐: ⭐⭐⭐ فشل ⭐⭐⭐ مرة ⭐⭐⭐ ونجح ⭐⭐⭐ مرة ⭐⭐⭐).
+    "AC-21-1": [("be", "test_signup_flow.py"), ("be", "test_r32_leak_detector.py"),
+                ("be", "test_security_p0.py"), ("be", "test_security_batch02.py"),
+                ("be", "test_auth_holes.py")],
 }
 
 # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐ شروط القبول **الإلزامية** ⭐⭐⭐
@@ -335,10 +385,21 @@ ITEM_OVERRIDE = {
                 "⇒ لوحة المفاتيح 10/10 ⭐ + تركيز مرئي 10/10 ⭐ + لمس<44 = 0 ⭐ + تباين فاشل = 0 ⭐ "
                 "⇒ ⛔ ما فيش قارئ شاشة بشري ⭐ (الشرط نفسه ⭐) ⭐ ⇒ متعذر بصفر نقاط ⭐"),
     "AC-31-3": "الـCI على GitHub غير مفعّل ⭐ (توكن بلا صلاحية workflow ⭐) — البوابات تعمل محليًا ⭐",
-    "AC-33-3": "تجربة rollback جديدة لم تُنفَّذ في R28 ⭐",
     "AC-33-4": "سجل rollback ومصفوفة HTTP يطلبان موافقة منفصلة ⭐",
-    "AC-35-4": "تغيير حيّ للوحة الإدارة تم في هذه الجولة ⭐ — ما فيش سجل موافقة منفصلة ⭐",
-    "AC-36-3": "موانع الإطلاق الخمسة ما زالت مفتوحة ⭐ ⇒ الرحلة الكاملة غير مغلقة ⭐",
+    "AC-33-4": "سجل rollback ومصفوفة HTTP يطلبان موافقة منفصلة ⭐",
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ تصحيح تاريخي ⭐⭐⭐: ⛔ النصّ القديم ⭐⭐⭐ كان يقول ⭐⭐⭐
+    #    ⭐⭐⭐ «تغيير حيّ للوحة الإدارة تم في هذه الجولة» ⭐⭐⭐ ⭐⭐⭐ ⇒ ⛔ كذب ⭐⭐⭐
+    #    ⭐⭐⭐ لأن التغيير الحقيقي ⭐⭐⭐ حصل في **٢٠ نوفمبر ٢٠٢٦** ⭐⭐⭐
+    #    ⭐⭐⭐ (تدوير APP_PASSWORD ⭐⭐ ⭐ للعامل octa-mgmt ⭐⭐ ⭐) ⭐⭐⭐
+    #    ⭐⭐⭐ ⇒ مش في R31 ⭐⭐⭐ ولا R32 ⭐⭐⭐ ⇒ ⛔ متعذر ⭐⭐⭐ بصفر نقاط ⭐⭐⭐
+    #    ⭐⭐⭐ لأن **سجل الموافقة المنفصلة** ⭐⭐⭐ لسه مش موجود ⭐⭐⭐.
+    "AC-35-4": "تغيير حيّ للوحة الإدارة ⭐ ⭐ ⭐ حصل في ٢٠ نوفمبر ٢٠٢٦ ⭐ ⭐ ⭐ "
+               "(تدوير APP_PASSWORD ⭐ ⭐ ⭐ للعامل octa-mgmt ⭐ ⭐ ⭐) ⭐ ⭐ ⭐ "
+               "⇐ مش في R31 ⭐ ⭐ ⭐ ولا R32 ⭐ ⭐ ⭐ ⇒ ⛔ سجل الموافقة المنفصلة ⭐ ⭐ ⭐ "
+               "لسه مش موجود ⭐ ⭐ ⭐ ⇒ متعذر بصفر نقاط ⭐ ⭐ ⭐",
+    "AC-36-3": "موانع الإطلاق ⭐ ⭐ ⭐ ( actions ⭐⭐ + تيليجرام ⭐⭐ + سرّيّة ⭐⭐ + "
+               "CSP ⭐⭐ + قارئ شاشة ⭐⭐ ) ⭐⭐ ⭐ ما زالت مفتوحة ⭐⭐ ⇒ الرحلة الكاملة ⭐⭐ "
+               "غير مغلقة ⭐⭐",
     "AC-36-4": "موافقة المالك على الباقات والتسعير والشروط وخطة النشر ⭐",
 }
 
@@ -363,6 +424,74 @@ OWNER_BLOCKED_ARTIFACTS = {
                     "بيانات سوق ⭐ ⭐ ⇒ متعذر بصفر نقاط ⭐ ⭐",
     "packages_scan": "المسح ⭐ ⭐ ناتج **بعد** بناء السجل ⭐ ⭐ ⇒ ⛔ مراجعة ⭐ ⭐ في تقرير R29 ⭐ ⭐",
 }
+
+
+def sha256_file(path):
+    """بصمة محتوى المخرج ⭐ ⇒ تُربط كل بند بالقياس اللي أنتجه ⭐."""
+    if not path or not os.path.isfile(path):
+        return ""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def artifact_sha(name, artifacts):
+    """بصمة المخرج الحيّ ⭐ (لو اتسجّلت ⭐) ⭐ ⇒ '' ⭐ لو مفيش ⭐."""
+    a = artifacts.get(name)
+    if isinstance(a, dict):
+        return a.get("sha256") or ""
+    return ""
+
+
+def item_fingerprint(inputs, fe, be, artifacts, fe_log_sha, fe_tsv_sha, be_results_sha):
+    """⭐⭐⭐ (R32) ⭐⭐⭐ بصمة التشغيل ⭐⭐⭐ لكل بند ⭐⭐⭐.
+    📌 المطلوب ⭐⭐⭐ (R32 ⭐⭐⭐ بند ٤ ⭐⭐⭐): ⭐⭐⭐ «ربط سجل الباك ⭐⭐⭐ وكل بند إلزامي ⭐⭐⭐
+       ببصمة التشغيل ⭐⭐⭐ ودليل شرطه ⭐⭐⭐» ⭐⭐⭐
+    ⇒ ⭐⭐⭐ كل مدخل ⭐⭐⭐ (ملف اختبار ⭐⭐⭐ · مخرج حيّ ⭐⭐⭐) ⭐⭐⭐ بيتربط ⭐⭐⭐
+       ببصمة المحتوى ⭐⭐⭐ (sha256 ⭐⭐⭐) ⭐⭐⭐ اللي أنتجه ⭐⭐⭐.
+    """
+    out = []
+    for kind, ref in inputs or []:
+        rec = {"kind": kind, "ref": ref}
+        if kind == "fe":
+            key = next((k for k in fe if k == ref or k.endswith(ref)), None)
+            if key is None:
+                rec["status"] = "متعذر"
+                rec["why"] = "ما اتقاسش ⭐"
+            elif fe[key]["fail"]:
+                rec["status"] = "فشل"
+                rec["pass"] = fe[key]["pass"]
+                rec["fail"] = fe[key]["fail"]
+            else:
+                rec["status"] = "ناجح"
+                rec["pass"] = fe[key]["pass"]
+                rec["fail"] = 0
+            rec["log_sha256"] = fe_log_sha
+            rec["tsv_sha256"] = fe_tsv_sha
+        elif kind == "be":
+            base_ref = os.path.basename(ref)
+            key = next((k for k in be if k == base_ref or k.endswith("/" + base_ref)), None)
+            if key is None:
+                rec["status"] = "متعذر"
+                rec["why"] = "ما اتقاسش ⭐"
+            else:
+                st = str(be[key]).lower()
+                if st in ("passed", "pass", "ok"):
+                    rec["status"] = "ناجح"
+                elif st in ("skipped", "skip"):
+                    rec["status"] = "متخطّى"
+                else:
+                    rec["status"] = "فشل"
+            rec["results_sha256"] = be_results_sha
+        else:
+            st_art, note = artifact_status(ref, artifacts)
+            rec["status"] = st_art
+            rec["sha256"] = artifact_sha(ref, artifacts)
+            rec["note"] = note[:400]
+        out.append(rec)
+    return out
 
 
 def artifact_status(name, artifacts):
@@ -434,6 +563,10 @@ def main(argv=None):
                                         "note": "فرع الأدلة: %s ⭐" % args.evidence_branch}
     fe_sha = args.fe_sha or sha_of(os.path.abspath(args.fe_root))
     be_sha = args.be_sha or sha_of(ROOT)
+    # ⭐⭐⭐ (R32) ⭐⭐⭐ بصمات سجلات القياس ⭐⭐⭐ ⇒ بتتربط بكل بند ⭐⭐⭐
+    fe_log_sha = sha256_file(args.fe_log)
+    fe_tsv_sha = sha256_file(args.fe_tsv)
+    be_results_sha = sha256_file(args.be_results)
 
     rows = []
     counts = {"ناجح": 0, "فشل": 0, "متعذر": 0}
@@ -451,6 +584,7 @@ def main(argv=None):
             reason = ITEM_OVERRIDE[ac_id]
             found = []
             missing = []
+            used_art = {}
             scope_key = str(it.get("scope_no") or "").strip()
             inputs = SCOPE_MAP.get(scope_key) or []
             for kind, ref in inputs:
@@ -463,6 +597,8 @@ def main(argv=None):
                     key = next((k for k in be if k == base_ref or k.endswith("/" + base_ref)), None)
                     if key and str(be[key]).lower() in ("passed", "pass", "ok"):
                         found.append("be:%s (ناجح ⭐)" % ref)
+                elif kind == "art":
+                    used_art[ref] = artifact_sha(ref, artifacts)
             rows.append({
                 "ac_id": ac_id,
                 "scope_no": str(it.get("scope_no") or ""),
@@ -477,6 +613,13 @@ def main(argv=None):
                 "blocking_reason": reason,
                 "success_condition": cond,
                 "candidate": {"fe_sha": fe_sha, "be_sha": be_sha},
+                "run_fingerprint": {
+                    "fe_sha": fe_sha, "be_sha": be_sha,
+                    "fe_log_sha256": fe_log_sha, "fe_tsv_sha256": fe_tsv_sha,
+                    "be_results_sha256": be_results_sha,
+                    "inputs": item_fingerprint(inputs, fe, be, artifacts,
+                                              fe_log_sha, fe_tsv_sha, be_results_sha),
+                },
             })
             counts[status] = counts.get(status, 0) + 1
             continue
@@ -566,6 +709,13 @@ def main(argv=None):
             "blocking_reason": reason,
             "success_condition": cond,
             "candidate": {"fe_sha": fe_sha, "be_sha": be_sha},
+            "run_fingerprint": {
+                "fe_sha": fe_sha, "be_sha": be_sha,
+                "fe_log_sha256": fe_log_sha, "fe_tsv_sha256": fe_tsv_sha,
+                "be_results_sha256": be_results_sha,
+                "inputs": item_fingerprint(inputs, fe, be, artifacts,
+                                          fe_log_sha, fe_tsv_sha, be_results_sha),
+            },
         })
 
     pct = (points / max_points * 100.0) if max_points else 0.0
@@ -578,8 +728,18 @@ def main(argv=None):
         "points_max": max_points,
         "percent": round(pct, 2),
         "counts": counts,
-        "fe_files_measured": len(fe),
         "be_files_measured": len(be),
+        # ⭐⭐⭐ (R32 · بند ٤) ⭐⭐⭐ سجل الباك ⭐⭐⭐ + بصمة كل سجل ⭐⭐⭐
+        "measurement_runs": {
+            "fe_log": {"path": args.fe_log, "sha256": fe_log_sha,
+                       "files": len(fe)},
+            "fe_tsv": {"path": args.fe_tsv, "sha256": fe_tsv_sha,
+                       "files": len(fe)},
+            "be_results": {"path": args.be_results, "sha256": be_results_sha,
+                           "files": len(be)},
+            "fe_sha": fe_sha,
+            "be_sha": be_sha,
+        },
         # ⭐⭐⭐ دليل المحجوب بالبيئة ⭐ (مع البرهان السالب ⭐)
         "environment_blocked": {
             "count": len(env_blocked),
@@ -595,7 +755,16 @@ def main(argv=None):
         "mandatory": [
             {"ac_id": mid,
              "status": next((r.get("status") for r in rows if r.get("ac_id") == mid), "متعذر"),
-             "met": bool(next((r.get("status") == "ناجح" for r in rows if r.get("ac_id") == mid), False))}
+             "met": bool(next((r.get("status") == "ناجح" for r in rows if r.get("ac_id") == mid), False)),
+             # ⭐⭐⭐ (R32) ⭐⭐⭐ دليل الشرط ⭐⭐⭐ + بصمة التشغيل ⭐⭐⭐
+             "success_condition": next((r.get("success_condition") for r in rows
+                                        if r.get("ac_id") == mid), ""),
+             "evidence": next((r.get("evidence") for r in rows if r.get("ac_id") == mid), ""),
+             "missing": next((r.get("missing") for r in rows if r.get("ac_id") == mid), ""),
+             "blocking_reason": next((r.get("blocking_reason") for r in rows
+                                       if r.get("ac_id") == mid), ""),
+             "run_fingerprint": next((r.get("run_fingerprint") for r in rows
+                                      if r.get("ac_id") == mid), {})}
             for mid in MANDATORY_ITEMS
         ],
         "mandatory_all_met": bool(all(
@@ -656,6 +825,27 @@ def main(argv=None):
             fh.write("⛔ النسبة محسوبة من الحالات ⭐ · البند المتعذر = صفر نقاط ⭐\n\n")
             # ⭐⭐⭐ (R29 · FINDING-17) ⭐⭐⭐
             fh.write("## حد القبول والشروط الإلزامية ⭐\n\n")
+            # ⭐⭐⭐ (R32 · بند ٤) ⭐⭐⭐ سجل الباك ⭐⭐⭐ + بصمة كل سجل ⭐⭐⭐
+            mr = payload["measurement_runs"]
+            fh.write("## سجل الباك وبصمة التشغيل ⭐\n\n")
+            fh.write("- سجل الباك ⭐: `%s` ⭐ ببصمة `%s` ⭐ (%d ملف ⭐)\n"
+                     % (mr["be_results"]["path"] or "-", mr["be_results"]["sha256"] or "-",
+                        mr["be_results"]["files"]))
+            fh.write("- سجل الواجهة ⭐: `%s` ⭐ ببصمة `%s` ⭐ · `%s` ⭐ ببصمة `%s` ⭐\n"
+                     % (mr["fe_log"]["path"] or "-", mr["fe_log"]["sha256"] or "-",
+                        mr["fe_tsv"]["path"] or "-", mr["fe_tsv"]["sha256"] or "-"))
+            fh.write("- بصمة المرشح ⭐: الباك `%s` ⭐ · الواجهة `%s` ⭐\n\n"
+                     % (be_sha, fe_sha))
+            fh.write("### البنود الإلزامية ⭐: الشرط والدليل والبصمة ⭐\n\n")
+            for m in payload["mandatory"]:
+                fh.write("- **%s** ⭐ حالة: **%s** ⭐\n" % (m["ac_id"], m["status"]))
+                fh.write("  - شرط النجاح ⭐: %s\n" % (m["success_condition"] or "-"))
+                fh.write("  - الدليل ⭐: %s\n" % (m["evidence"] or m["blocking_reason"] or "-"))
+                fp = m.get("run_fingerprint") or {}
+                fh.write("  - بصمة التشغيل ⭐: `%s` ⭐ (سجل الباك `%s` ⭐ · سجل الواجهة `%s` ⭐)\n"
+                         % (fp.get("be_sha", "-"), (fp.get("be_results_sha256") or "-")[:16],
+                            (fp.get("fe_log_sha256") or "-")[:16]))
+            fh.write("\n")
             fh.write("- حد القبول ⭐: **%.0f%%** ⭐ ⇒ النسبة الحالية **%.2f%%** ⭐ ⇒ %s ⭐\n"
                      % (ACCEPT_THRESHOLD_PCT, pct,
                         "متحقق ⭐" if payload["percent_meets_threshold"] else "**مش متحقق** ⭐"))

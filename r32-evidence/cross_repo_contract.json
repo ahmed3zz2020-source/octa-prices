@@ -1,0 +1,11 @@
+{
+  "fe_root": "/workspace/.wt_r32_fe_meas",
+  "be_root": "/workspace/.wt_r31_cand",
+  "fe_sha": "bd3ae0a95a987d7b0083d24d52fa717f671d67d3",
+  "be_sha": "80bed3bb67924e9ad821b557a266f2f3350ae1e3",
+  "fe_data": "/workspace/.wt_r32_fe_meas/data_full.json",
+  "fe_symbols": 6,
+  "passed": 20,
+  "total": 20,
+  "failed": []
+}

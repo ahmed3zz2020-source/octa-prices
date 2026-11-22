@@ -1,0 +1,44 @@
+{
+  "round": "R32",
+  "rc": "RC-R32-001",
+  "candidate": {
+    "backend_sha": "80bed3bb67924e9ad821b557a266f2f3350ae1e3",
+    "frontend_sha": "bd3ae0a95a987d7b0083d24d52fa717f671d67d3",
+    "ci_sha": "624ac7bd87f5ee0987ae22e497ee45ce060f573d",
+    "ci_fe_sha": "03fe991b685f422594fe7923872a4420d5f03177"
+  },
+  "packages": [
+    {
+      "bytes": 1716218,
+      "md5": "2f5589b407d6b8c0eacdd96fe00ae542",
+      "sha256": "a524c26002d359d8f2cd6586b72cd88e955525ed23fe4475bfd86d669cd5659a",
+      "chunks": 2,
+      "zip": "OCTA-ROUND32-BACKEND.zip",
+      "files": 214
+    },
+    {
+      "bytes": 7718751,
+      "md5": "e53adb83ba23ccfdd72916ba528d3c95",
+      "sha256": "f81055a2763545becdb74feeef4228167071ae5ff920909839932a81ae1e7ae4",
+      "chunks": 8,
+      "zip": "OCTA-ROUND32-FRONTEND.zip",
+      "files": 513
+    },
+    {
+      "bytes": 1603621,
+      "md5": "b79e62819fcc4a659f1abc35384a89e2",
+      "sha256": "849286b6b88bdec1b41e88ff1e7b1ab2b701bf7ad99ebf0f6704b0f721d32c6a",
+      "chunks": 2,
+      "zip": "OCTA-ROUND32-CI.zip",
+      "files": 196
+    },
+    {
+      "bytes": 11065642,
+      "md5": "9848a3c026e67ef9ecce9fae0e5f1f7c",
+      "sha256": "fcaa1904156a31269b825841f087f6b9db66d2ef3a9b9c69e963cb3f800981f4",
+      "chunks": 11,
+      "zip": "OCTA-ROUND32-DELIVERY.zip",
+      "files": 24
+    }
+  ]
+}

@@ -1,0 +1,1022 @@
+{
+  "at": "2026-11-22T09:51:45.153Z",
+  "fe_root": "/workspace/.wt_r28_fe",
+  "base": "http://127.0.0.1:42917",
+  "widths": [
+    360,
+    390,
+    768,
+    899,
+    900,
+    1024,
+    1099,
+    1100,
+    1280
+  ],
+  "matrix": [
+    {
+      "width": 360,
+      "audit": {
+        "url": "/",
+        "vw": 360,
+        "vh": 844,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 360,
+          "clientWidth": 360,
+          "bodyScrollWidth": 360,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 1,
+          "barPad": {
+            "pad": 76,
+            "bar": 64
+          }
+        },
+        "clipped": {
+          "count": 3,
+          "list": [
+            {
+              "el": "div.vc-p-name «العامة لاستصلاح الأراضي»",
+              "axis": "x",
+              "ellipsis": true,
+              "scrollW": 121,
+              "clientW": 97,
+              "scrollH": 19,
+              "clientH": 19,
+              "text": "العامة لاستصلاح الأراضي"
+            },
+            {
+              "el": "div.vc-p-name «العربية لإدارة وتطوير ال»",
+              "axis": "x",
+              "ellipsis": true,
+              "scrollW": 134,
+              "clientW": 97,
+              "scrollH": 19,
+              "clientH": 19,
+              "text": "العربية لإدارة وتطوير الأصول"
+            },
+            {
+              "el": "div.vc-p-name «Alexandria Company For R»",
+              "axis": "x",
+              "ellipsis": true,
+              "scrollW": 181,
+              "clientW": 97,
+              "scrollH": 19,
+              "clientH": 19,
+              "text": "Alexandria Company For Refractories"
+            }
+          ]
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 398,
+          "gradient": 2,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2877,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 109,
+          "resourceBytes": 3991722,
+          "lcp": null,
+          "domNodes": 2937,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 123,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 22,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "banner": 1,
+          "img": 2,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 390,
+      "audit": {
+        "url": "/",
+        "vw": 390,
+        "vh": 844,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 390,
+          "clientWidth": 390,
+          "bodyScrollWidth": 390,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 1,
+          "barPad": {
+            "pad": 76,
+            "bar": 64
+          }
+        },
+        "clipped": {
+          "count": 2,
+          "list": [
+            {
+              "el": "div.vc-p-name «العربية لإدارة وتطوير ال»",
+              "axis": "x",
+              "ellipsis": true,
+              "scrollW": 134,
+              "clientW": 127,
+              "scrollH": 19,
+              "clientH": 19,
+              "text": "العربية لإدارة وتطوير الأصول"
+            },
+            {
+              "el": "div.vc-p-name «Alexandria Company For R»",
+              "axis": "x",
+              "ellipsis": true,
+              "scrollW": 181,
+              "clientW": 127,
+              "scrollH": 19,
+              "clientH": 19,
+              "text": "Alexandria Company For Refractories"
+            }
+          ]
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 398,
+          "gradient": 2,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2877,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 110,
+          "resourceBytes": 3992131,
+          "lcp": null,
+          "domNodes": 2937,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 123,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 22,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "banner": 1,
+          "img": 2,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 768,
+      "audit": {
+        "url": "/",
+        "vw": 768,
+        "vh": 1024,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 768,
+          "clientWidth": 768,
+          "bodyScrollWidth": 768,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 0,
+          "barPad": null
+        },
+        "clipped": {
+          "count": 0,
+          "list": []
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 401,
+          "gradient": 3,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2877,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 111,
+          "resourceBytes": 3992551,
+          "lcp": null,
+          "domNodes": 2937,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 125,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 23,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "img": 3,
+          "banner": 1,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 899,
+      "audit": {
+        "url": "/",
+        "vw": 899,
+        "vh": 1024,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 899,
+          "clientWidth": 899,
+          "bodyScrollWidth": 899,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 0,
+          "barPad": null
+        },
+        "clipped": {
+          "count": 0,
+          "list": []
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 400,
+          "gradient": 3,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2870,
+          "interactive": 89,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 113,
+          "resourceBytes": 4001670,
+          "lcp": null,
+          "domNodes": 2930,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 120,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 20,
+          "button": 87,
+          "searchbox": 1,
+          "navigation": 2,
+          "img": 2,
+          "banner": 1,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 900,
+      "audit": {
+        "url": "/",
+        "vw": 900,
+        "vh": 1366,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 900,
+          "clientWidth": 900,
+          "bodyScrollWidth": 900,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 0,
+          "barPad": null
+        },
+        "clipped": {
+          "count": 0,
+          "list": []
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 401,
+          "gradient": 3,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2875,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 114,
+          "resourceBytes": 4144510,
+          "lcp": null,
+          "domNodes": 2935,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 125,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 23,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "img": 3,
+          "banner": 1,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 1024,
+      "audit": {
+        "url": "/",
+        "vw": 1024,
+        "vh": 1366,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 1024,
+          "clientWidth": 1024,
+          "bodyScrollWidth": 1024,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 0,
+          "barPad": null
+        },
+        "clipped": {
+          "count": 0,
+          "list": []
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 401,
+          "gradient": 3,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2875,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 114,
+          "resourceBytes": 4144510,
+          "lcp": null,
+          "domNodes": 2935,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 125,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 23,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "img": 3,
+          "banner": 1,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 1099,
+      "audit": {
+        "url": "/",
+        "vw": 1099,
+        "vh": 1366,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 1099,
+          "clientWidth": 1099,
+          "bodyScrollWidth": 1099,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 0,
+          "barPad": null
+        },
+        "clipped": {
+          "count": 0,
+          "list": []
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 401,
+          "gradient": 3,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2875,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 114,
+          "resourceBytes": 4144510,
+          "lcp": null,
+          "domNodes": 2935,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 125,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 23,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "img": 3,
+          "banner": 1,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 1100,
+      "audit": {
+        "url": "/",
+        "vw": 1100,
+        "vh": 1366,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 1100,
+          "clientWidth": 1100,
+          "bodyScrollWidth": 1100,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 0,
+          "barPad": null
+        },
+        "clipped": {
+          "count": 0,
+          "list": []
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 401,
+          "gradient": 3,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2875,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 114,
+          "resourceBytes": 4144510,
+          "lcp": null,
+          "domNodes": 2935,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 125,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 23,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "img": 3,
+          "banner": 1,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    },
+    {
+      "width": 1280,
+      "audit": {
+        "url": "/",
+        "vw": 1280,
+        "vh": 1366,
+        "dpr": 1,
+        "hScroll": {
+          "scrollWidth": 1280,
+          "clientWidth": 1280,
+          "bodyScrollWidth": 1280,
+          "overflow": false,
+          "offenders": []
+        },
+        "overlap": {
+          "count": 0,
+          "list": [],
+          "transient": 0,
+          "barPad": null
+        },
+        "clipped": {
+          "count": 0,
+          "list": []
+        },
+        "smallTargets": {
+          "count": 0,
+          "standalone": 0,
+          "inline": 0,
+          "list": []
+        },
+        "contrast": {
+          "count": 0,
+          "checked": 401,
+          "gradient": 3,
+          "unmeasured": 0,
+          "list": []
+        },
+        "aria": {
+          "buttonsNoName": [],
+          "linksNoName": [],
+          "inputsNoLabel": [],
+          "imgsNoAlt": [],
+          "tablesNoHeader": [],
+          "focusableAriaHidden": [],
+          "positiveTabindex": [],
+          "dupIds": [],
+          "roleOnNonButton": [],
+          "missingType": []
+        },
+        "counts": {
+          "elements": 2875,
+          "interactive": 90,
+          "textNodes": 0
+        },
+        "perf": {
+          "ttfb": 128,
+          "domContentLoaded": 1923,
+          "load": 2016,
+          "domInteractive": 684,
+          "fcp": 1480,
+          "transferBytes": 142840,
+          "resourceCount": 114,
+          "resourceBytes": 4144510,
+          "lcp": null,
+          "domNodes": 2935,
+          "cssRules": 5540
+        }
+      },
+      "ax": {
+        "nodes": 125,
+        "unnamed": 0,
+        "unnamedSamples": [],
+        "roles": {
+          "text": 23,
+          "button": 88,
+          "searchbox": 1,
+          "navigation": 2,
+          "img": 3,
+          "banner": 1,
+          "heading": 3,
+          "paragraph": 1,
+          "list": 2,
+          "status": 1
+        },
+        "error": ""
+      }
+    }
+  ],
+  "keyboard": {
+    "tabOrder": [
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "اقفل القائمة الجانبية",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "INPUT",
+        "id": "sbSearch",
+        "label": "دوّر على أداة في القائمة الجان",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "🌎الأسواق العالميةمصر · أمريكا",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "📊الأسهمكل البورصة المصرية",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "🐙الأذرعالأذرع الثمانية",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "🧠المحركالتحليل الكامل بالمحاو",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "🔎بحث OCTAتحليل أي سهم بالاسم",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "📅التوزيعاتنقدي · أسهم · إعلان",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "🆚المقارنة الذكيةاكتب لحد 10 أ",
+        "visible": true,
+        "focusVisible": true
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "label": "🗂️فلاتر المؤشرات8 فلاتر ذكية",
+        "visible": true,
+        "focusVisible": true
+      }
+    ],
+    "escapeCloses": true
+  },
+  "results": [
+    {
+      "name": "a11y · مافيش تمرير أفقي في العروض التسعة ⭐",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    },
+    {
+      "name": "a11y · مافيش تداخل عناصر ⭐",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    },
+    {
+      "name": "a11y · أهداف اللمس ≥ ٤٤ بكسل ⭐",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    },
+    {
+      "name": "a11y · ARIA: كل زر/رابط/حقل له اسم ⭐",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    },
+    {
+      "name": "a11y · شجرة الوصولية: كل عنصر تفاعلي له اسم ⭐ (قارئ الشاشة ⭐)",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    },
+    {
+      "name": "a11y · تباين كل نص ظاهر ≥ ٤٫٥ (٣ للنص الكبير) ⭐",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    },
+    {
+      "name": "a11y · ترتيب لوحة المفاتيح منطقي ⭐ (١٠ عناصر ⭐)",
+      "ok": true,
+      "detail": {
+        "count": 10,
+        "order": [
+          "BUTTON",
+          "sbSearch",
+          "BUTTON",
+          "BUTTON",
+          "BUTTON",
+          "BUTTON",
+          "BUTTON",
+          "BUTTON",
+          "BUTTON",
+          "BUTTON"
+        ]
+      }
+    },
+    {
+      "name": "a11y · التركيز مرئي ⭐",
+      "ok": true,
+      "detail": {
+        "visible": 10,
+        "total": 10
+      }
+    },
+    {
+      "name": "a11y · Escape يقفل القائمة ⭐",
+      "ok": true,
+      "detail": {
+        "menuBtn": true,
+        "before": {
+          "open": true,
+          "focus": "BUTTON"
+        },
+        "after": {
+          "open": false,
+          "focus": "BUTTON"
+        }
+      }
+    }
+  ],
+  "passed": 9,
+  "total": 9
+}

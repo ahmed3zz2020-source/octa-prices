@@ -1,0 +1,22 @@
+=== A_bg_ON ===
+   bg_tasks ⭐⭐⭐: -u OCTA_BG_TASKS ⭐⭐⭐
+   الملف ⭐⭐⭐ المتتبَّع ⭐⭐⭐ بعد signup_flow ⭐⭐⭐: ⛔⛔⛔ DIRTIED ⭐⭐⭐
+   حارس ⭐⭐⭐ البيانات ⭐⭐⭐ (test_data_integrity_guard) ⭐⭐⭐: ⛔⛔⛔ FAIL ⭐⭐⭐ (rc=1)
+
+=== B_bg_OFF ===
+   bg_tasks ⭐⭐⭐: OCTA_BG_TASKS=off ⭐⭐⭐
+   الملف ⭐⭐⭐ المتتبَّع ⭐⭐⭐ بعد signup_flow ⭐⭐⭐: clean
+   حارس ⭐⭐⭐ البيانات ⭐⭐⭐ (test_data_integrity_guard) ⭐⭐⭐: PASS (rc=0)
+
+CHAIN DONE
+=== A_bg_ON ===
+   bg_tasks ⭐⭐⭐: -u OCTA_BG_TASKS ⭐⭐⭐
+   الملف ⭐⭐⭐ المتتبَّع ⭐⭐⭐ بعد signup_flow ⭐⭐⭐: clean
+   حارس ⭐⭐⭐ البيانات ⭐⭐⭐ (test_data_integrity_guard) ⭐⭐⭐: PASS (rc=0)
+
+=== B_bg_OFF ===
+   bg_tasks ⭐⭐⭐: OCTA_BG_TASKS=off ⭐⭐⭐
+   الملف ⭐⭐⭐ المتتبَّع ⭐⭐⭐ بعد signup_flow ⭐⭐⭐: clean
+   حارس ⭐⭐⭐ البيانات ⭐⭐⭐ (test_data_integrity_guard) ⭐⭐⭐: PASS (rc=0)
+
+CHAIN DONE

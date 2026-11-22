@@ -1,0 +1,136 @@
+═══════════════════════════════════════════════════
+  العامل      : octa-preview
+  ملف الإعداد : wrangler.jsonc
+  الفحص بعده  : https://octa-preview.ahmed3zz2020.workers.dev
+═══════════════════════════════════════════════════
+  ✓ اسم العامل في الملف مطابق
+
+▸ بناء (build:preview) للهدف preview ...
+
+> octa@1.0.0 build:preview
+> OCTA_STATIC_MARKETS=0 OCTA_BUILD_TARGET=preview OCTA_OPP_SNAPSHOT=1 OCTA_ALPHA_SNAPSHOT=1 npm run build
+
+
+> octa@1.0.0 build
+> npm run check:guard && npm run bump && rm -rf dist && mkdir -p dist && cp index.html dist/ && cp sw.js dist/ && cp reset.html dist/ && cp gate.html dist/ && cp market.html dist/ && cp robots.txt dist/ && cp sitemap.xml dist/ && cp manifest.json dist/ && mkdir -p dist/admin && cp admin/index.html admin/users.html admin/README.md admin/MONTHLY-REPORT.md dist/admin/ && cp -r assets/. dist/assets/ && rm -rf dist/assets/tests && node tools/copy-data.js && cp _headers dist/_headers && cp data_ipo.json dist/data_ipo.json && cp version.json dist/version.json && node tools/mk-chart-root.js && echo _worker.js > dist/.assetsignore && node tools/check-dist.js
+
+
+> octa@1.0.0 check:guard
+> node tools/check-deploy-guard.js
+
+
+▸ فحص بصمة البناء (ضد النسخة القديمة)
+  ✅ حارس النشر بيقرأ ختم البناء (محلي + مخدوم)
+  ✅ حارس النشر بيطابق ختم البناء
+  ✅ مقارنة الختم موجودة في الحارس
+  ✅ index.html فيه ختم بناء (للمقارنة)
+
+▸ الملفات الأساسية
+  ✅ tools/deploy.sh موجود
+  ✅ tools/check-deploy-guard.js موجود
+
+▸ سكربتات npm
+  ✅ فيه سكربت deploy
+  ✅ npm run deploy ما فيهش wrangler deploy بلا --config
+  ✅ npm run deploy بيشغّل حارس النشر على المعاينة
+  ✅ npm run deploy:prod موجود وبيمشي بالحارس
+
+▸ سكربتات تانية في الريبو
+  ✅ مفيش سكربت بينشر على الإنتاج بلا --config + حارس
+
+▸ الإعدادات
+  ✅ wrangler.jsonc موجود وفيه name
+  ✅ wrangler.jsonc (الافتراضي) مش الإنتاج — عشان الأمر بلا --config يبقى آمن
+  ✅ الافتراضي = octa-preview (المعاينة)
+  ✅ wrangler-prod.jsonc = octa (الإنتاج) — لازم --config صريح
+  ✅ ملف واحد بس للإنتاج (wrangler-prod.jsonc) — مفيش فخ تاني
+
+▸ حارس الإنتاج
+  ✅ الحارس بيطلب PUBLISH_PROD
+  ✅ الحارس بيطلب العبارة الصريحة
+  ✅ الحارس بيرجع كود خطأ عند الرفض
+  ✅ الحارس فيه تراجع تلقائي
+  ✅ التراجع بيستخدم --yes (من غيرها بيسأل أسئلة وبيكسر)
+
+▸ أسرار
+  ✅ مفيش أسرار Halan مكتوبة في الكود
+
+✅ كل فحوصات حارس النشر نجحت (22 فحص).
+
+> octa@1.0.0 bump
+> node bump-cache.js
+
+  🆕 version.json: 202611221009
+  🔄 cache-buster [index.html]: 202611221009
+  🔄 cache-buster [gate.html]: 202611221009
+  🔄 cache-buster [market.html]: 202611221009
+  🔄 cache-buster [reset.html]: 202611221009
+  🔄 cache-buster [assets/octa-fonts.css]: 202611221009
+  🔄 cache-buster [assets/js/octa-chartkit.js]: 202611221009
+  🔄 cache-buster [assets/js/octa-gold-savings.js]: 202611221009
+  🔒 مش منسوخ (تسريب مقفول): data_markets.js
+  📦 data: 5 ملف · 1 متشال
+  🖥️ chart.html → dist/chart.html
+🔒 حارس النشر: مفيش ملفات بيانات ممنوعة في dist ✅
+   118 ملف · 5.64 MB
+   ⚠️  data_ipo.json — 23 طرح اكتتاب — مكرّر من foudalens/ar/ipo (عام)
+
+▸ نشر إلى octa-preview ...
+  (الإصدار السابق: fd09a356)
+
+ ⛅️ wrangler 3.114.14 (update available 4.166.0)
+------------------------------------------------
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mThe version of Wrangler you are using is now out-of-date.[0m
+
+  Please update to the latest version to prevent critical errors.
+  Run `npm install --save-dev wrangler@4` to update to the latest version.
+  After installation, run Wrangler with `npx wrangler`.
+
+
+🌀 Building list of assets...
+🌀 Starting asset upload...
+🌀 Found 7 new or modified static assets to upload. Proceeding with upload...
++ /version.json
++ /market.html
++ /index.html
++ /assets/octa-fonts.css
++ /assets/js/octa-gold-savings.js
++ /gate.html
++ /assets/js/octa-chartkit.js
+Uploaded 2 of 7 assets
+Uploaded 5 of 7 assets
+Uploaded 7 of 7 assets
+✨ Success! Uploaded 7 files (109 already uploaded) (0.66 sec)
+
+Total Upload: 140.88 KiB / gzip: 31.56 KiB
+Worker Startup Time: 4 ms
+Your worker has access to the following bindings:
+- Durable Objects:
+  - PREVIEW_STORE: PreviewStore
+- KV Namespaces:
+  - HALAN_KV: 24f90783bedf4291b57705bbb2f51a88
+  - PREVIEW_KV: 68e1d82a57f94344a051bcfd9dfd81ed
+- Vars:
+  - OCTA_PREVIEW_SELF_API: "on"
+  - OCTA_GATE: "on"
+  - OCTA_FAIL_CLOSED: "on"
+  - OCTA_TV_PROXY: "on"
+  - OCTA_BENCH: "on"
+  - OCTA_OPP_SNAPSHOT: "on"
+  - OCTA_ALPHA_SNAPSHOT: "on"
+  - OCTA_SLOWTEST: "off"
+Uploaded octa-preview (3.71 sec)
+Deployed octa-preview triggers (0.43 sec)
+  https://octa-preview.ahmed3zz2020.workers.dev
+  schedule: */5 * * * *
+Current Version ID: f151a008-3a27-4da0-8363-7791cf9323a0
+
+▸ فحص حيّ...
+  ✓ / ⇒ 200
+  ✓ /api/health ⇒ 200
+  ✓ /api/rank ⇒ 401
+  ✓ الصفحة الرئيسية فيها سكريبت الموقع
+  ✓ بصمة البناء مطابقة (v=202611221009)
+
+✅ اتنشر واتفحص: octa-preview ⇒ https://octa-preview.ahmed3zz2020.workers.dev

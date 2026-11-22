@@ -1,0 +1,44 @@
+▶ محاكاة (be) ⭐ ⇒ https://x-access-token:<masked>@github.com/ahmed3zz2020-source/octa-prices.git ⭐
+  ci_ref=ci/octa-ci-r28  candidate=80bed3bb67924e9ad821b557a266f2f3350ae1e3  workflow=ci-workflow/octa-ci.yml
+▶ ① checkout المرشّح (actions/checkout@v4 ⇒ fetch-depth: 0 ⭐)
+  HEAD = 80bed3bb67924e9ad821b557a266f2f3350ae1e3
+▶ ② استرجاع أدوات الـCI من فرع الـCI (نفس تسلسل الـworkflow ⭐)
+From https://github.com/ahmed3zz2020-source/octa-prices
+ * branch            ci/octa-ci-r28 -> FETCH_HEAD
+  ✅ الأدوات اترجعت
+▶ ③ بوابة بصمة المرشّح (مطابقة بالضبط ⭐)
+  ✅ PASS: الـSHA المختبَر = المرشّح بالضبط ⭐
+▶ ④ بوابة بصمة أدوات القياس (نفس سطر الـworkflow ⭐)
+  computed=141058c5b0514a52537239a89f2996bc0de775ae6b99b0b9b522896c828a1abd
+  pinned  =141058c5b0514a52537239a89f2996bc0de775ae6b99b0b9b522896c828a1abd
+  ✅ PASS: بصمة أدوات القياس مطابقة ⭐
+▶ ⑤ حارس بوّابات الـCI على ملف الـworkflow الحقيقي ⭐
+🚪 ملفات فيها البوابات الحقيقية (OCTA-CI-GATES-V1): 1
+   · /tmp/tmp.bxC9ZBBuqp/repo/ci-workflow/octa-ci.yml  [بروفايل: backend]
+
+✅ كل البوابات سليمة — مفيش أي مراوغة في ملف الـCI
+
+✅ SIM PASS (be) ⭐
+be_rc=0
+▶ محاكاة (fe) ⭐ ⇒ https://x-access-token:<masked>@github.com/ahmed3zz2020-source/octa.git ⭐
+  ci_ref=ci/octa-ci-r28-fe  candidate=bd3ae0a95a987d7b0083d24d52fa717f671d67d3  workflow=ci-workflow/octa-ci-fe.yml
+▶ ① checkout المرشّح (actions/checkout@v4 ⇒ fetch-depth: 0 ⭐)
+  HEAD = bd3ae0a95a987d7b0083d24d52fa717f671d67d3
+▶ ② استرجاع أدوات الـCI من فرع الـCI (نفس تسلسل الـworkflow ⭐)
+From https://github.com/ahmed3zz2020-source/octa
+ * branch            ci/octa-ci-r28-fe -> FETCH_HEAD
+  ✅ الأدوات اترجعت
+▶ ③ بوابة بصمة المرشّح (مطابقة بالضبط ⭐)
+  ✅ PASS: الـSHA المختبَر = المرشّح بالضبط ⭐
+▶ ④ بوابة بصمة أدوات القياس (نفس سطر الـworkflow ⭐)
+  computed=cc407ba0a5b84055afdfe9389498ab2518c9e7c6c82ead8f5baea5dd80621d67
+  pinned  =cc407ba0a5b84055afdfe9389498ab2518c9e7c6c82ead8f5baea5dd80621d67
+  ✅ PASS: بصمة أدوات القياس مطابقة ⭐
+▶ ⑤ حارس بوّابات الـCI على ملف الـworkflow الحقيقي ⭐
+🚪 ملفات فيها البوابات الحقيقية (OCTA-CI-GATES-V1): 1
+   · /tmp/tmp.hIUjp7r3vw/repo/ci-workflow/octa-ci-fe.yml  [بروفايل: frontend]
+
+✅ كل البوابات سليمة — مفيش أي مراوغة في ملف الـCI
+
+✅ SIM PASS (fe) ⭐
+fe_rc=0
