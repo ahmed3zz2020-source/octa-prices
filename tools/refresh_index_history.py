@@ -80,7 +80,8 @@ def atomic_write_json(path, payload):
     ⛔ مافيش ملف نص مكتوح في الديسك ⭐ (كله ملف مؤقّت ⭐).
     ⛔ لوanything فشل ⇒ الملف المؤقّت يتمسح ⭐ والملف القديم يفضل زي ما هو ⭐.
     """
-    tmp = path + ".tmp"
+    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ اسم ⭐⭐⭐ مؤقت ⭐⭐⭐ **فريد** ⭐⭐⭐ ⭐ (pid ⭐)
+    tmp = "%s.tmp-%d" % (path, os.getpid())
     try:
         with io.open(tmp, "w", encoding="utf-8") as handle:
             json.dump(payload, handle, ensure_ascii=False, separators=(",", ":"))

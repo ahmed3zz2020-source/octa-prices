@@ -111,6 +111,36 @@ def unit_store(store, tmp: Path):
                     p is not None and p.get("version") == "2026-11-25")
         # ⭐ الكتابة ⭐ ⇒ في النسخة التشغيلية ⭐ وال بذرة ما اتغيّرتش ⭐
         before = sha256(tmp / "seed.json")
+        # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ مؤشر ⭐⭐⭐ موجود ⭐⭐⭐ في ⭐⭐⭐ نسخة ⭐⭐⭐ وحدها ⭐⭐⭐ ⇒ ⭐⭐⭐ بينحفظ ⭐⭐⭐
+        split = {"version": "2026-11-22",
+                 "indices": {"EGX70": {"rows": [[1700000000, 7.0]],
+                                       "series": [[1700000000, 7.0]], "count": 1}}}
+        (tmp / "run" / "index_history.json").write_text(json.dumps(split), encoding="utf-8")
+        (tmp / "seed.json").write_text(json.dumps(seed), encoding="utf-8")
+        p = store.effective_payload()
+        idx = (p or {}).get("indices") or {}
+        ok &= check("مؤشر ⭐⭐ موجود ⭐⭐ في ⭐⭐ نسخة ⭐⭐ وحدها ⭐⭐ ⇒ ⭐⭐ بينحفظ ⭐⭐",
+                    "EGX30" in idx and "EGX70" in idx,
+                    "المؤشرات ⭐: %s ⭐" % sorted(idx.keys()))
+        # ⭐⭐⭐ المجلد ⭐⭐⭐ التشغيلي ⭐⭐⭐ المعطوب ⭐⭐⭐ ⇒ ⭐⭐⭐ ممنوع ⭐⭐⭐ الكتابة ⭐⭐⭐ ⭐⭐⭐
+        old_env = os.environ.get("OCTA_DATA_DIR")
+        os.environ["OCTA_DATA_DIR"] = "/proc/1/nope-does-not-exist"
+        store._DATA_DIR = None
+        store._DATA_DIR_OK = False
+        code_probe = ROOT / "index_history.json"
+        existed_before = code_probe.exists()
+        wrote = store.write_runtime({"version": "x", "indices": {}})
+        ok &= check("مجلد ⭐⭐ البيانات ⭐⭐ المعطوب ⭐⭐ ⇒ ⭐⭐ الكتابة ⭐⭐ مرفوضة ⭐⭐",
+                    wrote is False and store.runtime_dir_ok() is False)
+        ok &= check("مجلد ⭐⭐ الكود ⭐⭐ ما ⭐⭐ اتلوّثش ⭐⭐",
+                    code_probe.exists() == existed_before)
+        if old_env is None:
+            os.environ.pop("OCTA_DATA_DIR", None)
+        else:
+            os.environ["OCTA_DATA_DIR"] = old_env
+        store._DATA_DIR = None
+        store._DATA_DIR_OK = False
+        before = sha256(tmp / "seed.json")   # ⭐⭐ بعد ⭐⭐ إعادة ⭐⭐ كتابة ⭐⭐ البذرة ⭐⭐ ⭐
         ok &= check("الكتابة ⭐ ⇒ رجعت true ⭐", store.write_runtime({"version": "x"}))
         ok &= check("الكتابة ⭐ ⇒ البذرة ما اتغيّرتش ⭐",
                     sha256(tmp / "seed.json") == before)
@@ -130,6 +160,27 @@ def _extract_refresh():
         return None
     j = src.find("\ndef ", i + 10)
     return src[i:j if j > 0 else len(src)]
+
+
+class _StoreStub:
+    """⭐⭐⭐ stub ⭐⭐⭐ ⭐ حفظ ⭐⭐⭐ ⭐ يفشل ⭐⭐⭐ ⭐ (لاختبار ⭐⭐⭐ إعادة ⭐⭐⭐ المحاولة ⭐⭐⭐) ⭐⭐⭐."""
+
+    def __init__(self, fail=False):
+        self.fail = fail
+
+    def effective_payload(self):
+        return {"version": "2026-11-21",
+                "indices": {"EGX30": {"rows": [[1700000000, 1.0]],
+                                      "series": [[1700000000, 1.0]], "count": 1}}}
+
+    def write_runtime(self, payload, attempts=2):
+        return not self.fail
+
+    def runtime_file(self):
+        return Path("/nonexistent/index_history.json")
+
+    def runtime_dir_ok(self):
+        return True
 
 
 def _fake_tv_ws():
@@ -202,6 +253,19 @@ def behavioral_refresh(store, tmp: Path):
             os.environ["OCTA_DATA_DIR"] = old_env
         if store is not None:
             store._DATA_DIR = None
+
+    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ فشل ⭐⭐⭐ الحفظ ⭐⭐⭐ ⇒ ⭐⭐⭐ إعادة ⭐⭐⭐ المحاولة ⭐⭐⭐ ⭐⭐⭐
+    ns_fail = dict(ns)
+    ns_fail["_IDX_HIST_REFRESH_DAY"] = None   # ⭐⭐⭐ نبدأ ⭐⭐⭐ من ⭐⭐⭐ الصفر ⭐⭐⭐ ⭐ (العلامة ⭐⭐⭐ بتوقف ⭐⭐⭐ التحديث ⭐⭐⭐) ⭐⭐⭐
+    ns_fail["index_history_store"] = _StoreStub(fail=True)
+    try:
+        exec(compile(src, "<r32-refresh-fail>", "exec"), ns_fail)
+        ns_fail["_maybe_refresh_index_history"]()
+        retried = ns_fail.get("_IDX_HIST_REFRESH_DAY") is None
+    except Exception:
+        retried = False
+    check("فشل ⭐⭐ الحفظ ⭐⭐ ⇒ ⭐⭐ إعادة ⭐⭐ المحاولة ⭐⭐ (العلامة ⭐⭐ اتصفّرت ⭐⭐)",
+          retried)
 
     after = sha256(seed_file)
     check("التحديث ما كتبش في مجلد الكود ⭐ (البذرة زي ما هي ⭐)", after == before,

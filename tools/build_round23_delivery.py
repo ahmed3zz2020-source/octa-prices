@@ -264,7 +264,8 @@ def write_zip(pkg, zip_path):
     """
     pkg = pathlib.Path(pkg)
     zip_path = pathlib.Path(zip_path)
-    tmp = zip_path.with_name(zip_path.name + ".tmp")
+    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ اسم ⭐⭐⭐ مؤقت ⭐⭐⭐ **فريد** ⭐⭐⭐ ⭐ (pid ⭐)
+    tmp = zip_path.with_name("%s.tmp-%d" % (zip_path.name, os.getpid()))
     if tmp.exists():
         tmp.unlink()
     files = sorted(p for p in pkg.rglob("*") if p.is_file())
@@ -321,7 +322,8 @@ def write_sidecar(zip_path, out_path, pkg_label, be_sha, fe_sha):
     ]
     # ⛔ كتابة ذرّية ⭐ (نفس سبب الـzip ⭐) ⇒ الفاحص ما يلاقيش ملف نصّه ⭐
     out_path = pathlib.Path(out_path)
-    tmp = out_path.with_name(out_path.name + ".tmp")
+    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ اسم ⭐⭐⭐ مؤقت ⭐⭐⭐ **فريد** ⭐⭐⭐ ⭐ (pid ⭐)
+    tmp = out_path.with_name("%s.tmp-%d" % (out_path.name, os.getpid()))
     tmp.write_text("\n".join(lines), encoding="utf-8")
     os.replace(str(tmp), str(out_path))
     return {"md5": md5, "sha256": sha, "bytes": size, "entries": entries}

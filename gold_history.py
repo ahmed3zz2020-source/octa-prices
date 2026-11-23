@@ -28,6 +28,7 @@
 import json
 import os
 import threading
+import safe_write
 import time
 import datetime
 from pathlib import Path
@@ -149,10 +150,9 @@ def _write_file(data):
         try:
             p = Path(path)
             p.parent.mkdir(parents=True, exist_ok=True)
-            tmp = p.with_suffix(".json.tmp")
-            with open(tmp, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False)
-            os.replace(str(tmp), str(p))
+            # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ اسم ⭐⭐⭐ مؤقت ⭐⭐⭐ **فريد** ⭐⭐⭐ ⭐ (pid ⭐)
+            # 📌 قبل ⭐: ⛔ `.json.tmp` ⭐ ⭐ اسم ⭐⭐ ثابت ⭐⭐ ⇒ ⛔ عمليتين ⭐ ⇒ ⛔ lost update ⭐
+            safe_write.safe_write_text(p, json.dumps(data, ensure_ascii=False))
             return True
         except Exception as e:
             last = str(e)[:100]

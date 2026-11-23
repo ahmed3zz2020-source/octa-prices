@@ -22,6 +22,7 @@
 import json
 import os
 import re
+import safe_write
 import threading
 import time
 import datetime
@@ -812,10 +813,9 @@ def _load_disk():
 def _save_disk(d):
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
-        tmp = CACHE_FILE + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(d, f, ensure_ascii=False)
-        os.replace(tmp, CACHE_FILE)
+        # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ اسم ⭐⭐⭐ مؤقت ⭐⭐⭐ **فريد** ⭐⭐⭐ ⭐ (pid ⭐)
+        # 📌 قبل ⭐: ⛔ اسم ⭐⭐⭐ مؤقت ⭐⭐⭐ **ثابت** ⭐⭐⭐ ⇒ ⛔ سباق ⭐⭐⭐ كتابة ⭐⭐⭐
+        safe_write.safe_write_text(CACHE_FILE, json.dumps(d, ensure_ascii=False))
     except Exception:
         pass
 

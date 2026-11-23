@@ -32,11 +32,12 @@ __all__ = ["SEED_FILE", "data_dir", "runtime_file", "load_seed", "load_runtime",
            "effective_payload", "write_runtime"]
 
 _DATA_DIR = None  # ⭐ كاش واحد ⭐ (مش بنعمل فحص في كل نداء ⭐).
+_DATA_DIR_OK = False  # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ هل المجلد ⭐⭐⭐ قابل ⭐⭐⭐ للكتابة ⭐⭐⭐ فعلاً ⭐⭐⭐ ⭐⭐⭐
 
 
 def data_dir() -> Path:
     """📂 مجلد البيانات التشغيلية ⭐ — نفس قاعدة `update_prices.DATA_DIR` ⭐."""
-    global _DATA_DIR
+    global _DATA_DIR, _DATA_DIR_OK
     if _DATA_DIR is not None:
         return _DATA_DIR
     raw = (os.environ.get("OCTA_DATA_DIR") or "/data").strip() or "/data"
@@ -50,11 +51,24 @@ def data_dir() -> Path:
         except OSError:
             pass
         _DATA_DIR = d
+        _DATA_DIR_OK = True
     except Exception:
-        # ⛔ مفيش مجلد قابل للكتابة ⭐ ⇒ fallback لمجلد الكود ⭐
-        #   (نفس سلوك `update_prices.DATA_DIR` ⭐ — فيهم بيانات التشغيل كلها ⭐).
+        # ⛔⛔⛔ (R32 · e) ⛔⛔⛔ مفيش مجلد تشغيلي قابل للكتابة ⭐
+        # 📌 ⭐ الـfallback ⭐ ده **للقراءة فقط** ⭐ ⇒ ⭐ ممنوع ⭐ أي كتابة ⭐ فيه ⭐
+        #    ⭐ (مجلد الكود ⭐ ⭐ ما ينفعش ⭐⭐ يتلوّث ⭐⭐ ببيانات تشغيل ⭐⭐) ⭐⭐.
+        #    ⭐ ⇒ `write_runtime` ⭐ بيرفض ⭐ وبيعيد ⭐ False ⭐ ⭐.
         _DATA_DIR = HERE
+        _DATA_DIR_OK = False
     return _DATA_DIR
+
+
+def runtime_dir_ok() -> bool:
+    """✅ هل مجلد البيانات التشغيلي قابل للكتابة فعلاً ⭐.
+
+    ⛔ False ⭐ ⇒ ⭐ **ممنوع** ⭐ الكتابة ⭐ ⭐ (مفيش fallback ⭐ لمجلد الكود ⭐⭐) ⭐⭐.
+    """
+    data_dir()   # ⭐ يخلّي الـresolve ⭐ يتنفّذ ⭐
+    return bool(_DATA_DIR_OK)
 
 
 def runtime_file() -> Path:
@@ -100,10 +114,29 @@ def _rows_of(row):
 
 
 def _union(primary, other):
-    """🔗 اتحاد الصفوف ⭐ — التاريخ القديم ما يضيعش ⭐ (القيم الموجودة ما بتتغيرش ⭐)."""
-    p_idx = (primary.get("indices") or {}) if isinstance(primary, dict) else {}
+    """🔗 اتحاد الصفوف ⭐ — التاريخ القديم ما يضيعش ⭐ (القيم الموجودة ما بتتغيرش ⭐).
+
+    ⭐⭐⭐ (R32 · e) ⭐⭐⭐ **مؤشر ⭐⭐⭐ موجود ⭐⭐⭐ في ⭐⭐⭐ نسخة ⭐⭐⭐ وحدها ⭐⭐⭐** ⭐⭐⭐
+    ⭐⭐⭐ ⇒ ⭐⭐⭐ بينحفظ ⭐⭐⭐ ⭐ (قبل ⭐⭐⭐: ⭐⭐⭐ كان ⭐⭐⭐ بيضيع ⭐⭐⭐ ⭐ ⭐ لأن ⭐⭐⭐
+    ⭐⭐⭐ الحلقة ⭐⭐⭐ كانت ⭐⭐⭐ على ⭐⭐⭐ مفاتيح ⭐⭐⭐ النسخة ⭐⭐⭐ الأساسية ⭐⭐⭐ بس ⭐⭐⭐) ⭐⭐⭐.
+    """
+    if not isinstance(primary, dict):
+        return primary
+    p_idx = primary.get("indices")
+    if not isinstance(p_idx, dict):
+        p_idx = {}
+        primary["indices"] = p_idx
     o_idx = (other.get("indices") or {}) if isinstance(other, dict) else {}
-    for name, row in p_idx.items():
+    for name, orow in list(o_idx.items()):
+        if name in p_idx:
+            continue
+        # ⭐⭐⭐ المؤشر ⭐⭐⭐ ده ⭐⭐⭐ موجود ⭐⭐⭐ في ⭐⭐⭐ النسخة ⭐⭐⭐ الأخرى ⭐⭐⭐ بس ⭐⭐⭐
+        # ⭐⭐⭐ ⇒ ⭐⭐⭐ بينحفظ ⭐⭐⭐ بنسخة ⭐⭐⭐ مستقلة ⭐⭐⭐ (مش ⭐⭐⭐ نفس ⭐⭐⭐ المرجع ⭐⭐⭐) ⭐⭐⭐.
+        try:
+            p_idx[name] = json.loads(json.dumps(orow))
+        except Exception:
+            p_idx[name] = orow
+    for name, row in list(p_idx.items()):
         if not isinstance(row, dict):
             continue
         orow = o_idx.get(name)
@@ -142,15 +175,32 @@ def effective_payload():
     return _union(seed, runtime)
 
 
-def write_runtime(payload) -> bool:
-    """💾 كتابة ذرّية ⭐ للنسخة التشغيلية ⭐ — في DATA_DIR ⭐ (مش في شجرة الكود ⭐)."""
+def write_runtime(payload, attempts: int = 2) -> bool:
+    """💾 كتابة ذرّية ⭐ للنسخة التشغيلية ⭐ — في DATA_DIR ⭐ (مش في شجرة الكود ⭐).
+
+    ⛔⛔⛔ (R32 · e) ⛔⛔⛔ لو ⭐⭐⭐ مجلد ⭐⭐⭐ البيانات ⭐⭐⭐ التشغيلي ⭐⭐⭐ مش ⭐⭐⭐ قابل ⭐⭐⭐
+       ⭐⭐⭐ للكتابة ⭐⭐⭐ ⇒ ⭐⭐⭐ **ممنوع** ⭐⭐⭐ نكتب ⭐⭐⭐ في ⭐⭐⭐ مجلد ⭐⭐⭐ الكود ⭐⭐⭐ ⭐⭐⭐
+       ⭐⭐⭐ ⇒ ⭐⭐⭐ نرجّع ⭐⭐⭐ False ⭐⭐⭐ ⭐ (fail-closed ⭐⭐) ⭐⭐⭐.
+    ⭐ إعادة المحاولة ⭐: ⭐ لو ⭐ الحفظ ⭐ فشل ⭐ ⇒ ⭐ بنعيد ⭐ ⭐ مرتين ⭐ ⭐ ⭐.
+    """
+    if not runtime_dir_ok():
+        return False
     p = runtime_file()
+    last = None
+    for _ in range(max(1, int(attempts or 1))):
+        try:
+            p.parent.mkdir(parents=True, exist_ok=True)
+        except Exception as exc:
+            last = exc
+            continue
+        try:
+            _sw.safe_write_text(p, json.dumps(payload, ensure_ascii=False))
+            return True
+        except Exception as exc:
+            last = exc
+            continue
     try:
-        p.parent.mkdir(parents=True, exist_ok=True)
+        print("[idxhist] ⛔ runtime write failed ⭐ (%s) ⭐" % str(last)[:80])
     except Exception:
-        return False
-    try:
-        _sw.safe_write_text(p, json.dumps(payload, ensure_ascii=False))
-        return True
-    except Exception:
-        return False
+        pass
+    return False

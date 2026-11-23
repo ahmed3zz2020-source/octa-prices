@@ -12852,6 +12852,14 @@ def _maybe_refresh_index_history():
         if market_phase() not in ("closed", "weekend"):
             return
         _IDX_HIST_REFRESH_DAY = today
+        # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ لو ⭐⭐⭐ مجلد ⭐⭐⭐ البيانات ⭐⭐⭐ التشغيلي ⭐⭐⭐ مش ⭐⭐⭐ قابل ⭐⭐⭐
+        #   ⭐⭐⭐ للكتابة ⭐⭐⭐ ⇒ ⭐⭐⭐ **ممنوع** ⭐⭐⭐ نكتب ⭐⭐⭐ في ⭐⭐⭐ مجلد ⭐⭐⭐ الكود ⭐⭐⭐ ⭐⭐⭐
+        #   ⭐⭐⭐ ⇒ ⭐⭐⭐ بنوقف ⭐⭐⭐ التحديث ⭐⭐⭐ (fail-closed ⭐⭐⭐) ⭐⭐⭐ ⭐.
+        if not index_history_store.runtime_dir_ok():
+            _IDX_HIST_REFRESH_DAY = None
+            print("[idxhist] ⛔ مجلد البيانات التشغيلية مش قابل للكتابة ⭐ — "
+                  "التحديث اتوقف ⭐ (مفيش كتابة في مجلد الكود ⭐)")
+            return
         base = Path(__file__).parent
         # 📌 R32 ⭐⭐⭐ البذرة (ملف المستودع ⭐) ما بنكتبش فيها ⭐⭐⭐
         #    ⭐ الكتابة ⇒ النسخة التشغيلية ⭐ `DATA_DIR/index_history.json` ⭐
@@ -12921,7 +12929,13 @@ def _maybe_refresh_index_history():
                 print(f"[idxhist] history updated → {today} "
                       f"({index_history_store.runtime_file()})")
             else:
-                print(f"[idxhist] ⛔ runtime write failed ⭐")
+                # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ فشل الحفظ ⭐⭐⭐ ⇒ ⭐⭐⭐ **إعادة ⭐⭐⭐ المحاولة ⭐⭐⭐** ⭐⭐⭐
+                # 📌 السبب ⭐: ⭐ لو خلّينا ⭐ `_IDX_HIST_REFRESH_DAY` ⭐ ⭐ = ⭐ اليوم ⭐ ⭐ ⇒
+                #    ⭐ ⭐ مش ⭐ هيحاول ⭐ تاني ⭐ ⭐ ⇒ ⭐ ⭐ التحديث ⭐ ⭐ هيتجاهل ⭐ ⭐
+                #    ⭐ ⭐ اليوم ⭐ ⭐ كله ⭐ ⭐ ⇒ ⭐ ⭐ данных ⭐ ⭐ مش ⭐ هتتحدّث ⭐ ⭐ ⭐.
+                # ✅ الحل ⭐: ⭐ نصفّر ⭐ ⭐ العلامة ⭐ ⭐ ⇒ ⭐ ⭐ الجولة ⭐ ⭐ الجاية ⭐ ⭐ تعيد ⭐ ⭐ ⭐.
+                _IDX_HIST_REFRESH_DAY = None
+                print(f"[idxhist] ⛔ runtime write failed ⭐ — هنعيد ⭐ المحاولة ⭐")
     except Exception as e:
         print(f"[idxhist] refresh failed: {str(e)[:90]}")
 

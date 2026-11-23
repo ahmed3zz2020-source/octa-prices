@@ -104,6 +104,30 @@ def read_git_line(sha: str, line_no):
     return ""
 
 
+def redact(line: str) -> str:
+    """⛔ ما ⭐⭐ نعرضش ⭐⭐ قيمة ⭐⭐ السر ⭐⭐ ⭐ — ⭐⭐ ماسك ⭐⭐ بس ⭐⭐ (طول ⭐⭐ + بدون ⭐⭐ جزء ⭐⭐) ⭐⭐.
+
+    📌 (R32 · e) ⭐: ⭐ حقل ⭐⭐ `source` ⭐⭐ ⭐ كان ⭐⭐ بيطبع ⭐⭐ السطر ⭐⭐ كامل ⭐⭐ ⭐
+       ⭐ ⇒ ⭐⭐ أي ⭐⭐ توكن ⭐⭐ ⭐ (أو ⭐⭐ مفتاح ⭐⭐) ⭐⭐ ⭐ كان ⭐⭐ بيظهر ⭐⭐ في ⭐⭐ الملف ⭐⭐ ⭐
+       ⭐ ⇒ ⭐⭐ وفي ⭐⭐ سجل ⭐⭐ المحاكاة ⭐⭐ ⭐ ⇒ ⭐⭐ **تسرّب ⭐⭐ حقيقي ⭐⭐** ⭐⭐ ⭐.
+    """
+    out = line or ""
+    try:
+        import r28_scan_secrets as _sc
+        pats = getattr(_sc, "PATTERNS", None) or []
+    except Exception:
+        pats = []
+    for item in pats:
+        pat = item[1] if isinstance(item, (tuple, list)) and len(item) > 1 else None
+        if pat is None:
+            continue
+        try:
+            out = pat.sub(lambda m: "\u00ab<redacted:%d chars>\u00bb" % len(m.group(0)), out)
+        except Exception:
+            continue
+    return out
+
+
 def read_line(loc: dict) -> str:
     where = loc.get("location", "")
     line_no = loc.get("line")
@@ -246,7 +270,8 @@ def main() -> int:
             if verdict == "real_leak":
                 real.append({"fingerprint": s.get("fingerprint"), "pattern": s.get("pattern"),
                              "location": where, "line": loc.get("line"),
-                             "scope": loc.get("scope"), "source": line.strip()[:160]})
+                             "scope": loc.get("scope"),
+                             "source": redact(line.strip()[:160])})
             elif verdict == "unverifiable":
                 # ⭐⭐⭐ (R32) ⭐⭐⭐ موضع **مش متاح** ⭐⭐ ⭐ ⇒ ⭐⭐ محجوب ⭐⭐ ⭐
                 #    ⭐⭐ مش تسرّب ⭐⭐ ⭐ ⇒ ⭐⭐ **ما يُعتمدش** ⭐⭐ ⭐ ⇒ ⛔ ok=false ⭐⭐.

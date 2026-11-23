@@ -199,7 +199,8 @@ def check_atomic_write(workdir):
     import refresh_index_history as refresh
 
     target = os.path.join(workdir, "atomic_target.json")
-    tmp_path = target + ".tmp"
+    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ اسم ⭐⭐⭐ مؤقت ⭐⭐⭐ **فريد** ⭐⭐⭐ ⭐ (pid ⭐)
+    tmp_path = "%s.tmp-%d" % (target, os.getpid())
     old_payload = build_file({"SYNTH": synth_rows(6)})
     with io.open(target, "w", encoding="utf-8") as handle:
         handle.write(json.dumps(old_payload, ensure_ascii=False))
