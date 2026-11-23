@@ -255,6 +255,16 @@ def load_env_blocked(path):
 # 📌 البنود المسرودة ⭐ (فوق ⭐) ⇒ ⛔ متعذر ⭐ بصفر نقاط ⭐ وسبب بالاسم ⭐.
 # ═══════════════════════════════════════════════════════════════════
 ITEM_EVIDENCE = {
+    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ AC-01-1 ⭐⭐⭐ ⭐⭐⭐ و ⭐⭐⭐ AC-01-2 ⭐⭐⭐ ⭐⭐⭐ ⭐⭐⭐
+    # 📌 الشرط ⭐⭐⭐ (AC-01-2) ⭐⭐⭐: ⭐⭐⭐ «أزل ⭐⭐ bundle ⭐⭐ أو ⭐⭐ غيّر ⭐⭐ ref ⭐⭐؛ ⭐⭐⭐
+    #    ⭐⭐⭐ يجب ⭐⭐⭐ رفض ⭐⭐⭐ المرشح ⭐⭐⭐ وعدم ⭐⭐⭐ تسجيل ⭐⭐⭐ نجاح ⭐⭐⭐» ⭐⭐⭐ ⭐⭐⭐
+    # ✅ الدليل ⭐⭐⭐: ⭐⭐⭐ اختبار ⭐⭐⭐ الرفض ⭐⭐⭐ tools/test_r32_manifest_rejection.py ⭐⭐⭐ ⭐⭐⭐
+    #    ⭐⭐⭐ (٣ ⭐⭐⭐ حالات ⭐⭐⭐ ⭐⭐⭐: ⭐⭐⭐ سليمة ⭐⭐⭐ ⇒ تُقبل ⭐⭐⭐ · ⭐⭐⭐ حزمة ⭐⭐⭐ محذوفة ⭐⭐⭐ ⇒ تُرفض ⭐⭐⭐
+    #    ⭐⭐⭐ · ⭐⭐⭐ بصمة ⭐⭐⭐ مختلفة ⭐⭐⭐ ⇒ تُرفض ⭐⭐⭐) ⭐⭐⭐ ⭐⭐⭐.
+    "AC-01-1": [("be", "tools/test_r32_manifest_rejection.py"),
+                ("art", "manifest"), ("art", "evidence_branch")],
+    "AC-01-2": [("be", "tools/test_r32_manifest_rejection.py"),
+                ("art", "manifest"), ("art", "evidence_branch")],
     # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ AC-10-3 ⭐⭐⭐ — ⭐⭐⭐ مسار ⭐⭐⭐ الكتابة ⭐⭐⭐ ⭐⭐⭐
     # 📌 (R32 · e) ⭐: ⭐ اتقاس ⭐⭐⭐ عيب ⭐⭐⭐ كتابة ⭐⭐⭐ في ⭐⭐⭐ مجلد ⭐⭐⭐ الكود ⭐⭐⭐
     #    ⭐⭐⭐ (بوابة ⭐⭐⭐ سلامة ⭐⭐⭐ البيانات ⭐⭐⭐ المرجعية ⭐⭐⭐ في ⭐⭐⭐ الـCI ⭐⭐⭐) ⭐⭐⭐
@@ -590,7 +600,10 @@ def main(argv=None):
             for kind, ref in inputs:
                 if kind == "fe":
                     key = next((k for k in fe if k == ref or k.endswith(ref)), None)
-                    if key and not fe[key]["fail"]:
+                    # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ ملف ⭐⭐⭐ FE ⭐⭐⭐ بـ**صفر** ⭐⭐⭐ تأكيد ⭐⭐⭐ ⭐⭐⭐
+                    #    ⭐⭐⭐ ⭐ ⭐⇢ ⭐⭐⭐ ما ⭐⭐⭐ يتحسبش ⭐⭐⭐ دليل ⭐⭐⭐ ⭐⭐⭐ ⭐ (كان ⭐⭐⭐ بيتحسب ⭐⭐⭐ ⭐⭐⭐
+                    #    ⭐⭐⭐ ⭐ ⭐⇢ ⭐⭐⭐ اختبار ⭐⭐⭐ فاضي ⭐⭐⭐ ⭐⭐⭐ ⭐) ⭐⭐⭐.
+                    if key and not fe[key]["fail"] and int(fe[key].get("pass") or 0) > 0:
                         found.append("fe:%s (%d ناجح ⭐)" % (ref, fe[key]["pass"]))
                 elif kind == "be":
                     base_ref = os.path.basename(ref)

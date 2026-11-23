@@ -2,43 +2,43 @@
   "round": "R32",
   "rc": "RC-R32-001",
   "candidate": {
-    "backend_sha": "80bed3bb67924e9ad821b557a266f2f3350ae1e3",
-    "frontend_sha": "bd3ae0a95a987d7b0083d24d52fa717f671d67d3",
-    "ci_sha": "624ac7bd87f5ee0987ae22e497ee45ce060f573d",
+    "backend_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+    "frontend_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
+    "ci_sha": "1e4f210f113d4027af17eafe87997ae93e1c8432",
     "ci_fe_sha": "03fe991b685f422594fe7923872a4420d5f03177"
   },
   "packages": [
     {
-      "bytes": 1716218,
-      "md5": "2f5589b407d6b8c0eacdd96fe00ae542",
-      "sha256": "a524c26002d359d8f2cd6586b72cd88e955525ed23fe4475bfd86d669cd5659a",
+      "bytes": 1723992,
+      "md5": "8932cc2a3405c87bb8d75827e2475cc2",
+      "sha256": "26c52ce231c7554e4e63ef1aff3a794d63219e24849f517b9eb05dd3720d5943",
       "chunks": 2,
       "zip": "OCTA-ROUND32-BACKEND.zip",
-      "files": 214
+      "files": 216
     },
     {
-      "bytes": 7718751,
-      "md5": "e53adb83ba23ccfdd72916ba528d3c95",
-      "sha256": "f81055a2763545becdb74feeef4228167071ae5ff920909839932a81ae1e7ae4",
+      "bytes": 8330333,
+      "md5": "858c65b4bc18be8ff73c3a71d37cfe57",
+      "sha256": "0a28bfb96e659996e995759a0d0da4d6bde59cbf80f7782560915d07020d6518",
       "chunks": 8,
       "zip": "OCTA-ROUND32-FRONTEND.zip",
-      "files": 513
+      "files": 527
     },
     {
-      "bytes": 1603621,
-      "md5": "b79e62819fcc4a659f1abc35384a89e2",
-      "sha256": "849286b6b88bdec1b41e88ff1e7b1ab2b701bf7ad99ebf0f6704b0f721d32c6a",
+      "bytes": 1603857,
+      "md5": "f2e03c7234baf7d29d35281e37f0e76b",
+      "sha256": "a6dc14a036ce910a310de06c4f94f173b28c762ac30c84d63c5ba59fe98e4f2c",
       "chunks": 2,
       "zip": "OCTA-ROUND32-CI.zip",
       "files": 196
     },
     {
-      "bytes": 11065642,
-      "md5": "9848a3c026e67ef9ecce9fae0e5f1f7c",
-      "sha256": "fcaa1904156a31269b825841f087f6b9db66d2ef3a9b9c69e963cb3f800981f4",
-      "chunks": 11,
+      "bytes": 11685323,
+      "md5": "fca3613bf5629f625f6dfd3864ca81cc",
+      "sha256": "67e17da5c50a7d6af05a7b3aa6f7d83564ddd091e52e1006e14ec40909a1b31d",
+      "chunks": 12,
       "zip": "OCTA-ROUND32-DELIVERY.zip",
-      "files": 24
+      "files": 25
     }
   ]
 }

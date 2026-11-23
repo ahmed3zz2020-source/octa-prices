@@ -6,36 +6,36 @@
     "total_findings": 130,
     "scanned_git_objects": 0,
     "scanned_worktree_files": 0,
-    "scanned_zip_members": 891,
+    "scanned_zip_members": 906,
     "errors": [],
     "blocking_count": 0
   },
   "archives": [
     {
       "path": "/workspace/output/OCTA-ROUND32-DELIVERY/OCTA-ROUND32-BACKEND.zip",
-      "bytes": 1716218,
-      "sha256": "a524c26002d359d8f2cd6586b72cd88e955525ed23fe4475bfd86d669cd5659a",
+      "bytes": 1723992,
+      "sha256": "26c52ce231c7554e4e63ef1aff3a794d63219e24849f517b9eb05dd3720d5943",
       "requested_path": "/workspace/output/OCTA-ROUND32-DELIVERY/OCTA-ROUND32-BACKEND.zip",
       "resolved": false
     },
     {
       "path": "/workspace/output/OCTA-ROUND32-DELIVERY/OCTA-ROUND32-FRONTEND.zip",
-      "bytes": 7718751,
-      "sha256": "f81055a2763545becdb74feeef4228167071ae5ff920909839932a81ae1e7ae4",
+      "bytes": 8330333,
+      "sha256": "0a28bfb96e659996e995759a0d0da4d6bde59cbf80f7782560915d07020d6518",
       "requested_path": "/workspace/output/OCTA-ROUND32-DELIVERY/OCTA-ROUND32-FRONTEND.zip",
       "resolved": false
     },
     {
       "path": "/workspace/output/OCTA-ROUND32-DELIVERY/OCTA-ROUND32-CI.zip",
-      "bytes": 1603621,
-      "sha256": "849286b6b88bdec1b41e88ff1e7b1ab2b701bf7ad99ebf0f6704b0f721d32c6a",
+      "bytes": 1603857,
+      "sha256": "a6dc14a036ce910a310de06c4f94f173b28c762ac30c84d63c5ba59fe98e4f2c",
       "requested_path": "/workspace/output/OCTA-ROUND32-DELIVERY/OCTA-ROUND32-CI.zip",
       "resolved": false
     },
     {
       "path": "/workspace/output/OCTA-ROUND32-DELIVERY.zip",
-      "bytes": 11065642,
-      "sha256": "fcaa1904156a31269b825841f087f6b9db66d2ef3a9b9c69e963cb3f800981f4",
+      "bytes": 11685323,
+      "sha256": "67e17da5c50a7d6af05a7b3aa6f7d83564ddd091e52e1006e14ec40909a1b31d",
       "requested_path": "/workspace/output/OCTA-ROUND32-DELIVERY.zip",
       "resolved": false
     }
@@ -810,7 +810,7 @@
         {
           "scope": "zip",
           "location": "OCTA-ROUND32-BACKEND.zip::octa-prices/update_prices.py",
-          "line": 14792
+          "line": 14806
         },
         {
           "scope": "zip",
@@ -829,7 +829,7 @@
         {
           "scope": "zip",
           "location": "OCTA-ROUND32-BACKEND.zip::octa-prices/tools/build_round23_delivery.py",
-          "line": 381
+          "line": 383
         },
         {
           "scope": "zip",

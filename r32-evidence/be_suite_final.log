@@ -1,99 +1,101 @@
 staging_health=200
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83444 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83488 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83571 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83660 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83729 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83801 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83871 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 83955 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84025 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84114 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84181 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84247 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84317 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84397 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84467 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84537 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84626 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84696 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84780 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84864 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 84942 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85023 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85094 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85132 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85184 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85256 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85367 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85441 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85496 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85550 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85614 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85666 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85734 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85799 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85850 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85913 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 85976 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86049 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86104 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86164 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86219 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86273 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86337 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86389 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86448 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86507 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86581 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86641 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86704 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86770 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86842 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86899 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 86986 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87122 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87256 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87357 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87409 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87465 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87504 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87570 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87636 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87702 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 87794 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 88078 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 88616 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 88761 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 88816 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 89058 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 90149 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 90529 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 90658 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 90722 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 90856 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 90912 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91020 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91073 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91125 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91176 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91229 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91280 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91333 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91389 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91456 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91521 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
-/workspace/output/r32/run_be_suite_r32e.sh: line 32: 91655 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17485 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17529 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17577 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17631 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17677 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17718 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17759 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17802 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17843 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17891 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17932 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 17972 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18013 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18064 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18105 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18146 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18200 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18241 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18284 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18333 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18374 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18415 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18462 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18503 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18544 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18598 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18670 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18724 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18765 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18806 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18849 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18890 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18938 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 18987 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19028 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19071 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19114 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19163 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19204 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19247 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19288 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19329 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19372 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19413 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19454 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19495 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19538 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19579 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19622 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19665 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19714 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19755 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19815 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 19930 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20004 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20097 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20138 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20179 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20221 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20273 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20325 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20374 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20431 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 20565 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 21043 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 21159 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 21200 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 21392 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 22457 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 22783 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 22854 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 22904 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 22969 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23013 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23105 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23146 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23187 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23228 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23269 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23314 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23358 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23401 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23442 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23484 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23534 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23582 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
+/workspace/output/r32/run_be_suite_r32g.sh: line 33: 23699 Killed                  /workspace/.venv_be/bin/python tools/staging/run_staging.py >> "$OUT/staging.log" 2>&1
 🔄 ملفات مُخلّدة تتشغلف من في النهاية: test_signup_flow.py
-📂 python · 85 ملف
-   test_auth_holes.py                                   passed   rc=0    cases=32    skipped=0    
+📂 python · 87 ملف
+   test_auth_holes.py                                   passed   rc=0    cases=31    skipped=0    
    test_charts_api.py                                   passed   rc=0    cases=12    skipped=0    
    test_code_hygiene.py                                 passed   rc=0    cases=7     skipped=0    
    test_data_full_route.py                              passed   rc=0    cases=13    skipped=0    
    test_egx_ttl.py                                      passed   rc=0    cases=1     skipped=0    
    test_engine_contract01.py                            passed   rc=0    cases=11    skipped=0    
    test_engine_safety01.py                              passed   rc=0    cases=13    skipped=0    
-   test_gold_history.py                                 passed   rc=0    cases=54    skipped=0    
+   test_gold_history.py                                 passed   rc=0    cases=53    skipped=0    
    test_gold_integrity.py                               passed   rc=0    cases=67    skipped=0    
    test_gold_live_price.py                              skipped  rc=0    cases=0     skipped=1    علامة تخطّي صريحة في الإخراج
         │ ⏭️  متخطّى: اختبار السعر الحيّ محتاج OCTA_RUN_LIVE_TESTS=1 — السعر بيتغيّر كل يوم، فمش جزء من مجموعة الاختبارات الحتمية
@@ -102,7 +104,7 @@ staging_health=200
    test_gold_macro.py                                   passed   rc=0    cases=98    skipped=0    
    test_gold_scenarios.py                               passed   rc=0    cases=109   skipped=0    
    test_gold_technical.py                               passed   rc=0    cases=51    skipped=0    
-   test_index_api.py                                    passed   rc=0    cases=21    skipped=0    
+   test_index_api.py                                    passed   rc=0    cases=19    skipped=0    
    test_index_history_refresh_guard.py                  passed   rc=0    cases=7     skipped=0    
    test_opp_api01.py                                    passed   rc=0    cases=7     skipped=0    
    test_opp_freshness13.py                              passed   rc=0    cases=20    skipped=0    
@@ -111,14 +113,14 @@ staging_health=200
    test_pattern_daily.py                                passed   rc=0    cases=30    skipped=0    
    test_pattern_detector.py                             passed   rc=0    cases=55    skipped=0    
    test_pattern_stats.py                                passed   rc=0    cases=46    skipped=0    
-   test_pin_auth.py                                     passed   rc=0    cases=57    skipped=0    
-   test_pin_challenge.py                                passed   rc=0    cases=4354  skipped=0    
-   test_r20_az31_36.py                                  passed   rc=0    cases=50    skipped=0    
+   test_pin_auth.py                                     passed   rc=0    cases=56    skipped=0    
+   test_pin_challenge.py                                passed   rc=0    cases=2793  skipped=0    
+   test_r20_az31_36.py                                  passed   rc=0    cases=49    skipped=0    
    test_radar_api.py                                    passed   rc=0    cases=1     skipped=0    
    test_recipe_filter.py                                passed   rc=0    cases=37    skipped=0    
    test_round14_release.py                              passed   rc=0    cases=27    skipped=0    
    test_round15_coverage_states.py                      passed   rc=0    cases=5     skipped=0    
-   test_round15_maildown_enum.py                        passed   rc=0    cases=20    skipped=0    
+   test_round15_maildown_enum.py                        passed   rc=0    cases=19    skipped=0    
    test_round15_opp_perms.py                            passed   rc=0    cases=32    skipped=0    
    test_round15_price_label.py                          passed   rc=0    cases=16    skipped=0    
    test_round15_query_guard.py                          passed   rc=0    cases=17    skipped=0    
@@ -138,14 +140,14 @@ staging_health=200
    test_round18_analysis_truth.py                       passed   rc=0    cases=27    skipped=0    
    test_round18_sec_failopen.py                         passed   rc=0    cases=31    skipped=0    
    test_run_pattern_scan.py                             passed   rc=0    cases=18    skipped=0    
-   test_security_batch01.py                             passed   rc=0    cases=82    skipped=0    
+   test_security_batch01.py                             passed   rc=0    cases=81    skipped=0    
    test_security_batch02.py                             passed   rc=0    cases=65    skipped=0    
    test_security_bgstore.py                             passed   rc=0    cases=16    skipped=0    
    test_security_p0.py                                  passed   rc=0    cases=34    skipped=0    
    test_strategy_cap01.py                               passed   rc=0    cases=9     skipped=0    
    test_tree_hygiene.py                                 passed   rc=0    cases=9     skipped=0    
    tools/staging/test_flask_binding.py                  failed   rc=1    cases=1     skipped=0    فشل الاختبار (rc=1)
-        │ === ربط Frontend/Backend على Flask حقيقي · http://127.0.0.1:8101 ===
+        │ === ربط Frontend/Backend على Flask حقيقي · http://127.0.0.1:8103 ===
         │   ❌ دخول Pro بـPIN (Flask حقيقي) — فشل الدخول: {"error": "\u0627\u0644\u0645\u0633\u0627\u0631 \u062f\u0647 \u0645\u0634 \u0645\u062a\u0627\u062d", "ok": false, "why": "direct_access"}
         │ RESULT: FAIL (مفيش جلسة)
    tools/test_data_integrity_guard.py                   passed   rc=0    cases=63    skipped=0    
@@ -164,11 +166,13 @@ staging_health=200
    tools/test_r29_data_dir_probe_race.py                passed   rc=0    cases=2     skipped=0    
    tools/test_r29_scan_blocking.py                      passed   rc=0    cases=9     skipped=0    
    tools/test_r31_batch.py                              passed   rc=0    cases=42    skipped=0    
-   tools/test_r32_index_history_store.py                passed   rc=0    cases=19    skipped=0    
+   tools/test_r32_index_history_store.py                passed   rc=0    cases=23    skipped=0    
    tools/test_r32_leak_detector.py                      passed   rc=0    cases=1     skipped=0    
+   tools/test_r32_manifest_rejection.py                 passed   rc=0    cases=4     skipped=0    
    tools/test_r32_safe_writes.py                        passed   rc=0    cases=2     skipped=0    
    tools/test_r32_scan_roots.py                         passed   rc=0    cases=0     skipped=0    
    tools/test_r32_secret_classification.py              passed   rc=0    cases=1     skipped=0    
+   tools/test_r32_secret_redaction.py                   passed   rc=0    cases=9     skipped=0    
    tools/test_round23_clean_clone.py                    failed   rc=1    cases=0     skipped=0    فشل الاختبار (rc=1)
         │              ^^^^^^
         │   File "tools/test_round23_clean_clone.py", line 448, in main
@@ -189,11 +193,11 @@ staging_health=200
    tools/test_round24_rel_volume_states.py              passed   rc=0    cases=12    skipped=0    
    tools/test_round26_api_tools_r26.py                  passed   rc=0    cases=99    skipped=0    
    tools/test_round26_engines_r26.py                    passed   rc=0    cases=60    skipped=0    
-   test_signup_flow.py                                  passed   rc=0    cases=191   skipped=0    
-📄 النتيجة اتكتبت: /workspace/output/r32/be5/backend_results.json
+   test_signup_flow.py                                  passed   rc=0    cases=270   skipped=0    
+📄 النتيجة اتكتبت: /workspace/output/r32/be7/backend_results.json
 
 ======================================================================
-📊 python: 85 ملف · 82 نجح · 2 فشل · 1 متخطى · 0 محجوب · 6983 حالة
+📊 python: 87 ملف · 84 نجح · 2 فشل · 1 متخطى · 0 محجوب · 5510 حالة
 ======================================================================
 ⛔ فيه ملفات مش ناجحة ⇒ البوابة لازم تفشل
    ⛔ test_gold_live_price.py → skipped (علامة تخطّي صريحة في الإخراج)

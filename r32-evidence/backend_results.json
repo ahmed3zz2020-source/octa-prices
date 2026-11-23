@@ -2,17 +2,17 @@
   "schema": "octa.ci.results.v1",
   "kind": "python",
   "root": "/workspace/.wt_r31_cand",
-  "candidate_sha": "",
+  "candidate_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
   "summary": {
-    "files": 85,
-    "passed": 82,
+    "files": 87,
+    "passed": 84,
     "failed": 2,
     "skipped": 1,
     "blocked": 0,
-    "cases": 6983,
+    "cases": 5510,
     "skipped_cases": 1,
     "isolated": 0,
-    "duration_s": 931.901
+    "duration_s": 335.913
   },
   "ok": false,
   "files": [
@@ -21,13 +21,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 32,
+      "cases": 31,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 3.263,
+      "duration_s": 1.313,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_auth_holes.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_auth_holes.py",
       "missing_git_refs": []
     },
     {
@@ -38,10 +38,10 @@
       "cases": 12,
       "skipped_cases": 0,
       "declared_cases": 12,
-      "duration_s": 3.077,
+      "duration_s": 1.783,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_charts_api.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_charts_api.py",
       "missing_git_refs": []
     },
     {
@@ -52,10 +52,10 @@
       "cases": 7,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 4.319,
+      "duration_s": 1.636,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_code_hygiene.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_code_hygiene.py",
       "missing_git_refs": []
     },
     {
@@ -66,10 +66,10 @@
       "cases": 13,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 37.661,
+      "duration_s": 17.597,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_data_full_route.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_data_full_route.py",
       "missing_git_refs": []
     },
     {
@@ -80,10 +80,10 @@
       "cases": 1,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 1.274,
+      "duration_s": 0.283,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_egx_ttl.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_egx_ttl.py",
       "missing_git_refs": []
     },
     {
@@ -94,10 +94,10 @@
       "cases": 11,
       "skipped_cases": 0,
       "declared_cases": 11,
-      "duration_s": 8.444,
+      "duration_s": 0.769,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_engine_contract01.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_engine_contract01.py",
       "missing_git_refs": []
     },
     {
@@ -108,10 +108,10 @@
       "cases": 13,
       "skipped_cases": 0,
       "declared_cases": 13,
-      "duration_s": 0.276,
+      "duration_s": 0.114,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_engine_safety01.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_engine_safety01.py",
       "missing_git_refs": []
     },
     {
@@ -119,13 +119,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 54,
+      "cases": 53,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 4.084,
+      "duration_s": 0.381,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_gold_history.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_gold_history.py",
       "missing_git_refs": []
     },
     {
@@ -136,10 +136,10 @@
       "cases": 67,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 4.709,
+      "duration_s": 2.421,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_gold_integrity.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_gold_integrity.py",
       "missing_git_refs": []
     },
     {
@@ -150,10 +150,10 @@
       "cases": 0,
       "skipped_cases": 1,
       "declared_cases": 0,
-      "duration_s": 0.149,
+      "duration_s": 0.042,
       "reason": "علامة تخطّي صريحة في الإخراج",
       "output_tail": "⏭️  متخطّى: اختبار السعر الحيّ محتاج OCTA_RUN_LIVE_TESTS=1 — السعر بيتغيّر كل يوم، فمش جزء من مجموعة الاختبارات الحتمية\n   (شغّله صريحاً بـ: OCTA_RUN_LIVE_TESTS=1 python3 test_gold_live_price.py)",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_gold_live_price.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_gold_live_price.py",
       "missing_git_refs": []
     },
     {
@@ -164,10 +164,10 @@
       "cases": 55,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 3.672,
+      "duration_s": 1.763,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_gold_local.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_gold_local.py",
       "missing_git_refs": []
     },
     {
@@ -178,10 +178,10 @@
       "cases": 98,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 4.104,
+      "duration_s": 1.542,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_gold_macro.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_gold_macro.py",
       "missing_git_refs": []
     },
     {
@@ -192,10 +192,10 @@
       "cases": 109,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 4.188,
+      "duration_s": 1.288,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_gold_scenarios.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_gold_scenarios.py",
       "missing_git_refs": []
     },
     {
@@ -206,10 +206,10 @@
       "cases": 51,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.559,
+      "duration_s": 0.124,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_gold_technical.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_gold_technical.py",
       "missing_git_refs": []
     },
     {
@@ -217,13 +217,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 21,
+      "cases": 19,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 7.797,
+      "duration_s": 2.247,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_index_api.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_index_api.py",
       "missing_git_refs": []
     },
     {
@@ -234,10 +234,10 @@
       "cases": 7,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.227,
+      "duration_s": 0.059,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_index_history_refresh_guard.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_index_history_refresh_guard.py",
       "missing_git_refs": []
     },
     {
@@ -248,10 +248,10 @@
       "cases": 7,
       "skipped_cases": 0,
       "declared_cases": 7,
-      "duration_s": 10.386,
+      "duration_s": 1.367,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_opp_api01.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_opp_api01.py",
       "missing_git_refs": []
     },
     {
@@ -262,10 +262,10 @@
       "cases": 20,
       "skipped_cases": 0,
       "declared_cases": 20,
-      "duration_s": 14.119,
+      "duration_s": 2.382,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_opp_freshness13.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_opp_freshness13.py",
       "missing_git_refs": []
     },
     {
@@ -276,10 +276,10 @@
       "cases": 14,
       "skipped_cases": 0,
       "declared_cases": 14,
-      "duration_s": 0.754,
+      "duration_s": 0.141,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_opp_live01.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_opp_live01.py",
       "missing_git_refs": []
     },
     {
@@ -290,10 +290,10 @@
       "cases": 32,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 1.293,
+      "duration_s": 0.119,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_pattern_challenges.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_pattern_challenges.py",
       "missing_git_refs": []
     },
     {
@@ -304,10 +304,10 @@
       "cases": 30,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 51.743,
+      "duration_s": 25.719,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_pattern_daily.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_pattern_daily.py",
       "missing_git_refs": []
     },
     {
@@ -318,10 +318,10 @@
       "cases": 55,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.09,
+      "duration_s": 0.095,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_pattern_detector.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_pattern_detector.py",
       "missing_git_refs": []
     },
     {
@@ -332,10 +332,10 @@
       "cases": 46,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.581,
+      "duration_s": 0.206,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_pattern_stats.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_pattern_stats.py",
       "missing_git_refs": []
     },
     {
@@ -343,13 +343,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 57,
+      "cases": 56,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 12.694,
+      "duration_s": 10.941,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_pin_auth.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_pin_auth.py",
       "missing_git_refs": []
     },
     {
@@ -357,13 +357,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 4354,
+      "cases": 2793,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 57.727,
+      "duration_s": 42.367,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_pin_challenge.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_pin_challenge.py",
       "missing_git_refs": []
     },
     {
@@ -371,13 +371,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 50,
+      "cases": 49,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 1.634,
+      "duration_s": 1.599,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_r20_az31_36.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_r20_az31_36.py",
       "missing_git_refs": []
     },
     {
@@ -388,10 +388,10 @@
       "cases": 1,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.077,
+      "duration_s": 0.091,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_radar_api.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_radar_api.py",
       "missing_git_refs": []
     },
     {
@@ -402,10 +402,10 @@
       "cases": 37,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.642,
+      "duration_s": 0.497,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_recipe_filter.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_recipe_filter.py",
       "missing_git_refs": []
     },
     {
@@ -416,10 +416,10 @@
       "cases": 27,
       "skipped_cases": 0,
       "declared_cases": 27,
-      "duration_s": 0.969,
+      "duration_s": 0.989,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round14_release.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round14_release.py",
       "missing_git_refs": []
     },
     {
@@ -430,10 +430,10 @@
       "cases": 5,
       "skipped_cases": 0,
       "declared_cases": 5,
-      "duration_s": 0.243,
+      "duration_s": 0.115,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round15_coverage_states.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round15_coverage_states.py",
       "missing_git_refs": []
     },
     {
@@ -441,13 +441,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 20,
+      "cases": 19,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.873,
+      "duration_s": 0.748,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round15_maildown_enum.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round15_maildown_enum.py",
       "missing_git_refs": []
     },
     {
@@ -458,10 +458,10 @@
       "cases": 32,
       "skipped_cases": 0,
       "declared_cases": 32,
-      "duration_s": 5.532,
+      "duration_s": 1.945,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round15_opp_perms.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round15_opp_perms.py",
       "missing_git_refs": []
     },
     {
@@ -472,10 +472,10 @@
       "cases": 16,
       "skipped_cases": 0,
       "declared_cases": 16,
-      "duration_s": 0.605,
+      "duration_s": 0.185,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round15_price_label.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round15_price_label.py",
       "missing_git_refs": []
     },
     {
@@ -486,10 +486,10 @@
       "cases": 17,
       "skipped_cases": 0,
       "declared_cases": 17,
-      "duration_s": 0.931,
+      "duration_s": 0.674,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round15_query_guard.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round15_query_guard.py",
       "missing_git_refs": []
     },
     {
@@ -500,10 +500,10 @@
       "cases": 10,
       "skipped_cases": 0,
       "declared_cases": 10,
-      "duration_s": 1.155,
+      "duration_s": 0.876,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round16_contract_wiring.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round16_contract_wiring.py",
       "missing_git_refs": []
     },
     {
@@ -514,10 +514,10 @@
       "cases": 24,
       "skipped_cases": 0,
       "declared_cases": 24,
-      "duration_s": 20.008,
+      "duration_s": 8.009,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round16_legacy_weights.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round16_legacy_weights.py",
       "missing_git_refs": []
     },
     {
@@ -528,10 +528,10 @@
       "cases": 20,
       "skipped_cases": 0,
       "declared_cases": 20,
-      "duration_s": 0.18,
+      "duration_s": 0.251,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round16_price_freshness.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round16_price_freshness.py",
       "missing_git_refs": []
     },
     {
@@ -542,10 +542,10 @@
       "cases": 17,
       "skipped_cases": 0,
       "declared_cases": 17,
-      "duration_s": 1.353,
+      "duration_s": 0.681,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round16_query_limits.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round16_query_limits.py",
       "missing_git_refs": []
     },
     {
@@ -556,10 +556,10 @@
       "cases": 7,
       "skipped_cases": 0,
       "declared_cases": 7,
-      "duration_s": 0.104,
+      "duration_s": 0.1,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_n1_row_state.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_n1_row_state.py",
       "missing_git_refs": []
     },
     {
@@ -570,10 +570,10 @@
       "cases": 8,
       "skipped_cases": 0,
       "declared_cases": 8,
-      "duration_s": 0.086,
+      "duration_s": 0.114,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_n2_coverage.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_n2_coverage.py",
       "missing_git_refs": []
     },
     {
@@ -584,10 +584,10 @@
       "cases": 5,
       "skipped_cases": 0,
       "declared_cases": 5,
-      "duration_s": 2.287,
+      "duration_s": 1.094,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_n3_contract.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_n3_contract.py",
       "missing_git_refs": []
     },
     {
@@ -598,10 +598,10 @@
       "cases": 8,
       "skipped_cases": 0,
       "declared_cases": 8,
-      "duration_s": 0.083,
+      "duration_s": 0.088,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_n4_session_match.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_n4_session_match.py",
       "missing_git_refs": []
     },
     {
@@ -612,10 +612,10 @@
       "cases": 8,
       "skipped_cases": 0,
       "declared_cases": 8,
-      "duration_s": 0.174,
+      "duration_s": 0.126,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_p1_unknown_state.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_p1_unknown_state.py",
       "missing_git_refs": []
     },
     {
@@ -626,10 +626,10 @@
       "cases": 9,
       "skipped_cases": 0,
       "declared_cases": 9,
-      "duration_s": 0.128,
+      "duration_s": 0.1,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_p2_coverage_consistency.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_p2_coverage_consistency.py",
       "missing_git_refs": []
     },
     {
@@ -640,10 +640,10 @@
       "cases": 7,
       "skipped_cases": 0,
       "declared_cases": 7,
-      "duration_s": 2.205,
+      "duration_s": 0.722,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_p3_contract_pick.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_p3_contract_pick.py",
       "missing_git_refs": []
     },
     {
@@ -654,10 +654,10 @@
       "cases": 12,
       "skipped_cases": 0,
       "declared_cases": 12,
-      "duration_s": 0.129,
+      "duration_s": 0.084,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_v2_01_coverage_domain.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_v2_01_coverage_domain.py",
       "missing_git_refs": []
     },
     {
@@ -668,10 +668,10 @@
       "cases": 7,
       "skipped_cases": 0,
       "declared_cases": 7,
-      "duration_s": 1.207,
+      "duration_s": 0.301,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round17_v2_04_payload_ttl.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round17_v2_04_payload_ttl.py",
       "missing_git_refs": []
     },
     {
@@ -682,10 +682,10 @@
       "cases": 27,
       "skipped_cases": 0,
       "declared_cases": 27,
-      "duration_s": 1.428,
+      "duration_s": 0.784,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round18_analysis_truth.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round18_analysis_truth.py",
       "missing_git_refs": []
     },
     {
@@ -696,10 +696,10 @@
       "cases": 31,
       "skipped_cases": 0,
       "declared_cases": 19,
-      "duration_s": 6.752,
+      "duration_s": 2.156,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_round18_sec_failopen.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_round18_sec_failopen.py",
       "missing_git_refs": []
     },
     {
@@ -710,10 +710,10 @@
       "cases": 18,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.427,
+      "duration_s": 0.066,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_run_pattern_scan.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_run_pattern_scan.py",
       "missing_git_refs": []
     },
     {
@@ -721,13 +721,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 82,
+      "cases": 81,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 22.695,
+      "duration_s": 8.763,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_security_batch01.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_security_batch01.py",
       "missing_git_refs": []
     },
     {
@@ -738,10 +738,10 @@
       "cases": 65,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 12.091,
+      "duration_s": 6.842,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_security_batch02.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_security_batch02.py",
       "missing_git_refs": []
     },
     {
@@ -752,10 +752,10 @@
       "cases": 16,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 128.512,
+      "duration_s": 5.955,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_security_bgstore.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_security_bgstore.py",
       "missing_git_refs": []
     },
     {
@@ -766,10 +766,10 @@
       "cases": 34,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 26.761,
+      "duration_s": 23.241,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_security_p0.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_security_p0.py",
       "missing_git_refs": []
     },
     {
@@ -780,10 +780,10 @@
       "cases": 9,
       "skipped_cases": 0,
       "declared_cases": 9,
-      "duration_s": 1.708,
+      "duration_s": 0.863,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_strategy_cap01.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_strategy_cap01.py",
       "missing_git_refs": []
     },
     {
@@ -794,10 +794,10 @@
       "cases": 9,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.074,
+      "duration_s": 0.09,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_tree_hygiene.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_tree_hygiene.py",
       "missing_git_refs": []
     },
     {
@@ -808,10 +808,10 @@
       "cases": 1,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.079,
+      "duration_s": 0.121,
       "reason": "فشل الاختبار (rc=1)",
-      "output_tail": "=== ربط Frontend/Backend على Flask حقيقي · http://127.0.0.1:8101 ===\n  ❌ دخول Pro بـPIN (Flask حقيقي) — فشل الدخول: {\"error\": \"\\u0627\\u0644\\u0645\\u0633\\u0627\\u0631 \\u062f\\u0647 \\u0645\\u0634 \\u0645\\u062a\\u0627\\u062d\", \"ok\": false, \"why\": \"direct_access\"}\nRESULT: FAIL (مفيش جلسة)",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/staging/test_flask_binding.py",
+      "output_tail": "=== ربط Frontend/Backend على Flask حقيقي · http://127.0.0.1:8103 ===\n  ❌ دخول Pro بـPIN (Flask حقيقي) — فشل الدخول: {\"error\": \"\\u0627\\u0644\\u0645\\u0633\\u0627\\u0631 \\u062f\\u0647 \\u0645\\u0634 \\u0645\\u062a\\u0627\\u062d\", \"ok\": false, \"why\": \"direct_access\"}\nRESULT: FAIL (مفيش جلسة)",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/staging/test_flask_binding.py",
       "missing_git_refs": []
     },
     {
@@ -822,10 +822,10 @@
       "cases": 63,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 6.597,
+      "duration_s": 6.426,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_data_integrity_guard.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_data_integrity_guard.py",
       "missing_git_refs": []
     },
     {
@@ -836,10 +836,10 @@
       "cases": 61,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 4.085,
+      "duration_s": 4.142,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_data_integrity_proofs_r24.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_data_integrity_proofs_r24.py",
       "missing_git_refs": []
     },
     {
@@ -850,10 +850,10 @@
       "cases": 77,
       "skipped_cases": 0,
       "declared_cases": 77,
-      "duration_s": 1.202,
+      "duration_s": 0.61,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_engines_filters_audit.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_engines_filters_audit.py",
       "missing_git_refs": []
     },
     {
@@ -864,10 +864,10 @@
       "cases": 39,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 11.092,
+      "duration_s": 4.949,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_peg_availability_r24.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_peg_availability_r24.py",
       "missing_git_refs": []
     },
     {
@@ -878,10 +878,10 @@
       "cases": 22,
       "skipped_cases": 0,
       "declared_cases": 4,
-      "duration_s": 8.074,
+      "duration_s": 7.026,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r25_clock_routes.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r25_clock_routes.py",
       "missing_git_refs": []
     },
     {
@@ -892,10 +892,10 @@
       "cases": 29,
       "skipped_cases": 0,
       "declared_cases": 5,
-      "duration_s": 34.045,
+      "duration_s": 30.681,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r25_concurrency.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r25_concurrency.py",
       "missing_git_refs": []
     },
     {
@@ -906,10 +906,10 @@
       "cases": 24,
       "skipped_cases": 0,
       "declared_cases": 3,
-      "duration_s": 9.599,
+      "duration_s": 7.917,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r25_fault_injection.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r25_fault_injection.py",
       "missing_git_refs": []
     },
     {
@@ -920,10 +920,10 @@
       "cases": 0,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.076,
+      "duration_s": 0.068,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r25_growth_truthfulness.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r25_growth_truthfulness.py",
       "missing_git_refs": []
     },
     {
@@ -934,10 +934,10 @@
       "cases": 50,
       "skipped_cases": 0,
       "declared_cases": 7,
-      "duration_s": 15.554,
+      "duration_s": 13.143,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r25_metrics_board.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r25_metrics_board.py",
       "missing_git_refs": []
     },
     {
@@ -948,10 +948,10 @@
       "cases": 23,
       "skipped_cases": 0,
       "declared_cases": 5,
-      "duration_s": 7.856,
+      "duration_s": 7.858,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r25_perf_latency.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r25_perf_latency.py",
       "missing_git_refs": []
     },
     {
@@ -962,10 +962,10 @@
       "cases": 39,
       "skipped_cases": 0,
       "declared_cases": 7,
-      "duration_s": 22.271,
+      "duration_s": 20.82,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r25_storage_durability.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r25_storage_durability.py",
       "missing_git_refs": []
     },
     {
@@ -976,10 +976,10 @@
       "cases": 7,
       "skipped_cases": 0,
       "declared_cases": 4,
-      "duration_s": 141.337,
+      "duration_s": 18.99,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r26_portfolio_atomicity.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r26_portfolio_atomicity.py",
       "missing_git_refs": []
     },
     {
@@ -990,10 +990,10 @@
       "cases": 279,
       "skipped_cases": 0,
       "declared_cases": 12,
-      "duration_s": 1.312,
+      "duration_s": 1.242,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r26_subscriptions.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r26_subscriptions.py",
       "missing_git_refs": []
     },
     {
@@ -1004,10 +1004,10 @@
       "cases": 2,
       "skipped_cases": 0,
       "declared_cases": 2,
-      "duration_s": 161.634,
+      "duration_s": 4.852,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r29_data_dir_probe_race.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r29_data_dir_probe_race.py",
       "missing_git_refs": []
     },
     {
@@ -1018,10 +1018,10 @@
       "cases": 9,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 1.034,
+      "duration_s": 0.456,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r29_scan_blocking.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r29_scan_blocking.py",
       "missing_git_refs": []
     },
     {
@@ -1032,10 +1032,10 @@
       "cases": 42,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 4.374,
+      "duration_s": 3.047,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r31_batch.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r31_batch.py",
       "missing_git_refs": []
     },
     {
@@ -1043,13 +1043,13 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 19,
+      "cases": 23,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.743,
+      "duration_s": 0.592,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r32_index_history_store.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r32_index_history_store.py",
       "missing_git_refs": []
     },
     {
@@ -1060,10 +1060,24 @@
       "cases": 1,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.079,
+      "duration_s": 0.047,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r32_leak_detector.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r32_leak_detector.py",
+      "missing_git_refs": []
+    },
+    {
+      "file": "tools/test_r32_manifest_rejection.py",
+      "status": "passed",
+      "gate_status": "passed",
+      "rc": 0,
+      "cases": 4,
+      "skipped_cases": 0,
+      "declared_cases": 0,
+      "duration_s": 0.302,
+      "reason": "",
+      "output_tail": "",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r32_manifest_rejection.py",
       "missing_git_refs": []
     },
     {
@@ -1074,10 +1088,10 @@
       "cases": 2,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 1.765,
+      "duration_s": 1.21,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r32_safe_writes.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r32_safe_writes.py",
       "missing_git_refs": []
     },
     {
@@ -1088,10 +1102,10 @@
       "cases": 0,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.187,
+      "duration_s": 0.251,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r32_scan_roots.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r32_scan_roots.py",
       "missing_git_refs": []
     },
     {
@@ -1102,10 +1116,24 @@
       "cases": 1,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.088,
+      "duration_s": 0.084,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_r32_secret_classification.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r32_secret_classification.py",
+      "missing_git_refs": []
+    },
+    {
+      "file": "tools/test_r32_secret_redaction.py",
+      "status": "passed",
+      "gate_status": "passed",
+      "rc": 0,
+      "cases": 9,
+      "skipped_cases": 0,
+      "declared_cases": 0,
+      "duration_s": 0.195,
+      "reason": "",
+      "output_tail": "",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_r32_secret_redaction.py",
       "missing_git_refs": []
     },
     {
@@ -1116,10 +1144,10 @@
       "cases": 0,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 0.812,
+      "duration_s": 0.088,
       "reason": "فشل الاختبار (rc=1)",
       "output_tail": "             ^^^^^^\n  File \"tools/test_round23_clean_clone.py\", line 448, in main\n    result[\"backend\"] = run_backend(pathlib.Path(args.backend_zip),\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"tools/test_round23_clean_clone.py\", line 305, in run_backend\n    src = extract_zip(zip_path, pathlib.Path(work) / \"zip\")\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"tools/test_round23_clean_clone.py\", line 192, in extract_zip\n    with zipfile.ZipFile(zip_path) as z:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.11/zipfile.py\", line 1300, in __init__\n    self.fp = io.open(file, filemode)\n              ^^^^^^^^^^^^^^^^^^^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/workspace/output/OCTA-ROUND23-BACKEND.zip'",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_round23_clean_clone.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_round23_clean_clone.py",
       "missing_git_refs": []
     },
     {
@@ -1130,10 +1158,10 @@
       "cases": 13,
       "skipped_cases": 0,
       "declared_cases": 13,
-      "duration_s": 0.138,
+      "duration_s": 0.111,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_round24_gold_gate_contract.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_round24_gold_gate_contract.py",
       "missing_git_refs": []
     },
     {
@@ -1144,10 +1172,10 @@
       "cases": 14,
       "skipped_cases": 0,
       "declared_cases": 14,
-      "duration_s": 2.62,
+      "duration_s": 1.659,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_round24_growth_source_audit.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_round24_growth_source_audit.py",
       "missing_git_refs": []
     },
     {
@@ -1158,10 +1186,10 @@
       "cases": 12,
       "skipped_cases": 0,
       "declared_cases": 12,
-      "duration_s": 0.673,
+      "duration_s": 0.279,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_round24_rel_volume_states.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_round24_rel_volume_states.py",
       "missing_git_refs": []
     },
     {
@@ -1172,10 +1200,10 @@
       "cases": 99,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 8.089,
+      "duration_s": 5.927,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_round26_api_tools_r26.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_round26_api_tools_r26.py",
       "missing_git_refs": []
     },
     {
@@ -1186,10 +1214,10 @@
       "cases": 60,
       "skipped_cases": 0,
       "declared_cases": 60,
-      "duration_s": 0.82,
+      "duration_s": 0.73,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py tools/test_round26_engines_r26.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py tools/test_round26_engines_r26.py",
       "missing_git_refs": []
     },
     {
@@ -1197,14 +1225,15 @@
       "status": "passed",
       "gate_status": "passed",
       "rc": 0,
-      "cases": 191,
+      "cases": 270,
       "skipped_cases": 0,
       "declared_cases": 0,
-      "duration_s": 7.423,
+      "duration_s": 7.242,
       "reason": "",
       "output_tail": "",
-      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_guq8a2b4/child.py test_signup_flow.py",
+      "command": "/workspace/.venv_be/bin/python /tmp/octa_ci_child_ddz7hb2o/child.py test_signup_flow.py",
       "missing_git_refs": []
     }
-  ]
+  ],
+  "candidate_sha_note": "⭐⭐⭐ (R32 · e) ⭐⭐⭐ تصحيح ⭐⭐⭐: ⭐⭐⭐ الحقل ⭐⭐⭐ كان ⭐⭐⭐ متظبّط ⭐⭐⭐ من ⭐⭐⭐ ⭐⭐⭐ متغيّر ⭐⭐⭐ بيئة ⭐⭐⭐ قديم ⭐⭐⭐ ⭐⭐⭐ ⇒ ⭐⭐⭐ القيمته ⭐⭐⭐ الصحيحة ⭐⭐⭐ = ⭐⭐⭐ HEAD ⭐⭐⭐ المستودع ⭐⭐⭐ وقت ⭐⭐⭐ التشغيل ⭐⭐⭐ (المسجّل ⭐⭐⭐ في ⭐⭐⭐ ⭐⭐⭐ candidate_sha.txt ⭐⭐⭐) ⭐⭐⭐ ⭐⭐⭐ والبرهان ⭐⭐⭐: ⭐⭐⭐ حارس ⭐⭐⭐ ⭐⭐⭐ نظافة ⭐⭐⭐ الكود ⭐⭐⭐ نجح ⭐⭐⭐ في ⭐⭐⭐ هذه ⭐⭐⭐ الجولة ⭐⭐⭐ ⭐⭐⭐ ⭐ (نجاحه ⭐⭐⭐ ⭐⭐⭐ متوقف ⭐⭐⭐ على ⭐⭐⭐ إصلاح ⭐⭐⭐ النص ⭐⭐⭐) ⭐⭐⭐ ⭐⭐⭐"
 }

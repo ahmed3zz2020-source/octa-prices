@@ -1,0 +1,515 @@
+{
+  "base": "https://octa-preview.local.test:8792",
+  "at": "2026-11-23T03:44:19.502Z",
+  "gate": {
+    "pad": true,
+    "codeAsked": false,
+    "codeFilled": false,
+    "newpin": false,
+    "done": false
+  },
+  "gold": {
+    "open": false,
+    "tabs": [],
+    "fullscreenBtn": false,
+    "picker": false,
+    "shotBtn": false,
+    "chart": false,
+    "supportResistance": false,
+    "events": false,
+    "errorShown": false,
+    "body": ""
+  },
+  "nav": {
+    "steps": [
+      {
+        "step": "الأسهم",
+        "found": false
+      },
+      {
+        "step": "الفرص",
+        "found": false
+      },
+      {
+        "step": "المقارنة",
+        "found": false
+      }
+    ],
+    "ok": false
+  },
+  "matrix": [
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "overflow": 2,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 756,
+      "overflowList": [
+        {
+          "tag": "NAV",
+          "id": "",
+          "cls": "pm-nav",
+          "w": 193,
+          "left": -16,
+          "right": 177
+        },
+        {
+          "tag": "A",
+          "id": "",
+          "cls": "pm-btn pm-btn-gold",
+          "w": 131,
+          "left": -16,
+          "right": 115
+        }
+      ],
+      "smallList": []
+    },
+    {
+      "width": 360,
+      "scrollWidth": 360,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 756,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 756,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 414,
+      "scrollWidth": 414,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 756,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 768,
+      "scrollWidth": 768,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 836,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 899,
+      "scrollWidth": 899,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 836,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 900,
+      "scrollWidth": 900,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 836,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 1024,
+      "scrollWidth": 1024,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 836,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 1280,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 836,
+      "overflowList": [],
+      "smallList": []
+    },
+    {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "overflow": 0,
+      "clipped": 0,
+      "smallTargets": 0,
+      "checked": 836,
+      "overflowList": [],
+      "smallList": []
+    }
+  ],
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "api_log": [
+    {
+      "status": 200,
+      "path": "/api/health",
+      "body": {
+        "ok": true,
+        "source": "preview-isolated"
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/auth/pin/login",
+      "body": {
+        "ok": false,
+        "error": "الباسورد غلط أو الجهاز مش مسجّل",
+        "why": "bad_pin_or_device"
+      }
+    },
+    {
+      "status": 200,
+      "path": "/api/health",
+      "body": null
+    },
+    {
+      "status": 401,
+      "path": "/api/auth/me",
+      "body": null
+    },
+    {
+      "status": 200,
+      "path": "/api/quotes?market=egypt",
+      "body": {
+        "ok": true,
+        "updated": 1795123110,
+        "preview_note": "معاينة معزولة ⭐ — الأرقام من لقطة المعاينة ⭐ ومفيش اتصال بالإنتاج ⭐"
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/portfolio",
+      "body": {
+        "ok": false,
+        "error": "محتاج تسجيل دخول",
+        "why": "unauthorized"
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/portfolio",
+      "body": {
+        "ok": false,
+        "error": "محتاج تسجيل دخول",
+        "why": "unauthorized"
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/alerts",
+      "body": {
+        "ok": false,
+        "error": "محتاج تسجيل دخول",
+        "why": "unauthorized"
+      }
+    },
+    {
+      "status": 401,
+      "path": "/api/alerts/state",
+      "body": {
+        "ok": false,
+        "error": "محتاج تسجيل دخول",
+        "why": "unauthorized"
+      }
+    }
+  ],
+  "results": [
+    {
+      "name": "gate · الدخول (لوحة الأرقام ⭐ ثم التطبيق ⭐)",
+      "ok": false,
+      "detail": {
+        "url": "/gate.html",
+        "registered": false,
+        "codeAsked": false,
+        "codeFilled": false,
+        "newpinAsked": false
+      }
+    },
+    {
+      "name": "gold · المودال اتفتح",
+      "ok": false,
+      "detail": {
+        "tabs": []
+      }
+    },
+    {
+      "name": "gold · التبويبات (السرد/الادخار)",
+      "ok": false,
+      "detail": {
+        "tabs": []
+      }
+    },
+    {
+      "name": "gold · زر ملء الشاشة موجود",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "gold · أداة الاختيار (التكبير/الرمز) موجودة",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "gold · زر اللقطة موجود",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "gold · الشارت موجود",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "gold · الدعم والمقاومة ظاهرين",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "gold · الأحداث ظاهرة",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "gold · تبويب الادخار اشتغل",
+      "ok": false,
+      "detail": null
+    },
+    {
+      "name": "gold · المودال المصري اتفتح",
+      "ok": false,
+      "detail": {
+        "error": "openEgyGold_missing"
+      }
+    },
+    {
+      "name": "gold · الشارت الخطي مرسوم (بيانات فعلية ⭐)",
+      "ok": false,
+      "detail": {
+        "canvas": 0,
+        "price": ""
+      }
+    },
+    {
+      "name": "gold · الفترات موجودة ⭐",
+      "ok": false,
+      "detail": {
+        "periods": []
+      }
+    },
+    {
+      "name": "gold · تبديل الفترة ⭐ يعيد الرسم ⭐",
+      "ok": false,
+      "detail": {
+        "active": ""
+      }
+    },
+    {
+      "name": "gold · التكبير ⭐ (عجلة فوق الشارت ⭐)",
+      "ok": false,
+      "detail": {}
+    },
+    {
+      "name": "gold · مناطق الدعم والمقاومة ⭐",
+      "ok": false,
+      "detail": {
+        "zones": 0
+      }
+    },
+    {
+      "name": "gold · العوامل ⭐",
+      "ok": false,
+      "detail": {
+        "chars": 0
+      }
+    },
+    {
+      "name": "gold · تفكيك التغيّر ⭐",
+      "ok": false,
+      "detail": {
+        "chars": 0
+      }
+    },
+    {
+      "name": "gold · أحداث الهيكل ⭐ (بيانات فعلية ⭐)",
+      "ok": false,
+      "detail": {
+        "events": 0
+      }
+    },
+    {
+      "name": "gold · ملء الشاشة ⭐",
+      "ok": false,
+      "detail": {
+        "cls": ""
+      }
+    },
+    {
+      "name": "app · المحفظة (كتابة ⭐ + قراءة ⭐)",
+      "ok": false,
+      "detail": {
+        "write": 401,
+        "read": 401,
+        "cash": null
+      }
+    },
+    {
+      "name": "app · التنبيهات (إضافة ⭐ + حالة ⭐)",
+      "ok": false,
+      "detail": {
+        "add": 401,
+        "state": 401,
+        "count": 0
+      }
+    },
+    {
+      "name": "app · ذراع المحفظة ⭐",
+      "ok": false,
+      "detail": {}
+    },
+    {
+      "name": "app · ذراع الفرص ⭐",
+      "ok": false,
+      "detail": {}
+    },
+    {
+      "name": "app · الخروج ⭐",
+      "ok": false,
+      "detail": {
+        "logout": 401
+      }
+    },
+    {
+      "name": "app · بعد الخروج ⭐ مافيش جلسة ⭐ (401 ⭐)",
+      "ok": true,
+      "detail": {
+        "me": 401
+      }
+    },
+    {
+      "name": "gold · فشل المصدر ⇒ رسالة خطأ واضحة (مش نجاح وهمي)",
+      "ok": false,
+      "detail": {}
+    },
+    {
+      "name": "nav · رحلة التنقل (أسهم ⭐ فرص ⭐ مقارنة ⭐)",
+      "ok": false,
+      "detail": {
+        "steps": [
+          {
+            "step": "الأسهم",
+            "found": false
+          },
+          {
+            "step": "الفرص",
+            "found": false
+          },
+          {
+            "step": "المقارنة",
+            "found": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "nav · الرجوع للرئيسية",
+      "ok": false,
+      "detail": {
+        "ok": false,
+        "hash": ""
+      }
+    },
+    {
+      "name": "responsive · مافيش تمرير أفقي مقصود في ١٠ عروض",
+      "ok": false,
+      "detail": {
+        "overflowing": [
+          320
+        ]
+      }
+    },
+    {
+      "name": "responsive · مافيش قص أفقي",
+      "ok": true,
+      "detail": {
+        "widths": [
+          {
+            "w": 320,
+            "sw": 320
+          },
+          {
+            "w": 360,
+            "sw": 360
+          },
+          {
+            "w": 390,
+            "sw": 390
+          },
+          {
+            "w": 414,
+            "sw": 414
+          },
+          {
+            "w": 768,
+            "sw": 768
+          },
+          {
+            "w": 899,
+            "sw": 899
+          },
+          {
+            "w": 900,
+            "sw": 900
+          },
+          {
+            "w": 1024,
+            "sw": 1024
+          },
+          {
+            "w": 1280,
+            "sw": 1280
+          },
+          {
+            "w": 1440,
+            "sw": 1440
+          }
+        ]
+      }
+    },
+    {
+      "name": "responsive · أهداف اللمس (≥40px) سليمة في كل عرض",
+      "ok": true,
+      "detail": {
+        "offenders": []
+      }
+    }
+  ],
+  "passed": 3,
+  "total": 32
+}
