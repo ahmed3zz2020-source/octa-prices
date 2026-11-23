@@ -2,43 +2,43 @@
   "round": "R32",
   "rc": "RC-R32-001",
   "candidate": {
-    "backend_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+    "backend_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
     "frontend_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-    "ci_sha": "1e4f210f113d4027af17eafe87997ae93e1c8432",
+    "ci_sha": "16137481ef13e0efebd65c7df38a23203a7bb4b4",
     "ci_fe_sha": "03fe991b685f422594fe7923872a4420d5f03177"
   },
   "packages": [
     {
-      "bytes": 1723992,
-      "md5": "8932cc2a3405c87bb8d75827e2475cc2",
-      "sha256": "26c52ce231c7554e4e63ef1aff3a794d63219e24849f517b9eb05dd3720d5943",
+      "bytes": 1725665,
+      "md5": "08592aba048898e19f855692be9426b3",
+      "sha256": "f3836ffb2fb30c4724cf4ad6ecb71719b8045f907d75a7c1483f42e5eaef2d70",
       "chunks": 2,
       "zip": "OCTA-ROUND32-BACKEND.zip",
       "files": 216
     },
     {
-      "bytes": 8330333,
-      "md5": "858c65b4bc18be8ff73c3a71d37cfe57",
-      "sha256": "0a28bfb96e659996e995759a0d0da4d6bde59cbf80f7782560915d07020d6518",
-      "chunks": 8,
+      "bytes": 8470100,
+      "md5": "57a7f492a830eaf8ec4b58087e3db19d",
+      "sha256": "eb958f514afbe426480bca181b0370c9c636e15590c529719637038ee42044da",
+      "chunks": 9,
       "zip": "OCTA-ROUND32-FRONTEND.zip",
-      "files": 527
+      "files": 532
     },
     {
-      "bytes": 1603857,
-      "md5": "f2e03c7234baf7d29d35281e37f0e76b",
-      "sha256": "a6dc14a036ce910a310de06c4f94f173b28c762ac30c84d63c5ba59fe98e4f2c",
+      "bytes": 1603856,
+      "md5": "105523478b8d0bf1a1d8323bd27d83da",
+      "sha256": "da9a3b9d7ca355bdea147e4b08a8905a5af7ea73c2b042181188b877a1e7a6a3",
       "chunks": 2,
       "zip": "OCTA-ROUND32-CI.zip",
       "files": 196
     },
     {
-      "bytes": 11685323,
-      "md5": "fca3613bf5629f625f6dfd3864ca81cc",
-      "sha256": "67e17da5c50a7d6af05a7b3aa6f7d83564ddd091e52e1006e14ec40909a1b31d",
+      "bytes": 11824440,
+      "md5": "2d9440ac60b8874b5159e52fca965d07",
+      "sha256": "6b5ac052632b35aaba097a97d587a37c2f238ecc90917e4d35cfcadfd1f617f3",
       "chunks": 12,
       "zip": "OCTA-ROUND32-DELIVERY.zip",
-      "files": 25
+      "files": 22
     }
   ]
 }

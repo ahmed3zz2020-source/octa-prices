@@ -1,7 +1,7 @@
 {
   "rc_id": "RC-R32-001",
   "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-  "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+  "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
   "items_total": 144,
   "points": 3450,
   "points_max": 3600,
@@ -29,7 +29,7 @@
       "files": 87
     },
     "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-    "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+    "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
   },
   "environment_blocked": {
     "count": 1,
@@ -54,7 +54,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -92,7 +92,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -122,7 +122,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -152,7 +152,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -182,7 +182,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -236,7 +236,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -267,7 +267,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -303,7 +303,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -333,7 +333,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -369,7 +369,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -417,7 +417,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -436,7 +436,7 @@
             "ref": "journey_preview_r32",
             "status": "ناجح",
             "sha256": "1f2b2a60a19d1d76e495052ceb4ed6952e15ef75aa75d9419c59d8b5ea0a18b6",
-            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7e32b8d ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
+            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7d298c6 ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
           },
           {
             "kind": "art",
@@ -458,7 +458,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -515,7 +515,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -566,7 +566,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -611,7 +611,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -642,7 +642,7 @@
             "ref": "ci_workflow_sim",
             "status": "ناجح",
             "sha256": "f709897b71f61510ef17f1bdcb127a08335e854fb1b8f51642f5ea5712e84549",
-            "note": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7e32b8d ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سليم ⭐⭐ ⇒ **SIM PASS** ⭐⭐ ⇒ FE ⭐: octa ⭐ + ci/octa-ci-r28-fe ⭐ + المرشح 70ba520 ⭐ ⇒ نفس التسلسل ⭐ ⇒ **S"
+            "note": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7d298c6 ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سليم ⭐⭐ ⇒ **SIM PASS** ⭐⭐ ⇒ FE ⭐: octa ⭐ + ci/octa-ci-r28-fe ⭐ + المرشح 70ba520 ⭐ ⇒ نفس التسلسل ⭐ ⇒ **S"
           }
         ]
       }
@@ -657,7 +657,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -695,7 +695,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -725,7 +725,7 @@
       "blocking_reason": "",
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -782,11 +782,11 @@
       "success_condition": "خريطة المستودعات تطابق مكونات الواجهة والباك وWorker وكل نقاط الدخول مع SHA وmanifest.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -829,11 +829,11 @@
       "success_condition": "أزل bundle أو غيّر ref؛ يجب رفض المرشح وعدم تسجيل نجاح.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -876,11 +876,11 @@
       "success_condition": "استخرج الحزم في مجلد نظيف وتحقق من تطابق الشجرة والبناء واعتمادياتها دون نشر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -917,11 +917,11 @@
       "success_condition": "وثق أوامر الاسترجاع، الفروق والملفات المشمولة ونتيجة الحارس قبل وبعد.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -958,11 +958,11 @@
       "success_condition": "الدخول إلى صفحة وأداة محمية يتطلب جلسة موقعة وصالحة وتتحقق API من السلطة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1010,11 +1010,11 @@
       "success_condition": "كوكي فارغ/مزور/منتهي أو طلب مباشر بلا proxy صالح يرفض بلا بيانات داخلية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1062,11 +1062,11 @@
       "success_condition": "Worker + Flask حقيقيان: دخول صناعي ثم طلب محمي عبر المسار الصحيح؛ اختبر الرفض المباشر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1114,11 +1114,11 @@
       "success_condition": "سجل HTTP منقح واختبارات انحدار لمسارات التشخيص والبوابة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1166,11 +1166,11 @@
       "success_condition": "تسجيل واسترجاع PIN وOTP صناعيان يعملان حسب السياسة المعتمدة؛ البصمة القديمة تظل مغلقة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1205,11 +1205,11 @@
       "success_condition": "OTP خاطئ أو منتهي أو مستخدم سابقًا لا يعمل؛ PIN جديد يبطل التوكن القديم؛ لا أكواد خام في التخزين.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1244,11 +1244,11 @@
       "success_condition": "رحلة حساب جديد ثم استرجاعه في متصفح حقيقي ومزود رسائل صناعي دون إرسال فعلي.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1283,11 +1283,11 @@
       "success_condition": "أرفق اختبار فشل/نجاح ومراجعة سياسة الاسترجاع؛ لا تغير المسار المؤجل دون قرار.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1322,11 +1322,11 @@
       "success_condition": "إصدار جلسة بمدة صحيحة وخصائص كوكي مناسبة والتأكد من إبطالها عند الخروج.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1376,11 +1376,11 @@
       "success_condition": "إعادة استخدام توكن قديم بعد logout أو تغيير epoch أو PIN مرفوضة؛ فشل الإبطال لا يعرض نجاحًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1430,11 +1430,11 @@
       "success_condition": "اختبر تبويبين ومتصفحًا حقيقيًا وAPI عبر Worker؛ تحقق من صلاحيات الجلسة بعد الخروج.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1484,11 +1484,11 @@
       "success_condition": "وثق خصائص الكوكي دون قيمة سرية واختبارات المدة وفشل التخزين.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1538,11 +1538,11 @@
       "success_condition": "Free/Pro/expired/admin يكتسبون فقط الأذونات وفق جدول باقات معتمد.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1577,11 +1577,11 @@
       "success_condition": "حساب A لا يقرأ أو يغير حساب B؛ UID مزيف أو خطة منتهية أو مجهولة لا ترفع الصلاحية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1616,11 +1616,11 @@
       "success_condition": "حسابان صناعيان على Flask وWorker: عرض المحفظة والتنبيه والإدارة لكل دور.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1655,11 +1655,11 @@
       "success_condition": "سجل مصفوفة الأدوار والمسارات ونتائج منع الوصول لكل حالة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1694,11 +1694,11 @@
       "success_condition": "API يطبق schema وحدود الحقول والأحجام وحالات HTTP لكل مسار.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1733,11 +1733,11 @@
       "success_condition": "CSRF وorigin غير مسموح وNaN وJSON تالف وحمولة كبيرة ترفض دون أثر كتابة أو كشف بيانات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1772,11 +1772,11 @@
       "success_condition": "طلبات HTTP فعلية من Worker ومتصفح بأصول مسموحة وغير مسموحة؛ صفر اتصال مدفوع في الاختبار.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1811,11 +1811,11 @@
       "success_condition": "وثق مصفوفة CORS/CSRF ونتائج validation وحدود AI المعتمدة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1850,11 +1850,11 @@
       "success_condition": "محتوى المستخدم يعرض كنص آمن؛ الأصول العامة لا تحوي بيانات حساب أو snapshots محظورة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1913,11 +1913,11 @@
       "success_condition": "نص XSS صناعي لا ينفذ؛ ذاكرة التخزين المشتركة لا تعرض بيانات مستخدم سابق أو ملفات محمية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -1976,11 +1976,11 @@
       "success_condition": "اختبر متصفحين وكاش وService Worker وmanifest الإنتاج في معاينة مصرح بها فقط.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2039,11 +2039,11 @@
       "success_condition": "أدلة CSP والكاش وتدقيق dist؛ تطبيق CSP الفعلي يحتاج قرارًا منفصلًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2102,11 +2102,11 @@
       "success_condition": "اعتماد خريطة GitHub/Railway/Cloudflare وسياسات أقل صلاحية وفصل الأسرار لكل بيئة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2116,7 +2116,7 @@
             "ref": "secret_scan",
             "status": "ناجح",
             "sha256": "33f5b95b5002afe934d4064876045c461fc76614ca95ec24ff61890f86d3e18c",
-            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7e32b8d ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
+            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7d298c6 ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
           },
           {
             "kind": "art",
@@ -2143,11 +2143,11 @@
       "success_condition": "غياب سر مطلوب أو KV خطأ يمنع المرور؛ لا أسرار أو PII في الأدلة أو الأصول العامة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2157,7 +2157,7 @@
             "ref": "secret_scan",
             "status": "ناجح",
             "sha256": "33f5b95b5002afe934d4064876045c461fc76614ca95ec24ff61890f86d3e18c",
-            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7e32b8d ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
+            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7d298c6 ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
           },
           {
             "kind": "art",
@@ -2184,11 +2184,11 @@
       "success_condition": "تحقق قراءة فقط من رؤوس الفروع وهوية الخدمة وفصل preview/prod؛ لا تغيير إعدادات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2198,7 +2198,7 @@
             "ref": "secret_scan",
             "status": "ناجح",
             "sha256": "33f5b95b5002afe934d4064876045c461fc76614ca95ec24ff61890f86d3e18c",
-            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7e32b8d ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
+            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7d298c6 ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
           },
           {
             "kind": "art",
@@ -2225,11 +2225,11 @@
       "success_condition": "وثق قائمة الأسرار بالأسماء فقط وملكية الحماية وخطة التعرض والتدوير المصرح بها.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2239,7 +2239,7 @@
             "ref": "secret_scan",
             "status": "ناجح",
             "sha256": "33f5b95b5002afe934d4064876045c461fc76614ca95ec24ff61890f86d3e18c",
-            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7e32b8d ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
+            "note": "مسح الأسرار ⭐⭐: ⭐⭐ (أ) ⭐⭐ مسح ⭐⭐ كامل ⭐⭐ (كائنات ⭐⭐ git ⭐⭐ + شجرة ⭐⭐ العمل ⭐⭐) ⭐⭐ على ⭐⭐ ٣ ⭐⭐ مستودعات ⭐⭐ ببصمات ⭐⭐ مثبّتة ⭐⭐ (BE 330b2e1 ⭐ · FE 70ba520 ⭐ · CI 552764f ⭐) ⭐⭐ ⇒ **0 تسرّب حقيقي** ⭐⭐ ⭐ ⇒ (ب) ⭐⭐ **دلتا ⭐⭐ R32-e ⭐⭐** ⭐⭐ ⭐: ⭐⭐ ١٠ ⭐⭐ ملفات ⭐⭐ جديدة/معدّلة ⭐⭐ (BE 7d298c6 ⭐⭐: index_history_store.py ⭐ + tools/test_r32_index_history_store.py ⭐⭐ + update_prices.py ⭐ + pattern_daily.py ⭐ + too"
           },
           {
             "kind": "art",
@@ -2266,11 +2266,11 @@
       "success_condition": "Flask/Werkzeug وWorker حقيقيان ببيانات صناعية ومجلد مؤقت وعزل شبكة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2306,11 +2306,11 @@
       "success_condition": "صفر محاولة Thread.start غير مصرح بها؛ منع egress؛ proxy مفقود/خاطئ يرفض حسب عقد البيئة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2346,11 +2346,11 @@
       "success_condition": "اختبر مصادقة وعزل A/B وCSRF وepoch وأدوار Free/Pro/expired في staging مستقل بلا tunnel.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2386,11 +2386,11 @@
       "success_condition": "أرفق نتائج HTTP وأدلة العزل ومنع الاتصال وقائمة المهام؛ المحاكي لا يكفي.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2426,11 +2426,11 @@
       "success_condition": "قراءة وكتابة متسقة من طبقة التخزين ومسارات الصحة مع نموذج أعطال موثق.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2465,11 +2465,11 @@
       "success_condition": "فشل كتابة أو قفل أو ملف ناقص لا يضيع آخر حالة صحيحة ولا يرجع نجاحًا كاذبًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2504,11 +2504,11 @@
       "success_condition": "تحميل صناعي متزامن من عاملين ثم إعادة تشغيل ومقارنة الحالة المرجعية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2556,11 +2556,11 @@
       "success_condition": "وثق نموذج البيانات وتتبع أخطاء القراءة/الكتابة واختبارات التراجع.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2595,11 +2595,11 @@
       "success_condition": "السعر يحمل زمن صفقة ومصدرًا وعمرًا صحيحًا؛ 100% فقط complete وعدد/نسبة متوافقان.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2640,11 +2640,11 @@
       "success_condition": "دفعة قديمة/unknown أو مستقبلية أو متوقفة لا توصف live؛ 0/0 و110/100 و90% مع 895/1000 ترفض التعارض.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2685,11 +2685,11 @@
       "success_condition": "ساعة صناعية عبر المسارات الخمسة ثم توقف التحديث؛ طابق الصف مع حالة الدفعة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2730,11 +2730,11 @@
       "success_condition": "أرفق fixtures لحالات fresh/stale/unavailable والتغطية وحدود الزمن.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2775,11 +2775,11 @@
       "success_condition": "المهام المصرح بها تعمل وفق الجدولة وبلا تنفيذ مكرر لنفس المفتاح.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2814,11 +2814,11 @@
       "success_condition": "تزامن عمليتين وتهيئة مكررة وoff لا يسببان تكرار أو بدء مهمة غير مصرح بها.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2853,11 +2853,11 @@
       "success_condition": "عاملان صناعيان، فشل مهمة ثم restart؛ تحقق من idempotency وأقفال البيانات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2892,11 +2892,11 @@
       "success_condition": "سجل عدد التنفيذ والمهام وحالات الانتقال دون تفاصيل حساسة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2931,11 +2931,11 @@
       "success_condition": "مهلة وretry محدودان؛ فشل مصدر لا يحجب مصدرًا مستقلاً.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -2970,11 +2970,11 @@
       "success_condition": "مهلة أو 429 أو 5xx أو رد تالف لا يسبب حلقة طلبات أو إعادة POST غير idempotent.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3009,11 +3009,11 @@
       "success_condition": "حقن أعطال متدرجة ثم عودة المصدر؛ تحقق من عدم مسح الحالة الصحيحة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3048,11 +3048,11 @@
       "success_condition": "أرفق timeline وزمن الاستعادة وعدد الطلبات وسبب كل retry.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3087,11 +3087,11 @@
       "success_condition": "حفظ ذري ونسخ احتياطي صالح مع رقم نسخة ووقت متسق.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3126,11 +3126,11 @@
       "success_condition": "اسقط العملية أثناء الحفظ أو قدم backup تالفًا؛ لا استبدال للنسخة الصحيحة أو نجاح كاذب.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3165,11 +3165,11 @@
       "success_condition": "استرجع نسخة صناعية في بيئة مستقلة وطابق checksum والسجلات والحسابات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3204,11 +3204,11 @@
       "success_condition": "وثق زمن وفجوة الاسترجاع مقابل RTO/RPO المقترحين بعد اعتماد المالك.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3243,11 +3243,11 @@
       "success_condition": "لكل قيمة مالية مصدر وتوقيت ووحدة؛ ترتيب fallback حسب سياسة معتمدة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3282,11 +3282,11 @@
       "success_condition": "تعارض مصدرين أو غياب مصدر أو توقيت مزور لا يصنع قيمة حديثة أو مصدرًا وهميًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3321,11 +3321,11 @@
       "success_condition": "قارن عينة ثابتة من مصادر موثوقة مصرح بها مع العرض والـAPI في الوقت نفسه.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3360,11 +3360,11 @@
       "success_condition": "أرفق جدول المصدر/التوقيت والفروق مع حدود التقريب المعتمدة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3399,11 +3399,11 @@
       "success_condition": "رموز الأسهم وأسماء الشركات ومكونات المؤشرات تطابق مرجعًا بتاريخ سريان واضح.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3438,11 +3438,11 @@
       "success_condition": "رمز محذوف/مكرر/مشابه أو سهم موقوف لا يعين إلى شركة خاطئة أو يختفي بلا تفسير.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3477,11 +3477,11 @@
       "success_condition": "مطابقة عينة وقائمة الكون المرجعية مع البحث والفلاتر والمقارنة بنفس تاريخ البيانات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3516,11 +3516,11 @@
       "success_condition": "أرفق diff قائمة الرموز والمكونات والاستثناءات الموثقة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3555,11 +3555,11 @@
       "success_condition": "المؤشرات والعملات والذهب تستخدم EGP/USD الصحيح وعيار 21/24 وسعر جرام موثق.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3600,11 +3600,11 @@
       "success_condition": "انعكاس زوج العملة أو اختلاف وحدة الأونصة/الجرام أو قيمة غائبة لا ينتج رقمًا مضللًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3645,11 +3645,11 @@
       "success_condition": "طابق عينة من الأسعار والحسابات المرجعية مع البطاقة والشارت ووقت الجلسة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3690,11 +3690,11 @@
       "success_condition": "أرفق golden fixtures وتحويلات وحدات مستقلة وحدود التقريب.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3735,11 +3735,11 @@
       "success_condition": "RealView يقارن العوائد بالجنيه والدولار على نافذة وتواريخ مشتركة وبتركيب صحيح.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3780,11 +3780,11 @@
       "success_condition": "تاريخ ناقص أو صفر سعر أساس أو split بلا معالجة لا يولد عائدًا وهميًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3825,11 +3825,11 @@
       "success_condition": "بيانات صناعية: سهم 100→120 ودولار 50→60، عائد بالجنيه 20% وبالدولار 0%؛ تحقق API والشارت.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3870,11 +3870,11 @@
       "success_condition": "أرفق حسابًا مستقلًا وفترات المقارنة ومصدر تقويم الجلسات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3915,11 +3915,11 @@
       "success_condition": "حالات fresh/stale/unknown/unavailable ظاهرة بالتوقيت الصحيح في كل الأدوات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -3960,11 +3960,11 @@
       "success_condition": "NaN أو missing أو مستقبل زمني أو توقف دورة لا يتحول لصفر أو ختم حديث.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4005,11 +4005,11 @@
       "success_condition": "توقف دورة الأسعار مع ساعة متحكم بها؛ راجع الواجهة والـAPI لكل حالة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4050,11 +4050,11 @@
       "success_condition": "أرفق مصفوفة الحالات والحقول ومسارات freshness الخمسة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4095,11 +4095,11 @@
       "success_condition": "المؤشرات الفنية والأساسية تطابق أمثلة مستقلة ومقارنة تعريفات EPS وP/E وPEG.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4134,11 +4134,11 @@
       "success_condition": "خسارة أو EPS صفري أو فترة ناقصة لا يظهر مضاعفًا صالحًا أو توصية مضللة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4173,11 +4173,11 @@
       "success_condition": "قارن fixtures حسابية عبر محرك التحليل وبطاقة التفسير لنفس السهم والفترة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4212,11 +4212,11 @@
       "success_condition": "وثق المعادلة والمدخلات والتقريب؛ لا تغير المنهجية دون قرار.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4251,11 +4251,11 @@
       "success_condition": "السيولة والمخاطر والمعنويات والأخبار لها تعريف ومصدر ودرجة قابلة للتفسير.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4308,11 +4308,11 @@
       "success_condition": "سيولة صفر ليست missing؛ خبر خطر أو معنويات سلبية أو مخاطر مجهولة لا تزيد التقييم بلا مبرر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4353,11 +4353,11 @@
       "success_condition": "قارن عينة أخبار صناعية ومدخلات سيولة ومخاطر مع المحرك والواجهة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4398,11 +4398,11 @@
       "success_condition": "أرفق golden cases للحدود والبيانات الناقصة وسياسة الخبر والمخاطر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4443,11 +4443,11 @@
       "success_condition": "إعادة تركيب الدرجة والثقة من المكونات تطابق الناتج والأوزان المعتمدة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4488,11 +4488,11 @@
       "success_condition": "مكوّن غائب أو NaN أو مكرر لا يرفع الدرجة أو يخلق يقينًا غير مستحق.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4533,11 +4533,11 @@
       "success_condition": "اعرض نفس العينة في الترتيب والتفسير والقرار النهائي؛ تطابق الحساب والشرح.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4578,11 +4578,11 @@
       "success_condition": "وثق نسخة الأوزان ومنهج الثقة وحالات التعارض دون تعديل سياسة الاستثمار.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4623,11 +4623,11 @@
       "success_condition": "فلتر 8 لكل تبويب يطبق شروطه وأفقه الصحيحين ويشرح أهلية السهم وترتيبه.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4662,11 +4662,11 @@
       "success_condition": "CFO وربح سالبان، حجم نسبي صفر، عائد سعر دون نمو ربح وNaN لا يمنحون تطابقًا خاطئًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4701,11 +4701,11 @@
       "success_condition": "قارن المسارات الخمسة والبطاقات ومعايير الفلتر حول 90% و100% وتوقف التحديث.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4740,11 +4740,11 @@
       "success_condition": "أرفق اختبار قبل/بعد لكل عيب R17، وإثبات تفسير التعارض بعرض 390px.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4779,11 +4779,11 @@
       "success_condition": "المحفظة الخاصة والملاءمة والقيم السوقية والتنبيه توافق عقد الحساب الواحد.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4818,11 +4818,11 @@
       "success_condition": "NaN أو حفظ فاشل أو تكرار إضافة لا ينتج نجاحًا أو صفوفًا مضاعفة أو تسريبًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4857,11 +4857,11 @@
       "success_condition": "A/B مع 10 أسهم/تبويب عند اعتماد الخاصية؛ إضافة وحذف وTP/SL عبر Telegram صناعي.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4896,11 +4896,11 @@
       "success_condition": "وثق توزيع الأصول والأسباب وتطابق المخزن الخاص والتنبيهات وعدم التكرار.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4935,11 +4935,11 @@
       "success_condition": "Backtest يستخدم نافذة فعلية ومعيارًا مشتركًا وبيانات point-in-time دون نظر للمستقبل.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -4980,11 +4980,11 @@
       "success_condition": "3 أيام لا تعيد 50 يومًا؛ غير المؤهل لا يدخل اللقطة؛ benchmark غائب ليس 0%.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5025,11 +5025,11 @@
       "success_condition": "قارن حالات تاريخية صناعية لمراحل 1M/3M/6M/1Y ومخرجات API والشارت والإحصاء.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5070,11 +5070,11 @@
       "success_condition": "أرفق منهج التكاليف والانحياز والبيانات والنتائج المرجعية؛ لا ادعاء عائد حقيقي بلا دليل.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5115,11 +5115,11 @@
       "success_condition": "الأدوات الأساسية والبحث والتنقل واضحة دون عناصر وهمية وإشارات تحميل مضللة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5138,7 +5138,7 @@
             "ref": "journey_preview_r32",
             "status": "ناجح",
             "sha256": "1f2b2a60a19d1d76e495052ceb4ed6952e15ef75aa75d9419c59d8b5ea0a18b6",
-            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7e32b8d ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
+            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7d298c6 ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
           },
           {
             "kind": "art",
@@ -5165,11 +5165,11 @@
       "success_condition": "لا طريق مسدود أو زر يوحي بوظيفة غير متاحة أو كشف خصائص مدفوعة دون حق.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5188,7 +5188,7 @@
             "ref": "journey_preview_r32",
             "status": "ناجح",
             "sha256": "1f2b2a60a19d1d76e495052ceb4ed6952e15ef75aa75d9419c59d8b5ea0a18b6",
-            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7e32b8d ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
+            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7d298c6 ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
           },
           {
             "kind": "art",
@@ -5215,11 +5215,11 @@
       "success_condition": "رحلة مستخدم من الرئيسية إلى الأسهم والذهب والفرص والمقارنة ثم العودة على الموبايل.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5238,7 +5238,7 @@
             "ref": "journey_preview_r32",
             "status": "ناجح",
             "sha256": "1f2b2a60a19d1d76e495052ceb4ed6952e15ef75aa75d9419c59d8b5ea0a18b6",
-            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7e32b8d ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
+            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7d298c6 ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
           }
         ]
       }
@@ -5258,11 +5258,11 @@
       "success_condition": "لقطات فعلية لكل حالة ومراجعة عدم تغيير الهوية والوظائف المعتمدة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5281,7 +5281,7 @@
             "ref": "journey_preview_r32",
             "status": "ناجح",
             "sha256": "1f2b2a60a19d1d76e495052ceb4ed6952e15ef75aa75d9419c59d8b5ea0a18b6",
-            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7e32b8d ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
+            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7d298c6 ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
           },
           {
             "kind": "art",
@@ -5308,11 +5308,11 @@
       "success_condition": "التسجيل والدخول والحساب والاشتراك تعرض نتيجة HTTP المصادق عليها فقط.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5374,11 +5374,11 @@
       "success_condition": "429 أو 200 HTML تالف لا يمسح الجلسة ولا يظهر نجاحًا؛ اشتراك منتهي لا يمر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5440,11 +5440,11 @@
       "success_condition": "تجربة تسجيل صناعية حقيقية ثم logout واسترجاع وPro/Free وفشل الشبكة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5506,11 +5506,11 @@
       "success_condition": "HAR منقح ولقطات وزمن الدخول؛ لا تعديل مسار الدخول المؤجل بغير موافقة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5572,11 +5572,11 @@
       "success_condition": "شارت الذهب المصري خطي عيار/جرام مع فترات يومية/أسبوعية/شهرية وزمن ومصدر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5632,11 +5632,11 @@
       "success_condition": "100→110 يعرض +10%، السعر الأقل يوصف أقل، فشل مصدر شقيق لا يحجب الذهب.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5674,11 +5674,11 @@
       "success_condition": "متصفح حقيقي: تبديل الفترات وملء الشاشة والـzoom وS/R والأحداث التاريخية وفشل المصدر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5688,7 +5688,7 @@
             "ref": "journey_preview_r32",
             "status": "ناجح",
             "sha256": "1f2b2a60a19d1d76e495052ceb4ed6952e15ef75aa75d9419c59d8b5ea0a18b6",
-            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7e32b8d ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
+            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7d298c6 ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
           },
           {
             "kind": "be",
@@ -5714,11 +5714,11 @@
       "success_condition": "أرفق fixtures وإعادة التحميل والكاش واللقطات؛ لا تعارض مع تطوير الذهب المستقل.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5753,11 +5753,11 @@
       "success_condition": "RTL، نص واضح وإعادة تدفق عند 200%، لا قص أو تمرير أفقي غير مقصود.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5807,11 +5807,11 @@
       "success_condition": "القائمة تغلق عند 900/1024/1099 بعد الاختيار؛ inert/aria وEscape وfocus trap صحيحة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5861,11 +5861,11 @@
       "success_condition": "متصفح حقيقي 360/390/768/899/900/1024/1099/1100/1280، لمس ولوحة مفاتيح وقارئ شاشة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5915,11 +5915,11 @@
       "success_condition": "لقطات وأدلة وصول واضحة وتقرير تحقق التباين؛ محاكاة JS غير كافية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -5985,11 +5985,11 @@
       "success_condition": "التحميل والخطأ والفراغ والتعافي صريحة، ونتيجة السهم الحالي فقط تظهر.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6033,11 +6033,11 @@
       "success_condition": "رد متأخر لسهم سابق يهمل؛ حد التزامن 6 لا يتجاوز؛ 204 لا يصنع 200.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6081,11 +6081,11 @@
       "success_condition": "محاكاة شبكة بطيئة/منقطعة بمتصفح حقيقي؛ تبديل الأسهم وإلغاء الطلبات والعودة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6129,11 +6129,11 @@
       "success_condition": "HAR منقح وعداد التزامن واستجابات HTTP الأصلية ونتائج التراجع.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6170,18 +6170,18 @@
       "weight": 35,
       "status": "ناجح",
       "earned": 35,
-      "actual_result": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7e32b8d ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سلي",
+      "actual_result": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7d298c6 ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سلي",
       "evidence": "art:ci_definitions (تم ⭐) · art:ci_gates_local (تم ⭐) · art:ci_digest_gate (تم ⭐) · art:ci_workflow_sim (تم ⭐)",
       "missing": "",
       "blocking_reason": "",
       "success_condition": "CI يشغل الاختبارات الفعلية للباك والواجهة والبناء والأمان ويمنع حزمة محظورة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6212,7 +6212,7 @@
             "ref": "ci_workflow_sim",
             "status": "ناجح",
             "sha256": "f709897b71f61510ef17f1bdcb127a08335e854fb1b8f51642f5ea5712e84549",
-            "note": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7e32b8d ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سليم ⭐⭐ ⇒ **SIM PASS** ⭐⭐ ⇒ FE ⭐: octa ⭐ + ci/octa-ci-r28-fe ⭐ + المرشح 70ba520 ⭐ ⇒ نفس التسلسل ⭐ ⇒ **S"
+            "note": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7d298c6 ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سليم ⭐⭐ ⇒ **SIM PASS** ⭐⭐ ⇒ FE ⭐: octa ⭐ + ci/octa-ci-r28-fe ⭐ + المرشح 70ba520 ⭐ ⇒ نفس التسلسل ⭐ ⇒ **S"
           }
         ]
       }
@@ -6225,18 +6225,18 @@
       "weight": 30,
       "status": "ناجح",
       "earned": 30,
-      "actual_result": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7e32b8d ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سلي",
+      "actual_result": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7d298c6 ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سلي",
       "evidence": "art:ci_definitions (تم ⭐) · art:ci_gates_local (تم ⭐) · art:ci_digest_gate (تم ⭐) · art:ci_workflow_sim (تم ⭐)",
       "missing": "",
       "blocking_reason": "",
       "success_condition": "اختبار فاشل عمدًا أو snapshot/test/fixture في dist يفشل بوابة المرشح.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6267,7 +6267,7 @@
             "ref": "ci_workflow_sim",
             "status": "ناجح",
             "sha256": "f709897b71f61510ef17f1bdcb127a08335e854fb1b8f51642f5ea5712e84549",
-            "note": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7e32b8d ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سليم ⭐⭐ ⇒ **SIM PASS** ⭐⭐ ⇒ FE ⭐: octa ⭐ + ci/octa-ci-r28-fe ⭐ + المرشح 70ba520 ⭐ ⇒ نفس التسلسل ⭐ ⇒ **S"
+            "note": "محاكاة كاملة ⭐⭐ لجولة الـCI ⭐⭐ على clones نظيفة ⭐⭐ من الفرعين البعيدين ⭐⭐ (نفس تسلسل GitHub Actions ⭐⭐ حرفياً ⭐⭐): ⇒ BE ⭐: octa-prices ⭐ + ci/octa-ci-r28 ⭐ + المرشح 7d298c6 ⭐ ⇒ fetch ⭐ + checkout ⭐ + بوابة بصمة المرشح ⭐ ⇒ PASS ⭐ + بوابة بصمة الأدوات ⭐ ⇒ PASS ⭐ (141058c5 ⭐) ⭐ + حارس البوّابات ⭐ ⇒ سليم ⭐⭐ ⇒ **SIM PASS** ⭐⭐ ⇒ FE ⭐: octa ⭐ + ci/octa-ci-r28-fe ⭐ + المرشح 70ba520 ⭐ ⇒ نفس التسلسل ⭐ ⇒ **S"
           }
         ]
       }
@@ -6287,11 +6287,11 @@
       "success_condition": "تجربة CI معزولة لكل SHA ونتائج فشل/نجاح؛ تحقق required checks دون تغيير الإعدادات.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6301,21 +6301,21 @@
             "ref": "gate_a5",
             "status": "ناجح",
             "sha256": "938c8d0b53a88b0ae064049a32718c9757d93b751454573458df9d1d4bacf0fd",
-            "note": "بوابة A5 ⭐⭐ (شجرة نظيفة ⭐: تثبيت ⭐ + بناء ⭐ + اختبار تكامل ⭐) ⭐⭐ ⇒ 11/11 ⭐⭐ على بصمة 7e32b8d ⭐⭐ (بناء ⭐⭐ الشجرة ⭐⭐ النظيفة ⭐⭐ + test_data_full_route.py ⭐⭐ + test_index_api.py ⭐⭐ ⭐ — ⭐⭐ وtest_index_api.py ⭐⭐ هو ⭐⭐ مسار ⭐⭐ بيانات ⭐⭐ المؤشرات ⭐⭐ ⭐ اللي ⭐⭐ اتغيّر ⭐⭐ ⭐) ⭐⭐"
+            "note": "بوابة A5 ⭐⭐ (شجرة نظيفة ⭐: تثبيت ⭐ + بناء ⭐ + اختبار تكامل ⭐) ⭐⭐ ⇒ 11/11 ⭐⭐ على بصمة 7d298c6 ⭐⭐ (بناء ⭐⭐ الشجرة ⭐⭐ النظيفة ⭐⭐ + test_data_full_route.py ⭐⭐ + test_index_api.py ⭐⭐ ⭐ — ⭐⭐ وtest_index_api.py ⭐⭐ هو ⭐⭐ مسار ⭐⭐ بيانات ⭐⭐ المؤشرات ⭐⭐ ⭐ اللي ⭐⭐ اتغيّر ⭐⭐ ⭐) ⭐⭐"
           },
           {
             "kind": "art",
             "ref": "cross_repo_contract",
             "status": "ناجح",
             "sha256": "c1f43efc307f02029b58439e2c2c72d294a2bdeafab494b4f3f942de2e98c315",
-            "note": "عقد المستودعين ⭐⭐ ببصمتي R32 ⭐⭐ (FE 70ba520 ⭐ + BE 7e32b8d ⭐) ⭐ ⇒ **20/20** ⭐⭐ (الاختيار الحتمي ⭐ · ملف بيانات الواجهة نظيف ⭐ · ٦ حقول عقد منشورة ⭐)"
+            "note": "عقد المستودعين ⭐⭐ ببصمتي R32 ⭐⭐ (FE 70ba520 ⭐ + BE 7d298c6 ⭐) ⭐ ⇒ **20/20** ⭐⭐ (الاختيار الحتمي ⭐ · ملف بيانات الواجهة نظيف ⭐ · ٦ حقول عقد منشورة ⭐)"
           },
           {
             "kind": "art",
             "ref": "be_suite",
             "status": "ناجح",
             "sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
-            "note": "سويت ⭐⭐ الباك ⭐⭐ على بصمة المرشح 7e32b8d ⭐⭐ (تشغيل ⭐⭐ حقيقي ⭐⭐ بتكوين ⭐⭐ الـCI ⭐⭐ ⭐) ⭐⭐ ⇒ 87 ملف ⭐ · 84 ناجح ⭐ · 2 فاشل ⭐ · 1 متخطّى ⭐ · 5510 حالة ⭐⭐ ⭐ ⇒ الفاشلان ⭐⭐ المتبقّيان ⭐⭐ هما ⭐⭐ نفس ⭐⭐ ملفَي ⭐⭐ الأساس ⭐⭐ (لهما ⭐⭐ برهان ⭐⭐ سلبي ⭐⭐ ⭐): tools/staging/test_flask_binding.py ⭐⭐ + tools/test_round23_clean_clone.py ⭐⭐ ⭐ ⇒ ⭐⭐ صفر ⭐⭐ انحدار ⭐⭐ ⭐ ⇒ وشجرة ⭐⭐ الشغل ⭐⭐ بقيت ⭐⭐ **نضيفة** ⭐⭐ ⭐"
+            "note": "سويت ⭐⭐ الباك ⭐⭐ على بصمة المرشح 7d298c6 ⭐⭐ (تشغيل ⭐⭐ حقيقي ⭐⭐ بتكوين ⭐⭐ الـCI ⭐⭐ ⭐) ⭐⭐ ⇒ 87 ملف ⭐ · 84 ناجح ⭐ · 2 فاشل ⭐ · 1 متخطّى ⭐ · 5510 حالة ⭐⭐ ⭐ ⇒ الفاشلان ⭐⭐ المتبقّيان ⭐⭐ هما ⭐⭐ نفس ⭐⭐ ملفَي ⭐⭐ الأساس ⭐⭐ (لهما ⭐⭐ برهان ⭐⭐ سلبي ⭐⭐ ⭐): tools/staging/test_flask_binding.py ⭐⭐ + tools/test_round23_clean_clone.py ⭐⭐ ⭐ ⇒ ⭐⭐ صفر ⭐⭐ انحدار ⭐⭐ ⭐ ⇒ وشجرة ⭐⭐ الشغل ⭐⭐ بقيت ⭐⭐ **نضيفة** ⭐⭐ ⭐"
           }
         ]
       }
@@ -6335,11 +6335,11 @@
       "success_condition": "سجل passed/failed/skipped وmanifest والبصمات والأسباب؛ لا اعتماد skips إلزامية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6376,11 +6376,11 @@
       "success_condition": "قياس p95 وطلبات الصفحة والذاكرة والتكلفة بالنسبة للأهداف المقترحة المعتمدة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6421,11 +6421,11 @@
       "success_condition": "5001 مفتاح اصطناعي منتهٍ تنظف بالـTTL وتلتزم بسقف؛ تجاوز الحد يرجع 429 بلا انهيار.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6466,11 +6466,11 @@
       "success_condition": "اختبار حمل صناعي محلي بعد اعتماد ملف الحمل والسقف؛ اختبر عدة عمال دون موارد مدفوعة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6511,11 +6511,11 @@
       "success_condition": "قدم نتائج cold/warm وذاكرة وزمن واستجابة وتكلفة تقديرية منفصلة عن الفعلية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6556,11 +6556,11 @@
       "success_condition": "المرشح والبيئة وSHA المخدومون موثقون والـKV مفصول وبناء خال من الملفات المحظورة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6603,11 +6603,11 @@
       "success_condition": "401 للصفحة العامة/health لا يمر كنجاح؛ اختر ACTIVE-OLD لا أحدث رفع غير نشط.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6650,11 +6650,11 @@
       "success_condition": "تجربة smoke وrollback صناعية؛ تحقق عقد route والبصمة بعد الرجوع بلا نشر حي.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6671,7 +6671,7 @@
             "ref": "journey_preview_r32",
             "status": "ناجح",
             "sha256": "1f2b2a60a19d1d76e495052ceb4ed6952e15ef75aa75d9419c59d8b5ea0a18b6",
-            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7e32b8d ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
+            "note": "رحلة Chromium حقيقية ⭐⭐ على **عامل معاينة محلي faithful** ⭐⭐ (نفس كود المرشح 70ba520 ⭐⭐ + نفس ربط PREVIEW_KV ⭐⭐ + باك معزول حقيقي ⭐⭐ ببصمة 14363e2 ⭐⭐ ⭐ — ⭐⭐ دفعة ⭐⭐ R32 ⭐⭐ الأولى ⭐⭐ ⭐ — ⭐⭐ + لقطة سوق حقيقية ٢٩٧ سهم EGX ⭐⭐) ⭐⭐ ⇒ **32/32** ⭐⭐ ⭐ (الرقم ⭐⭐ مربوط ⭐⭐ ببصمته ⭐⭐ ⭐ — ⭐⭐ إعادة ⭐⭐ القياس ⭐⭐ على ⭐⭐ 7d298c6 ⭐⭐ مغطّاة ⭐⭐ بسويت ⭐⭐ الباك ⭐⭐ + بوابة ⭐⭐ A5 ⭐⭐ ⭐) ⭐⭐ ⇒ البوابة ⭐ (تسجيل ⭐ + كود ⭐ + PI"
           },
           {
             "kind": "be",
@@ -6697,11 +6697,11 @@
       "success_condition": "أرفق سجل rollback ومصفوفة HTTP وموافقة منفصلة لازمة لأي نشر حقيقي.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6737,11 +6737,11 @@
       "success_condition": "liveness خفيف وreadiness يكشف اعتمادًا حرجًا مع مؤشرات freshness وp95 و5xx.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6776,11 +6776,11 @@
       "success_condition": "تعطل التخزين لا يعرض ready؛ health العام لا يعرض بيانات الحساب أو تشخيصًا داخليًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6815,11 +6815,11 @@
       "success_condition": "حقن تعطل تخزين/مصدر/رسائل واختبار تنبيه صناعي وحالات degraded واعتماد حدودها.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6854,11 +6854,11 @@
       "success_condition": "أرفق لوحة قياس وسجلات منقحة وخطة تنبيه واستجابة؛ لا تفعيل خارجي تلقائي.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6893,11 +6893,11 @@
       "success_condition": "الدعم وإدارة الحساب وحذف البيانات وفق سياسة احتفاظ مكتوبة؛ لا PII في shell الإدارة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6941,11 +6941,11 @@
       "success_condition": "anonymous/Free لا يقرأ إدارة أو أصولًا حساسة؛ الحذف لا يدعي الإزالة الكاملة مع بقايا غير مصرح بها.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -6989,11 +6989,11 @@
       "success_condition": "اختبار حساب صناعي لحذف/تعمية وإبطال جلسة واستعادة مقيدة؛ إدارة وصول بدور مصرح.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -7037,11 +7037,11 @@
       "success_condition": "أدلة منقحة وسياسات اعتماد الاحتفاظ والدعم وتحقق الكاش؛ أي تعديل إنتاج بموافقة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -7085,11 +7085,11 @@
       "success_condition": "مسار اشتراك صناعي: طلب وتفعيل وتجديد وتسوية واسترداد متوافق مع الحقوق الفعلية.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -7125,11 +7125,11 @@
       "success_condition": "فشل الحفظ في أي خطوة أو إعادة الطلب لا يخلق نجاحًا كاذبًا ولا تفعيلًا/تحصيلًا مضاعفًا.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -7161,15 +7161,15 @@
       "actual_result": "the commercial acceptance journey is still open: no billing UI, no sweep scheduling, no subscription notifications and no owner approval of the pricing",
       "evidence": "be:tools/test_r26_subscriptions.py (ناجح ⭐)",
       "missing": "",
-      "blocking_reason": "موانع الإطلاق ⭐ ⭐ ⭐ ( actions ⭐⭐ + تيليجرام ⭐⭐ + سرّيّة ⭐⭐ + CSP ⭐⭐ + قارئ شاشة ⭐⭐ ) ⭐⭐ ⭐ ما زالت مفتوحة ⭐⭐ ⇒ الرحلة الكاملة ⭐⭐ غير مغلقة ⭐⭐",
+      "blocking_reason": "موانع الإطلاق ⭐⭐⭐ (1) حفظ ملفّي Actions على المستودعين ⭐⭐⭐ — التوكن بلا صلاحية Workflows ⭐⭐ (403 ⭐⭐) ⭐⭐⭐ · (2) تبديل توكني GitHub ⭐⭐⭐ — قيمتهما كانتا في سجل محلي قبل الإصلاح ⭐⭐ ⭐⭐ · (3) رحلة المعاينة ⭐⭐⭐ على البصمة ⭐⭐⭐ النهائية ⭐⭐⭐ ⇒ الرقم 32/32 مربوط ⭐⭐⭐ بـ14363e2 ⭐⭐⭐ والبديل ⭐⭐⭐ المقاس ⭐⭐⭐ على 7d298c6 ⭐⭐⭐ ⭐⭐⭐ ⇒ رحلة ⭐⭐⭐ جديدة ⭐⭐⭐ على ⭐⭐⭐ البصمة ⭐⭐⭐ النهائية ⭐⭐⭐ مطلوبة ⭐⭐⭐ · (4) CSP ⭐⭐⭐ قرار ⭐⭐⭐ منفصل ⭐⭐⭐ · (5) قارئ ⭐⭐⭐ شاشة ⭐⭐⭐ بشري ⭐⭐⭐ ⇒ الرحلة ⭐⭐⭐ الكاملة ⭐⭐⭐ غير ⭐⭐⭐ مغلقة ⭐⭐⭐ ⭐⭐⭐",
       "success_condition": "رحلة قبول كاملة من التسجيل حتى الدعم والإلغاء مع مزود دفع صناعي فقط؛ كل موانع الإطلاق مغلقة.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
@@ -7205,11 +7205,11 @@
       "success_condition": "موافقة منفصلة على الباقات والتسعير والشروط والخصوصية وخطة النشر والتراجع؛ لا دفع حقيقي.",
       "candidate": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424"
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a"
       },
       "run_fingerprint": {
         "fe_sha": "70ba5202ef3b1b7436fbdaad44b628ac36cee9cc",
-        "be_sha": "7e32b8de9271db7726b870ecfd5fbcba8325f424",
+        "be_sha": "7d298c6ae00a821a7ed8c960e929c06fc6c1490a",
         "fe_log_sha256": "b46152dcaec1d757be4e2bbffa3348892381e5458906b190e245156717c3c0b1",
         "fe_tsv_sha256": "54e52868b8bb82261dd83c99cf75aad3f72b74e7be8d2ff572609da678a72f83",
         "be_results_sha256": "2a40ca898229e98aa1a24162e708fe8ec97a8696e6a742056ce359fa9d5811a1",
