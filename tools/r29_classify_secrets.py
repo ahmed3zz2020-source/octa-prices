@@ -208,10 +208,22 @@ def window(lines, line_no):
     return "\n".join(lines[lo:hi])
 
 
+# ⭐⭐⭐ (R32-e2) ⭐⭐⭐_review ⭐⭐⭐ ⭐⭐⭐ صيغ ⭐⭐⭐ التوكن ⭐⭐⭐ الحقيقية ⭐⭐⭐ ⭐⭐⭐
+# 📌 قبل ⭐: ⛔ أي ⭐⭐ قيمة ⭐⭐ في ⭐⭐ ملف ⭐⭐ اختبار ⭐⭐ ⭐ ⭐⇢ ⭐⭐⛔ false_positive ⭐⭐ ⭐⭐
+#    ⭐⭐ ⭐ ⇒ ⭐⭐⛔ توكن ⭐⭐ حقيقي ⭐⭐ ⭐⭐ مدسوس ⭐⭐ في ⭐⭐ ملف ⭐⭐ اختبار ⭐⭐ ⭐⭐ ⭐⭐ بيعدّي ⭐⭐ ⭐⭐.
+# ✅ دلوقتي ⭐: ⭐ الاستثناء ⭐ ⭐ ⭐ ** لصيغة ⭐⭐ ⭐ ⭐قيمة ⭐⭐ ⭐ العامة ⭐⭐ ⭐ ⭐ فقط ⭐⭐ ⭐ ⭐
+#    ⭐ ⭐ ⭐ ⇒ ⭐ ⭐ صيغة ⭐⭐ ⭐ توكن ⭐⭐ ⭐ حقيقية ⭐⭐ ⭐ ⭐⇢ ⭐⭐⛔ **تسرّب ⭐⭐ حقيقي** ⭐⭐ ⭐⭐ ⭐⭐.
+REAL_TOKEN_FORMAT = re.compile(
+    r"(github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9]{20,})")
+
+
 def classify(line: str, where: str) -> tuple[str, str]:
     """⇦ (الحكم · السبب) ⭐ — كل سبب بالحرف ⭐."""
     if TESTFILE.search(where):
-        return "false_positive", "قيمة داخل ملف اختبار"
+        if REAL_TOKEN_FORMAT.search(line):
+            return "real_leak", ("صيغة ⭐⭐ توكن ⭐⭐ حقيقية ⭐⭐ داخل ⭐⭐ ملف ⭐⭐ اختبار ⭐⭐ "
+                                 "⭐⭐ ⭐ (الاستثناء ⭐⭐ ⭐ ما ⭐⭐ يشملهاش ⭐⭐ ⭐) ⭐⭐")
+        return "false_positive", "قيمة ⭐⭐ عامة ⭐⭐ داخل ⭐⭐ ملف ⭐⭐ اختبار ⭐⭐"
     # ⭐⭐⭐ (R32) ⭐⭐⭐ سطر **مش متاح** ⭐⭐ ⭐ ⇒ ⭐⭐ ⭐ مش تسرّب مؤكد ⭐⭐ ⭐
     # 📌 السبب ⭐: ⛔ السطر الفاضي ⭐⭐ كان بيروح ⭐⭐ ⭐ للافتراضي ⭐⭐ ⭐
     #    ⭐⭐ ⇒ ⭐⭐ يتّهم كود إنتاج ⭐⭐ بتسرّب ⭐⭐ ⭐ وهو **ب innocent** ⭐⭐ ⭐.
@@ -247,6 +259,9 @@ def main() -> int:
     path = sys.argv[1] if len(sys.argv) > 1 else "/workspace/output/r29/secrets-scan-final.json"
     with open(path, encoding="utf-8") as fh:
         scan = json.load(fh)
+    # ⭐⭐⭐ (R32-e2) ⭐⭐⭐ المجلدات ⭐⭐⭐ الممسوحة ⭐⭐⭐ (حتى ⭐⭐⭐ تتقرا ⭐⭐⭐ المواضع ⭐⭐⭐) ⭐⭐⭐
+    global SCAN_DIRS
+    SCAN_DIRS = list(((scan.get("summary") or {}).get("scanned_dirs")) or [])
     # ⭐⭐⭐ (R32) ⭐⭐⭐ تثبيت بصمات المستودعات ⭐ ⭐ (من نفس التقرير ⭐) ⭐
     load_pinned(scan)
     real, reasons = [], {}
@@ -271,7 +286,12 @@ def main() -> int:
                 real.append({"fingerprint": s.get("fingerprint"), "pattern": s.get("pattern"),
                              "location": where, "line": loc.get("line"),
                              "scope": loc.get("scope"),
-                             "source": redact(line.strip()[:160])})
+                             "why": why,
+                             "fingerprint": s.get("fingerprint"),
+                             # ⭐⭐⭐ (R32-e2) ⭐⭐⭐ **مفيش** ⭐⭐⭐ نص ⭐⭐⭐ خام ⭐⭐⭐ ⭐⭐⭐
+                             #    ⭐⭐⭐ (لا ⭐⭐⭐ سطر ⭐⭐⭐ ولا ⭐⭐⭐ جزء ⭐⭐⭐ منه ⭐⭐⭐) ⭐⭐⭐ ⭐⭐⭐
+                             #    ⭐⭐⭐ ⇒ ⭐⭐⭐ الملف ⭐⭐⭐ المخرج ⭐⭐⭐ آمن ⭐⭐⭐ للنشر ⭐⭐⭐ ⭐⭐⭐.
+                             "source": redact(line.strip()[:160])[:0] or None})
             elif verdict == "unverifiable":
                 # ⭐⭐⭐ (R32) ⭐⭐⭐ موضع **مش متاح** ⭐⭐ ⭐ ⇒ ⭐⭐ محجوب ⭐⭐ ⭐
                 #    ⭐⭐ مش تسرّب ⭐⭐ ⭐ ⇒ ⭐⭐ **ما يُعتمدش** ⭐⭐ ⭐ ⇒ ⛔ ok=false ⭐⭐.

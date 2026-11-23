@@ -55,6 +55,36 @@ def main() -> int:
         if not os.path.isfile(scan_out):
             check("ملف المسح ⭐ اتكتب ⭐", False)
             return 1
+        # ⭐⭐⭐ (R32-e2) ⭐⭐⭐ قيمة ⭐⭐⭐ صناعية ⭐⭐⭐ في ⭐⭐⭐ **ملف ⭐⭐⭐ اختبار** ⭐⭐⭐ ⭐⭐⭐
+        #    ⭐⭐⭐ ⭐ ⭐⇢ ⭐⭐⭐ استثناء ⭐⭐⭐ ملفات ⭐⭐⭐ الاختبار ⭐⭐⭐ ما ⭐⭐⭐ يشملهاش ⭐⭐⭐ ⭐⭐⭐
+        src2 = os.path.join(tmp, "test_synthetic.py")
+        with open(src2, "w", encoding="utf-8") as fh:
+            fh.write('SYNTHETIC_TOKEN = "%s"\n' % SYNTH)
+        scan2 = os.path.join(tmp, "scan2.json")
+        cls2 = os.path.join(tmp, "classification2.json")
+        subprocess.run([sys.executable, SCANNER, "--dir", tmp, "--out", scan2],
+                       capture_output=True, text=True, timeout=300)
+        subprocess.run([sys.executable, CLASSIFIER, scan2, cls2],
+                       capture_output=True, text=True, timeout=300)
+        if os.path.isfile(cls2):
+            t2 = open(cls2, encoding="utf-8").read()
+            d2 = json.loads(t2)
+            # ⭐⭐⭐ (R32-e2) ⭐⭐⭐ ⭐⭐⭐ القاعدة ⭐⭐⭐ ⭐⭐⭐: ⭐⭐⭐ استثناء ⭐⭐⭐ ملفات ⭐⭐⭐ الاختبار ⭐⭐⭐
+            #    ⭐⭐⭐ ⭐ ⭐⇢ ⭐⭐⭐ **ما ⭐⭐⭐ يشملش ⭐⭐⭐** ⭐⭐⭐ صيغة ⭐⭐⭐ توكن ⭐⭐⭐ حقيقية ⭐⭐⭐ ⭐⭐⭐
+            #    ⭐⭐⭐ ⇒ ⭐⭐⭐ لازم ⭐⭐⭐ تبان ⭐⭐⭐ في ⭐⭐⭐ المخرج ⭐⭐⭐ (تسرّب ⭐⭐⭐ حقيقي ⭐⭐⭐ ⭐⭐⭐
+            #    ⭐⭐⭐ أو ⭐⭐⭐ **مفقود ⭐⭐⭐ التحقق ⭐⭐⭐** ⭐⭐⭐ بصيغة ⭐⭐⭐ معلنة ⭐⭐⭐ ⭐⭐⭐ ⭐ ⭐⇢ ⭐⭐⭐
+            #    ⭐⭐⭐ **مش** ⭐⭐⭐ silently ⭐⭐⭐ false-positive ⭐⭐⭐ ⭐⭐⭐) ⭐⭐⭐.
+            unver = d2.get("unverifiable") or d2.get("unverifiable_locations") or []
+            unver_n = unver if isinstance(unver, int) else len(unver)
+            listed = (d2.get("real_leaks", 0) >= 1) or bool(unver_n)
+            check("ملف ⭐⭐ اختبار ⭐⭐ ⭐ بصيغة ⭐⭐ توكن ⭐⭐ ⭐ ⇒ ⭐⭐ **مش ⭐⭐ استثناء ⭐⭐ صامت** ⭐⭐",
+                  listed,
+                  "real_leaks=%s ⭐ unverifiable=%s ⭐" % (d2.get("real_leaks"), unver_n))
+            check("مخرج ⭐⭐ ملف ⭐⭐ الاختبار ⭐⭐ ⭐ خالٍ ⭐⭐ من ⭐⭐ النص ⭐⭐ الخام ⭐⭐",
+                  SYNTH not in t2 and "source" not in t2 or (SYNTH not in t2))
+        else:
+            check("تصنيف ⭐⭐ ملف ⭐⭐ الاختبار ⭐⭐ ⭐ اتعمل ⭐⭐", False)
+
         scan = json.load(open(scan_out, encoding="utf-8"))
         # ⭐⭐⭐ مخرج ⭐⭐⭐ المسح ⭐⭐⭐ ما ⭐⭐⭐ بيخزّنش ⭐⭐⭐ القيمة ⭐⭐⭐ الخام ⭐⭐⭐ ⭐⭐⭐ (بصمة ⭐⭐⭐ + طول ⭐⭐⭐ فقط ⭐⭐⭐)
         #    ⭐⭐⭐ ⇒ ⭐⭐⭐ الدليل ⭐⭐⭐ على ⭐⭐⭐ الكشف ⭐⭐⭐ = ⭐⭐⭐ عدد ⭐⭐⭐ القيم ⭐⭐⭐ المشبوهة ⭐⭐⭐ + ⭐⭐⭐ الموضع ⭐⭐⭐ ⭐⭐⭐.

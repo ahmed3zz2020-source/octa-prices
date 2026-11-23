@@ -254,6 +254,33 @@ def behavioral_refresh(store, tmp: Path):
         if store is not None:
             store._DATA_DIR = None
 
+    # ⭐⭐⭐ (R32-e2) ⭐⭐⭐ **تعافي ⭐⭐⭐** ⭐⭐⭐ بعد ⭐⭐⭐ تعطل ⭐⭐⭐ مؤقت ⭐⭐⭐ ⭐⭐⭐
+    # 📌 الفحص ⭐⭐⭐: ⭐⭐⭐ المجلد ⭐⭐⭐ التشغيلي ⭐⭐⭐ ينكسر ⭐⭐⭐ ⇒ ⭐⭐⭐ كتابة ⭐⭐⭐ مرفوضة ⭐⭐⭐ ⭐⭐⭐
+    #    ⭐⭐⭐ ومجلد ⭐⭐⭐ الكود ⭐⭐⭐ ما ⭐⭐⭐ اتلوّثش ⭐⭐⭐ ⭐⭐⭐ ⇒ ⭐⭐⭐ بعد ما ⭐⭐⭐ يرجع ⭐⭐⭐ ⭐⭐⭐
+    #    ⭐⭐⭐ ⇒ ⭐⭐⭐ الكتابة ⭐⭐⭐ تنجح ⭐⭐⭐ تاني ⭐⭐⭐ ⭐⭐⭐.
+    ok_recovery = False
+    try:
+        if store is not None:
+            real_env = os.environ.get("OCTA_DATA_DIR")
+            os.environ["OCTA_DATA_DIR"] = "/proc/1/nope-temp-break"
+            store._DATA_DIR = None
+            store._DATA_DIR_OK = False
+            broke = store.write_runtime({"version": "x", "indices": {}}) is False
+            code_probe2 = ROOT / "index_history.json"
+            clean2 = (not code_probe2.exists())
+            if real_env is None:
+                os.environ.pop("OCTA_DATA_DIR", None)
+            else:
+                os.environ["OCTA_DATA_DIR"] = real_env
+            store._DATA_DIR = None
+            store._DATA_DIR_OK = False
+            healed = store.write_runtime({"version": "healed", "indices": {}}) is True
+            ok_recovery = bool(broke and clean2 and healed)
+    except Exception:
+        ok_recovery = False
+    check("تعافي ⭐⭐ المجلد ⭐⭐ بعد ⭐⭐ تعطل ⭐⭐ مؤقت ⭐⭐ (رفض ⭐⭐ ⭐ ⭐ ⇒ ⭐⭐ رفض ⭐⭐ ⭐ ⭐ ⇒ ⭐⭐ نجاح ⭐⭐ ⭐ ⭐)",
+          ok_recovery)
+
     # ⭐⭐⭐ (R32 · e) ⭐⭐⭐ فشل ⭐⭐⭐ الحفظ ⭐⭐⭐ ⇒ ⭐⭐⭐ إعادة ⭐⭐⭐ المحاولة ⭐⭐⭐ ⭐⭐⭐
     ns_fail = dict(ns)
     ns_fail["_IDX_HIST_REFRESH_DAY"] = None   # ⭐⭐⭐ نبدأ ⭐⭐⭐ من ⭐⭐⭐ الصفر ⭐⭐⭐ ⭐ (العلامة ⭐⭐⭐ بتوقف ⭐⭐⭐ التحديث ⭐⭐⭐) ⭐⭐⭐

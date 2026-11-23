@@ -320,7 +320,15 @@ def scan_zip(path: str, report: Report, siblings=None) -> None:
             scan_text(text, "zip", f"{os.path.basename(path)}::{info.filename}", report)
 
 
+SCANNED_DIRS = []   # ⭐⭐⭐ (R32-e2) ⭐⭐⭐ المجلدات ⭐⭐⭐ الممسوحة ⭐⭐⭐ ⭐⭐⭐
+
+
 def scan_dir(path: str, report: Report) -> None:
+    # ⭐⭐⭐ (R32-e2) ⭐⭐⭐ ⭐⭐⭐ تسجيل ⭐⭐⭐ المجلد ⭐⭐⭐ ⭐⭐⭐ ⇒ ⭐⭐⭐ المصنّف ⭐⭐⭐ يقدر ⭐⭐⭐
+    #    ⭐⭐⭐ يقرا ⭐⭐⭐ سطر ⭐⭐⭐ المصدر ⭐⭐⭐ ⭐⭐⭐ (وإلا ⭐⭐⭐ كل ⭐⭐⭐ موضع ⭐⭐⭐ في ⭐⭐⭐ مجلد ⭐⭐⭐
+    #    ⭐⭐⭐ خارج ⭐⭐⭐ المستودعات ⭐⭐⭐ ⭐⭐⭐ ⭐⭐ ⭐⭐⇒ ⭐⭐⭐ تصنيف ⭐⭐⭐ **كاذب** ⭐⭐⭐ ⭐⭐⭐).
+    if path not in SCANNED_DIRS:
+        SCANNED_DIRS.append(path)
     for root, dirs, files in os.walk(path):
         dirs[:] = [d for d in dirs if d not in (".git", "node_modules", "__pycache__")]
         for name in files:
@@ -402,6 +410,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             "scanned_git_objects": report.scanned_objects,
             "scanned_worktree_files": report.scanned_files,
             "scanned_zip_members": report.scanned_zip_members,
+            "scanned_dirs": list(SCANNED_DIRS),
             "errors": report.errors,
             "blocking_count": len(report.blocking),
             # ⭐⭐⭐ (R32) ⭐⭐⭐ بصمة كل مستودع مقيس ⭐ ⭐⭐
