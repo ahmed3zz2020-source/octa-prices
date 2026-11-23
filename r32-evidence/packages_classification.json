@@ -18,7 +18,7 @@
     "total_findings": 130,
     "scanned_git_objects": 0,
     "scanned_worktree_files": 0,
-    "scanned_zip_members": 891,
+    "scanned_zip_members": 906,
     "errors": [],
     "blocking_count": 0
   }
